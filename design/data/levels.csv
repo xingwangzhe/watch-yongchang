@@ -1,0 +1,7 @@
+id,chapter,title,direction,waves,enemy_types,enemy_hp_base,culture_goal,star2_cond,star3_cond,unlock_skin
+1,1,抗倭叙事,抗倭叙事,3,"warrior,scout",100,repel_3_waves,destroy_outpost,culture_points_30,skin_militia
+2,2,永昌坚城,城堡防御,4,"warrior,archer",120,castle_full_hp,destroy_outpost,all_towers_level2,skin_fort
+3,3,进士家风,家族传承,4,"archer,tank",150,build_2_academies,destroy_outpost,field_jinshi_once,skin_scholar
+4,4,龙灯巡游,节庆巡游,5,"tank,musket",180,cast_3_parade_skills,destroy_outpost,culture_points_60,skin_lantern
+5,5,水乡烟火,水乡生活,5,"archer,musket,boss",210,peak_food_200,destroy_outpost,no_building_lost,skin_watertown
+6,6,望海未来,未来想象,6,"mech_warrior,mech_musket,boss",260,use_wanghai_finisher,destroy_outpost,star_all_chapters,skin_future
