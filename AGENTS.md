@@ -8,8 +8,10 @@
 - 名称：《守望 · 永昌》—— 2026 OSGJ 开源游戏开发大赛参赛作品
 - 主题：守 · 望（官方隐藏主题，解密结果见 `docs/02-主题资料/theme-payload.decrypted.json`）
 - 玩法：暴兵对推 + 塔防 + 物流经营 + 文化闯关（GDD 见 `design/游戏设计文档-GDD.md`）
+- **技术借鉴文档**：`design/技术借鉴-Mindustry与RWX.md` —— 改造图块/多格建筑/动画前**必读**，含 Mindustry/RWX 架构方法、本项目落地方案与 5 条踩坑记录
 - 运行时：Godot 4.7.2-stable；工程根 `game/`；主场景 `res://scenes/main.tscn`
 - 字体：霞鹜文楷 / LXGW WenKai（OFL 1.1），全局默认主题 `game/themes/default.tres`
+- 地形瓦片：Hard Vacuum（Mark Ferrari, CC BY 3.0）派生，见 `game/assets/tiles/` 与 AI 声明 5.4 节
 
 ## Git 约定（重要）
 
