@@ -165,7 +165,9 @@ func _build_about_panel() -> void:
 敌军按定时波次自三门来袭，玩家建塔布防、出兵迎击、经营补给。
 
 【AI 使用声明】
-本作美术素材由 WorkBuddy ImageGen 生成并经人工后处理；
+UI 图标与建筑动画由 WorkBuddy ImageGen 生成并经人工后处理；
+角色序列帧以 daniloMattos、sebshady 的 CC0 精灵为骨架，人工重着色并绘制明代乡兵与倭寇道具；
+明代浙南乡兵、藤牌、弓弩、火铳与龙灯形制参考 docs/06-资料文本化 所收永昌堡史料。
 设计文档、数值表与代码由会话助手辅助编写、人工审校。
 地形使用 Dungeon Crawl Stone Soup 具名图块（DCSS contributors, CC0 1.0）。
 BGM「Samurai Nights」by majadroid（CC BY 3.0，opengameart.org）；音效取自 OpenGameArt（CC0）。

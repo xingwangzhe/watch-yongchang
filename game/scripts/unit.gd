@@ -18,9 +18,33 @@ var hp: int = 0
 var is_dead: bool = false
 
 # 交战规则：近距离索敌 → 停止行进 → 攻击硬直 → 继续推进（塔防/RTS 通用）
-const DMG_TABLE: Dictionary = {"xiangyong": 15, "gongshou": 10, "longdeng": 25}
-const RANGE_TABLE: Dictionary = {"xiangyong": 42.0, "gongshou": 138.0, "longdeng": 55.0}
-const ATK_INTERVAL_TABLE: Dictionary = {"xiangyong": 0.9, "gongshou": 1.1, "longdeng": 1.3}
+const DMG_TABLE: Dictionary = {
+	"xiangyong": 15, "gongshou": 10, "longdeng": 25,
+	"wokou_scout": 9, "wokou_ronin": 18, "wokou_shield": 12,
+	"wokou_gun": 16, "wokou_chief": 32,
+}
+const RANGE_TABLE: Dictionary = {
+	"xiangyong": 42.0, "gongshou": 138.0, "longdeng": 55.0,
+	"wokou_scout": 42.0, "wokou_ronin": 48.0, "wokou_shield": 44.0,
+	"wokou_gun": 155.0, "wokou_chief": 60.0,
+}
+const ATK_INTERVAL_TABLE: Dictionary = {
+	"xiangyong": 0.9, "gongshou": 1.1, "longdeng": 1.3,
+	"wokou_scout": 0.75, "wokou_ronin": 1.0, "wokou_shield": 1.25,
+	"wokou_gun": 1.7, "wokou_chief": 1.15,
+}
+
+# 源图朝向与显示尺寸不同：Sora 朝左、48px 武士朝右；统一到路径行进方向。
+const VISUAL_TABLE: Dictionary = {
+	"xiangyong": {"scale": 0.55, "faces_right": false},
+	"gongshou": {"scale": 0.55, "faces_right": false},
+	"longdeng": {"scale": 0.60, "faces_right": false},
+	"wokou_scout": {"scale": 0.55, "faces_right": false},
+	"wokou_gun": {"scale": 0.55, "faces_right": false},
+	"wokou_ronin": {"scale": 0.73, "faces_right": true},
+	"wokou_shield": {"scale": 0.73, "faces_right": true},
+	"wokou_chief": {"scale": 0.88, "faces_right": true},
+}
 
 var _atk_cd: float = 0.0
 
@@ -47,7 +71,10 @@ func _ready() -> void:
 			progress_ratio = 1.0
 	if hp <= 0: hp = max_hp
 	sprite.sprite_frames = ResourceManager.get_frames(str(type_id))
-	sprite.modulate = Color(1.0, 0.68, 0.68) if is_enemy else Color(0.78, 0.95, 1.0)
+	var vis: Dictionary = VISUAL_TABLE.get(str(type_id), {"scale": 0.55, "faces_right": false})
+	sprite.scale = Vector2.ONE * float(vis["scale"])
+	sprite.flip_h = (direction > 0.0) != bool(vis["faces_right"])
+	sprite.modulate = Color.WHITE
 	sprite.play("run")
 	add_to_group("units")
 	print("[UNIT] spawn type=%s lane=%d hp=%d" % [type_id, lane_index, hp])
@@ -106,8 +133,13 @@ func take_damage(amount: int) -> void:
 	if hp <= 0:
 		die()
 
-## 塔防标配：单位头顶迷你血条（敌红我青），满血隐藏
+## 脚下阴影 + 阵营环，替代整张贴图染色；头顶迷你血条满血隐藏。
 func _draw() -> void:
+	draw_set_transform(Vector2(0.0, 15.0), 0.0, Vector2(1.0, 0.38))
+	draw_circle(Vector2.ZERO, 11.0, Color(0.01, 0.015, 0.015, 0.30))
+	var ring := Color(0.76, 0.34, 0.24, 0.58) if is_enemy else Color(0.30, 0.72, 0.60, 0.58)
+	draw_arc(Vector2.ZERO, 9.0, 0.0, TAU, 24, ring, 1.6, true)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if is_dead or hp >= max_hp:
 		return
 	var w := 26.0

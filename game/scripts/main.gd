@@ -31,6 +31,15 @@ const UNIT_DEFS: Array[Dictionary] = [
 		"icon": "res://assets/ui/icon_dragon.png", "hotkey": "3", "desc": "拼字龙灯出征，冲阵利器"},
 ]
 
+## 倭寇梯度：与 GDD 的「斥候 → 浪人 → 藤牌武士 → 火枪倭 → 倭将」对应。
+const ENEMY_DEFS: Array[Dictionary] = [
+	{"id": &"wokou_scout", "label": "倭寇斥候", "hp": 70},
+	{"id": &"wokou_ronin", "label": "浪人", "hp": 120},
+	{"id": &"wokou_shield", "label": "藤牌武士", "hp": 210},
+	{"id": &"wokou_gun", "label": "火枪倭", "hp": 85},
+	{"id": &"wokou_chief", "label": "倭将", "hp": 520},
+]
+
 ## 建筑定义（id / 名称 / 造价 / 图标 / 可生产兵种）
 const BUILD_DEFS: Array[Dictionary] = [
 	{"id": &"jianta", "label": "箭塔", "cost": 40,
@@ -669,6 +678,9 @@ func selection_ring_set(obj: Node) -> void:
 
 func _unit_def(id: StringName) -> Dictionary:
 	for def in UNIT_DEFS:
+		if def["id"] == id:
+			return def
+	for def in ENEMY_DEFS:
 		if def["id"] == id:
 			return def
 	return {"id": id, "label": str(id), "cost": 0, "hp": 120, "speed": 40.0, "icon": ""}

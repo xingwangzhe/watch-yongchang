@@ -38,6 +38,18 @@ func _run() -> void:
 	ck("初始/wave=0", int(s.get("wave", -1)) == 0)
 	ck("数据/60兵种已加载", int(s.get("data_counts", {}).get("units", 0)) == 60)
 	ck("数据/4塔已加载", int(s.get("data_counts", {}).get("towers", 0)) == 4)
+	var missing_sprites := 0
+	var bad_frames := 0
+	for uid in ["xiangyong", "gongshou", "longdeng", "wokou_scout", "wokou_ronin", "wokou_shield", "wokou_gun", "wokou_chief"]:
+		var base := "res://assets/units/%s" % uid
+		if not FileAccess.file_exists("%s/static.png" % base):
+			missing_sprites += 1
+		var run_n := DirAccess.get_files_at("%s/run" % base).size()
+		var atk_n := DirAccess.get_files_at("%s/attack" % base).size()
+		if run_n < 3 or atk_n < 3:
+			bad_frames += 1
+	ck("精灵/8兵种静态图齐全", missing_sprites == 0)
+	ck("精灵/跑攻序列帧齐全", bad_frames == 0)
 
 	# 2. 弹药消耗
 	supply.reset()
@@ -236,6 +248,8 @@ func _run() -> void:
 			ck("滚幕/可点击来源≥20", with_url >= 20)
 			ck("滚幕/无既无许可又无链接的条目", bad_license == 0)
 			ck("滚幕/许可声明 GPL-3", str(cd.get("license", "")).begins_with("GPL-3"))
+			var credit_text := JSON.stringify(cd)
+			ck("滚幕/角色精灵来源已登记", credit_text.contains("Simple animated character") and credit_text.contains("Samurai Sprites"))
 	var menu_scene := load("res://scenes/main_menu.tscn") as PackedScene
 	ck("UI/主菜单可加载", menu_scene != null)
 	var settings_scene := load("res://scenes/settings.tscn") as PackedScene
