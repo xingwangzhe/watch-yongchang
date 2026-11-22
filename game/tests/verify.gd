@@ -123,6 +123,7 @@ func _run() -> void:
 		ck("音频/SFX已加载=9", int(asnap.get("sfx_loaded", 0)) == 9)
 		audio.set_bgm_volume(0.55)
 		audio.set_sfx_volume(0.80)
+		audio.save_settings()  # 恢复默认值并写盘，避免污染真实配置
 
 	# 8. 场景导航与 UI 场景
 	var flow: Node = root_node.get_node_or_null("GameFlow") as Node
@@ -133,6 +134,39 @@ func _run() -> void:
 	ck("UI/主菜单可加载", menu_scene != null)
 	var settings_scene := load("res://scenes/settings.tscn") as PackedScene
 	ck("UI/设置界面可加载", settings_scene != null)
+
+	# 9. 显示系统（模式/分辨率/持久化/自适应配置）
+	var disp: Node = root_node.get_node_or_null("DisplayManager") as Node
+	ck("显示/DisplayManager存在", disp != null)
+	if disp != null:
+		ck("显示/默认窗口化", int(disp.get("display_mode")) == 0)
+		disp.set_display_mode(2)
+		ck("显示/切全屏", int(disp.get("display_mode")) == 2)
+		ck("显示/模式标签", str(disp.mode_label()) == "全屏")
+		disp.cycle_mode()
+		ck("显示/F11循环到窗口全屏", int(disp.get("display_mode")) == 0)
+		disp.set_windowed_resolution(Vector2i(1920, 1080))
+		ck("显示/分辨率切换1920x1080", Vector2i(disp.get("windowed_resolution")) == Vector2i(1920, 1080))
+		disp.set_windowed_resolution(Vector2i(999, 999))
+		ck("显示/非法分辨率被拒", Vector2i(disp.get("windowed_resolution")) == Vector2i(1920, 1080))
+		disp.set_display_mode(2)  # 全屏 + 1920x1080 一并持久化
+		disp.save_settings()
+		disp.set("display_mode", 0)
+		disp.set("windowed_resolution", Vector2i(1280, 720))
+		disp.load_settings()
+		ck("显示/配置持久化回读", int(disp.get("display_mode")) == 2
+			and Vector2i(disp.get("windowed_resolution")) == Vector2i(1920, 1080))
+		var snap: Dictionary = disp.get_debug_snapshot()
+		ck("显示/调试快照", snap.has("mode") and snap.has("window_size"))
+		# 恢复默认，避免污染真实运行配置
+		disp.set("display_mode", 0)
+		disp.set("windowed_resolution", Vector2i(1280, 720))
+		disp.save_settings()
+	var stretch_mode: String = str(ProjectSettings.get_setting("display/window/stretch/mode", ""))
+	var stretch_aspect: String = str(ProjectSettings.get_setting("display/window/stretch/aspect", ""))
+	ck("显示/拉伸模式canvas_items", stretch_mode == "canvas_items")
+	ck("显示/aspect自适应expand", stretch_aspect == "expand")
+	ck("显示/窗口可缩放", bool(ProjectSettings.get_setting("display/window/size/resizable", true)))
 
 	_done()
 

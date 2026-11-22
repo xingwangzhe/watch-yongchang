@@ -1,5 +1,5 @@
 extends Control
-## 设置界面：BGM/SFX 音量分离调节，实时试听，返回时自动持久化。
+## 设置界面：BGM/SFX 音量分离调节、显示模式与窗口化分辨率，实时试听，返回时自动持久化。
 
 const BackgroundArt = preload("res://scripts/ui/background_art.gd")
 const FONT_PATH := "res://assets/fonts/LXGWWenKai-Regular.ttf"
@@ -15,6 +15,8 @@ var _bgm_slider: HSlider
 var _sfx_slider: HSlider
 var _bgm_value: Label
 var _sfx_value: Label
+var _mode_btn: Button
+var _res_btn: Button
 
 func _ready() -> void:
 	_font = load(FONT_PATH) as Font
@@ -43,9 +45,9 @@ func _build_ui() -> void:
 	panel.anchor_right = 0.5
 	panel.anchor_bottom = 0.5
 	panel.offset_left = -340.0
-	panel.offset_top = -260.0
+	panel.offset_top = -336.0
 	panel.offset_right = 340.0
-	panel.offset_bottom = 250.0
+	panel.offset_bottom = 326.0
 	var UIKit := preload("res://scripts/ui/ui_kit.gd")
 	panel.add_theme_stylebox_override("panel", UIKit.gold_panel_style(14.0))
 	add_child(panel)
@@ -86,6 +88,12 @@ func _build_ui() -> void:
 	_sfx_slider = _add_slider(vbox, AudioManager.get_sfx_volume())
 	_sfx_slider.value_changed.connect(_on_sfx_changed)
 	_on_sfx_changed(_sfx_slider.value)
+
+	# 显示模式与窗口化分辨率
+	var divider2 := HSeparator.new()
+	divider2.add_theme_stylebox_override("separator", _make_line())
+	vbox.add_child(divider2)
+	_add_display_rows(vbox)
 
 	# 试听按钮
 	var preview := Button.new()
@@ -133,13 +141,79 @@ func _on_sfx_changed(v: float) -> void:
 	_sfx_value.add_theme_font_size_override("font_size", 22)
 	_sfx_value.add_theme_color_override("font_color", C_INK)
 
+# ---------- 显示模式（窗口化 / 窗口全屏 / 全屏）与窗口化分辨率 ----------
+
+func _add_display_rows(parent: VBoxContainer) -> void:
+	var UIKit := preload("res://scripts/ui/ui_kit.gd")
+
+	var mode_row := HBoxContainer.new()
+	mode_row.add_theme_constant_override("separation", 14)
+	parent.add_child(mode_row)
+	var mode_label := Label.new()
+	mode_label.text = "显示模式"
+	mode_label.add_theme_font_override("font", _font)
+	mode_label.add_theme_font_size_override("font_size", 22)
+	mode_label.add_theme_color_override("font_color", C_INK)
+	mode_row.add_child(mode_label)
+	_mode_btn = Button.new()
+	_mode_btn.text = DisplayManager.mode_label()
+	_mode_btn.custom_minimum_size = Vector2(170, 40)
+	_mode_btn.add_theme_font_override("font", _font)
+	_mode_btn.add_theme_font_size_override("font_size", 20)
+	_mode_btn.icon = UIKit.icon("settings")
+	_mode_btn.expand_icon = true
+	_mode_btn.add_theme_constant_override("icon_max_width", 22)
+	_mode_btn.add_theme_stylebox_override("normal", _make_style(C_BTN, C_GOLD))
+	_mode_btn.add_theme_stylebox_override("hover", _make_style(C_BTN_HOVER, C_RED))
+	_mode_btn.pressed.connect(_on_mode_pressed)
+	mode_row.add_child(_mode_btn)
+	var mode_hint := Label.new()
+	mode_hint.text = "F11 循环 · Alt+Enter 切换窗口全屏"
+	mode_hint.add_theme_font_override("font", _font)
+	mode_hint.add_theme_font_size_override("font_size", 15)
+	mode_hint.add_theme_color_override("font_color", Color(0.62, 0.60, 0.52))
+	mode_row.add_child(mode_hint)
+
+	var res_row := HBoxContainer.new()
+	res_row.add_theme_constant_override("separation", 14)
+	parent.add_child(res_row)
+	var res_label := Label.new()
+	res_label.text = "窗口分辨率"
+	res_label.add_theme_font_override("font", _font)
+	res_label.add_theme_font_size_override("font_size", 22)
+	res_label.add_theme_color_override("font_color", C_INK)
+	res_row.add_child(res_label)
+	_res_btn = Button.new()
+	_res_btn.text = DisplayManager.resolution_label()
+	_res_btn.custom_minimum_size = Vector2(170, 40)
+	_res_btn.add_theme_font_override("font", _font)
+	_res_btn.add_theme_font_size_override("font_size", 20)
+	_res_btn.add_theme_stylebox_override("normal", _make_style(C_BTN, C_GOLD))
+	_res_btn.add_theme_stylebox_override("hover", _make_style(C_BTN_HOVER, C_RED))
+	_res_btn.pressed.connect(_on_resolution_pressed)
+	res_row.add_child(_res_btn)
+
+func _on_mode_pressed() -> void:
+	DisplayManager.cycle_mode()
+	_mode_btn.text = DisplayManager.mode_label()
+	AudioManager.play_sfx(&"merge")
+
+func _on_resolution_pressed() -> void:
+	var presets: Array[Vector2i] = DisplayManager.RESOLUTIONS
+	var idx := presets.find(DisplayManager.windowed_resolution)
+	DisplayManager.set_windowed_resolution(presets[(idx + 1) % presets.size()])
+	_res_btn.text = DisplayManager.resolution_label()
+	AudioManager.play_sfx(&"merge")
+
 func _on_back() -> void:
 	AudioManager.save_settings()
+	DisplayManager.save_settings()
 	GameFlow.return_from_settings()
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		AudioManager.save_settings()
+		DisplayManager.save_settings()
 
 func _make_style(bg: Color, border: Color) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
