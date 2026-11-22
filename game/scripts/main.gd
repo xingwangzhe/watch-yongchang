@@ -67,6 +67,15 @@ var selected_object: Node = null
 
 var _build_preview: Node2D = null
 var _selection_ring: Node2D = null
+
+# ---------- 框选状态（复刻 OpenRA WorldInteractionControllerWidget 的 dragbox）----------
+## 左键按下只记起点，抬起时才判定「成框 → 框选」还是「未成框 → 单击点选」。
+## 阈值 SelectionDeadzone 用于区分手抖与真的拖拽（OpenRA 同名设置）。
+const SELECT_DEADZONE: float = 8.0
+var _dragging_select: bool = false
+var _drag_start_screen: Vector2 = Vector2.ZERO
+var _drag_additive: bool = false
+var _sel_box: Control = null
 var _sidebar: Control = null
 var _minimap: Control = null
 var map_result: Dictionary = {}
@@ -96,14 +105,14 @@ func _build_tilemap() -> void:
 	map_result = TileMapBuilder.build(self)
 	var buildings: Array = map_result.get("buildings", [])
 	print("[TILEMAP] cols=%d rows=%d tile=%d buildings=%d world=%s" % [
-		map_result.get("cols", 0), map_result.get("rows", 0), map_result.get("tile", 40),
+		map_result.get("cols", 0), map_result.get("rows", 0), map_result.get("tile", 32),
 		buildings.size(), str(map_result.get("world_size", Vector2.ZERO))])
 	var rig := preload("res://scripts/camera_rig.gd").new()
 	rig.name = "CameraRig"
 	add_child(rig)
-	rig.setup(map_result.get("world_size", Vector2(3840, 2880)))
-	rig.position = TileMapBuilder.keep_center(false) + Vector2(520.0, 0.0)
-	rig.reset_smoothing()
+	# 初始视角落在己方主堡东侧（能同时看到主堡与东来驿道）
+	var start_center: Vector2 = TileMapBuilder.keep_center(false) + Vector2(520.0, 0.0)
+	rig.setup(map_result.get("world_size", Vector2(3840, 2880)), start_center)
 	camera_rig = rig
 
 func _build_lanes() -> void:
@@ -191,7 +200,7 @@ func _build_ui() -> void:
 func _build_minimap() -> void:
 	_minimap = MinimapScript.new()
 	_minimap.name = "MiniMapPanel"
-	_minimap.call("setup", map_result, units_layer, camera_rig)
+	_minimap.call("setup", map_result, units_layer, camera_rig, towers_layer)
 	hud.add_child(_minimap)
 	# 右上角：从 y=64 起，222×222
 	_minimap.anchor_left = 1.0
@@ -219,6 +228,10 @@ func _build_sidebar() -> void:
 	_sidebar.produce_requested.connect(_on_produce_requested)
 	_sidebar.closed.connect(_close_sidebar)
 	_sidebar.visible = false
+	# 屏幕空间框选矩形；mouse_filter=IGNORE，不抢地图或小地图输入。
+	_sel_box = preload("res://scripts/selection_box.gd").new() as Control
+	_sel_box.name = "SelectionBox"
+	hud.add_child(_sel_box)
 
 # ---------- 输入 ----------
 
@@ -244,20 +257,78 @@ func _unhandled_input(event: InputEvent) -> void:
 				else:
 					_toggle_pause()
 				get_viewport().set_input_as_handled()
-	elif event is InputEventMouseButton and event.pressed:
+	elif event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
+		if mb.button_index != MOUSE_BUTTON_LEFT and mb.button_index != MOUSE_BUTTON_RIGHT:
+			return
+		if not mb.pressed:
+			# 左键抬起才算一次「点击 / 框选」——按下时只记录起点（OpenRA 同策略：
+			# WorldInteractionControllerWidget 在 Down 记 dragStart，在 Up 才判定）
+			if mb.button_index == MOUSE_BUTTON_LEFT and _dragging_select:
+				_finish_drag_select(mb)
+			return
 		if mb.button_index == MOUSE_BUTTON_LEFT:
 			if build_mode:
 				_try_build_at(get_global_mouse_position())
 			else:
-				_select_at(get_global_mouse_position())
+				_begin_drag_select(mb)
 		elif mb.button_index == MOUSE_BUTTON_RIGHT:
 			if build_mode:
 				_cancel_build()
 			else:
 				_clear_selection()
+	elif event is InputEventMouseMotion and _dragging_select:
+		var mm := event as InputEventMouseMotion
+		if _sel_box != null:
+			_sel_box.call("update_to", mm.position, SELECT_DEADZONE)
 
 # ---------- 选择链路 ----------
+
+## 左键按下：进入可能的拖选状态（是否成框由 deadzone 决定）
+func _begin_drag_select(mb: InputEventMouseButton) -> void:
+	_dragging_select = true
+	_drag_start_screen = mb.position
+	_drag_additive = mb.shift_pressed or mb.ctrl_pressed
+	if _sel_box != null:
+		_sel_box.call("begin", mb.position, _drag_additive)
+
+## 左键抬起：超过 deadzone 走框选，否则走单击点选
+func _finish_drag_select(mb: InputEventMouseButton) -> void:
+	_dragging_select = false
+	var screen_rect := Rect2()
+	if _sel_box != null:
+		screen_rect = _sel_box.call("finish") as Rect2
+	if screen_rect.size == Vector2.ZERO:
+		# 未成框 → 单击点选（点空地则清空）
+		_select_at(_screen_to_world(mb.position))
+		return
+	_select_in_box(screen_rect, _drag_additive)
+
+func _screen_to_world(screen_pos: Vector2) -> Vector2:
+	if camera_rig != null and camera_rig.has_method("screen_to_world"):
+		return camera_rig.call("screen_to_world", screen_pos) as Vector2
+	return get_global_mouse_position()
+
+## 框选：屏幕矩形换算成世界矩形，选中其中所有己方单位；Shift/Ctrl 为加选。
+## 对应 OpenRA SelectionUtils.SelectActorsInBoxWithDeadzone + Selection.Combine(shift)。
+func _select_in_box(screen_rect: Rect2, additive: bool) -> void:
+	var a := _screen_to_world(screen_rect.position)
+	var b := _screen_to_world(screen_rect.position + screen_rect.size)
+	var world_rect := Rect2(Vector2(minf(a.x, b.x), minf(a.y, b.y)),
+		Vector2(absf(b.x - a.x), absf(b.y - a.y)))
+	var picked: Array[Node] = []
+	for node in get_tree().get_nodes_in_group("units"):
+		var n2d := node as Node2D
+		if n2d == null or not is_instance_valid(n2d):
+			continue
+		if world_rect.has_point(n2d.global_position):
+			picked.append(n2d)
+	# 没有单位就退化为点选（避免空框把选择清掉后又让人以为没反应）
+	if picked.is_empty():
+		_select_at(a)
+		return
+	_select_object(picked[0])
+	print("[SELECT] box count=%d additive=%s rect=%s" % [picked.size(), str(additive), world_rect])
 
 ## 点选：先找单位，再找建筑；都没有则清空（右栏随之隐藏）
 func _select_at(world_pos: Vector2) -> void:
