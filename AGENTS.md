@@ -12,11 +12,15 @@
 - **弃用声明**：`design/技术借鉴-Mindustry与RWX.md` 及任何 RWX（yomi2539/RWX）派生代码均已移除，禁止再引入；地形与 UI 不许再"随机取块拼凑"
 - 运行时：Godot 4.7.2-stable；工程根 `game/`；主场景 `res://scenes/main.tscn`
 - 字体：霞鹜文楷 / LXGW WenKai（OFL 1.1），全局默认主题 `game/themes/default.tres`
-- 地形：Hard Vacuum（Mark Ferrari, CC BY 3.0）**20px 原生网格**切割 → **40px 显示**，图块在
-  `game/assets/tiles/hardvacuum/native/`，语义索引 `native/manifest.csv`，联系表 `docs/screenshots/hv_native/`。
-  **禁止用 32px 窗口去切 20px 图集**（会横跨瓦片边界，视觉上变成"一把碎石"）；重新切块跑
-  `python3 tools/cut_hv_native.py`。`cliff`(GrasClif)/`stone` 是 **blob 结构块**（墙顶/墙身/转角），
-  只能按位置取用，不能当地面纹理随机铺。
+- 地形：**Dungeon Crawl Stone Soup 图块（CC0，32×32 3/4 俯视）**，位于
+  `game/assets/tiles/dcss/{wall,floor,water,door,tree}/`，登记表 `dcss/manifest.csv`
+  （列 file/category/name/opaque/edge_opaque/tileable，共 106 块）。
+  - `tileable=1` 的块才能整片轮换；浪花、树、门是 overlay，只能按位摆放。
+  - 语义分组在 `TileCatalog.SEMANTIC_GROUPS`（field/soil/street/wall_stone/
+    wall_brick/water_deep/water_shallow/road_rock/road_sand/door_wood/mangrove），
+    **换素材只改这张表**。同一语义大面积只取一块，区域级换材质，不逐格换语义。
+  - 红线：禁止逐格随机切换材质（`_hash(c,r,N) % M == 0` 这类），
+    那是画面出现噪点的直接原因；要区分远近应换区域，不要在区域内掷骰子。
 - 许可：**代码 GPL-3.0-or-later**；原创非代码资产 CC BY 4.0；音频 CC0/CC-BY；字体 OFL 1.1。片尾滚幕（`scenes/credits.tscn`）逐项列出可点击来源链接
 
 ## Git 约定（重要）

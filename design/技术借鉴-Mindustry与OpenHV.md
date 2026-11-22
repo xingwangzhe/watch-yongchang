@@ -74,24 +74,25 @@ Mindustry 侧对应概念（只借鉴思路）：`WaveSpawner.waveInterval` / `w
 ### 2.4 小地图（`game/scripts/ui/minimap_panel.gd`）
 
 复刻 OpenRA `Radar` 组件的四件事：
-1. 1px/格离屏底图（按 `zone_map` 语义上色，nearest 放大）
+1. 1px/格离屏底图（逐格读取 Ground/Road/Structure/Decor 真实图块均色并 alpha 合成，nearest 放大；`zone_map` 只供 tooltip）
 2. 己方单位青点 / 敌方单位红点 / 己方建筑方框
 3. 当前视口白框
 4. 点击/拖拽跳转（左键跳转并保持选择，右键只跳转）
 
 ---
 
-## 三、地形：具名图块，按语义铺设
+## 三、地形：DCSS 具名图块，按语义铺设
 
 旧实现从精灵表里**随机取块**拼地面，被明确否决。现方案：
 
-- 图块来源：`game/assets/tiles/hardvacuum/{ground,road,rock,water}/*.png`，32×32，**文件名即语义**
-  - `moss_*` 草地/农田 · `sand_*` 沙地/滩涂 · `road_*` 土路 · `road_rock_*` 石板路
-  - `road_sand_*` 沙路 · `cliff_*` 亮崖石（城墙）· `cliff_dark_*` 暗崖石 · `stone_00` 石块 · `water_*` 水面
-- 查表：`game/scripts/tile_catalog.gd`（名字 → 图块 source/坐标）
-- 变体：**只允许同语义内确定性轮换**（如 `(c*7+r*3) % 13`），禁止跨语义随机
+- 图块来源：`game/assets/tiles/dcss/{wall,floor,water,door,tree}/*.png`，32×32，CC0
+  - `floor/sand_1..4` 连续沙褐地面 · `floor/limestone_*` 青灰石灰岩 · `wall/brick_gray_*` 城墙
+  - `wall/brick_brown_*` 民居 · `water/shallow_water*` 河渠 · `water/*_wave_*` 岸线 overlay · `door/*` 门 · `tree/mangrove_*` 水岸植被
+- 查表：`game/scripts/tile_catalog.gd`（`manifest.csv` 名字 → 图块 source/坐标）
+- 选材：逐块测量亮度、四边不透明度和 3×3 接缝比；大面积只用无边框、接缝比接近 1 的块
+- 变体：**同一语义只取一块，区域级换材质**；禁止逐格随机切换语义或棋盘式轮换
 - 分区：`tile_map_builder.gd` 按《永昌堡十三进士与抗倭纪略》的城池形制分区铺设，
-  并输出 `zone_map`（`wall/gate/moat/river/road/city/field/sea`）供小地图上色
+  并输出 `zone_map`（`wall/gate/moat/river/road/city/field/sea/mountain`）供小地图 tooltip
 
 ---
 

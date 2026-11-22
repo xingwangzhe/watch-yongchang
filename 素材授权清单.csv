@@ -50,7 +50,6 @@ docs/01-参考资料包/永昌堡参考资料-yongchang-fort.pdf,永昌堡十三
 docs/02-主题资料/,主题解密载荷与密钥,赛事公开数据,2026 OSGJ 官网,-,AES-GCM解密,赛事官方公开信息,主题解读,否
 docs/03-站点图片/,官网图片与合作伙伴标识,第三方参考资料,2026 OSGJ 官网,-,下载存档,原站点权利归各权利人；不得进成品,界面风格参考,否
 assets/fonts/LXGWWenKai-Regular.ttf,霞鹜文楷 LXGW WenKai,UI 中文字体,开源字体项目（lxgw/LxgwWenKai）,-,复制随项目分发,SIL Open Font License 1.1（须随附 OFL 许可文本）,游戏内所有中文文本渲染,计划使用
-assets/third_party/hardvacuum/***.bmp,Hard Vacuum 原始素材包,第三方原始素材,Mark Ferrari (Lost Garden) https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip,第三方素材（非AI生成）,原始BMP未修改（仅作转换输入）,CC BY 3.0,转换输入（不直接入成品）,否
 game/assets/units/gongshou/attack/frame_01.png,units,兵种gongshou帧(俯视重生成),AI生成,WorkBuddy ImageGen 文本/图生图（俯视角4帧条带）,切帧/去白底flood fill/清抗锯齿白点/裁切居中/nearest缩放到64x64 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内俯视兵种精灵(run/attack),已使用
 game/assets/units/gongshou/attack/frame_02.png,units,兵种gongshou帧(俯视重生成),AI生成,WorkBuddy ImageGen 文本/图生图（俯视角4帧条带）,切帧/去白底flood fill/清抗锯齿白点/裁切居中/nearest缩放到64x64 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内俯视兵种精灵(run/attack),已使用
 game/assets/units/gongshou/attack/frame_03.png,units,兵种gongshou帧(俯视重生成),AI生成,WorkBuddy ImageGen 文本/图生图（俯视角4帧条带）,切帧/去白底flood fill/清抗锯齿白点/裁切居中/nearest缩放到64x64 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内俯视兵种精灵(run/attack),已使用
@@ -155,5 +154,5 @@ generated/ui_thirdparty/raw/golden-ui_ui-split_buch_CC0.png,raw_golden_ui,UI原�
 generated/ui_thirdparty/raw/free-ui-asset-pack-1_ctatz_CC0.zip,raw_ctatz_ui,UI原始素材包,第三方（OpenGameArt）,Free UI Asset Pack 1 by ctatz,未修改（整包归档）,CC0 1.0（第三方，见 generated/ui_thirdparty/LICENSES.md）,溯源存档（符号来源）,是
 generated/ui_thirdparty/LICENSES.md,ui_licenses,许可登记文档,原创文档,WorkBuddy 会话助手（大语言模型）,人工核对 URL/作者/许可,CC BY 4.0（项目文档）,第三方 UI 装饰 TASL 登记与署名文本,已使用
 tools/process_thirdparty_ui.py,process_thirdparty_ui,处理脚本,原创代码,WorkBuddy 会话助手（大语言模型）,人工选源、定裁切框与金色基线,GPL-3.0-or-later（项目代码）,第三方 UI 装饰转换流水线,已使用
-"game/assets/tiles/hardvacuum/{ground,road,rock,water}/*.png",hv_named_tiles,地形具名图块（109 张 32×32，按名引用）,Hard Vacuum (Mark Ferrari / Lost Garden) https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip,原始 zip 内 bmp 逐张导出为 png，按语义命名（moss/sand/road/road_rock/road_sand/cliff/cliff_dark/stone/water）,未改色；仅切分与命名，索引见同目录 manifest.csv,CC BY 3.0（署名 Mark Ferrari / Lost Garden）,游戏内地表/城砖/驿道/水域/滩涂，按语义分区铺设,已使用
-game/assets/tiles/hardvacuum/manifest.csv,hv_named_index,"图块具名索引（category,file,source）",原创生成（描述 HV 位图的元数据）,tools/（导出脚本）,人工核对文件名与语义一一对应,CC BY 4.0（项目派生资产）,TileCatalog 具名查表依据；禁止跨语义随机取块,已使用
+"game/assets/tiles/dcss/{wall,floor,water,door,tree}/*.png",dcss_tiles,"地形具名图块（106 张 32×32，按语义引用）",DCSS contributors（维护：Chris Hamons；原始美术含 DENZI 等多人） https://opengameart.org/content/dungeon-crawl-32x32-tiles,原始包逐块导出为 png，保留 light/dark 等原始文件名,未改色；仅建立语义分组与确定性取块；索引见 game/assets/tiles/dcss/manifest.csv,CC0 1.0（公有领域贡献）,游戏内地表/城墙/驿道/水域/滩涂/门/植被，按语义分区铺设,已使用
+game/assets/tiles/dcss/manifest.csv,dcss_index,"图块索引（file,category,name,opaque,edge_opaque,tileable）",原创生成（DCSS 图块元数据）,tools/（图像测量）,人工核对四边不透明度/亮度/接缝比与语义分组,CC BY 4.0（项目派生资产）,TileCatalog 具名查表依据；禁止跨语义随机取块,已使用
