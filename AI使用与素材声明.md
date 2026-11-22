@@ -2,11 +2,12 @@
 
 | 项目 | 内容 |
 |---|---|
-| 文档版本 | v1.5 |
+| 文档版本 | v1.7 |
 | 更新日期 | 2026-11-22 |
-| 适用阶段 | 资料收集、设计、核心样例素材制作、Godot 可玩原型与美术重构、UI/HUD、音频与 UI 装饰阶段 |
+| 适用阶段 | 资料收集、设计、Godot 可玩原型、美术重构、UI/HUD、音频与装饰、**永昌堡地形重构 / 定时出兵重构 / 侧栏与滚幕** 阶段 |
 | 对应赛事要求 | 2026 开源游戏开发大赛 第五节「内容要求」、第六节「提交材料」、第八节「Dora 开源社区奖」 |
-| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（158 条：含美术重构批次 42 张新素材 + UI 素材批次 11 张 + 第三方音频 1 BGM + 9 音效 + 第三方 UI 装饰 10 张成品及原始/文档/脚本条目） |
+| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（158 条：含美术重构批次 42 张新素材 + UI 素材批次 11 张 + 第三方音频 1 BGM + 9 音效 + 第三方 UI 装饰 10 张成品 + 地形具名图块 109 张及索引/文档/脚本条目） |
+| 署名呈现 | 游戏内电影式片尾滚幕 `game/scenes/credits.tscn`，数据源 `game/data/credits.json`，逐项含可点击来源链接 |
 
 > 本声明按赛事规则「须申报赛前已有的代码、工具与素材；作品原创，素材来源与授权清晰」「鼓励 AI 辅助创作；使用时须如实说明工具、用途、生成内容与人工修改情况」编制。
 > 最终提交前须更新版本号、产出清单与锁定提交哈希，并补齐开发者日志。
@@ -17,9 +18,9 @@
 
 1. **赛前已有的代码、工具与素材**：无。本项目于 2026-11-22 从空目录初始化，所有设计文档、数据表与素材均在本届开发期内产生。
 2. **作品原创性**：游戏概念《守望·永昌》、四阶兵种体系、文化机制转译、关卡结构与数值框架为本项目原创，未使用任何已基本完成的旧项目或换皮内容。
-3. **第三方素材进入成品比例**：地形瓦片来自 CC BY 3.0 素材 **Hard Vacuum（Mark Ferrari / Lost Garden）**，经切图与地质色系重新着色后嵌入游戏（详见第五节 5.4）。该素材许可清晰、已署名；组委会提供的素材包与官网图片仍仅用于文化考据，未直接嵌入成品。
+3. **第三方素材进入成品比例**：地形使用 CC BY 3.0 素材 **Hard Vacuum（Mark Ferrari / Lost Garden）** 的 **109 张具名图块**（草地/沙地/道路/石板路/崖石/水面），按语义分区铺设、未重新着色（详见第五节 5.4）。该素材许可清晰、已署名；组委会提供的素材包与官网图片仍仅用于文化考据，未直接嵌入成品。**原 v2 采用的 RWX 派生切图已全部移除**，含其 `Tiled` 图块集与相关脚本。
 4. **AI 生成素材进入成品比例**：当前核心样例批次 42 张 PNG + UI 素材批次 11 张 PNG 全部为 AI 生成并经人工后处理，来源清晰、无第三方权利瑕疵。地形瓦片为第三方 CC BY 3.0 派生，BGM 与音效为第三方 CC-BY 3.0 / CC0 素材，均非 AI 生成。
-5. **许可策略**：若申请 Dora 开源社区奖，项目代码采用 **AGPL-3.0**，原创非代码资产采用 **CC BY 4.0**，第三方内容保留原许可（CC BY 3.0）并署名，详见第五节 5.4 与第六节。
+5. **许可策略**：项目代码采用 **GPL-3.0-or-later**（许可证全文见仓库根目录 `LICENSE`），原创非代码资产采用 **CC BY 4.0**，第三方内容保留原许可（CC BY 3.0 / CC0 / OFL 1.1）并逐项署名；全部署名以电影式片尾滚幕呈现，条目可点击溯源。
 
 ---
 
@@ -29,7 +30,7 @@
 
 | 工具 | 用途 | AI 生成 / 输出内容 | 人工修改与介入 |
 |---|---|---|---|
-| **WorkBuddy ImageGen**（内置图像生成） | 游戏美术生产 | 早期批次 42 张 PNG（6 静态 + 36 序列帧）；美术重构批次 7 张 4 帧水平条带图（3 俯视兵种跑步 + 3 建筑动作 + 1 弃用侧面视角测试），经切帧后产出 42 张成品 PNG；UI 素材批次 4 张（通用面板底板 + 资源图标 4 联 + 建造图标 3 联 + 出兵图标 3 联），经切图抠图产出 11 张成品（10 图标 64×64 + 1 面板 512×512），全部接入游戏 HUD 与菜单 | 人工设计提示词与风格基线；重构批次按 RWX 规格重做——兵种严格垂直俯视、建筑正面+俯视 2.5D；以 `Frame A/B/C/D` 前缀锁定姿势；UI 批次逐张人工验收联系表；生成后按图内容分拣到正确目录（曾遇并行输出串目录/时间戳覆盖，改串行生成解决） |
+| **WorkBuddy ImageGen**（内置图像生成） | 游戏美术生产 | 早期批次 42 张 PNG（6 静态 + 36 序列帧）；美术重构批次 7 张 4 帧水平条带图（3 俯视兵种跑步 + 3 建筑动作 + 1 弃用侧面视角测试），经切帧后产出 42 张成品 PNG；UI 素材批次 4 张（通用面板底板 + 资源图标 4 联 + 建造图标 3 联 + 出兵图标 3 联），经切图抠图产出 11 张成品（10 图标 64×64 + 1 面板 512×512），全部接入游戏 HUD 与菜单 | 人工设计提示词与风格基线；重构批次按统一规格重做——兵种严格垂直俯视、建筑正面+俯视 2.5D；以 `Frame A/B/C/D` 前缀锁定姿势；UI 批次逐张人工验收联系表；生成后按图内容分拣到正确目录（曾遇并行输出串目录/时间戳覆盖，改串行生成解决） |
 | **WorkBuddy 会话助手**（大语言模型） | 资料归纳、游戏设计、数值设计、文档撰写 | 比赛规则归纳、主题解读、GDD v0.1/v0.2、Mindustry 借鉴分析、60 兵种扩展设计、4 张 CSV 数据表、知识图谱与视觉标注 | 人工确认设计方向（暴兵+塔防+建筑+文化闯关）、选择美术风格与实现范围、审校文化考据与数值平衡；表格由脚本从 CSV 生成以保证一致性 |
 | **web-access / CDP 浏览器自动化** | 采集赛事官网公开信息 | 官网页面原文、资源清单、站点图片、榜单 API 数据；加密主题载荷与密钥 | 人工核对路由范围与下载清单；AES-GCM 解密脚本由会话助手生成、人工确认结果；仅采集公开可访问内容 |
 | **tesseract（chi_sim+eng）** | 参考资料 OCR | 44 张文化图片的 OCR 文本（约 9.4 万字符） | 人工抽样核对识别结果，写入图片视觉标注与知识图谱 |
@@ -63,7 +64,7 @@
 
 **美术重构批次（`game/assets/`，当前成品实际使用）**
 
-> 2026-11-22 晚按 RWX 素材规格重做：兵种改为**垂直俯视角**、建筑改为**正面+俯视 2.5D**。全部素材删除旧版后重新生成，原始条带图存 `generated/`（7 张，不入库成品）供溯源。
+> 2026-11-22 晚按统一俯视规格重做：兵种改为**垂直俯视角**、建筑改为**正面+俯视 2.5D**。全部素材删除旧版后重新生成，原始条带图存 `generated/`（7 张，不入库成品）供溯源。
 
 | 类别 | 数量 | 规格 | 生成方式 |
 |---|---|---|---|
@@ -103,23 +104,26 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 
 | 文件 | AI 参与方式 | 人工介入 |
 |---|---|---|
-| `game/scripts/main.gd` | 主场景玩法编排（建塔守城、刷新点波次、终局判定） | 人工定玩法方向：纯守护胜利、城镇血量归零失败；统一接线两个子系统 |
-| `game/scripts/spawn_system.gd` | 刷新点波次系统（借鉴 RWX attack_point） | 人工定接口契约、波次表与确定性 lane 轮转 |
-| `game/scripts/build_system.gd` | 多格建造系统（借鉴 Mindustry/RWX 占格） | 人工定 3×3 占格、道路/主堡禁建、资源校验规则 |
-| `game/scripts/tile_map_builder.gd` | TileMapLayer 分层地图与刷新点派生 | 人工定 32px 瓦片、40×22 网格、建筑多格尺寸 |
+| `game/scripts/main.gd` | 主场景玩法编排（定时出兵、建造链路、选择链路、右栏联动、终局判定） | 人工定玩法方向：撑到时限即胜、城镇血量归零失败；统一接线各子系统 |
+| `game/scripts/spawn_system.gd` | 定时出兵系统（Mindustry 式 waveInterval / waveSpacing 双计时器，难度按波号递增） | 人工定节拍参数（准备期 20s、波间隔 26s、波内 0.8s）、数量上限与兵种解锁梯度 |
+| `game/scripts/build_system.gd` | 多格建造系统（Mindustry 式 multiblock 占格） | 人工定 3×3 占格、水域/城墙/主堡禁建、资源校验规则 |
+| `game/scripts/tile_catalog.gd` / `tile_map_builder.gd` | 具名图块目录（名字→图块映射）+ 永昌堡地形分区铺设（城墙/瓮城/护城河/上河下河/河浃/农田/驿道） | 人工否决「随机取块拼凑」，改为按语义具名引用；人工依据《永昌堡十三进士与抗倭纪略》原文核城池形制（周长 2688m、四门四水门、十二敌台、护城河环绕） |
 | `game/scripts/unit.gd` / `tower.gd` | 单位双向行进、塔索敌与攻击动画；单位交战系统（数值表 + 索敌停走 + 攻击硬直）、头顶血条；塔射程圈绘制 | 人工发现「单位互穿不交战」玩法缺口并定拦截方案；人工修复 tscn 注释导致 Sprite 节点丢失的解析 bug |
-| `game/scripts/hud.gd` | 战斗 HUD 全代码构建：顶栏资源 chip 与主堡血条、底栏建造/出兵操作栏、波次横幅、暂停/结算面板；图标素材接入 | 人工定 UI 规划原则（不遮挡地图、面板化布局）；修复 Control 锚点与 Variant 推断导致的渲染 bug |
-| `game/scripts/build_preview.gd` | 建造 3×3 占格预览（合法绿/非法红，借鉴 RWX BuildPreview） | 人工定判定反馈配色与跟随鼠标定位规则 |
-| `game/tests/verify.gd` | 自动化断言（42 项） | 人工设计覆盖点，捕获并修复上述解析 bug |
+| `game/scripts/hud.gd` | 战斗 HUD：顶栏资源 chip 与主堡血条、波次倒计时、事件横幅、暂停/结算面板 | 人工定 UI 规划原则（不遮挡地图、面板化布局）；修复 Control 锚点与 Variant 推断导致的渲染 bug |
+| `game/scripts/ui/sidebar_panel.gd` | 右侧栏：默认隐藏，选中对象或打开建造菜单才出现；建造菜单/生产队列/只读详情三态 | 人工定「默认右栏不出现」「点建筑改右栏」的交互规则 |
+| `game/scripts/ui/minimap_panel.gd` | 右上角小地图：区域上色 + 单位点 + 视口框 + 点击/拖拽跳转 | 人工定尺寸 222×222 与跳转/拖拽行为 |
+| `game/scripts/ui/credits_roll.gd` | 电影式片尾滚幕：自然匀速滚动 + 鼠标滚轮/拖拽/键盘自由操控 + 可点击链接 | 人工定「自然滚动优先、手动操作后自动恢复」的节奏规则 |
+| `game/scripts/build_preview.gd` | 建造 3×3 占格预览（合法绿/非法红，仅放置模式显示） | 人工定判定反馈配色与跟随鼠标定位规则 |
+| `game/tests/verify.gd` | 自动化断言（含地形分区、定时出兵曲线、建造合法性、滚幕数据完整性） | 人工设计覆盖点，捕获并修复解析与逻辑 bug |
 | `game/scripts/autoload/audio_manager.gd` | 音频管理：BGM 循环、SFX 池、音量分离与配置持久化 | 人工定音效事件映射、音量对数与退出资源释放 |
 | `game/scripts/autoload/game_flow.gd` | 场景导航：主菜单/战斗/设置切换 | 人工定界面流转与设置返回栈 |
 | `game/scripts/ui/*.gd` / `scenes/main_menu.tscn` / `scenes/settings.tscn` | 主菜单、设置、暂停面板、国风背景绘制、`ui_kit.gd` 通用装饰套件（金框面板九宫格 + CC0 图标接入） | 人工定 UI 结构、lxwk 字体统一、国风配色与交互；修复隐藏面板抢焦点 bug |
-| `tools/convert_hardvacuum_tiles.py` / `tools/process_new_sprites.py` / `tools/process_ui_sprites.py` | 瓦片转换与切帧/切图抠图脚本 | 人工调参（chroma、白底阈值、缩放尺寸） |
+| `tools/process_new_sprites.py` / `tools/process_ui_sprites.py` | 切帧与切图抠图脚本 | 人工调参（chroma、白底阈值、缩放尺寸） |
 | `tools/process_thirdparty_audio.py` | 第三方音频转换流水线（响度归一化、Alarm 截短、OGG 转码） | 人工定响度目标与截短时长；人工选曲与逐项映射音效 |
 | `tools/generate_audio.py` | 短音效合成兜底工具（五声音阶加法合成，当前无成品使用） | 人工定「第三方素材优先、合成兜底」策略 |
 | `tools/process_thirdparty_ui.py` | 第三方 UI 装饰流水线（golden-ui 面板裁切、ctatz 符号染金色） | 人工选源、定裁切框与金色基线；联系表人工验收 |
 
-项目代码许可 **AGPL-3.0**。
+项目代码许可 **GPL-3.0-or-later**。
 
 ---
 
@@ -161,32 +165,47 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 - 游戏引擎：Godot（开源，MIT 许可）——引擎本身不属于项目资产，按原许可使用。
 - 开发与采集工具：Python 3、PIL、tesseract、trafilatura、pdftotext、Chrome DevTools Protocol、Git——均为通用工具，其输出数据按本节分类处理。
 
-### 5.4 第三方可商用素材（CC BY 3.0）
+### 5.4 第三方可商用素材（CC BY 3.0 / CC0 / OFL 1.1）
 
 | 素材（Title） | 作者（Author） | 来源（Source） | 许可（License） | 修改说明 |
 |---|---|---|---|---|
-| Hard Vacuum 地形瓦片 | Mark Ferrari（Lost Garden） | https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip | CC BY 3.0（https://creativecommons.org/licenses/by/3.0/） | v2（当前）：采用 RWX（开源 LibGDX 游戏，MIT）按 Tiled 标准切好的 20×20 位图（色键 008a76），本项目生成对应 .tsx 图块集并按显示比例 ×2 放大（40px），未重新着色；v1（已弃用）：32×32 重着色 atlas |
+| Hard Vacuum **具名图块 109 张** | Mark Ferrari（美术）· Daniel Cook / Lost Garden（整理发布） | https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip | CC BY 3.0（https://creativecommons.org/licenses/by/3.0/） | 从原始包逐张导出为 32×32 PNG，按语义命名（`moss_*` 草地 / `sand_*` 沙地 / `road_*` 土路 / `road_rock_*` 石板路 / `road_sand_*` 沙路 / `cliff_*` 崖石 / `cliff_dark_*` 暗崖 / `stone_00` 石块 / `water_*` 水面）；**未改色**，仅切分与命名。索引 `manifest.csv` |
 | Samurai Nights（Demo） | Maik Hoffmann（majadroid） | https://opengameart.org/content/samurai-nights | CC BY 3.0（亦提供 CC-BY 4.0 / OGA-BY 3.0） | MP3 → OGG Vorbis 重编码（游戏内 BGM） |
 | Battle Sound Effects: Bow / RPG Sound Pack / 3 Melee Sounds / RPG Audio / Sound Pack 01 | ogrebane / artisticdude / remaxim / Kenney / wobbleboxx | https://opengameart.org/content/battle-sound-effects 等（逐项见 `generated/audio_thirdparty/LICENSES.md`） | CC0（多许可包选用 CC0） | 响度归一化、Alarm 截短 2.2s、OGG 转码（游戏内 9 个事件音效） |
 | golden-ui / Free UI Asset Pack 1 | buch / ctatz | https://opengameart.org/content/golden-ui ；https://opengameart.org/content/free-ui-asset-pack-1 | CC0 | 面板精灵裁切（九宫格）；白色符号染金色缩放 64×64（游戏内 UI 装饰与图标，详见 `generated/ui_thirdparty/LICENSES.md`） |
+| 霞鹜文楷 LXGW WenKai | LXGW（落霞孤鹜） | https://github.com/lxgw/LxgwWenKai | SIL Open Font License 1.1 | 未修改字体文件；随包 `game/assets/fonts/OFL.txt` |
 
-- 用途：游戏内地表、驿道、岩层、水域、水池与山石区的图块纹理（当前：`game/assets/tiles/hv/bitmaps/*.png` 9 张入成品图块集 + `game/assets/tiles/hv/*.tsx` Tiled 标准图块集描述；历史 v1 `atlas_geology.png` 与 `hardvacuum/*.png` 已弃用）。原始 BMP 存放于 `assets/third_party/hardvacuum/`，仅作溯源输入，不直接入成品。
-- 转换链：Hard Vacuum 原始 BMP（CC BY 3.0，Mark Ferrari）→ RWX 仓库切图为 20×20 png（RWX 为 MIT 开源，其转换不改变原素材许可）→ 本项目 `tools/build_hv_tiles.py` 生成 .tsx（tilewidth=20、trans=008a76）并按多 AtlasSource TileSet 接入。CC BY 3.0 署名链不断，最终 attribution 仍指向 Mark Ferrari / Lost Garden。
-- 署名（游戏内 About 与演示片尾须保留）：
-  > Terrain tiles derived from "Hard Vacuum" by Mark Ferrari (Lost Garden), licensed CC BY 3.0. Source: https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip. Changes: sliced to 20x20 tiles (via the open-source RWX project, MIT), packaged as Tiled tilesets, scaled 2x for display.
+- 用途：`game/assets/tiles/hardvacuum/{ground,road,rock,water}/*.png` 按**语义分区**铺设永昌堡地形（城内农田/沙洲/石板街、城墙崖石、护城河与上河下河水面、城外滩涂与驿道）。**图块一律按名引用**（`TileCatalog` 名字→图块映射），变体只允许同语义内确定性轮换，禁止跨语义随机取块。
+- 转换链：Hard Vacuum 原始 BMP → 逐张导出 32×32 PNG 并按语义命名（`manifest.csv` 记录 file→source 对应）→ `TileCatalog` 建立具名查表 → `TileMapBuilder` 分区铺设。CC BY 3.0 署名链完整。
+- **已移除**：v1 `atlas_geology.png` 重着色图集、v2 由第三方 RWX 项目切分的 20×20 Tiled 图块集（`tiles/hv/**`）及其构建脚本，均不再进入成品与仓库。
+- 署名（片尾滚幕 `game/data/credits.json` 中为可点击条目）：
+  > Terrain tiles from "Hard Vacuum" by Mark Ferrari (Lost Garden), licensed CC BY 3.0. Source: https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip. Changes: exported to 32x32 PNG tiles and given semantic names; colours unmodified.
   > Music: "Samurai Nights" by Maik Hoffmann (majadroid), licensed CC-BY 3.0. Source: https://opengameart.org/content/samurai-nights. Changes: re-encoded to Ogg Vorbis.
   > Sound effects from OpenGameArt.org, CC0: Bow (ogrebane), Melee Sound (remaxim), Chop (Kenney), Sword Unsheath / Metal Ringing (artisticdude), Rise01 / Alarm / Upper01 / Downer01 (wobbleboxx).
-- 合规说明：CC BY 3.0 允许商用与改编，不要求相同方式共享（非 SA），须署名并注明修改；本项目按 TASL（Title/Author/Source/License）完整披露。
+  > Font: LXGW WenKai by LXGW, licensed SIL OFL 1.1. Source: https://github.com/lxgw/LxgwWenKai.
+  > UI: golden-ui (buch, CC0), Free UI Asset Pack 1 (ctatz, CC0).
+- 合规说明：CC BY 3.0 允许商用与改编，不要求相同方式共享（非 SA），须署名并注明修改；本项目按 TASL（Title/Author/Source/License）完整披露，并在游戏内滚幕给出可点击链接。
+
+### 5.5 设计参考（未复制代码）
+
+| 项目 | 许可 | 用途 | 说明 |
+|---|---|---|---|
+| [OpenHV](https://github.com/OpenHV/OpenHV) | GPL-3.0 | 右栏结构、小地图、选择与建造链路的**交互参考** | 仅阅读其 `chrome/ingame-player.yaml` 等界面定义与规则文件，重写为 Godot 实现，未复制代码 |
+| [OpenRA](https://github.com/OpenRA/OpenRA) | GPL-3.0 | 生产队列 / 侧栏逻辑 / 雷达组件的**结构参考** | 仅阅读引擎源码理解链路，未复制代码 |
+| [Mindustry](https://github.com/Anuken/Mindustry) | GPL-3.0 | 定时出兵节奏（waveInterval / waveSpacing）与多格建筑的**思路参考** | 独立实现，未复制代码 |
+
+> 本项目代码为 GPL-3.0-or-later，与上述参考项目许可兼容；即便如此，本项目仍以「独立实现」为准，未做代码搬运。
 
 ---
 
 ## 六、版权与许可声明
 
-1. **项目代码**：原创代码拟采用 **AGPL-3.0**（满足 Dora 开源社区奖要求）。若最终以私有项目提交主赛道奖项，须在提交前更新本条并说明差异。
+1. **项目代码**：原创代码采用 **GPL-3.0-or-later**，许可证全文见仓库根目录 `LICENSE`。任何分发或衍生作品须以同一许可开源并提供对应源码。
 2. **原创非代码资产**：设计文档、数值表、AI 生成并后处理的图片采用 **CC BY 4.0**。转载须署名并注明许可。
-3. **第三方内容**：成品地形瓦片引入 CC BY 3.0 素材 Hard Vacuum（Mark Ferrari / Lost Garden）；成品音频引入 CC-BY 3.0 BGM「Samurai Nights」（majadroid）与 CC0 音效（OpenGameArt 多作者），均保留原许可并按 TASL 署名，详见第五节 5.4 与 `generated/audio_thirdparty/LICENSES.md`。其余第三方内容一律保留原许可并逐项署名。
-4. **赛事资料**：主题、规则、文化素材的权利归组委会及相关权利人；本项目引用仅限本届参赛用途。
-5. **商标与标识**：官网合作伙伴标识未用于成品，不构成任何授权或背书表示。
+3. **第三方内容**：成品地形使用 CC BY 3.0 素材 Hard Vacuum 的具名图块（Mark Ferrari / Lost Garden）；成品音频引入 CC-BY 3.0 BGM「Samurai Nights」（majadroid）与 CC0 音效（OpenGameArt 多作者）；字体为 OFL 1.1 霞鹜文楷；UI 装饰为 CC0。均保留原许可并按 TASL 署名，详见 5.4、5.5 与 `generated/audio_thirdparty/LICENSES.md`。
+4. **署名呈现**：全部署名以电影式片尾滚幕（自然滚动、可手动上下滚动、来源链接可点击）在游戏内呈现，数据源 `game/data/credits.json`，与 `素材授权清单.csv` 一一对应。
+5. **赛事资料**：主题、规则、文化素材的权利归组委会及相关权利人；本项目引用仅限本届参赛用途。
+6. **商标与标识**：官网合作伙伴标识未用于成品，不构成任何授权或背书表示。
 
 ---
 
@@ -199,7 +218,8 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | 第五节 | AI 辅助创作如实说明工具、用途、生成内容与人工修改 | 已逐项说明（第二、三、四节） |
 | 第六节 | 提交完整《AI 使用与素材声明》 | 本文件即声明；提交时随仓库提供 |
 | 第八节 | 最佳视听奖：第三方素材 >50% 不参与 | 第三方素材为 CC BY 3.0 地质瓦片（已署名）与 CC-BY 3.0 BGM（已署名）+ CC0 音效，占成品素材比例远低于 50%，不构成排除情形 |
-| 第八节 | Dora 开源社区奖：代码 AGPL-3.0、原创非代码资产 CC BY 4.0、第三方保留原许可并署名 | 已按此策略声明（第六节） |
+| 第八节 | Dora 开源社区奖：代码 GPL-3.0-or-later、原创非代码资产 CC BY 4.0、第三方保留原许可并署名 | 已按此策略声明（第六节），`LICENSE` 全文随仓库提供 |
+| 第六节 | 提交材料含可追溯署名 | 游戏内片尾滚幕逐项列出作者/许可/可点击来源，数据源 `game/data/credits.json` |
 
 ---
 
@@ -210,5 +230,5 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 1. 将本声明版本号升至 v2.0，在提交锁定版本时更新最终素材清单与 Git 哈希。
 2. 记录锁定提交的 Git 哈希与提交时间。
 3. 补齐至少 3 篇内容不重复的开发者日志（赛事强制要求）。
-4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：字体/Hard Vacuum/重构批次素材/UI 素材批次/第三方音频（BGM+音效）/第三方 UI 装饰均已登记（清单共 158 条）。
+4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：字体/Hard Vacuum 具名图块/重构批次素材/UI 素材批次/第三方音频（BGM+音效）/第三方 UI 装饰均已登记（清单共 158 条）。
 5. 若以私有项目提交，重新核对第六节许可声明与实际情况的一致性。

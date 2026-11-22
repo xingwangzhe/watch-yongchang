@@ -4,6 +4,7 @@ extends Node
 const SCENE_MAIN_MENU: String = "res://scenes/main_menu.tscn"
 const SCENE_BATTLE: String = "res://scenes/main.tscn"
 const SCENE_SETTINGS: String = "res://scenes/settings.tscn"
+const SCENE_CREDITS: String = "res://scenes/credits.tscn"
 
 var settings_return_scene: String = SCENE_MAIN_MENU
 
@@ -12,6 +13,9 @@ func goto_main_menu() -> void:
 
 func goto_battle() -> void:
 	_change(SCENE_BATTLE)
+
+func goto_credits() -> void:
+	_change(SCENE_CREDITS)
 
 func goto_settings(from_scene: String = SCENE_MAIN_MENU) -> void:
 	settings_return_scene = from_scene

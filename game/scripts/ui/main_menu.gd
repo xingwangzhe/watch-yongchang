@@ -72,12 +72,13 @@ func _build_ui() -> void:
 	_add_button(center, "开始守城", _on_start, "play")
 	_add_button(center, "设置", _on_settings, "settings")
 	_add_button(center, "关于与声明", _on_about, "info")
+	_add_button(center, "制作名单（片尾滚幕）", _on_credits, "award")
 	_add_button(center, "退出游戏", _on_quit, "close")
 
 	# 底部提示
 	var hint := Label.new()
 	hint.name = "Hint"
-	hint.text = "建造箭塔布防 · 敌人自右侧刷新点来袭 · 守住永昌城"
+	hint.text = "定时波次来袭 · 点选建筑切换右栏 · 守住永昌城"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.add_theme_font_override("font", _font)
 	hint.add_theme_font_size_override("font_size", 15)
@@ -160,15 +161,16 @@ func _build_about_panel() -> void:
 	var body_text := """
 《守望·永昌》—— 2026 开源游戏开发大赛参赛作品。
 
-主题「守·望」：以明代永昌堡抗倭史为骨，融合暴兵推进、塔防布防与经营补给。
+主题「守·望」：以明代永昌堡抗倭史为骨，城墙、护城河、上河下河皆依史料复原，
+敌军按定时波次自三门来袭，玩家建塔布防、出兵迎击、经营补给。
 
 【AI 使用声明】
 本作美术素材由 WorkBuddy ImageGen 生成并经人工后处理；
 设计文档、数值表与代码由会话助手辅助编写、人工审校。
-地形瓦片派生自 Hard Vacuum（Mark Ferrari / Lost Garden, CC BY 3.0），经开源项目 RWX（MIT）切图为 20×20 Tiled 图块集，已署名。
-BGM「Samurai Nights」by majadroid（CC BY 3.0，opengameart.org）；
-音效取自 OpenGameArt（CC0）。代码 AGPL-3.0；原创非代码资产 CC BY 4.0；字体 OFL-1.1。
-完整清单见仓库 AI使用与素材声明.md 与 素材授权清单.csv。
+地形使用 Hard Vacuum 具名图块（Mark Ferrari / Lost Garden, CC BY 3.0）。
+BGM「Samurai Nights」by majadroid（CC BY 3.0，opengameart.org）；音效取自 OpenGameArt（CC0）。
+代码 GPL-3.0-or-later；原创非代码资产 CC BY 4.0；字体 OFL-1.1。
+完整清单见「制作名单」片尾滚幕（来源可点击），或仓库 AI使用与素材声明.md 与 素材授权清单.csv。
 """
 	var body := Label.new()
 	body.text = body_text
@@ -178,6 +180,16 @@ BGM「Samurai Nights」by majadroid（CC BY 3.0，opengameart.org）；
 	body.add_theme_font_size_override("font_size", 17)
 	body.add_theme_color_override("font_color", C_INK)
 	vbox.add_child(body)
+
+	var credits_btn := Button.new()
+	credits_btn.text = "查看完整制作名单"
+	credits_btn.custom_minimum_size = Vector2(200, 44)
+	credits_btn.add_theme_font_override("font", _font)
+	credits_btn.add_theme_font_size_override("font_size", 19)
+	credits_btn.add_theme_stylebox_override("normal", _make_style(C_BTN, C_GOLD))
+	credits_btn.add_theme_stylebox_override("hover", _make_style(C_BTN_HOVER, C_RED))
+	credits_btn.pressed.connect(_on_credits)
+	vbox.add_child(credits_btn)
 
 	var close := Button.new()
 	close.text = "关闭"
@@ -194,6 +206,9 @@ BGM「Samurai Nights」by majadroid（CC BY 3.0，opengameart.org）；
 			about_btn.grab_focus()
 	)
 	vbox.add_child(close)
+
+func _on_credits() -> void:
+	GameFlow.goto_credits()
 
 func _on_start() -> void:
 	GameFlow.goto_battle()
