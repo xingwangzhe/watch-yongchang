@@ -160,7 +160,7 @@ func get_zoom() -> float:
 
 func _bind_layers() -> void:
 	_layers.clear()
-	for key in ["ground", "road", "structure", "decor"]:
+	for key in ["ground", "ridge", "road", "structure", "decor"]:
 		var v: Variant = map_result.get(key)
 		if not (v is TileMapLayer):
 			continue
@@ -175,7 +175,8 @@ func _on_layer_changed() -> void:
 	_base_dirty_frames = 1
 	queue_redraw()
 
-## 从真实 TileMapLayer 取样。顺序与绘制层一致：ground → road → structure → decor。
+## 从真实 TileMapLayer 取样。顺序与绘制层一致：
+## ground → ridge → road → structure → decor。
 ## 每个图块只在首次遇到时求一次均色，后续逐格查缓存。
 func _rebuild_base_image() -> void:
 	_base_dirty = false
@@ -230,7 +231,7 @@ func _tile_avg_color(layer: TileMapLayer, sid: int, coords: Vector2i) -> Color:
 	var atlas := src as TileSetAtlasSource
 	var cache: Dictionary = _tile_avg_cache.get(atlas, {})
 	if cache.has(coords):
-		return cache[coords]
+		return _apply_layer_modulate(cache[coords], layer)
 	var tex := atlas.texture
 	if tex == null:
 		return C_FALLBACK
@@ -265,7 +266,11 @@ func _tile_avg_color(layer: TileMapLayer, sid: int, coords: Vector2i) -> Color:
 	var avg := Color(sr / sa, sg / sa, sb / sa, sa / float(n))
 	cache[coords] = avg
 	_tile_avg_cache[atlas] = cache
-	return avg
+	return _apply_layer_modulate(avg, layer)
+
+func _apply_layer_modulate(c: Color, layer: TileMapLayer) -> Color:
+	var m := layer.modulate
+	return Color(c.r * m.r, c.g * m.g, c.b * m.b, c.a * m.a)
 
 func _zone_of(cell: Vector2i) -> StringName:
 	if _zone_map.is_empty():

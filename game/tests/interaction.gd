@@ -185,6 +185,10 @@ func _run() -> void:
 			+ absf(sampled.b - base_pixel.b) < 0.01)
 		var ground_layer: TileMapLayer = map_result.get("ground")
 		ck("小地图/真实地面层可取", ground_layer != null)
+		var ridge_layer: TileMapLayer = map_result.get("ridge")
+		ck("小地图/田埂覆盖层可取", ridge_layer != null)
+		ck("小地图/田埂层有 changed 信号",
+			ridge_layer != null and ridge_layer.has_signal("changed"))
 		if ground_layer != null:
 			ck("小地图/地形层有 changed 信号", ground_layer.has_signal("changed"))
 			var old_sid := ground_layer.get_cell_source_id(sample_cell)

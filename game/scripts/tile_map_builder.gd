@@ -1,6 +1,6 @@
 extends Node2D
 class_name TileMapBuilder
-## 守望·永昌 —— 永昌堡城池地形（一次性烘焙 4 层 TileMapLayer）
+## 守望·永昌 —— 永昌堡城池地形（一次性烘焙 5 层 TileMapLayer）
 ##
 ## 一、坐标系
 ##   网格 120×90 格，每格 32px → 世界 3840×2880；col=+X（东），row=+Y（南）。
@@ -500,9 +500,10 @@ static func building_specs() -> Array:
 
 ## 东侧海岸线所在列（cols >= 此值即纯海）
 static func _shore_col(r: int) -> int:
-	# 每 3 行取同一岸线，避免逐行 ±1 的单格锯齿；3 行一段仍保留自然弧度。
-	var band := int(floor(float(r) / 3.0))
-	return 101 + int(round(2.0 * sin(float(band) * 0.63)))
+	# 每 4 行取同一岸线：步长足够大，避免逐行 ±1 的单格锯齿；
+	# 幅度 3 格保留海湾弧线，不再把整段海岸修成直墙。
+	var band := int(floor(float(r) / 4.0))
+	return 101 + int(round(3.0 * sin(float(band) * 0.63)))
 
 ## 西侧山体东缘（cols < 此值即山）
 static func _ridge_right(r: int) -> int:
@@ -550,6 +551,10 @@ static func _compute_layout() -> Dictionary:
 	var gv: Array[int] = []
 	gv.resize(n)
 	gv.fill(-1)
+	## 田埂覆盖层：规则线单独成层并用透明度压色，避免把整格地面切成高对比材质。
+	var rg: Array[int] = []
+	rg.resize(n)
+	rg.fill(-1)
 	var rd: Array[int] = []
 	rd.resize(n)
 	rd.fill(-1)
@@ -565,10 +570,10 @@ static func _compute_layout() -> Dictionary:
 
 	_paint_grass(g, gv)
 	_paint_city_ground(g, gv)
-	_paint_fields(g, gv)
+	_paint_fields(g, gv, rg)
 	_paint_mountains(st)
 	_paint_coast(g, gv, wet)
-	_paint_water(g, wet)
+	_paint_water(g, wet, rg)
 	_paint_banks(g, wet)
 	_paint_walls(st)
 	_paint_barbican(st, rd)
@@ -629,7 +634,7 @@ static func _compute_layout() -> Dictionary:
 		})
 
 	return {
-		"ground": g, "ground_var": gv, "road": rd, "structure": st, "decor": dc,
+		"ground": g, "ground_var": gv, "ridge": rg, "road": rd, "structure": st, "decor": dc,
 		"water": wmask, "zone": zone,
 		"blocked": blocked, "buildings": buildings,
 	}
@@ -677,7 +682,7 @@ static func _paint_grass(g: Array, gv: Array) -> void:
 ## 堡内水田：田面一个语义，田埂用 soil 走**规则线**。
 ## 田埂模数按田块尺寸自适应：宽/高小于 6 格时不在该方向画埂，
 ## 否则小田块（如 3 格宽的西片）会几乎整块变成田埂。
-static func _paint_fields(g: Array, gv: Array) -> void:
+static func _paint_fields(g: Array, gv: Array, rg: Array) -> void:
 	for rect in farmland_rects():
 		var q: Rect2i = rect
 		var ridge_x: bool = q.size.x >= 6
@@ -689,10 +694,9 @@ static func _paint_fields(g: Array, gv: Array) -> void:
 				var i := _idx(c, r)
 				var dy := r - q.position.y
 				var dx := c - q.position.x
+				g[i] = S_FIELD             # 田面始终连续
 				if (ridge_y and dy % 10 == 9) or (ridge_x and dx % 8 == 7):
-					g[i] = S_SOIL          # 田埂
-				else:
-					g[i] = S_FIELD         # 田面
+					rg[i] = S_SOIL          # 田埂单独叠加
 				gv[i] = -1
 
 ## 城内地面：**夯土院落**（soil），街道由 _paint_roads 覆盖成石板（street）。
@@ -737,12 +741,16 @@ static func _paint_coast(g: Array, gv: Array, wet: Array) -> void:
 	var lane_r: Array = LANE_ROWS
 	for r in range(ROWS):
 		var shore := _shore_col(r)
-		# 登陆滩头：在驿道行 ±1 上把沙带向东延长 3 格
+		# 登陆滩头：以驿道为中心做 7 行渐收扇形，避免 3×3 沙块像浮岛。
 		var spit := 0
 		for lr in lane_r:
-			if absi(r - int(lr)) <= 1:
-				spit = 3
-				break
+			var d := absi(r - int(lr))
+			if d <= 1:
+				spit = maxi(spit, 3)
+			elif d == 2:
+				spit = maxi(spit, 2)
+			elif d == 3:
+				spit = maxi(spit, 1)
 		for c in range(maxi(0, shore - 7), shore):
 			if not _inb(c, r):
 				continue
@@ -792,7 +800,7 @@ static func _paint_mountains(st: Array) -> void:
 			_put(st, c, r, S_CLIFF if (c * 7 + r * 3) % 5 != 0 else S_CLIFF_DARK)
 
 ## 护城河 + 上河/下河 + 十条河浃 + 四座水门
-static func _paint_water(g: Array, wet: Array) -> void:
+static func _paint_water(g: Array, wet: Array, rg: Array) -> void:
 	for rect in [MOAT_N, MOAT_S, MOAT_W, MOAT_E]:
 		_water_rect(g, wet, rect, S_WATER_DEEP)
 	for rect in [RIVER_LOW, RIVER_UP]:
@@ -818,7 +826,9 @@ static func _paint_water(g: Array, wet: Array) -> void:
 				var dx := cc - r.position.x
 				var ridge := (r.size.y >= 6 and dy % 4 == 3) \
 					or (r.size.x >= 6 and dx % 5 == 4)
-				g[_idx(cc, rr)] = S_SOIL if ridge else S_CITY
+				g[_idx(cc, rr)] = S_CITY
+				if ridge:
+					rg[_idx(cc, rr)] = S_SOIL
 		for rr in range(r.position.y, r.position.y + r.size.y):
 			if _inb(r.position.x, rr):
 				g[_idx(r.position.x, rr)] = S_WATER_SHALLOW
@@ -910,12 +920,13 @@ static func _paint_roads(rd: Array, g: Array, wet: Array) -> void:
 	for lane in range(LANE_RECTS.size()):
 		for rect in lane_rects(lane):
 			_paint_road_rect(rd, g, wet, rect)
-	# 四个门洞铺石板，读作门道
+	# 四个门洞铺夯土路面：与墙体拉开明度差，门洞豁口才能读出来。
+	# 跨水桥面仍由 _paint_road_rect 自动改铺灰石。
 	for rect in gate_holes():
-		_put_rect(rd, rect, S_ROAD_ROCK)
+		_put_rect(rd, rect, S_STREET)
 	_put_rect(rd, PLAZA, S_ROAD_ROCK)
 	_put_rect(rd, BARB_YARD, S_ROAD_ROCK)
-	_put_rect(rd, BARB_GATE_S, S_ROAD_ROCK)
+	_put_rect(rd, BARB_GATE_S, S_STREET)
 
 static func _paint_road_rect(rd: Array, g: Array, wet: Array, rect: Rect2i) -> void:
 	for r in range(rect.position.y, rect.position.y + rect.size.y):
@@ -975,15 +986,20 @@ static func build(parent: Node2D) -> Dictionary:
 	var lay := _ensure_layout()
 	var tileset := TileCatalogScript.shared_tileset()
 	var ground := _make_layer("GroundLayer", tileset, -40)
+	var ridge := _make_layer("RidgeLayer", tileset, -35)
 	var road := _make_layer("RoadLayer", tileset, -30)
 	var structure := _make_layer("StructureLayer", tileset, -20)
 	var decor := _make_layer("DecorLayer", tileset, -10)
 	parent.add_child(ground)
+	parent.add_child(ridge)
 	parent.add_child(road)
 	parent.add_child(structure)
 	parent.add_child(decor)
 
 	_paint_layer(ground, lay["ground"], lay["ground_var"])
+	ridge.modulate = Color(1.0, 1.0, 1.0, 0.34)
+	_paint_layer(ridge, lay["ridge"], null)
+	road.modulate = Color(0.84, 0.82, 0.79, 1.0)
 	_paint_layer(road, lay["road"], null)
 	_paint_layer(structure, lay["structure"], null)
 	_paint_layer(decor, lay["decor"], null)
@@ -992,7 +1008,8 @@ static func build(parent: Node2D) -> Dictionary:
 	lay["zone_map"] = zmap
 
 	return {
-		"ground": ground, "road": road, "structure": structure, "decor": decor,
+		"ground": ground, "ridge": ridge, "road": road,
+		"structure": structure, "decor": decor,
 		"cols": COLS, "rows": ROWS, "tile": TILE, "world_size": WORLD_SIZE,
 		"buildings": lay["buildings"], "blocked": lay["blocked"],
 		# 追加（可选消费）：区域图与水体掩码，供 UI / 建造提示使用
