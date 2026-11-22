@@ -55,6 +55,7 @@ func damage_enemy_keep(v: int) -> void:
 func damage_own_keep(v: int) -> void:
 	keep_hp = maxi(0, keep_hp - v)
 	EventBus.base_hit.emit(v, keep_hp)
+	print("[KEEP] hit=%d hp=%d" % [v, keep_hp])
 	if keep_hp <= 0 and phase != Phase.VICTORY:
 		decide(false, "own_keep_destroyed")
 

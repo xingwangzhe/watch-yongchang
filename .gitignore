@@ -31,3 +31,6 @@ game/tests/probe2_tmp.gd
 game/tests/_crop_*.png
 game/tests/probe2_tmp.tscn
 game/tests/_*.tscn
+
+game/tests/*_tmp.gd
+game/tests/*_tmp.tscn
