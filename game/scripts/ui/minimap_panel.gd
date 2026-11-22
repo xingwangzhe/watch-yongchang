@@ -4,9 +4,16 @@ class_name MinimapPanel
 ##
 ## 数据来源：setup(map_result, units_root, camera)
 ##   map_result 由 tile_map_builder.build() 返回，用到：cols / rows / tile / world_size
-##   / zone_map / buildings。zone_map 是 Dictionary: Vector2i(格坐标) -> StringName 区域名
-##   （&"city" / &"moat" / &"river" / &"field" / &"road" / &"wall" / &"sea" / &"gate"）。
-##   **上色只读 zone_map**，不硬编码任何瓦片/图层常量；zone_map 缺失时退化为单色底图。
+##   / zone_map / buildings / ground / road / structure / decor。
+##   底图逐格读取 TileMapLayer 的真实图块，按图块纹理均色合成；不维护第二套手绘色表。
+##   zone_map 只用于悬停文案，不参与上色。
+##
+## 历史依据（docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt）：
+##   L544-559：东临东海、西倚大罗山；城门四座、水门四座、敌台十二、铺舍二十；
+##             城外护城河、城内上河/下河与十条河浃、堡内水田二百余亩。
+##   L14530-14614：宅中向东、坐山面海；东门环海楼附瓮城；四门名与城内水系走向。
+##   因此小地图标签使用“堡内水田 / 上河下河 / 环海楼等四门 / 东海 / 盐场 / 大罗山麓”，
+##   不使用现代道路或现代行政地名。
 ##
 ## 绘制：1px/格 离屏底图（nearest 放大）→ 己方单位青点 / 敌方单位红点
 ##       → 双方主堡方框 → 当前视口白框 → 金色外框 → 悬停区域 tooltip。
@@ -21,6 +28,7 @@ class_name MinimapPanel
 signal jump_requested(world: Vector2, select: bool)
 signal zone_hovered(zone: StringName)
 
+const TileMapBuilder = preload("res://scripts/tile_map_builder.gd")
 const MAP_SIZE := Vector2(222.0, 222.0)
 const FONT_PATH: String = "res://assets/fonts/LXGWWenKai-Regular.ttf"
 
@@ -43,41 +51,41 @@ const C_HOVER := Color(1.0, 1.0, 1.0, 0.18)
 const C_TIP_BG := Color(0.03, 0.05, 0.05, 0.94)
 const C_INK := Color(0.88, 0.85, 0.74)
 
-## zone_map 值 → 颜色（区域语义色，与瓦片常量无关）
-const ZONE_COLORS: Dictionary = {
-	&"city": Color(0.34, 0.40, 0.30),
-	&"moat": Color(0.16, 0.36, 0.46),
-	&"river": Color(0.14, 0.32, 0.44),
-	&"field": Color(0.30, 0.38, 0.20),
-	&"road": Color(0.52, 0.44, 0.30),
-	&"wall": Color(0.46, 0.44, 0.40),
-	&"sea": Color(0.10, 0.24, 0.36),
-	&"gate": Color(0.62, 0.50, 0.24),
-}
 ## zone_map 值 → tooltip 文案
 const ZONE_LABELS: Dictionary = {
-	&"city": "城内",
+	&"city": "堡内",
 	&"moat": "护城河",
-	&"river": "河道",
-	&"field": "田野",
+	&"river": "上河 / 下河 / 河浃",
+	&"field": "堡内水田（二百余亩）",
 	&"road": "驿道",
 	&"wall": "城墙",
-	&"sea": "海面",
+	&"sea": "东海",
 	&"gate": "城门",
+	&"beach": "滩涂",
+	&"salt": "盐场",
+	&"mountain": "大罗山麓",
+	&"wild": "荒野",
 }
 
 var map_result: Dictionary = {}
 var units_root: Node2D = null
+var towers_root: Node2D = null
 var camera: Camera2D = null
 
 var _cols: int = 0
 var _rows: int = 0
-var _tile: float = 40.0
+var _tile: float = 32.0
 var _world_size: Vector2 = Vector2.ZERO
 var _zone_map: Dictionary = {}
 var _buildings: Array = []
+var _layers: Array[TileMapLayer] = []
+var _tile_avg_cache: Dictionary = {}
+var _base_img: Image = null
 var _base_tex: ImageTexture = null
-var _has_zone_map: bool = false
+var _base_from_tilemap: bool = false
+var _base_dirty: bool = true
+var _base_dirty_frames: int = 0
+var _layer_change_count: int = 0
 
 var _zoom_level: float = 1.0
 var _origin: Vector2 = Vector2.ZERO       # 底图左上角在控件坐标系中的位置
@@ -115,20 +123,23 @@ func _ready() -> void:
 
 # ---------- 公开 API ----------
 
-func setup(result: Dictionary, units: Node2D, cam: Camera2D) -> void:
+func setup(result: Dictionary, units: Node2D, cam: Camera2D, towers: Node2D = null) -> void:
 	map_result = result
 	units_root = units
+	towers_root = towers
 	camera = cam
 	_cols = int(result.get("cols", 0))
 	_rows = int(result.get("rows", 0))
-	_tile = float(result.get("tile", 40))
+	_tile = float(result.get("tile", 32))
 	_world_size = result.get("world_size", Vector2.ZERO) as Vector2
 	var zm: Variant = result.get("zone_map", {})
 	_zone_map = zm as Dictionary if zm is Dictionary else {}
-	_has_zone_map = not _zone_map.is_empty()
 	var bs: Variant = result.get("buildings", [])
 	_buildings = bs as Array if bs is Array else []
-	_build_base_image()
+	_bind_layers()
+	_base_dirty = true
+	_base_dirty_frames = 0
+	_rebuild_base_image()
 	_origin_inited = false
 	queue_redraw()
 
@@ -136,22 +147,125 @@ func setup(result: Dictionary, units: Node2D, cam: Camera2D) -> void:
 func refresh() -> void:
 	queue_redraw()
 
+## 地形层变动后强制下一帧重采样（供 TileMapLayer.changed 或调试调用）
+func refresh_terrain() -> void:
+	_base_dirty = true
+	_base_dirty_frames = 1
+	queue_redraw()
+
 func get_zoom() -> float:
 	return _zoom_level
 
 # ---------- 底图 ----------
 
-func _build_base_image() -> void:
+func _bind_layers() -> void:
+	_layers.clear()
+	for key in ["ground", "road", "structure", "decor"]:
+		var v: Variant = map_result.get(key)
+		if not (v is TileMapLayer):
+			continue
+		var layer := v as TileMapLayer
+		_layers.append(layer)
+		if layer.has_signal("changed") and not layer.changed.is_connected(_on_layer_changed):
+			layer.changed.connect(_on_layer_changed)
+
+func _on_layer_changed() -> void:
+	_layer_change_count += 1
+	_base_dirty = true
+	_base_dirty_frames = 1
+	queue_redraw()
+
+## 从真实 TileMapLayer 取样。顺序与绘制层一致：ground → road → structure → decor。
+## 每个图块只在首次遇到时求一次均色，后续逐格查缓存。
+func _rebuild_base_image() -> void:
+	_base_dirty = false
+	_base_dirty_frames = 0
 	_base_tex = null
-	if _cols <= 0 or _rows <= 0 or not _has_zone_map:
+	_base_img = null
+	_base_from_tilemap = false
+	if _cols <= 0 or _rows <= 0:
 		return
 	var img := Image.create(_cols, _rows, false, Image.FORMAT_RGBA8)
 	for r in range(_rows):
 		for c in range(_cols):
-			var zone: StringName = _zone_of(Vector2i(c, r))
-			var col: Color = ZONE_COLORS.get(zone, C_FALLBACK)
-			img.set_pixel(c, r, col)
+			img.set_pixel(c, r, _sample_terrain_cell(Vector2i(c, r)))
+	_base_img = img
 	_base_tex = ImageTexture.create_from_image(img)
+	_base_from_tilemap = not _layers.is_empty()
+
+func _sample_terrain_cell(cell: Vector2i) -> Color:
+	var out := Color(0.0, 0.0, 0.0, 0.0)
+	for layer in _layers:
+		var sid := layer.get_cell_source_id(cell)
+		if sid < 0:
+			continue
+		var coords := layer.get_cell_atlas_coords(cell)
+		var top := _tile_avg_color(layer, sid, coords)
+		if top.a <= 0.001:
+			continue
+		out = _over(out, top)
+	if out.a <= 0.001:
+		return C_FALLBACK
+	return out
+
+func _over(bottom: Color, top: Color) -> Color:
+	var a := top.a
+	if a >= 0.999:
+		return top
+	var out_a := a + bottom.a * (1.0 - a)
+	if out_a <= 0.0001:
+		return Color(0.0, 0.0, 0.0, 0.0)
+	return Color(
+		(top.r * a + bottom.r * bottom.a * (1.0 - a)) / out_a,
+		(top.g * a + bottom.g * bottom.a * (1.0 - a)) / out_a,
+		(top.b * a + bottom.b * bottom.a * (1.0 - a)) / out_a,
+		out_a)
+
+func _tile_avg_color(layer: TileMapLayer, sid: int, coords: Vector2i) -> Color:
+	if layer.tile_set == null:
+		return C_FALLBACK
+	var src := layer.tile_set.get_source(sid)
+	if not (src is TileSetAtlasSource):
+		return C_FALLBACK
+	var atlas := src as TileSetAtlasSource
+	var cache: Dictionary = _tile_avg_cache.get(atlas, {})
+	if cache.has(coords):
+		return cache[coords]
+	var tex := atlas.texture
+	if tex == null:
+		return C_FALLBACK
+	var region := atlas.texture_region_size
+	if region.x <= 0 or region.y <= 0:
+		return C_FALLBACK
+	var img := tex.get_image()
+	if img == null:
+		return C_FALLBACK
+	var px := coords.x * region.x
+	var py := coords.y * region.y
+	if px < 0 or py < 0 or px + region.x > img.get_width() or py + region.y > img.get_height():
+		return C_FALLBACK
+	var sr := 0.0
+	var sg := 0.0
+	var sb := 0.0
+	var sa := 0.0
+	var n := 0
+	for y in range(py, py + region.y):
+		for x in range(px, px + region.x):
+			var p := img.get_pixel(x, y)
+			sr += p.r * p.a
+			sg += p.g * p.a
+			sb += p.b * p.a
+			sa += p.a
+			n += 1
+	if sa <= 0.0001 or n == 0:
+		var empty := Color(0.0, 0.0, 0.0, 0.0)
+		cache[coords] = empty
+		_tile_avg_cache[atlas] = cache
+		return empty
+	var avg := Color(sr / sa, sg / sa, sb / sa, sa / float(n))
+	cache[coords] = avg
+	_tile_avg_cache[atlas] = cache
+	return avg
 
 func _zone_of(cell: Vector2i) -> StringName:
 	if _zone_map.is_empty():
@@ -221,6 +335,11 @@ func _on_resized() -> void:
 
 func _process(_delta: float) -> void:
 	if visible:
+		if _base_dirty:
+			if _base_dirty_frames > 0:
+				_base_dirty_frames -= 1
+			else:
+				_rebuild_base_image()
 		queue_redraw()
 
 func _draw() -> void:
@@ -238,8 +357,8 @@ func _draw() -> void:
 		draw_texture_rect(_base_tex, dest, false)
 	else:
 		draw_rect(dest, C_FALLBACK)
-		if not _has_zone_map and _font != null:
-			draw_string(_font, Vector2(8.0, 18.0), "zone_map 未提供", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.7, 0.5, 0.4))
+		if not _base_from_tilemap and _font != null:
+			draw_string(_font, Vector2(8.0, 18.0), "地形取样未就绪", HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.7, 0.5, 0.4))
 
 	# 悬停格高亮
 	if _hover_cell.x >= 0 and s >= 2.0:
@@ -275,6 +394,7 @@ func _draw_units() -> void:
 		draw_rect(Rect2(p - half, Vector2(dot, dot)), C_ENEMY if is_enemy else C_OWN)
 
 func _draw_buildings() -> void:
+	var seen: Dictionary = {}
 	for b in _buildings:
 		if not (b is Dictionary):
 			continue
@@ -289,12 +409,29 @@ func _draw_buildings() -> void:
 		var tl := _world_to_ctrl(Vector2(float(anchor.x), float(anchor.y)) * _tile)
 		var sz := Vector2(float(bsize.x), float(bsize.y)) * _scale()
 		var r := Rect2(tl, sz)
+		seen[anchor] = true
 		if bid == "keep_own":
 			draw_rect(r, C_KEEP_OWN, false, 2.0)
 		elif bid == "keep_enemy":
 			draw_rect(r, C_KEEP_ENEMY, false, 2.0)
 		else:
 			draw_rect(r, C_TOWER)
+	# 玩家新建建筑由 BuildSystem 挂到 Battle/Towers；每帧从节点元数据取样，
+	# 不依赖 map_result 里的静态建筑清单。
+	if towers_root != null:
+		for child in towers_root.get_children():
+			if not (child is Node2D):
+				continue
+			var node := child as Node2D
+			var av: Variant = node.get_meta("anchor", Vector2i(-1, -1))
+			if not (av is Vector2i):
+				continue
+			var anchor := av as Vector2i
+			if anchor.x < 0 or seen.has(anchor):
+				continue
+			var tl := _world_to_ctrl(Vector2(float(anchor.x), float(anchor.y)) * _tile)
+			var sz := Vector2(3.0, 3.0) * _scale()
+			draw_rect(Rect2(tl, sz), C_TOWER)
 
 func _draw_viewport() -> void:
 	if camera == null:
@@ -309,7 +446,7 @@ func _draw_viewport() -> void:
 func _draw_tip(rect: Rect2) -> void:
 	if _hover_zone == &"" or _font == null or _hover_cell.x < 0:
 		return
-	var text := str(ZONE_LABELS.get(_hover_zone, str(_hover_zone)))
+	var text := _label_of(_hover_cell, _hover_zone)
 	var fs := 12
 	var text_size := _font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
 	var pad := Vector2(6.0, 4.0)
@@ -320,6 +457,15 @@ func _draw_tip(rect: Rect2) -> void:
 	draw_style_box(_tip_style, Rect2(pos, box))
 	draw_string(_font, pos + pad + Vector2(0.0, text_size.y * 0.92), text,
 		HORIZONTAL_ALIGNMENT_LEFT, -1, fs, C_INK)
+
+func _label_of(cell: Vector2i, zone: StringName) -> String:
+	if zone == &"gate" or zone == &"wall":
+		var landmark := TileMapBuilder.landmark_label_at(cell)
+		if landmark != "":
+			return landmark
+	if zone == &"road":
+		return TileMapBuilder.road_label_at(cell)
+	return str(ZONE_LABELS.get(zone, str(zone)))
 
 # ---------- 相机 ----------
 
@@ -337,20 +483,24 @@ func _camera_rect() -> Rect2:
 			center = v as Vector2
 	return Rect2(center - half, half * 2.0)
 
+## 小地图跳转/平移一律走摄像机的 center_on / scroll，
+## 由摄像机自己按地图边界钳制（直接写 global_position 会绕过边界，把镜头推出地图）。
 func _snap_camera(world: Vector2) -> void:
 	if camera == null:
 		return
-	var prev: bool = camera.position_smoothing_enabled
-	camera.position_smoothing_enabled = false
-	camera.global_position = world
-	if camera.has_method("reset_smoothing"):
-		camera.call("reset_smoothing")
-	camera.position_smoothing_enabled = prev
+	if camera.has_method("center_on"):
+		camera.call("center_on", world)
+	else:
+		camera.global_position = world
 
 func _pan_camera(world_delta: Vector2) -> void:
 	if camera == null:
 		return
-	camera.global_position += world_delta
+	if camera.has_method("scroll"):
+		# scroll 接收屏幕像素，这里换算回屏幕位移再交给摄像机
+		camera.call("scroll", world_delta * camera.zoom.x)
+	else:
+		camera.global_position += world_delta
 
 func _jump_to_ctrl(p: Vector2, select: bool) -> void:
 	if camera == null:
@@ -446,8 +596,27 @@ func _on_mouse_exited() -> void:
 
 # ---------- 调试 ----------
 
-const GDA_CALLABLE := ["get_zoom", "refresh", "get_draw_count"]
+const GDA_CALLABLE := [
+	"get_zoom", "refresh", "refresh_terrain", "get_draw_count",
+	"get_base_pixel", "get_sampled_color", "is_sampled_from_tilemap", "get_layer_change_count",
+]
 
 ## 诊断：_draw 实际执行次数（headless 下也可用来确认渲染回调生效）
 func get_draw_count() -> int:
 	return _draw_count
+
+## 诊断/测试：底图某个格的实际像素，来自真实图块均色，而不是 zone_map 色表。
+func get_base_pixel(cell: Vector2i) -> Color:
+	if _base_img == null or cell.x < 0 or cell.y < 0 or cell.x >= _cols or cell.y >= _rows:
+		return C_FALLBACK
+	return _base_img.get_pixelv(cell)
+
+## 诊断/测试：绕过底图，直接重算一格的图层合成颜色。
+func get_sampled_color(cell: Vector2i) -> Color:
+	return _sample_terrain_cell(cell)
+
+func is_sampled_from_tilemap() -> bool:
+	return _base_from_tilemap
+
+func get_layer_change_count() -> int:
+	return _layer_change_count

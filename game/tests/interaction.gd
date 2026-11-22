@@ -5,12 +5,13 @@ extends SceneTree
 ##   1. 右栏默认不出现；选中单位/建筑才出现，且内容随对象类型切换
 ##   2. 建造是「放置模式」：从右栏点建造项进入，落地后退出并自动选中新建筑
 ##   3. 取消选择 / 关闭右栏 / 右键取消放置，都能回到干净状态
-## 另外校验：小地图 zone_map 上色、片尾滚幕数据完整性、定时出兵参数。
+## 另外校验：小地图真实图块取样/地形层变动重采样、片尾滚幕数据完整性、定时出兵参数。
 
 var pass_count: int = 0
 var fail_count: int = 0
 var _main: Node = null
 var _sidebar: Node = null
+const TileMapBuilder = preload("res://scripts/tile_map_builder.gd")
 
 func _init() -> void:
 	call_deferred("_run")
@@ -40,6 +41,14 @@ func _run() -> void:
 	if _sidebar == null:
 		_done()
 		return
+	var sel_box: Control = _main.get_node_or_null("UI/SelectionBox") as Control
+	ck("框选/控件存在", sel_box != null)
+	ck("框选/不抢地图输入", sel_box != null and sel_box.mouse_filter == Control.MOUSE_FILTER_IGNORE)
+	if sel_box != null:
+		sel_box.call("begin", Vector2(10.0, 10.0), false)
+		sel_box.call("update_to", Vector2(34.0, 30.0), 8.0)
+		var drag_rect: Rect2 = sel_box.call("finish") as Rect2
+		ck("框选/超过阈值返回矩形", drag_rect.size == Vector2(24.0, 20.0))
 
 	# ---------- 1. 默认不出现 ----------
 	ck("右栏/默认隐藏", not _sidebar.visible)
@@ -72,7 +81,7 @@ func _run() -> void:
 	ck("建造/找到合法锚点", anchor.x >= 0)
 	if anchor.x >= 0:
 		_main.call("_on_build_requested", &"jianta")
-		var ts: int = int(_main.get("map_result").get("tile", 40))
+		var ts: int = int(_main.get("map_result").get("tile", 32))
 		var world: Vector2 = Vector2(float(anchor.x * ts) + ts * 0.5, float(anchor.y * ts) + ts * 0.5)
 		_main.call("_try_build_at", world)
 		ck("建造/落地后退出放置", not bool(_main.get("build_mode")))
@@ -134,7 +143,69 @@ func _run() -> void:
 	ck("地图/zone 语义含 wall", zones.has(&"wall"))
 	ck("地图/zone 语义含 moat", zones.has(&"moat"))
 	ck("地图/zone 语义含 gate", zones.has(&"gate"))
+	ck("地图/西侧大罗山保留山体语义",
+		zm is Dictionary and StringName(str((zm as Dictionary).get(Vector2i(3, 45), ""))) == &"mountain")
+	var gate_names: Array[String] = []
+	for g in TileMapBuilder.GATES:
+		gate_names.append(String(g["name"]))
+	ck("史料/四门名与方位",
+		"、".join(gate_names) == "环海楼、迎川楼、镇山楼、通市楼")
+	ck("史料/东门附瓮城",
+		bool(TileMapBuilder.GATES[0]["barbican"]) and StringName(TileMapBuilder.GATES[0]["side"]) == &"east")
+	ck("史料/水门4座", TileMapBuilder.water_gate_holes().size() == 4)
+	ck("史料/河浃10条", TileMapBuilder.canals().size() == 10)
+	ck("史料/敌台12座", TileMapBuilder.enemy_tower_rects().size() == 12)
+	ck("史料/铺舍20座", TileMapBuilder.post_houses().size() == 20)
+	var farmland_cells := 0
+	for rect in TileMapBuilder.farmland_rects():
+		farmland_cells += (rect as Rect2i).size.x * (rect as Rect2i).size.y
+	ck("史料/堡内水田约200亩", farmland_cells >= 900 and farmland_cells <= 1100)
+	var map_ratio := float(TileMapBuilder.CITY_Y1 - TileMapBuilder.CITY_Y0 + 1) \
+		/ float(TileMapBuilder.CITY_X1 - TileMapBuilder.CITY_X0 + 1)
+	ck("史料/城池长宽比接近778:445", absf(map_ratio - 778.0 / 445.0) < 0.03)
 	ck("小地图/尺寸222", mini != null and int(mini.get("custom_minimum_size").x) == 222)
+	if mini != null:
+		ck("小地图/底图来自真实图层", bool(mini.call("is_sampled_from_tilemap")))
+		ck("小地图/东门历史名", str(mini.call("_label_of", Vector2i(49, 46), &"gate")) == "环海楼（东门）")
+		ck("小地图/水门历史名", str(mini.call("_label_of", Vector2i(21, 13), &"gate")) == "水门")
+		ck("小地图/新城街历史名", str(mini.call("_label_of", Vector2i(32, 20), &"road")) == "新城街")
+		ck("小地图/御史巷历史名", str(mini.call("_label_of", Vector2i(20, 30), &"road")) == "御史巷")
+		ck("小地图/东西大街历史名", str(mini.call("_label_of", Vector2i(25, 46), &"road")) == "东西大街")
+		ck("小地图/宗祠名", str(mini.call("_label_of", Vector2i(25, 37), &"wall")) == "王氏宗祠")
+		ck("小地图/敌台名", str(mini.call("_label_of", Vector2i(52, 24), &"wall")) == "敌台")
+		ck("小地图/铺舍名", str(mini.call("_label_of", Vector2i(17, 27), &"wall")) == "铺舍")
+		ck("小地图/山麓名", str(mini.call("_label_of", Vector2i(3, 45), &"mountain")) == "大罗山麓")
+		ck("小地图/东海名", str(mini.call("_label_of", Vector2i(105, 45), &"sea")) == "东海")
+		ck("小地图/水田名", str(mini.call("_label_of", Vector2i(37, 20), &"field")) == "堡内水田（二百余亩）")
+		var sample_cell := Vector2i(60, 45)
+		var sampled: Color = mini.call("get_sampled_color", sample_cell)
+		var base_pixel: Color = mini.call("get_base_pixel", sample_cell)
+		ck("小地图/底图像素=图块均色",
+			absf(sampled.r - base_pixel.r) + absf(sampled.g - base_pixel.g) \
+			+ absf(sampled.b - base_pixel.b) < 0.01)
+		var ground_layer: TileMapLayer = map_result.get("ground")
+		ck("小地图/真实地面层可取", ground_layer != null)
+		if ground_layer != null:
+			ck("小地图/地形层有 changed 信号", ground_layer.has_signal("changed"))
+			var old_sid := ground_layer.get_cell_source_id(sample_cell)
+			var old_coords := ground_layer.get_cell_atlas_coords(sample_cell)
+			var alt_coords := Vector2i(0, 0) if old_coords != Vector2i(0, 0) else Vector2i(1, 0)
+			ground_layer.set_cell(sample_cell, old_sid, alt_coords)
+			await process_frame
+			ck("小地图/收到地形变更信号", int(mini.call("get_layer_change_count")) > 0)
+			await process_frame
+			await process_frame
+			var changed_pixel: Color = mini.call("get_base_pixel", sample_cell)
+			var changed_sample: Color = mini.call("get_sampled_color", sample_cell)
+			ck("小地图/直接取样随图层变化",
+				absf(changed_sample.r - sampled.r) + absf(changed_sample.g - sampled.g) \
+				+ absf(changed_sample.b - sampled.b) > 0.01)
+			ck("小地图/大地图变动后自动重采样",
+				absf(changed_pixel.r - base_pixel.r) + absf(changed_pixel.g - base_pixel.g) \
+				+ absf(changed_pixel.b - base_pixel.b) > 0.01)
+			ground_layer.set_cell(sample_cell, old_sid, old_coords)
+			await process_frame
+			await process_frame
 
 	# ---------- 10. 定时出兵参数 ----------
 	var sp: Node = _main.get("spawn_system")
