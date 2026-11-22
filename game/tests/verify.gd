@@ -68,6 +68,44 @@ func _run() -> void:
 	ck("终局/phase=VICTORY", str(s2.get("phase", "")) == "VICTORY")
 	ck("终局/result=victory", str(s2.get("result", "")) == "victory")
 
+	# 5. 刷新点系统（借鉴 RWX attack_point）
+	var SpawnScript: GDScript = load("res://scripts/spawn_system.gd") as GDScript
+	var spawn: Node = SpawnScript.new() as Node
+	root_node.add_child(spawn)
+	spawn.setup()
+	ck("刷新点/数量=3", spawn.get_points().size() == 3)
+	ck("刷新点/绑定lane递增", int(spawn.get_points()[2]["lane"]) == 2)
+	spawn.begin_wave(1)
+	ck("波次/首波count=6", spawn.wave_count(1) == 6)
+	var spawn_events: Array = []
+	spawn.enemy_spawn_requested.connect(func(t, l, hs, sp): spawn_events.append([t, l, hs, sp]))
+	for i in range(100):
+		spawn.tick(0.1)
+	ck("波次/刷兵数=6", spawn_events.size() == 6)
+	ck("波次/刷兵后结束", spawn.is_wave_finished())
+	ck("波次/ lane轮转", int(spawn_events[3][1]) == 0)
+	spawn.queue_free()
+
+	# 6. 建造系统（Mindustry/RWX 多格占格）
+	var BuildScript: GDScript = load("res://scripts/build_system.gd") as GDScript
+	var build: Node = BuildScript.new() as Node
+	root_node.add_child(build)
+	gs.reset_level()
+	var illegal: bool = build.can_place(Vector2i(10, 7), &"jianta")
+	ck("建造/道路格不可建", not illegal)
+	var legal: bool = build.can_place(Vector2i(5, 3), &"jianta")
+	ck("建造/合法格可建", legal)
+	var silver_before: int = gs.silver
+	var holder := Node2D.new()
+	root_node.add_child(holder)
+	var tower: Node2D = build.place(Vector2i(5, 3), &"jianta", holder)
+	ck("建造/放置成功", tower != null)
+	ck("建造/扣银40", gs.silver == silver_before - 40)
+	ck("建造/占格9", build.get_occupied_count() == 9)
+	ck("建造/重复放置被拒", not build.can_place(Vector2i(5, 3), &"jianta"))
+	build.queue_free()
+	holder.queue_free()
+
 	_done()
 
 func _done() -> void:

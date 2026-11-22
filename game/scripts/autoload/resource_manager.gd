@@ -33,6 +33,23 @@ func get_frames(unit_id: String) -> SpriteFrames:
 	_frames[unit_id] = sf
 	return sf
 
+## 建筑动画帧：res://assets/buildings/{id}/{anim}/frame_01..04.png，动画名 default，6fps 循环。
+## 缓存 key 用 "b:" 前缀与单位帧隔离，避免同类 id 冲突。
+func get_building_frames(building_id: String, anim: String) -> SpriteFrames:
+	var key := "b:" + building_id + ":" + anim
+	if _frames.has(key):
+		return _frames[key]
+	var sf := SpriteFrames.new()
+	sf.remove_animation("default")
+	sf.add_animation("default")
+	sf.set_animation_speed("default", 6.0)
+	sf.set_animation_loop("default", true)
+	var base := "res://assets/buildings/%s/%s" % [building_id, anim]
+	for i in range(1, 5):
+		sf.add_frame("default", get_texture("%s/frame_%02d.png" % [base, i]))
+	_frames[key] = sf
+	return sf
+
 func preload_level(_level_id: String) -> void:
 	for uid in ["xiangyong", "gongshou", "longdeng"]:
 		get_frames(uid)

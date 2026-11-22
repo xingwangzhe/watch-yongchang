@@ -14,6 +14,9 @@ const ROWS := 22
 const LANE_ROWS := [7, 11, 15]
 const ROAD_THICKNESS := 2
 
+# 敌方刷新点列（地图右侧边缘），借鉴 RWX 的 attack_point
+const SPAWN_COL: int = 38
+
 # 塔锚点列；塔尺寸 3×3 格（96px）
 const TOWER_COLS := [10, 20, 30]
 const TOWER_SIZE := Vector2i(3, 3)
@@ -52,6 +55,17 @@ static func lane_y(row_index: int) -> float:
 	# 道路占 row..row+THICKNESS-1，中心落在两行之间
 	var row: int = LANE_ROWS[row_index]
 	return float((row + ROAD_THICKNESS) * TILE / 2.0)
+
+# ---------- 刷新点（借鉴 RWX attack_point）----------
+
+# 每条 lane 对应右侧边缘的刷新格
+static func spawn_cell(lane: int) -> Vector2i:
+	return Vector2i(SPAWN_COL, LANE_ROWS[lane])
+
+# 刷新格中心对应的世界坐标（x 取格中心，y 取驿道中心）
+static func spawn_world(lane: int) -> Vector2:
+	var c := spawn_cell(lane)
+	return Vector2(float(c.x * TILE) + TILE * 0.5, lane_y(lane))
 
 static func tower_anchor(row_index: int) -> Vector2i:
 	# 塔基贴在道路上方，底边与道路行相邻
