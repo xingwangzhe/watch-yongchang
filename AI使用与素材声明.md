@@ -2,11 +2,11 @@
 
 | 项目 | 内容 |
 |---|---|
-| 文档版本 | v1.3 |
+| 文档版本 | v1.4 |
 | 更新日期 | 2026-11-22 |
-| 适用阶段 | 资料收集、设计、核心样例素材制作、Godot 可玩原型与美术重构、UI/HUD 阶段 |
+| 适用阶段 | 资料收集、设计、核心样例素材制作、Godot 可玩原型与美术重构、UI/HUD、音频阶段 |
 | 对应赛事要求 | 2026 开源游戏开发大赛 第五节「内容要求」、第六节「提交材料」、第八节「Dora 开源社区奖」 |
-| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（130 条：含美术重构批次 42 张新素材 + 7 张原始条带图 + UI 素材批次 11 张成品 + 4 张原始条带 + 新代码与既有条目） |
+| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（144 条：含美术重构批次 42 张新素材 + 7 张原始条带图 + UI 素材批次 11 张成品 + 4 张原始条带 + 第三方音频 1 BGM + 9 音效及 11 份原始音频/文档/脚本条目） |
 
 > 本声明按赛事规则「须申报赛前已有的代码、工具与素材；作品原创，素材来源与授权清晰」「鼓励 AI 辅助创作；使用时须如实说明工具、用途、生成内容与人工修改情况」编制。
 > 最终提交前须更新版本号、产出清单与锁定提交哈希，并补齐开发者日志。
@@ -18,7 +18,7 @@
 1. **赛前已有的代码、工具与素材**：无。本项目于 2026-11-22 从空目录初始化，所有设计文档、数据表与素材均在本届开发期内产生。
 2. **作品原创性**：游戏概念《守望·永昌》、四阶兵种体系、文化机制转译、关卡结构与数值框架为本项目原创，未使用任何已基本完成的旧项目或换皮内容。
 3. **第三方素材进入成品比例**：地形瓦片来自 CC BY 3.0 素材 **Hard Vacuum（Mark Ferrari / Lost Garden）**，经切图与地质色系重新着色后嵌入游戏（详见第五节 5.4）。该素材许可清晰、已署名；组委会提供的素材包与官网图片仍仅用于文化考据，未直接嵌入成品。
-4. **AI 生成素材进入成品比例**：当前核心样例批次 42 张 PNG 全部为 AI 生成并经人工后处理，来源清晰、无第三方权利瑕疵。地形瓦片为第三方 CC BY 3.0 派生，非 AI 生成。
+4. **AI 生成素材进入成品比例**：当前核心样例批次 42 张 PNG + UI 素材批次 11 张 PNG 全部为 AI 生成并经人工后处理，来源清晰、无第三方权利瑕疵。地形瓦片为第三方 CC BY 3.0 派生，BGM 与音效为第三方 CC-BY 3.0 / CC0 素材，均非 AI 生成。
 5. **许可策略**：若申请 Dora 开源社区奖，项目代码采用 **AGPL-3.0**，原创非代码资产采用 **CC BY 4.0**，第三方内容保留原许可（CC BY 3.0）并署名，详见第五节 5.4 与第六节。
 
 ---
@@ -35,7 +35,8 @@
 | **tesseract（chi_sim+eng）** | 参考资料 OCR | 44 张文化图片的 OCR 文本（约 9.4 万字符） | 人工抽样核对识别结果，写入图片视觉标注与知识图谱 |
 | **trafilatura / pdftotext / ZIP+XML 解析** | 文本抽取 | 页面 Markdown、552 页永昌堡 PDF 全文、DOCX/DOC 文本 | 人工按目录归类、建立索引与实体谱 |
 | **PIL / Pillow** | 图片后处理 | 缩略图、4 张联系表、透明背景素材 | 人工编写后处理脚本：边缘 flood fill 去米色背景、去右下角水印、裁切留白、nearest 缩放至 512×512 RGBA、统一命名 |
-| **ffmpeg** | 素材检查 | 抽帧验收板 | 人工查看并判断帧间一致性 |
+| **ffmpeg** | 素材检查与音频转换 | 抽帧验收板；第三方音频响度归一化、截短、OGG 转码 | 人工查看并判断帧间一致性；人工审校音频转换参数 |
+| **OpenGameArt.org 素材采集** | 第三方音频素材获取 | BGM「Samurai Nights」及 9 个 CC0 音效原始文件（curl 直链下载） | 人工/助手逐项核查页面许可标注、作者与来源 URL；仅采用 CC0 或 CC-BY（可商用）素材 |
 
 **未使用**：第三方付费素材库、未授权网络图片、他人游戏源码、生成式语音/音乐（截至本版本）。
 
@@ -43,7 +44,7 @@
 
 ## 三、AI 生成内容清单
 
-> **补充（2026-11-22 晚）**：工程 `game/` 新增 1 条原创 BGM + 9 个事件音效，由 `tools/generate_audio.py` 用五声音阶加法合成、ffmpeg 转 OGG，**CC0 1.0**，无第三方采样；中文 UI 字体统一采用 **lxwk（霞鹜文楷 / LXGW WenKai）**，已设为 Godot 工程全局默认字体（`gui/theme/custom = res://themes/default.tres`，`default_font` 指向该 ttf；HUD 另有显式覆盖）；字体许可 **SIL OFL 1.1**，完整协议文本随字体存放于 `assets/fonts/OFL.txt` 与 `game/assets/fonts/OFL.txt`，游戏内不修改字体文件、不更改保留字体名。逐项见 `素材授权清单.csv`。
+> **补充（2026-11-22 晚，v1.4 音频来源调整）**：应素材策略要求（**长音乐/短音效优先采用 CC0 或免费可商用现成素材，脚本合成仅作兜底**），工程 `game/assets/audio/` 全部音频已更换为第三方素材：BGM 采用 OpenGameArt 的 **「Samurai Nights」by majadroid（CC-BY 3.0，二胡/笛/古琴中式器乐）**，9 个事件音效取自 OpenGameArt 的 CC0 音效包（Kenney / artisticdude / remaxim / ogrebane / wobbleboxx），经 `tools/process_thirdparty_audio.py` 响度归一化、截短与 OGG 转码后嵌入。TASL 逐项登记见 `generated/audio_thirdparty/LICENSES.md`；原合成工具 `tools/generate_audio.py` 保留为**短音效兜底方案**（当前无成品使用）。中文 UI 字体统一采用 **lxwk（霞鹜文楷 / LXGW WenKai）**，已设为 Godot 工程全局默认字体；字体许可 **SIL OFL 1.1**，完整协议文本随字体存放于 `assets/fonts/OFL.txt` 与 `game/assets/fonts/OFL.txt`。
 
 ### 3.1 图像资产（`assets/` 与 `game/assets/`）
 
@@ -112,6 +113,8 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | `game/scripts/autoload/game_flow.gd` | 场景导航：主菜单/战斗/设置切换 | 人工定界面流转与设置返回栈 |
 | `game/scripts/ui/*.gd` / `scenes/main_menu.tscn` / `scenes/settings.tscn` | 主菜单、设置、暂停面板、国风背景绘制 | 人工定 UI 结构、lxwk 字体统一、国风配色与交互；修复隐藏面板抢焦点 bug |
 | `tools/convert_hardvacuum_tiles.py` / `tools/process_new_sprites.py` / `tools/process_ui_sprites.py` | 瓦片转换与切帧/切图抠图脚本 | 人工调参（chroma、白底阈值、缩放尺寸） |
+| `tools/process_thirdparty_audio.py` | 第三方音频转换流水线（响度归一化、Alarm 截短、OGG 转码） | 人工定响度目标与截短时长；人工选曲与逐项映射音效 |
+| `tools/generate_audio.py` | 短音效合成兜底工具（五声音阶加法合成，当前无成品使用） | 人工定「第三方素材优先、合成兜底」策略 |
 
 项目代码许可 **AGPL-3.0**。
 
@@ -160,11 +163,15 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | 素材（Title） | 作者（Author） | 来源（Source） | 许可（License） | 修改说明 |
 |---|---|---|---|---|
 | Hard Vacuum 地形瓦片 | Mark Ferrari（Lost Garden） | https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip | CC BY 3.0（https://creativecommons.org/licenses/by/3.0/） | 去 chroma 透明色、20×20→32×32 nearest 放大、地质色系重新着色、合成图集 |
+| Samurai Nights（Demo） | Maik Hoffmann（majadroid） | https://opengameart.org/content/samurai-nights | CC BY 3.0（亦提供 CC-BY 4.0 / OGA-BY 3.0） | MP3 → OGG Vorbis 重编码（游戏内 BGM） |
+| Battle Sound Effects: Bow / RPG Sound Pack / 3 Melee Sounds / RPG Audio / Sound Pack 01 | ogrebane / artisticdude / remaxim / Kenney / wobbleboxx | https://opengameart.org/content/battle-sound-effects 等（逐项见 `generated/audio_thirdparty/LICENSES.md`） | CC0（多许可包选用 CC0） | 响度归一化、Alarm 截短 2.2s、OGG 转码（游戏内 9 个事件音效） |
 
 - 用途：游戏内地表、驿道、岩层、水域的图块纹理（`game/assets/tiles/atlas_geology.png` 与 `game/assets/tiles/hardvacuum/*.png`）。原始 BMP 存放于 `assets/third_party/hardvacuum/`，仅作转换输入，不直接入成品。
 - 转换工具：`tools/convert_hardvacuum_tiles.py`（本项目原创脚本）。
 - 署名（游戏内 About 与演示片尾须保留）：
   > Terrain tiles derived from "Hard Vacuum" by Mark Ferrari (Lost Garden), licensed CC BY 3.0. Source: https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip. Changes: chroma-key removed, re-colored to geology palette, rescaled to 32x32.
+  > Music: "Samurai Nights" by Maik Hoffmann (majadroid), licensed CC-BY 3.0. Source: https://opengameart.org/content/samurai-nights. Changes: re-encoded to Ogg Vorbis.
+  > Sound effects from OpenGameArt.org, CC0: Bow (ogrebane), Melee Sound (remaxim), Chop (Kenney), Sword Unsheath / Metal Ringing (artisticdude), Rise01 / Alarm / Upper01 / Downer01 (wobbleboxx).
 - 合规说明：CC BY 3.0 允许商用与改编，不要求相同方式共享（非 SA），须署名并注明修改；本项目按 TASL（Title/Author/Source/License）完整披露。
 
 ---
@@ -173,7 +180,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 
 1. **项目代码**：原创代码拟采用 **AGPL-3.0**（满足 Dora 开源社区奖要求）。若最终以私有项目提交主赛道奖项，须在提交前更新本条并说明差异。
 2. **原创非代码资产**：设计文档、数值表、AI 生成并后处理的图片采用 **CC BY 4.0**。转载须署名并注明许可。
-3. **第三方内容**：成品地形瓦片引入 CC BY 3.0 素材 Hard Vacuum（Mark Ferrari / Lost Garden），保留原许可并按 TASL 署名，详见第五节 5.4 与 `素材授权清单.csv`。其余第三方内容一律保留原许可并逐项署名。
+3. **第三方内容**：成品地形瓦片引入 CC BY 3.0 素材 Hard Vacuum（Mark Ferrari / Lost Garden）；成品音频引入 CC-BY 3.0 BGM「Samurai Nights」（majadroid）与 CC0 音效（OpenGameArt 多作者），均保留原许可并按 TASL 署名，详见第五节 5.4 与 `generated/audio_thirdparty/LICENSES.md`。其余第三方内容一律保留原许可并逐项署名。
 4. **赛事资料**：主题、规则、文化素材的权利归组委会及相关权利人；本项目引用仅限本届参赛用途。
 5. **商标与标识**：官网合作伙伴标识未用于成品，不构成任何授权或背书表示。
 
@@ -187,7 +194,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | 第五节 | 作品原创、素材来源与授权清晰 | 已声明；逐项清单见 `素材授权清单.csv` |
 | 第五节 | AI 辅助创作如实说明工具、用途、生成内容与人工修改 | 已逐项说明（第二、三、四节） |
 | 第六节 | 提交完整《AI 使用与素材声明》 | 本文件即声明；提交时随仓库提供 |
-| 第八节 | 最佳视听奖：第三方素材 >50% 不参与 | 第三方素材仅为 CC BY 3.0 地质瓦片（已署名），远低于 50%，不构成排除情形 |
+| 第八节 | 最佳视听奖：第三方素材 >50% 不参与 | 第三方素材为 CC BY 3.0 地质瓦片（已署名）与 CC-BY 3.0 BGM（已署名）+ CC0 音效，占成品素材比例远低于 50%，不构成排除情形 |
 | 第八节 | Dora 开源社区奖：代码 AGPL-3.0、原创非代码资产 CC BY 4.0、第三方保留原许可并署名 | 已按此策略声明（第六节） |
 
 ---
@@ -199,5 +206,5 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 1. 将本声明版本号升至 v2.0，在提交锁定版本时更新最终素材清单与 Git 哈希。
 2. 记录锁定提交的 Git 哈希与提交时间。
 3. 补齐至少 3 篇内容不重复的开发者日志（赛事强制要求）。
-4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：音效/BGM/字体/Hard Vacuum/重构批次素材/UI 素材批次均已登记（清单共 130 条）。
+4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：字体/Hard Vacuum/重构批次素材/UI 素材批次/第三方音频（BGM+音效）均已登记（清单共 144 条）。
 5. 若以私有项目提交，重新核对第六节许可声明与实际情况的一致性。
