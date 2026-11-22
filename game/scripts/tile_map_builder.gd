@@ -318,18 +318,19 @@ static func canals() -> Array:
 		{"name": "圣旨门浃", "rect": Rect2i(23, 18, 4, 1)},
 	]
 
-## 城外盐田（永嘉盐场，堡东滩涂晒盐区）：每块「沙埂围水」的矩形
-## 依资料「明代初期永嘉盐场因地处海防前沿屡有倭匪侵袭」，盐场在堡东沿海。
+## 城外盐田（永嘉盐场，堡东滩涂晒盐区）：矩形为晒场范围，西缘开引水沟。
+## 依资料「明代初期，永嘉盐场（龙湾永强片区古称）因地处海防前沿，屡有倭匪侵袭」，
+## 故盐场布在堡东沿海，是倭寇登陆后必经的开阔地。
 static func salt_pans() -> Array:
 	return [
-		# 北片（通市楼与环海楼之间）
-		Rect2i(64, 12, 11, 8), Rect2i(77, 12, 11, 8),
-		Rect2i(64, 24, 11, 8), Rect2i(77, 24, 11, 8),
+		# 北片（通市楼之东）
+		Rect2i(66, 14, 10, 7), Rect2i(79, 14, 10, 7),
+		Rect2i(66, 25, 10, 7), Rect2i(79, 25, 10, 7),
 		# 中片（主驿道两侧）
-		Rect2i(64, 34, 11, 8), Rect2i(78, 34, 11, 8),
+		Rect2i(66, 34, 10, 7), Rect2i(80, 34, 10, 7),
 		# 南片
-		Rect2i(64, 56, 11, 8), Rect2i(78, 56, 11, 8),
-		Rect2i(64, 68, 11, 8), Rect2i(78, 68, 11, 8),
+		Rect2i(66, 56, 10, 7), Rect2i(80, 56, 10, 7),
+		Rect2i(66, 68, 10, 7), Rect2i(80, 68, 10, 7),
 	]
 
 ## 庙上河：自南引水入堡（接南护城河），与《水系网络》一节「护城河外接双岙溪
@@ -615,20 +616,20 @@ static func _paint_water(g: Array, wet: Array) -> void:
 				wet[_idx(c, r)] = 0
 	for rect in [MOAT_BYPASS, MOAT_LINK_N, MOAT_LINK_S]:
 		_water_rect(g, wet, rect)
-	# 城外盐田：中心蓄水（水），四周沙埂（沙）
+	# 城外盐田：沙埂晒盐 —— 田面铺沙（晒场），西侧一条引水沟（water）接海。
+	# 史载「河两岸以方块花岗石斜筑」「堡内原有水田 200 多亩」，城外滨海则为盐场滩涂。
 	for pan in salt_pans():
 		var r: Rect2i = pan
 		for rr in range(r.position.y, r.position.y + r.size.y):
 			for cc in range(r.position.x, r.position.x + r.size.x):
 				if not _inb(cc, rr):
 					continue
-				var edge: bool = cc == r.position.x or cc == r.position.x + r.size.x - 1 \
-					or rr == r.position.y or rr == r.position.y + r.size.y - 1
-				if edge:
-					g[_idx(cc, rr)] = S_SAND
-				else:
-					g[_idx(cc, rr)] = S_WATER
-					wet[_idx(cc, rr)] = 1
+				g[_idx(cc, rr)] = S_SAND
+		# 西缘引水沟（1 格宽），自北向南贯通该盐田
+		for rr in range(r.position.y, r.position.y + r.size.y):
+			if _inb(r.position.x, rr):
+				g[_idx(r.position.x, rr)] = S_WATER
+				wet[_idx(r.position.x, rr)] = 1
 	# 庙上河（南引水 / 北出水）
 	for rect in feeder_streams():
 		_water_rect(g, wet, rect)
