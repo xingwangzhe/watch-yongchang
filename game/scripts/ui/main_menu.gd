@@ -167,7 +167,7 @@ func _build_about_panel() -> void:
 【AI 使用声明】
 本作美术素材由 WorkBuddy ImageGen 生成并经人工后处理；
 设计文档、数值表与代码由会话助手辅助编写、人工审校。
-地形使用 Hard Vacuum 具名图块（Mark Ferrari / Lost Garden, CC BY 3.0）。
+地形使用 Dungeon Crawl Stone Soup 具名图块（DCSS contributors, CC0 1.0）。
 BGM「Samurai Nights」by majadroid（CC BY 3.0，opengameart.org）；音效取自 OpenGameArt（CC0）。
 代码 GPL-3.0-or-later；原创非代码资产 CC BY 4.0；字体 OFL-1.1。
 完整清单见「制作名单」片尾滚幕（来源可点击），或仓库 AI使用与素材声明.md 与 素材授权清单.csv。

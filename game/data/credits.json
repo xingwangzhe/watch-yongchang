@@ -103,18 +103,20 @@
       "title": "地形图块",
       "entries": [
         {
-          "name": "Hard Vacuum",
-          "role": "地形图块（草地 · 沙地 · 道路 · 崖石 · 水面）",
-          "author": "Mark Ferrari（美术）· Daniel Cook / Lost Garden（整理发布）",
-          "license": "CC BY 3.0",
-          "url": "https://lostgarden.home.wordpress.com/2019/09/05/free-game-graphics/",
-          "note": "原始包 hardvacuum.zip；本项目仅做切分、重着色与语义化命名，图块均按名引用"
+          "name": "Dungeon Crawl Stone Soup Tiles",
+          "role": "地形图块（城墙 · 街巷 · 水渠 · 门 · 植被）",
+          "author": "DCSS contributors（维护：Chris Hamons；原始美术含 DENZI 等多人）",
+          "license": "CC0 1.0（公有领域贡献，无需署名）",
+          "url": "https://opengameart.org/content/dungeon-crawl-32x32-tiles",
+          "note": "本项目选用墙体、地面、水体、门、植被共 106 块 32×32 图块；未改色，仅按语义分组与确定性取块。原作者放弃全部权利，此处署名出于尊重"
         },
         {
-          "name": "Hard Vacuum 原始下载",
-          "role": "素材来源归档",
-          "license": "CC BY 3.0",
-          "url": "https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip"
+          "name": "Dungeon Crawl Stone Soup（项目主页）",
+          "role": "图块来源游戏",
+          "author": "DCSS 开发团队",
+          "license": "GPL-2.0-or-later（游戏代码）· 图块为 CC0",
+          "url": "https://crawl.develz.org/",
+          "note": "本项目仅使用其 CC0 图块，未使用任何游戏代码"
         }
       ]
     },
@@ -280,7 +282,7 @@
         },
         {
           "name": "所有开源素材作者",
-          "role": "Hard Vacuum · OpenGameArt 社区 · 霞鹜文楷",
+          "role": "Dungeon Crawl Stone Soup · OpenGameArt 社区 · 霞鹜文楷",
           "note": "没有这些开放许可的作品，独立开发者无法完成一款完整的游戏",
           "license": "见上述各章节",
           "url": "https://opengameart.org"
