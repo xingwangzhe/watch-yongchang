@@ -165,7 +165,7 @@ func _build_about_panel() -> void:
 【AI 使用声明】
 本作美术素材由 WorkBuddy ImageGen 生成并经人工后处理；
 设计文档、数值表与代码由会话助手辅助编写、人工审校。
-地形瓦片派生自 Hard Vacuum（Mark Ferrari / Lost Garden, CC BY 3.0），已署名。
+地形瓦片派生自 Hard Vacuum（Mark Ferrari / Lost Garden, CC BY 3.0），经开源项目 RWX（MIT）切图为 20×20 Tiled 图块集，已署名。
 BGM「Samurai Nights」by majadroid（CC BY 3.0，opengameart.org）；
 音效取自 OpenGameArt（CC0）。代码 AGPL-3.0；原创非代码资产 CC BY 4.0；字体 OFL-1.1。
 完整清单见仓库 AI使用与素材声明.md 与 素材授权清单.csv。
