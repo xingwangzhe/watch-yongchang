@@ -32,6 +32,9 @@ const PALETTES: Record<string, string[]> = {
 	xiangyong: ["#2a2018", "#3d2d20", "#543b29", "#6d4f33", "#86653f", "#9d7c51", "#b59568", "#cbb080", "#ddc99a", "#eee0bc"],
 	gongshou: ["#1c271b", "#283825", "#394f30", "#4c673f", "#5e7e4d", "#76965f", "#90af77", "#aac691", "#c4dbb0", "#e0edd3"],
 	longdeng: ["#38120f", "#551a14", "#731e18", "#92261d", "#b13123", "#cf4c2c", "#e47637", "#efa94c", "#f3ce78", "#fbe7b3"],
+	tengpai: ["#0f1f1a", "#173028", "#204238", "#2b564a", "#376b5c", "#4a8370", "#6a9c85", "#9ab8a0"],
+	huochong: ["#111827", "#19233a", "#243354", "#32466e", "#435d8c", "#5c78a8", "#89a2c7", "#c0d0e4"],
+	jinshi: ["#161222", "#221b36", "#31284d", "#443860", "#5b4d79", "#796894", "#a18fb1", "#d0c2d9"],
 	scout: ["#261812", "#38241a", "#4d3021", "#633e29", "#7a4d31", "#90603d", "#a67750", "#bd926c", "#d0b08c", "#e5d2af"],
 	gun: ["#18191a", "#242526", "#343536", "#454646", "#565756", "#696967", "#7e7c77", "#96928a", "#b0aba1", "#cbc6bb"],
 	ronin: ["#14131f", "#201d2d", "#2f2b3d", "#403b4e", "#544d61", "#6a6175", "#847989"],
@@ -206,6 +209,60 @@ function shield(c: Canvas, f: number): void {
 	ellipse(c, 48, 37 + bob, 2, 2, C("#d4b56d")); line(c, 41, 33 + bob, 55, 41 + bob, C("#49301d"), 1);
 }
 
+function rattanShield(c: Canvas, f: number): void {
+	const bob = f % 2 ? 1 : 0;
+	ellipse(c, 47, 37 + bob, 10, 11, INK);
+	ellipse(c, 47, 37 + bob, 9, 10, C("#5d6f3c"));
+	ring(c, 47, 37 + bob, 9, 10, C("#c2a35f"));
+	ring(c, 47, 37 + bob, 6, 7, C("#8e7a3f"));
+	ring(c, 47, 37 + bob, 3, 4, C("#d8c07a"));
+	for (let i = -6; i <= 6; i += 3) line(c, 41, 37 + bob + i, 53, 37 + bob + i, C("#7b6333"), 1);
+	for (let i = -6; i <= 6; i += 3) line(c, 47 + i, 30 + bob, 47 + i, 44 + bob, C("#7b6333"), 1);
+	ellipse(c, 47, 37 + bob, 2, 2, RED);
+}
+
+function futouAndRobe(c: Canvas, f: number, attack: boolean): void {
+	rect(c, 23, 10, 39, 15, C("#15131b"));
+	rect(c, 24, 11, 38, 14, C("#2a2333"));
+	line(c, 23, 12, 15, 10, C("#15131b"), 2);
+	line(c, 39, 12, 47, 10, C("#15131b"), 2);
+	rect(c, 27, 15, 35, 16, C("#8c2b27"));
+	rect(c, 21, 31, 43, 47, C("#2c2440"));
+	rect(c, 18, 32, 21, 45, C("#3a3054"));
+	rect(c, 43, 32, 46, 45, C("#3a3054"));
+	line(c, 20, 34, 44, 34, GOLD_DARK, 1);
+	line(c, 20, 43, 44, 43, GOLD_DARK, 1);
+	rect(c, 28, 36, 36, 38, GOLD);
+	rect(c, 29, 37, 35, 37, GOLD_HI);
+	if (!attack) {
+		rect(c, 12, 34, 20, 40, C("#d8c9a6"));
+		line(c, 12, 34, 20, 34, C("#8f764a"), 1);
+		line(c, 14, 37, 18, 37, C("#8f764a"), 1);
+	}
+	if (attack) {
+		const spread = f % 2 ? 1 : 0;
+		poly(c, [[42, 34], [52, 22 - spread], [57, 24 - spread], [50, 36]], C("#d9c58f"));
+		for (let i = 0; i < 5; i++) line(c, 43, 34, 50 + i, 23 - spread + i, C("#8f764a"), 1);
+		line(c, 42, 34, 56, 24 - spread, GOLD, 1);
+	}
+}
+
+function handCannon(c: Canvas, f: number, attack: boolean): void {
+	if (attack) {
+		const y = f === 2 ? 32 : 33;
+		rect(c, 8, y - 1, 31, y + 1, WOOD_DARK); rect(c, 9, y, 27, y, WOOD);
+		rect(c, 5, y - 2, 10, y + 2, STEEL_DARK); rect(c, 6, y - 1, 9, y + 1, STEEL_MID);
+		line(c, 30, y + 2, 36, y + 6, WOOD_DARK, 3);
+		if (f === 2) {
+			px(c, 3, y - 1, RED_HI); px(c, 2, y - 2, GOLD_HI); px(c, 1, y, GOLD);
+			px(c, 4, y - 2, C("#f4ead0")); px(c, 2, y + 2, C("#c9c1a8"));
+		}
+	} else {
+		line(c, 14, 41, 34, 24, WOOD_DARK, 3); line(c, 16, 39, 34, 24, WOOD, 1);
+		rect(c, 34, 21, 40, 24, STEEL_DARK); rect(c, 35, 22, 39, 23, STEEL_MID);
+	}
+}
+
 function dragonHead(c: Canvas, f: number, attack: boolean): void {
 	const x = attack ? (f === 2 || f === 3 ? 1 : 3) : (f % 2 ? 2 : 3);
 	const y = f % 2 ? 1 : 0;
@@ -236,7 +293,8 @@ type Config = {
 	id: string;
 	base: "sora" | "samurai";
 	palette: string[];
-	kind: "dao" | "bow" | "dragon" | "headband" | "match" | "shield" | "ronin" | "chief";
+	kind: "dao" | "bow" | "dragon" | "headband" | "match" | "shield" | "ronin" | "chief"
+		| "rattan" | "scholar" | "handcannon";
 	attack: "melee" | "ranged" | "samurai";
 	attackFrames: number;
 };
@@ -245,6 +303,9 @@ const CONFIGS: Config[] = [
 	{ id: "xiangyong", base: "sora", palette: PALETTES.xiangyong, kind: "dao", attack: "melee", attackFrames: 5 },
 	{ id: "gongshou", base: "sora", palette: PALETTES.gongshou, kind: "bow", attack: "ranged", attackFrames: 4 },
 	{ id: "longdeng", base: "sora", palette: PALETTES.longdeng, kind: "dragon", attack: "melee", attackFrames: 5 },
+	{ id: "tengpai", base: "sora", palette: PALETTES.tengpai, kind: "rattan", attack: "melee", attackFrames: 5 },
+	{ id: "huochong", base: "sora", palette: PALETTES.huochong, kind: "handcannon", attack: "ranged", attackFrames: 4 },
+	{ id: "jinshi", base: "sora", palette: PALETTES.jinshi, kind: "scholar", attack: "ranged", attackFrames: 4 },
 	{ id: "wokou_scout", base: "sora", palette: PALETTES.scout, kind: "headband", attack: "melee", attackFrames: 5 },
 	{ id: "wokou_gun", base: "sora", palette: PALETTES.gun, kind: "match", attack: "ranged", attackFrames: 4 },
 	{ id: "wokou_ronin", base: "samurai", palette: PALETTES.ronin, kind: "ronin", attack: "samurai", attackFrames: 4 },
@@ -285,6 +346,9 @@ async function build(cfg: Config, attack: boolean, f: number): Promise<Canvas> {
 	if (cfg.kind === "headband") headband(c, f);
 	if (cfg.kind === "match") matchlock(c, f, attack);
 	if (cfg.kind === "shield") shield(c, f);
+	if (cfg.kind === "rattan") { rattanShield(c, f); dao(c, f, attack); }
+	if (cfg.kind === "handcannon") handCannon(c, f, attack);
+	if (cfg.kind === "scholar") futouAndRobe(c, f, attack);
 	if (cfg.kind === "chief") crestAndArmor(c);
 	return c;
 }

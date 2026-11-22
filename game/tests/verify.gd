@@ -40,7 +40,7 @@ func _run() -> void:
 	ck("数据/4塔已加载", int(s.get("data_counts", {}).get("towers", 0)) == 4)
 	var missing_sprites := 0
 	var bad_frames := 0
-	for uid in ["xiangyong", "gongshou", "longdeng", "wokou_scout", "wokou_ronin", "wokou_shield", "wokou_gun", "wokou_chief"]:
+	for uid in ["xiangyong", "gongshou", "longdeng", "tengpai", "huochong", "jinshi", "wokou_scout", "wokou_ronin", "wokou_shield", "wokou_gun", "wokou_chief"]:
 		var base := "res://assets/units/%s" % uid
 		if not FileAccess.file_exists("%s/static.png" % base):
 			missing_sprites += 1
@@ -48,7 +48,7 @@ func _run() -> void:
 		var atk_n := DirAccess.get_files_at("%s/attack" % base).size()
 		if run_n < 3 or atk_n < 3:
 			bad_frames += 1
-	ck("精灵/8兵种静态图齐全", missing_sprites == 0)
+	ck("精灵/11兵种静态图齐全", missing_sprites == 0)
 	ck("精灵/跑攻序列帧齐全", bad_frames == 0)
 
 	# 2. 弹药消耗
