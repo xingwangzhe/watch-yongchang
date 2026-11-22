@@ -23,6 +23,8 @@ const C_BTN_SELECTED := Color(0.36, 0.28, 0.14, 0.98)
 const BUILD_LABELS: Array[String] = ["箭塔 40银", "军械坊 35银", "烽火台 30银"]
 const BUILD_KEYS: Array[String] = ["Q", "E", "-"]
 const UNIT_LABELS: Array[String] = ["乡勇 10银", "弓手 16银", "龙灯队 36银"]
+const BUILD_ICONS: Array[String] = ["res://assets/ui/icon_tower.png", "res://assets/ui/icon_armory.png", "res://assets/ui/icon_signal.png"]
+const UNIT_ICONS: Array[String] = ["res://assets/ui/icon_militia.png", "res://assets/ui/icon_archer.png", "res://assets/ui/icon_dragon.png"]
 
 var _font: Font
 var _grain_value: Label
@@ -90,25 +92,25 @@ func _build_top_bar() -> void:
 	row.add_child(_vsep())
 
 	# 波次徽章
-	var wave_chip := _chip("波次", C_RED)
+	var wave_chip := _chip("波次", C_RED, "res://assets/ui/icon_signal.png")
 	_wave_value = wave_chip["value"]
 	row.add_child(wave_chip["node"])
 
 	row.add_child(_vsep())
 
 	# 资源
-	var grain := _chip("粮", C_GREEN)
+	var grain := _chip("粮", C_GREEN, "res://assets/ui/icon_grain.png")
 	_grain_value = grain["value"]
 	row.add_child(grain["node"])
-	var silver := _chip("银", C_GOLD)
+	var silver := _chip("银", C_GOLD, "res://assets/ui/icon_silver.png")
 	_silver_value = silver["value"]
 	row.add_child(silver["node"])
-	var ammo := _chip("弹", C_BLUE)
+	var ammo := _chip("弹", C_BLUE, "res://assets/ui/icon_ammo.png")
 	_ammo_value = ammo["value"]
 	row.add_child(ammo["node"])
 
 	# 主堡血量（数值 + 血条）
-	var keep_chip := _chip("主堡", C_RED)
+	var keep_chip := _chip("主堡", C_RED, "res://assets/ui/icon_beacon.png")
 	_keep_value = keep_chip["value"]
 	row.add_child(keep_chip["node"])
 	_keep_bar = ProgressBar.new()
@@ -210,7 +212,7 @@ func _build_build_bar() -> void:
 	build_caption.custom_minimum_size = Vector2(46, 0)
 	build_row.add_child(build_caption)
 	for i in range(BUILD_LABELS.size()):
-		var btn := _make_button("%s  [%s]" % [BUILD_LABELS[i], BUILD_KEYS[i]], Vector2(150, 42), _on_build_pressed(i))
+		var btn := _make_button("%s  [%s]" % [BUILD_LABELS[i], BUILD_KEYS[i]], Vector2(170, 44), _on_build_pressed(i), BUILD_ICONS[i])
 		_build_buttons.append(btn)
 		build_row.add_child(btn)
 	vbox.add_child(build_row)
@@ -222,7 +224,7 @@ func _build_build_bar() -> void:
 	unit_caption.custom_minimum_size = Vector2(46, 0)
 	unit_row.add_child(unit_caption)
 	for i in range(UNIT_LABELS.size()):
-		var btn := _make_button("%s  [%d]" % [UNIT_LABELS[i], i + 1], Vector2(150, 42), _on_unit_pressed(i))
+		var btn := _make_button("%s  [%d]" % [UNIT_LABELS[i], i + 1], Vector2(170, 44), _on_unit_pressed(i), UNIT_ICONS[i])
 		unit_row.add_child(btn)
 	vbox.add_child(unit_row)
 
@@ -324,7 +326,7 @@ func _vsep() -> Control:
 	sep.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return sep
 
-func _chip(caption: String, accent: Color) -> Dictionary:
+func _chip(caption: String, accent: Color, icon_path: String = "") -> Dictionary:
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", _flat_style(Color(0.03, 0.05, 0.05, 0.7), accent, 1.0))
 	var m := MarginContainer.new()
@@ -336,16 +338,32 @@ func _chip(caption: String, accent: Color) -> Dictionary:
 	var h := HBoxContainer.new()
 	h.add_theme_constant_override("separation", 8)
 	m.add_child(h)
+	if icon_path != "":
+		var tex := load(icon_path) as Texture2D
+		if tex != null:
+			var icon := TextureRect.new()
+			icon.texture = tex
+			icon.custom_minimum_size = Vector2(26, 26)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			h.add_child(icon)
 	var cap := _label(caption, 13, C_SUB)
 	h.add_child(cap)
 	var value := _label("0", 19, C_INK)
 	h.add_child(value)
 	return {"node": panel, "value": value}
 
-func _make_button(text: String, min_size: Vector2, callback: Callable) -> Button:
+func _make_button(text: String, min_size: Vector2, callback: Callable, icon_path: String = "") -> Button:
 	var btn := Button.new()
 	btn.text = text
 	btn.custom_minimum_size = min_size
+	if icon_path != "":
+		var tex := load(icon_path) as Texture2D
+		if tex != null:
+			btn.icon = tex
+			btn.expand_icon = true
+			btn.add_theme_constant_override("icon_max_width", 30)
 	btn.add_theme_font_override("font", _font)
 	btn.add_theme_font_size_override("font_size", 18)
 	btn.add_theme_color_override("font_color", C_INK)

@@ -36,6 +36,7 @@ var auto_mode: bool = true
 var spawn_system: Node = null
 var build_system: Node = null
 var selected_build: int = 0
+var _build_preview: Node2D = null
 
 var _workshop_bonus_accum: float = 0.0
 
@@ -162,6 +163,12 @@ func _build_hud() -> void:
 		hud.build_selected.connect(_select_build)
 		hud.unit_spawn_requested.connect(_on_unit_requested)
 	hud.set_selected_build(selected_build)
+	# RWX BuildPreview 式建造占格预览
+	var preview := preload("res://scripts/build_preview.gd").new() as Node2D
+	preview.name = "BuildPreview"
+	preview.set("main_ref", self)
+	preview.z_index = 15
+	add_child(preview)
 
 func _on_unit_requested(index: int) -> void:
 	spawn_player_unit(index)
