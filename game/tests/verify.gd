@@ -106,6 +106,34 @@ func _run() -> void:
 	build.queue_free()
 	holder.queue_free()
 
+	# 7. 音频系统
+	var audio: Node = root_node.get_node_or_null("AudioManager") as Node
+	ck("音频/AudioManager存在", audio != null)
+	if audio != null:
+		audio.set_bgm_volume(0.85)
+		ck("音频/BGM音量设置", is_equal_approx(audio.get_bgm_volume(), 0.85))
+		audio.set_sfx_volume(0.42)
+		ck("音频/SFX音量设置", is_equal_approx(audio.get_sfx_volume(), 0.42))
+		audio.save_settings()
+		audio.set_bgm_volume(0.1)
+		audio.load_settings()
+		ck("音频/配置持久化回读", is_equal_approx(audio.get_bgm_volume(), 0.85))
+		var asnap: Dictionary = audio.get_debug_snapshot()
+		ck("音频/SFX池=8", int(asnap.get("sfx_pool", 0)) == 8)
+		ck("音频/SFX已加载=9", int(asnap.get("sfx_loaded", 0)) == 9)
+		audio.set_bgm_volume(0.55)
+		audio.set_sfx_volume(0.80)
+
+	# 8. 场景导航与 UI 场景
+	var flow: Node = root_node.get_node_or_null("GameFlow") as Node
+	ck("导航/GameFlow存在", flow != null)
+	ck("导航/主菜单场景存在", ResourceLoader.exists("res://scenes/main_menu.tscn"))
+	ck("导航/设置场景存在", ResourceLoader.exists("res://scenes/settings.tscn"))
+	var menu_scene := load("res://scenes/main_menu.tscn") as PackedScene
+	ck("UI/主菜单可加载", menu_scene != null)
+	var settings_scene := load("res://scenes/settings.tscn") as PackedScene
+	ck("UI/设置界面可加载", settings_scene != null)
+
 	_done()
 
 func _done() -> void:
