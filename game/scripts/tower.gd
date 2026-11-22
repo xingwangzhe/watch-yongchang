@@ -20,6 +20,19 @@ func _ready() -> void:
 	sprite.play("default")
 	print("[TOWER] ready type=%s damage=%d interval=%.1f" % [tower_id, damage, interval])
 
+## RTS 标配：射程指示圈（淡色，不抢视觉）
+func _draw() -> void:
+	var c := Color(0.55, 0.85, 0.90, 0.16)
+	var ring := Color(0.55, 0.85, 0.90, 0.35)
+	var points := 48
+	var pts := PackedVector2Array()
+	for i in range(points + 1):
+		var a := TAU * float(i) / float(points)
+		pts.append(Vector2(cos(a), sin(a)) * attack_range)
+	draw_colored_polygon(pts, c)
+	for i in range(points):
+		draw_line(pts[i], pts[i + 1], ring, 1.5)
+
 func _physics_process(delta: float) -> void:
 	if GameState.phase == GameState.Phase.VICTORY or GameState.phase == GameState.Phase.DEFEAT:
 		return
