@@ -152,7 +152,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_Q: _select_build((selected_build - 1 + BUILD_TYPES.size()) % BUILD_TYPES.size())
 			KEY_E: _select_build((selected_build + 1) % BUILD_TYPES.size())
 			KEY_SPACE: _skip_prepare()
-			KEY_R: get_tree().reload_current_scene()
+			KEY_R: GameFlow.restart_battle()
+			KEY_ESCAPE: _toggle_pause()
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var mb := event as InputEventMouseButton
 		_try_build_at(get_global_mouse_position(), mb.position)
@@ -164,6 +165,10 @@ func _select_build(index: int) -> void:
 func _skip_prepare() -> void:
 	if GameState.phase == GameState.Phase.PREPARE:
 		wave_timer = PREPARE_SEC
+
+func _toggle_pause() -> void:
+	if hud != null and hud.has_method("toggle_pause"):
+		hud.toggle_pause(not hud.is_paused())
 
 func _try_build_at(world_pos: Vector2, _screen_pos: Vector2) -> void:
 	if build_system == null: return
