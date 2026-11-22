@@ -77,20 +77,43 @@ func _make_label(parent: Node, p_name: String, pos: Vector2, text: String, color
 	parent.add_child(l)
 	return l
 
+## 带半透明底的小铭牌：用于地图内少量必要标注，避免裸文字压在瓦片上难辨。
+func _make_nameplate(parent: Node, p_name: String, pos: Vector2, text: String, accent: Color, z: int) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.name = p_name
+	panel.position = pos
+	panel.z_index = z
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(0.05, 0.07, 0.07, 0.82)
+	sb.set_border_width_all(1)
+	sb.border_color = accent
+	sb.set_corner_radius_all(3)
+	sb.set_content_margin_all(4)
+	panel.add_theme_stylebox_override("panel", sb)
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_override("font", load("res://assets/fonts/LXGWWenKai-Regular.ttf") as Font)
+	l.add_theme_font_size_override("font_size", 15)
+	l.add_theme_color_override("font_color", accent)
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(l)
+	parent.add_child(panel)
+	return panel
+
 func _build_tilemap() -> void:
 	var layers := TileMapBuilder.build(self)
 	var buildings: Array = layers["buildings"]
 	print("[TILEMAP] cols=%d rows=%d tile=%d buildings=%d" % [
 		layers["cols"], layers["rows"], layers["tile"], buildings.size()])
-	_make_label(self, "Banner", Vector2(30, 24), "守望 · 永昌", COL_INK, 36, -9)
-	_make_label(self, "Subtitle", Vector2(32, 68), "建造布防 · 烽火传薪 · 众志成城", COL_ROAD, 18, -9)
+	# 标题已移入顶部状态栏，地图区域不再叠裸文字
 
 func _build_bases() -> void:
 	var own_a := TileMapBuilder.keep_anchor(false)
 	var enemy_a := TileMapBuilder.keep_anchor(true)
-	var label_y := float((own_a.y + TileMapBuilder.KEEP_SIZE.y) * TileMapBuilder.TILE) + 6.0
-	_make_label(self, "OwnKeepLabel", Vector2(float(own_a.x * TileMapBuilder.TILE) - 4.0, label_y), "永昌城", COL_OWN, 22, -14)
-	_make_label(self, "EnemyKeepLabel", Vector2(float(enemy_a.x * TileMapBuilder.TILE) - 4.0, label_y), "倭营", COL_ENEMY, 22, -14)
+	var label_y := float((own_a.y + TileMapBuilder.KEEP_SIZE.y) * TileMapBuilder.TILE) + 8.0
+	_make_nameplate(self, "OwnKeepLabel", Vector2(float(own_a.x * TileMapBuilder.TILE) - 6.0, label_y), "永昌城", COL_OWN, -14)
+	_make_nameplate(self, "EnemyKeepLabel", Vector2(float(enemy_a.x * TileMapBuilder.TILE) - 6.0, label_y), "倭营", COL_ENEMY, -14)
 
 func _build_lanes() -> void:
 	for i in range(TileMapBuilder.LANE_ROWS.size()):
@@ -128,19 +151,20 @@ func _build_spawn_marks() -> void:
 		var w: Vector2 = p["world"]
 		var mark := _make_rect(self, "SpawnMark_%s" % str(p["id"]),
 			w - Vector2(10, 10), Vector2(20, 20), COL_ENEMY, -8)
-		mark.modulate.a = 0.45
-		_make_label(self, "SpawnLabel_%s" % str(p["id"]),
-			w + Vector2(14, -12), "刷新点", COL_ENEMY, 14, -7)
+		mark.modulate.a = 0.35
+		_make_nameplate(self, "SpawnLabel_%s" % str(p["id"]),
+			w + Vector2(14, -14), "敌", COL_ENEMY, -7)
 
 func _build_hud() -> void:
 	set_process(true)
-	_make_label(self, "BuildHint", Vector2(24, 636), "", COL_INK, 16, 30)
-	_update_build_hint()
+	# HUD 按钮 → 游戏逻辑（解耦，HUD 不直接调用 main）
+	if hud != null:
+		hud.build_selected.connect(_select_build)
+		hud.unit_spawn_requested.connect(_on_unit_requested)
+	hud.set_selected_build(selected_build)
 
-func _update_build_hint() -> void:
-	var node := get_node_or_null("BuildHint") as Label
-	if node == null: return
-	node.text = "建造[Q/E切换]: %s  |  鼠标左键放置  |  1/2/3出兵  |  空格提前开波  |  R重开" % BUILD_LABELS[selected_build]
+func _on_unit_requested(index: int) -> void:
+	spawn_player_unit(index)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed:
@@ -160,7 +184,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _select_build(index: int) -> void:
 	selected_build = index
-	_update_build_hint()
+	if hud != null:
+		hud.set_selected_build(index)
 
 func _skip_prepare() -> void:
 	if GameState.phase == GameState.Phase.PREPARE:
