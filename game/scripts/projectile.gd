@@ -7,6 +7,17 @@ var damage: int = 10
 var velocity: Vector2 = Vector2.ZERO
 var lifetime: float = 2.0
 
+@onready var sprite: Sprite2D = $Sprite
+
+func _ready() -> void:
+	if sprite.texture == null:
+		var img := Image.create(12, 12, false, Image.FORMAT_RGBA8)
+		for x in range(12):
+			for y in range(12):
+				var d := Vector2(x - 5.5, y - 5.5).length()
+				img.set_pixel(x, y, Color(1.0, 0.86, 0.32, 1.0) if d <= 5.5 else Color(0, 0, 0, 0))
+		sprite.texture = ImageTexture.create_from_image(img)
+
 func launch(from: Vector2, p_target: Unit, p_damage: int) -> void:
 	global_position = from
 	target = p_target

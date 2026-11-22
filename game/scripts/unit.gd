@@ -29,6 +29,7 @@ func _ready() -> void:
 	progress = 0.0
 	if hp <= 0: hp = max_hp
 	sprite.sprite_frames = ResourceManager.get_frames(str(type_id))
+	sprite.modulate = Color(1.0, 0.68, 0.68) if is_enemy else Color(0.78, 0.95, 1.0)
 	sprite.play("run")
 	add_to_group("units")
 	print("[UNIT] spawn type=%s lane=%d hp=%d" % [type_id, lane_index, hp])
