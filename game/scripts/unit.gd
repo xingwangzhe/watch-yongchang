@@ -17,6 +17,13 @@ signal died(unit: Unit)
 var hp: int = 0
 var is_dead: bool = false
 
+# 借鉴 RWX 单位交战：近距离索敌 → 停止行进 → 攻击硬直 → 继续推进
+const DMG_TABLE: Dictionary = {"xiangyong": 15, "gongshou": 10, "longdeng": 25}
+const RANGE_TABLE: Dictionary = {"xiangyong": 34.0, "gongshou": 110.0, "longdeng": 44.0}
+const ATK_INTERVAL_TABLE: Dictionary = {"xiangyong": 0.9, "gongshou": 1.1, "longdeng": 1.3}
+
+var _atk_cd: float = 0.0
+
 func setup(p_type: StringName, p_lane: int, p_hp: int, p_speed: float, p_enemy: bool, p_direction: float = 1.0) -> void:
 	type_id = p_type
 	lane_index = p_lane
@@ -48,11 +55,39 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead or GameState.phase == GameState.Phase.VICTORY or GameState.phase == GameState.Phase.DEFEAT:
 		return
+	# 攻击硬直中：站定不移动
+	if _atk_cd > 0.0:
+		_atk_cd -= delta
+		return
+	var target := _find_enemy_in_range()
+	if target != null:
+		_attack(target)
+		_atk_cd = float(ATK_INTERVAL_TABLE.get(str(type_id), 1.0))
+		return
 	progress += speed * delta * direction
 	if direction > 0.0 and progress_ratio >= 1.0:
 		_reach_base()
 	elif direction < 0.0 and progress_ratio <= 0.0:
 		_reach_base()
+
+func _find_enemy_in_range() -> Unit:
+	var rng: float = float(RANGE_TABLE.get(str(type_id), 34.0))
+	var best: Unit = null
+	var best_d := rng
+	for node in get_tree().get_nodes_in_group("units"):
+		var u := node as Unit
+		if u == null or u.is_dead or u.is_enemy == is_enemy:
+			continue
+		var d: float = global_position.distance_to(u.global_position)
+		if d <= best_d:
+			best_d = d
+			best = u
+	return best
+
+func _attack(target: Unit) -> void:
+	var dmg: int = int(DMG_TABLE.get(str(type_id), 10))
+	play_attack()
+	target.take_damage(dmg)
 
 func play_attack() -> void:
 	if is_dead: return
@@ -67,8 +102,21 @@ func take_damage(amount: int) -> void:
 	if is_dead: return
 	hp -= amount
 	EventBus.unit_hit.emit(type_id, amount)
+	queue_redraw()
 	if hp <= 0:
 		die()
+
+## 塔防标配：单位头顶迷你血条（敌红我青），满血隐藏
+func _draw() -> void:
+	if is_dead or hp >= max_hp:
+		return
+	var w := 26.0
+	var h := 3.0
+	var y := -24.0
+	var ratio := clampf(float(hp) / float(max_hp), 0.0, 1.0)
+	draw_rect(Rect2(-w * 0.5 - 1.0, y - 1.0, w + 2.0, h + 2.0), Color(0.03, 0.04, 0.04, 0.8))
+	var fill := Color(0.80, 0.30, 0.26) if is_enemy else Color(0.36, 0.66, 0.58)
+	draw_rect(Rect2(-w * 0.5, y, w * ratio, h), fill)
 
 func die() -> void:
 	if is_dead: return
