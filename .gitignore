@@ -10,3 +10,6 @@ Thumbs.db
 
 # Godot 引擎缓存
 game/.godot/
+
+# CodeGraph 索引库（本地生成，不入库）
+.codegraph/
