@@ -43,7 +43,7 @@
 
 ## 三、AI 生成内容清单
 
-> **补充（2026-11-22 晚）**：工程 `game/` 新增 1 条原创 BGM + 9 个事件音效，由 `tools/generate_audio.py` 用五声音阶加法合成、ffmpeg 转 OGG，**CC0 1.0**，无第三方采样；中文 UI 字体采用霞鹜文楷（**SIL OFL 1.1**），许可文本随字体存放于 `assets/fonts/OFL.txt`，游戏内不做字体改名。逐项见 `素材授权清单.csv`。
+> **补充（2026-11-22 晚）**：工程 `game/` 新增 1 条原创 BGM + 9 个事件音效，由 `tools/generate_audio.py` 用五声音阶加法合成、ffmpeg 转 OGG，**CC0 1.0**，无第三方采样；中文 UI 字体统一采用 **lxwk（霞鹜文楷 / LXGW WenKai）**，已设为 Godot 工程全局默认字体（`gui/theme/custom = res://themes/default.tres`，`default_font` 指向该 ttf；HUD 另有显式覆盖）；字体许可 **SIL OFL 1.1**，完整协议文本随字体存放于 `assets/fonts/OFL.txt` 与 `game/assets/fonts/OFL.txt`，游戏内不修改字体文件、不更改保留字体名。逐项见 `素材授权清单.csv`。
 
 ### 3.1 图像资产（`assets/`）
 

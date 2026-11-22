@@ -38,7 +38,8 @@ gda daemon stop --project game --json
 
 ```
 game/
-├── project.godot          # 工程配置：1280×720，gl_compatibility，5 个 autoload
+├── project.godot          # 工程配置：1280×720，gl_compatibility，5 个 autoload，全局主题字体=lxwk
+├── themes/default.tres   # 全局默认 Theme：default_font = 霞鹜文楷（LXGW WenKai）
 ├── scenes/
 │   ├── main.tscn          # 主场景：Lanes/Battle/Projectiles/FX/UI
 │   ├── unit.tscn          # 单位模板（PathFollow2D + AnimatedSprite2D）
@@ -59,6 +60,12 @@ game/
 准备期 12s → 波次1(6敌) → 波次2(10敌,抗倭事件) → 波次3(14敌) → 按主堡 HP 判定
 玩家：1/2/3 出兵推进（银）  |  箭塔自动索敌（弹药，军械坊产出）  |  断供即停火
 ```
+
+## 字体与协议
+
+- 全工程 UI 字体统一使用 **lxwk（霞鹜文楷 / LXGW WenKai）**：`assets/fonts/LXGWWenKai-Regular.ttf`。
+- 通过 `gui/theme/custom = res://themes/default.tres` 设为**全局默认字体**，HUD 另有一层显式覆盖确保生效。
+- 字体许可 **SIL Open Font License 1.1**，完整协议文本：`assets/fonts/OFL.txt`（根目录 `assets/fonts/OFL.txt` 亦有一份）。原始项目 https://github.com/lxgw/LxgwWenKai 。未修改字体文件、未更改保留字体名。
 
 ## 已知限制
 
