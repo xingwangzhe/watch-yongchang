@@ -1,12 +1,22 @@
 extends Node2D
 ## 主场景：布路、建塔、波次推进、文化事件、自动验证快照。
 
-const LANE_Y := [220.0, 360.0, 500.0]
-const LANE_X_START := 60.0
-const LANE_X_END := 1220.0
-const TOWER_X := [420.0, 700.0, 980.0]
+# 显式 preload，避免新建 class_name 的全局缓存尚未刷新
+const TileMapBuilder = preload("res://scripts/tile_map_builder.gd")
+
+# 路径几何已迁移到 TileMapBuilder（瓦片网格派生），不再硬编码像素坐标
 const UNIT_TYPES := ["xiangyong", "gongshou", "longdeng"]
 const WAVE_COUNTS := [6, 10, 14]
+
+# 战场视觉配色（国风：宣纸地、墨线、朱砂/青黛阵营色）
+const COL_SKY_TOP := Color(0.09, 0.13, 0.18)
+const COL_SKY_BOT := Color(0.16, 0.22, 0.27)
+const COL_GROUND := Color(0.20, 0.21, 0.17)
+const COL_ROAD := Color(0.55, 0.46, 0.32)
+const COL_ROAD_EDGE := Color(0.35, 0.30, 0.21)
+const COL_OWN := Color(0.24, 0.42, 0.47)
+const COL_ENEMY := Color(0.52, 0.22, 0.20)
+const COL_INK := Color(0.75, 0.72, 0.62)
 
 @onready var lanes: Node2D = $Lanes
 @onready var units_layer: Node2D = $Battle/Units
@@ -25,33 +35,77 @@ func _ready() -> void:
 	SupplySystem.reset()
 	DataDB.load_all()
 	ResourceManager.preload_level("lv_01")
+	_build_tilemap()
 	_build_lanes()
+	_build_bases()
 	_build_towers()
 	_build_hud()
 	GameState.set_phase(GameState.Phase.PREPARE)
 	print("[PREFLIGHT] scene=main started=true")
 	EventBus.result_decided.connect(_on_result)
 
+func _make_rect(parent: Node, p_name: String, pos: Vector2, size: Vector2, color: Color, z: int) -> ColorRect:
+	var r := ColorRect.new()
+	r.name = p_name
+	r.position = pos
+	r.size = size
+	r.color = color
+	r.z_index = z
+	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(r)
+	return r
+
+func _make_label(parent: Node, p_name: String, pos: Vector2, text: String, color: Color, size: int, z: int) -> Label:
+	var l := Label.new()
+	l.name = p_name
+	l.position = pos
+	l.text = text
+	l.add_theme_color_override("font_color", color)
+	l.add_theme_font_size_override("font_size", size)
+	l.z_index = z
+	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	parent.add_child(l)
+	return l
+
+func _build_tilemap() -> void:
+	# Mindustry 式分层瓦片地图：floor / overlay / build / decor 四层 TileMapLayer
+	var layers := TileMapBuilder.build(self)
+	print("[TILEMAP] layers=%d cols=%d rows=%d tile=%d" % [
+		layers.size() - 3, layers["cols"], layers["rows"], layers["tile"]])
+	# 标题叠在瓦片之上（z=-9，仍在单位/塔之下）
+	_make_label(self, "Banner", Vector2(40, 28), "守望 · 永昌", COL_INK, 40, -9)
+	_make_label(self, "Subtitle", Vector2(42, 76), "三路驿道 · 烽火传薪 · 众志成城", COL_ROAD, 20, -9)
+
+func _build_bases() -> void:
+	# 城门已由瓦片层（T_FOUNDATION）绘出；此处只叠加阵营色标与文字。
+	var y := TileMapBuilder.lane_y(1)
+	_make_rect(self, "OwnKeep", Vector2(2, y - 96), Vector2(14, 192), COL_OWN, -15)
+	_make_rect(self, "EnemyKeep", Vector2(1264, y - 96), Vector2(14, 192), COL_ENEMY, -15)
+	_make_label(self, "OwnKeepLabel", Vector2(2, y + 100), "永昌", COL_INK, 22, -14)
+	_make_label(self, "EnemyKeepLabel", Vector2(1220, y + 100), "倭营", COL_INK, 22, -14)
+
 func _build_lanes() -> void:
-	for i in range(3):
+	# 路径点从瓦片网格派生：直线沿道路行中心，起点/终点在城门格。
+	# Path2D 仅作 PathFollow2D 的运动骨架，视觉完全由 TileMapLayer 承担。
+	for i in range(TileMapBuilder.LANE_ROWS.size()):
 		var path := Path2D.new()
 		path.name = "Lane_%d" % i
 		var curve := Curve2D.new()
-		curve.add_point(Vector2(LANE_X_START, LANE_Y[i]))
-		curve.add_point(Vector2(380.0, LANE_Y[i] - 18.0))
-		curve.add_point(Vector2(700.0, LANE_Y[i] + 16.0))
-		curve.add_point(Vector2(1000.0, LANE_Y[i] - 12.0))
-		curve.add_point(Vector2(LANE_X_END, LANE_Y[i]))
+		var y := TileMapBuilder.lane_y(i)
+		curve.add_point(Vector2(0.0, y))
+		curve.add_point(Vector2(1280.0, y))
 		path.curve = curve
 		lanes.add_child(path)
 		lane_paths.append(path)
-		print("[LANE] path=lane_%d points=5 ready=true" % i)
+		print("[LANE] path=lane_%d row=%d y=%.0f derived_from_tilegrid=true" % [
+			i, TileMapBuilder.LANE_ROWS[i], y])
 
 func _build_towers() -> void:
 	var scene := load("res://scenes/tower_node.tscn") as PackedScene
-	for i in range(3):
+	for i in range(TileMapBuilder.TOWER_COLS.size()):
 		var t := scene.instantiate() as Node2D
-		t.position = Vector2(TOWER_X[i], LANE_Y[i] - 44.0)
+		# 塔基瓦片在 (TOWER_COLS[i], LANE_ROWS[i]-1)，塔精灵落在道路行中心上方半格
+		t.position = Vector2(TileMapBuilder.tower_x(i), TileMapBuilder.lane_y(i) - 24.0)
 		t.set("lane_index", i)
 		towers_layer.add_child(t)
 
