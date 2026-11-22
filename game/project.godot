@@ -11,8 +11,8 @@ config_version=5
 [application]
 
 config/name="守望·永昌"
-config/features=PackedStringArray("4.7")
 run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7")
 
 [autoload]
 
@@ -26,6 +26,10 @@ SupplySystem="*res://scripts/autoload/supply_system.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
+
+[gui]
+
+theme/custom="res://themes/default.tres"
 
 [rendering]
 
