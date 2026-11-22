@@ -1,0 +1,9 @@
+# 第三方原始素材包（约 1.2GB，来源 URL 与校验值见 docs/source-manifest.json）
+# 参赛定稿时按素材授权声明逐项处理，不把原始包纳入版本库
+docs/01-参考资料包/
+
+# 编辑器与系统临时文件
+.DS_Store
+Thumbs.db
+*.swp
+*~
