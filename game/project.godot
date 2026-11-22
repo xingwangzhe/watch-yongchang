@@ -15,7 +15,6 @@ run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7")
 
 [autoload]
-GdaHarness="*res://addons/gda_harness/gda_harness.gd"
 
 EventBus="*res://scripts/autoload/event_bus.gd"
 DataDB="*res://scripts/autoload/data_db.gd"

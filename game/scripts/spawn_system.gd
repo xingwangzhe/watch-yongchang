@@ -36,6 +36,11 @@ const TYPE_SPEED: Dictionary = {
 	&"xiangyong": 38.0,
 	&"gongshou": 56.0,
 	&"longdeng": 74.0,
+	&"wokou_scout": 52.0,
+	&"wokou_ronin": 42.0,
+	&"wokou_shield": 30.0,
+	&"wokou_gun": 34.0,
+	&"wokou_chief": 24.0,
 }
 
 # 新 class_name 全局缓存不可靠，统一用 preload 引用
@@ -133,20 +138,18 @@ func speed_scale_for(index: int) -> float:
 ## 波号 → 该波兵种池（逐步解锁，形成压力梯度）
 func _composition(index: int) -> Array[StringName]:
 	var count: int = mini(4 + index * 2, MAX_PER_WAVE)
-	var pool: Array[StringName] = [&"xiangyong"]
-	if index >= 2:
-		pool.append(&"gongshou")
-	if index >= 3:
-		pool.append(&"longdeng")
-	# 兵种按确定性的比例混编：越往后越倾向高威胁兵种
 	var out: Array[StringName] = []
 	for i in range(count):
-		if index >= 3 and i % 5 == 4:
-			out.append(&"longdeng")
+		if index >= 6 and index % 2 == 0 and i == count - 1:
+			out.append(&"wokou_chief")
+		elif index >= 4 and i % 7 == 6:
+			out.append(&"wokou_gun")
+		elif index >= 3 and i % 5 == 4:
+			out.append(&"wokou_shield")
 		elif index >= 2 and i % 3 == 2:
-			out.append(&"gongshou")
+			out.append(&"wokou_ronin")
 		else:
-			out.append(pool[i % pool.size()])
+			out.append(&"wokou_scout")
 	return out
 
 ## 三门轮转，保证三条驿道压力均衡
