@@ -68,11 +68,11 @@ func _build_ui() -> void:
 	spacer.custom_minimum_size = Vector2(0, 34)
 	center.add_child(spacer)
 
-	# 按钮
-	_add_button(center, "开始守城", _on_start)
-	_add_button(center, "设置", _on_settings)
-	_add_button(center, "关于与声明", _on_about)
-	_add_button(center, "退出游戏", _on_quit)
+	# 按钮（图标取自通用 UI 装饰套件，CC0，见 generated/ui_thirdparty/LICENSES.md）
+	_add_button(center, "开始守城", _on_start, "play")
+	_add_button(center, "设置", _on_settings, "settings")
+	_add_button(center, "关于与声明", _on_about, "info")
+	_add_button(center, "退出游戏", _on_quit, "close")
 
 	# 底部提示
 	var hint := Label.new()
@@ -91,7 +91,7 @@ func _build_ui() -> void:
 	# 关于面板（默认隐藏）
 	_build_about_panel()
 
-func _add_button(parent: Node, text: String, callback: Callable) -> void:
+func _add_button(parent: Node, text: String, callback: Callable, icon_name: String = "") -> void:
 	var btn := Button.new()
 	btn.name = "Btn_" + text
 	btn.text = text
@@ -100,6 +100,11 @@ func _add_button(parent: Node, text: String, callback: Callable) -> void:
 	btn.add_theme_font_size_override("font_size", 26)
 	btn.add_theme_color_override("font_color", C_INK)
 	btn.add_theme_color_override("font_hover_color", C_GOLD)
+	if icon_name != "":
+		var UIKit := preload("res://scripts/ui/ui_kit.gd")
+		btn.icon = UIKit.icon(icon_name)
+		btn.expand_icon = true
+		btn.add_theme_constant_override("icon_max_width", 26)
 	btn.add_theme_stylebox_override("normal", _make_style(C_BTN, C_GOLD))
 	btn.add_theme_stylebox_override("hover", _make_style(C_BTN_HOVER, C_RED))
 	btn.add_theme_stylebox_override("pressed", _make_style(C_RED, C_GOLD))
@@ -129,7 +134,8 @@ func _build_about_panel() -> void:
 	_about_panel.offset_top = -264.0
 	_about_panel.offset_right = 320.0
 	_about_panel.offset_bottom = 264.0
-	_about_panel.add_theme_stylebox_override("panel", _make_style(Color(0.08, 0.11, 0.12, 0.98), C_GOLD))
+	var UIKit := preload("res://scripts/ui/ui_kit.gd")
+	_about_panel.add_theme_stylebox_override("panel", UIKit.gold_panel_style(16.0))
 	_about_panel.visible = false
 	add_child(_about_panel)
 

@@ -8,6 +8,9 @@ signal pause_toggled()
 
 const FONT_PATH := "res://assets/fonts/LXGWWenKai-Regular.ttf"
 
+# 通用 UI 装饰套件（第三方 CC0 素材统一出口，见 generated/ui_thirdparty/LICENSES.md）
+const UIKit := preload("res://scripts/ui/ui_kit.gd")
+
 const C_PANEL := Color(0.07, 0.10, 0.11, 0.90)
 const C_PANEL_SOLID := Color(0.07, 0.10, 0.11, 0.98)
 const C_INK := Color(0.88, 0.85, 0.74)
@@ -166,7 +169,7 @@ func _build_event_banner() -> void:
 	_event_banner.offset_top = 126.0
 	_event_banner.offset_left = -230.0
 	_event_banner.offset_right = 230.0
-	_event_banner.add_theme_stylebox_override("panel", _panel_style(C_PANEL_SOLID, C_GOLD, 6.0))
+	_event_banner.add_theme_stylebox_override("panel", UIKit.gold_panel_style(10.0))
 	_event_banner.visible = false
 	add_child(_event_banner)
 	var m := MarginContainer.new()
@@ -239,7 +242,7 @@ func _build_end_panel() -> void:
 	_end_panel.offset_top = -160.0
 	_end_panel.offset_right = 200.0
 	_end_panel.offset_bottom = 160.0
-	_end_panel.add_theme_stylebox_override("panel", _panel_style(C_PANEL_SOLID, C_GOLD, 8.0))
+	_end_panel.add_theme_stylebox_override("panel", UIKit.gold_panel_style(14.0))
 	_end_panel.visible = false
 	add_child(_end_panel)
 
@@ -271,7 +274,7 @@ func _build_pause_panel() -> void:
 	_pause_panel.offset_top = -230.0
 	_pause_panel.offset_right = 190.0
 	_pause_panel.offset_bottom = 230.0
-	_pause_panel.add_theme_stylebox_override("panel", _panel_style(C_PANEL_SOLID, C_GOLD, 8.0))
+	_pause_panel.add_theme_stylebox_override("panel", UIKit.gold_panel_style(14.0))
 	_pause_panel.visible = false
 	add_child(_pause_panel)
 
