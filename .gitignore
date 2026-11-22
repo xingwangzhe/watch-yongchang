@@ -7,3 +7,6 @@ docs/01-参考资料包/
 Thumbs.db
 *.swp
 *~
+
+# Godot 引擎缓存
+game/.godot/

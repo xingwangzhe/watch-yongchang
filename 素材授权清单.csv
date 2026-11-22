@@ -49,3 +49,14 @@ docs/01-参考资料包/汤和信俗素材包-tanghe-customs.zip,汤和信俗素
 docs/01-参考资料包/永昌堡参考资料-yongchang-fort.pdf,永昌堡十三进士与抗倭纪略,第三方参考资料,2026 OSGJ 组委会官网提供,-,全文抽取用于创作参考,授权未声明，保留原权利；不得进成品,史实考据参考,否
 docs/02-主题资料/,主题解密载荷与密钥,赛事公开数据,2026 OSGJ 官网,-,AES-GCM解密,赛事官方公开信息,主题解读,否
 docs/03-站点图片/,官网图片与合作伙伴标识,第三方参考资料,2026 OSGJ 官网,-,下载存档,原站点权利归各权利人；不得进成品,界面风格参考,否
+assets/audio/bgm_watch.ogg,bgm_watch,BGM,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏背景音乐,计划使用
+assets/audio/sfx_alarm.ogg,sfx_alarm,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
+assets/audio/sfx_build.ogg,sfx_build,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
+assets/audio/sfx_fire.ogg,sfx_fire,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
+assets/audio/sfx_hit.ogg,sfx_hit,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
+assets/audio/sfx_lose.ogg,sfx_lose,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
+assets/audio/sfx_merge.ogg,sfx_merge,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
+assets/audio/sfx_spawn.ogg,sfx_spawn,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
+assets/audio/sfx_wave.ogg,sfx_wave,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
+assets/audio/sfx_win.ogg,sfx_win,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
+assets/fonts/LXGWWenKai-Regular.ttf,霞鹜文楷 LXGW WenKai,UI 中文字体,开源字体项目（lxgw/LxgwWenKai）,-,复制随项目分发,SIL Open Font License 1.1（须随附 OFL 许可文本）,游戏内所有中文文本渲染,计划使用
