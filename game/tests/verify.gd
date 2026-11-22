@@ -68,63 +68,110 @@ func _run() -> void:
 	ck("终局/phase=VICTORY", str(s2.get("phase", "")) == "VICTORY")
 	ck("终局/result=victory", str(s2.get("result", "")) == "victory")
 
-	# 5. 刷新点系统（借鉴 RWX attack_point）
+	# 5. 定时出兵系统（Mindustry 式：波间倒计时 + 波内逐个放出）
 	var SpawnScript: GDScript = load("res://scripts/spawn_system.gd") as GDScript
 	var spawn: Node = SpawnScript.new() as Node
 	root_node.add_child(spawn)
 	spawn.setup()
 	ck("刷新点/数量=3", spawn.get_points().size() == 3)
 	ck("刷新点/绑定lane递增", int(spawn.get_points()[2]["lane"]) == 2)
-	spawn.begin_wave(1)
-	ck("波次/首波count=6", spawn.wave_count(1) == 6)
 	var spawn_events: Array = []
 	spawn.enemy_spawn_requested.connect(func(t, l, hs, sp): spawn_events.append([t, l, hs, sp]))
-	for i in range(100):
+	# 准备期倒计时：先 tick 1 秒不应开波
+	spawn.tick(1.0)
+	ck("出兵/准备期未开波", spawn.wave == 0)
+	# 准备期结束后自动开第 1 波
+	spawn.tick(25.0)
+	ck("出兵/准备期到点自动开波", spawn.wave == 1)
+	ck("出兵/首波数量=6", int(spawn.get_debug_snapshot().get("queued", 0)) +
+		int(spawn.get_debug_snapshot().get("spawned_in_wave", 0)) == 6)
+	for i2 in range(120):
 		spawn.tick(0.1)
-	ck("波次/刷兵数=6", spawn_events.size() == 6)
-	ck("波次/刷兵后结束", spawn.is_wave_finished())
-	ck("波次/ lane轮转", int(spawn_events[3][1]) == 0)
+	ck("出兵/波内逐个放出=6", spawn_events.size() == 6)
+	ck("出兵/波内放完等下一波", not spawn.is_spawning and spawn.countdown > 0.0)
+	var lanes_seen: Array = []
+	for e3 in spawn_events:
+		if not lanes_seen.has(int(e3[1])):
+			lanes_seen.append(int(e3[1]))
+	ck("出兵/三门轮转覆盖", lanes_seen.size() == 3)
+	# 难度曲线单调递增
+	ck("出兵/血量随波递增", spawn.hp_scale_for(5) > spawn.hp_scale_for(1))
+	ck("出兵/速度随波递增", spawn.speed_scale_for(5) > spawn.speed_scale_for(1))
+	ck("出兵/倒计时文本", spawn.countdown_text().contains(":"))
 	spawn.queue_free()
 
-	# 5.5 Hard Vacuum 大地图（Tiled 标准图块，96×72 @ 40px）
-	ck("地图/尺寸96x72", TileMapBuilder.COLS == 96 and TileMapBuilder.ROWS == 72)
-	ck("地图/瓦片40px", TileMapBuilder.TILE == 40)
-	var world: Vector2 = TileMapBuilder.WORLD_SIZE
+	# 5.5 永昌堡地形（具名图块 32px，120×90）
+	var TB: GDScript = load("res://scripts/tile_map_builder.gd") as GDScript
+	ck("地图/尺寸120x90", TB.COLS == 120 and TB.ROWS == 90)
+	ck("地图/瓦片32px", TB.TILE == 32)
+	var world: Vector2 = TB.WORLD_SIZE
 	ck("地图/世界3840x2880", world == Vector2(3840, 2880))
-	ck("地图/刷新点在右缘", TileMapBuilder.spawn_world(0).x > 3600.0)
+	ck("地图/三门驿道", TB.LANE_ROWS.size() == 3)
+	var lp: PackedVector2Array = TB.lane_points(0)
+	ck("驿道/控制点≥3", lp.size() >= 3)
+	var a: Vector2 = lp[0]
+	var b: Vector2 = lp[lp.size() - 1]
+	var keep_pt: Vector2 = TB.keep_center(false)
+	var spawn_pt: Vector2 = TB.spawn_world(0)
+	var ends_ok: bool = (a.distance_to(keep_pt) < 900.0 and b.distance_to(spawn_pt) < 96.0) \
+		or (b.distance_to(keep_pt) < 900.0 and a.distance_to(spawn_pt) < 96.0)
+	ck("驿道/两端分别接主堡与登陆点", ends_ok)
+	ck("驿道/穿门名", str(TB.lane_gate_name(1)) != "")
 	var map_parent := Node2D.new()
 	root_node.add_child(map_parent)
-	var bres: Dictionary = TileMapBuilder.build(map_parent)
-	ck("地图/构建产出", not bres.is_empty() and int(bres.get("cols", 0)) == 96)
+	var bres: Dictionary = TB.build(map_parent)
+	ck("地图/构建产出", not bres.is_empty() and int(bres.get("cols", 0)) == 120)
 	var ground_layer: TileMapLayer = bres.get("ground")
-	ck("地图/9个图块源", ground_layer != null and ground_layer.tile_set.get_source_count() == 9)
-	ck("地图/禁建格非空", (bres.get("blocked") as Dictionary).size() > 1500)
+	ck("地图/图块集已建立", ground_layer != null and ground_layer.tile_set != null)
+	ck("地图/9 个语义图块源", ground_layer != null and ground_layer.tile_set.get_source_count() == 9)
+	var blocked: Dictionary = bres.get("blocked", {})
+	ck("地图/禁建格非空", blocked.size() > 1500)
+	var zmap: Dictionary = bres.get("zone_map", {})
+	ck("地图/zone_map 非空", zmap.size() > 5000)
+	ck("地图/zone 含城墙", zmap.values().has(&"wall"))
+	ck("地图/zone 含护城河或河道", zmap.values().has(&"moat") or zmap.values().has(&"river"))
+	ck("地图/zone 含城门", zmap.values().has(&"gate"))
+	ck("地图/zone_at 与 zone_map 一致",
+		TB.zone_at(Vector2i(60, 45)) == StringName(str(zmap.get(Vector2i(60, 45), &"void"))))
+	ck("地图/水域判定", typeof(TB.is_water_cell(Vector2i(60, 45))) == TYPE_BOOL)
 	ck("地图/相机脚本可加载", ResourceLoader.exists("res://scripts/camera_rig.gd"))
-	ck("地图/小地图脚本可加载", ResourceLoader.exists("res://scripts/minimap.gd"))
-	map_parent.queue_free()
+	ck("地图/小地图脚本可加载", ResourceLoader.exists("res://scripts/ui/minimap_panel.gd"))
 
-	# 6. 建造系统（Mindustry/RWX 多格占格）
+	# 6. 建造系统（Mindustry 式多格占格）
 	var BuildScript: GDScript = load("res://scripts/build_system.gd") as GDScript
 	var build: Node = BuildScript.new() as Node
 	root_node.add_child(build)
-	build.blocked = bres.get("blocked", {})
+	build.blocked = blocked
 	gs.reset_level()
-	var illegal: bool = build.can_place(Vector2i(20, 18), &"jianta")
-	ck("建造/道路格不可建", not illegal)
-	var illegal_water: bool = build.can_place(Vector2i(5, 5), &"jianta")
-	ck("建造/水域格不可建", not illegal_water)
-	var legal: bool = build.can_place(Vector2i(16, 8), &"jianta")
-	ck("建造/合法格可建", legal)
+	# 找一个 3×3 全空的可建锚点（不写死坐标，随地形改动自动适配）
+	var legal_cell := Vector2i(-1, -1)
+	for rr in range(6, TB.ROWS - 6):
+		for cc in range(6, TB.COLS - 6):
+			if build.can_place(Vector2i(cc, rr), &"jianta"):
+				legal_cell = Vector2i(cc, rr)
+				break
+		if legal_cell.x >= 0:
+			break
+	ck("建造/能找到合法格", legal_cell.x >= 0)
+	ck("建造/水域不可建", bool(TB.is_water_cell(Vector2i(60, 45))) == false
+		or not build.can_place(Vector2i(60, 45), &"jianta"))
+	var blocked_cell := Vector2i(0, 0)
+	for k in blocked.keys():
+		blocked_cell = k
+		break
+	ck("建造/禁建格不可建", not build.can_place(blocked_cell, &"jianta"))
 	var silver_before: int = gs.silver
 	var holder := Node2D.new()
 	root_node.add_child(holder)
-	var tower: Node2D = build.place(Vector2i(16, 8), &"jianta", holder)
+	var tower: Node2D = build.place(legal_cell, &"jianta", holder)
 	ck("建造/放置成功", tower != null)
 	ck("建造/扣银40", gs.silver == silver_before - 40)
 	ck("建造/占格9", build.get_occupied_count() == 9)
-	ck("建造/重复放置被拒", not build.can_place(Vector2i(5, 3), &"jianta"))
+	ck("建造/建筑进 buildings 组", tower != null and tower.is_in_group("buildings"))
+	ck("建造/重复放置被拒", not build.can_place(legal_cell, &"jianta"))
 	build.queue_free()
 	holder.queue_free()
+	map_parent.queue_free()
 
 	# 7. 音频系统
 	var audio: Node = root_node.get_node_or_null("AudioManager") as Node
@@ -150,6 +197,34 @@ func _run() -> void:
 	ck("导航/GameFlow存在", flow != null)
 	ck("导航/主菜单场景存在", ResourceLoader.exists("res://scenes/main_menu.tscn"))
 	ck("导航/设置场景存在", ResourceLoader.exists("res://scenes/settings.tscn"))
+	ck("导航/滚幕场景存在", ResourceLoader.exists("res://scenes/credits.tscn"))
+	ck("导航/侧栏脚本存在", ResourceLoader.exists("res://scripts/ui/sidebar_panel.gd"))
+	# 10. 片尾滚幕数据（署名可追溯：每条第三方素材都要有 url 与 license）
+	var f := FileAccess.open("res://data/credits.json", FileAccess.READ)
+	ck("滚幕/credits.json 存在", f != null)
+	if f != null:
+		var parsed: Variant = JSON.parse_string(f.get_as_text())
+		f.close()
+		ck("滚幕/JSON 可解析", parsed is Dictionary)
+		if parsed is Dictionary:
+			var cd := parsed as Dictionary
+			var sections: Array = cd.get("sections", [])
+			ck("滚幕/章节数≥8", sections.size() >= 8)
+			var entries := 0
+			var with_url := 0
+			var bad_license := 0
+			for sec in sections:
+				for e in (sec as Dictionary).get("entries", []):
+					entries += 1
+					var ed := e as Dictionary
+					if str(ed.get("url", "")) != "":
+						with_url += 1
+					if str(ed.get("license", "")) == "" and str(ed.get("url", "")) == "":
+						bad_license += 1
+			ck("滚幕/条目数≥30", entries >= 30)
+			ck("滚幕/可点击来源≥20", with_url >= 20)
+			ck("滚幕/无既无许可又无链接的条目", bad_license == 0)
+			ck("滚幕/许可声明 GPL-3", str(cd.get("license", "")).begins_with("GPL-3"))
 	var menu_scene := load("res://scenes/main_menu.tscn") as PackedScene
 	ck("UI/主菜单可加载", menu_scene != null)
 	var settings_scene := load("res://scenes/settings.tscn") as PackedScene

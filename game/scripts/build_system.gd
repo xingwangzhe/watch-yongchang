@@ -1,13 +1,13 @@
 extends Node
 class_name BuildSystem
-## Mindustry/RWX 式多格建造：锚点 + 3x3 占格，校验资源与占用后放置建筑。
-## 借鉴 Mindustry 的 multiblock（一个建筑占多格）与 RWX 的 Rect 占格模型：
-## 以锚点为左上角，用 FOOTPRINT 展开所有格子，逐格校验边界/道路/占用。
+## Mindustry 式多格建造：锚点 + 3×3 占格，校验资源与占用后放置建筑。
+## 采用 multiblock 模型：以锚点为左上角，用 FOOTPRINT 展开所有格子，逐格校验边界/水域/占用。
+## 占格只记录语义（blocked / occupied），不关心瓦片外观，便于地形迭代。
 
 signal building_placed(kind: StringName, cell: Vector2i, node: Node2D)
 signal build_failed(reason: String)
 
-const TILE: int = 40   # 与 TileMapBuilder.TILE 同步（源 20px × scale2）
+const TILE: int = 32   # 与 TileMapBuilder.TILE 同步（Hard Vacuum 具名图块原生 32px）
 const FOOTPRINT: Vector2i = Vector2i(3, 3)
 const COSTS: Dictionary = {&"jianta": 40, &"junxiefang": 35, &"fenghuotai": 30}
 const BUILDABLE: Array[StringName] = [&"jianta", &"junxiefang", &"fenghuotai"]
@@ -76,6 +76,14 @@ func place(anchor: Vector2i, kind: StringName, parent: Node2D) -> Node2D:
 
 	# 3x3 锚点中心：(anchor + FOOTPRINT/2) * TILE
 	node.position = (Vector2(anchor) + Vector2(FOOTPRINT) / 2.0) * TILE
+	# 供选择链路与右栏详情读取（点选 -> 右栏切换）
+	node.set_meta("build_kind", kind)
+	node.set_meta("anchor", anchor)
+	node.add_to_group("buildings")
+	if node.get("hp") == null:
+		node.set("hp", 300)
+	if node.get("max_hp") == null:
+		node.set("max_hp", 300)
 	parent.add_child(node)
 	building_placed.emit(kind, anchor, node)
 	return node

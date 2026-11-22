@@ -1,10 +1,10 @@
 extends Camera2D
 class_name CameraRig
-## RWX 式自由摄像机（借鉴 RWX GameEngine viewpointX/Y + GameLogic 平滑滚动/指针中心缩放）：
+## 自由摄像机（RTS 式）：
 ## - 屏幕边缘滚动 + WASD/方向键 + 中键拖拽
-## - 滚轮缩放以指针世界坐标为中心（缩放前后指针下的世界点不动）
-## - limit_* 限制在地图范围内（等价 RWX clampCameraPosition）
-## - 按像素对齐视点（viewpointXSnapped），避免像素画抖动
+## - 滚轮缩放以指针世界坐标为中心（缩放前后指针下的世界点保持不动）
+## - limit_* 限制在地图范围内，避免看到地图外空白
+## - 平滑跟随 + 平滑关断后立即到位（小地图跳转用）
 
 const EDGE_MARGIN: float = 24.0
 const EDGE_SPEED: float = 1000.0      # 边缘滚动 px/s（世界坐标）
@@ -48,7 +48,7 @@ func _zoom_step(dir: int, screen_pos: Vector2) -> void:
 	var new_idx := clampi(_zoom_idx + dir, 0, ZOOM_LEVELS.size() - 1)
 	if new_idx == _zoom_idx:
 		return
-	# RWX 指针中心缩放：缩放前后鼠标指向同一世界点
+	# 指针中心缩放：缩放前后鼠标指向同一世界点
 	var world_before := get_global_mouse_position()
 	_zoom_idx = new_idx
 	zoom = Vector2(ZOOM_LEVELS[_zoom_idx], ZOOM_LEVELS[_zoom_idx])
