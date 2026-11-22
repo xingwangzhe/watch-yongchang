@@ -60,3 +60,6 @@ assets/audio/sfx_spawn.ogg,sfx_spawn,事件音效,程序化原创合成,tools/ge
 assets/audio/sfx_wave.ogg,sfx_wave,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
 assets/audio/sfx_win.ogg,sfx_win,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
 assets/fonts/LXGWWenKai-Regular.ttf,霞鹜文楷 LXGW WenKai,UI 中文字体,开源字体项目（lxgw/LxgwWenKai）,-,复制随项目分发,SIL Open Font License 1.1（须随附 OFL 许可文本）,游戏内所有中文文本渲染,计划使用
+game/assets/tiles/atlas_geology.png,atlas_geology,地形瓦片图集,派生自 Hard Vacuum (Mark Ferrari / Lost Garden) https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip,tools/convert_hardvacuum_tiles.py 切图重着色 + 合成图集,chroma去背景/20x20→32x32 nearest放大/地质色系重新着色,CC BY 3.0（须署名 Mark Ferrari / Lost Garden；来源链接见source列）,游戏内地形/驿道/岩层瓦片图集,已使用
+game/assets/tiles/hardvacuum/***.png,hardvacuum_tiles,地形瓦片（109张）,派生自 Hard Vacuum (Mark Ferrari / Lost Garden) CC BY 3.0,tools/convert_hardvacuum_tiles.py,chroma去背景/重新着色/放大32x32,CC BY 3.0（署名见 AI使用与素材声明.md）,游戏内地表/道路/岩层/水域瓦片,已使用
+assets/third_party/hardvacuum/***.bmp,Hard Vacuum 原始素材包,第三方原始素材,Mark Ferrari (Lost Garden) https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip,第三方素材（非AI生成）,原始BMP未修改（仅作转换输入）,CC BY 3.0,转换输入（不直接入成品）,否
