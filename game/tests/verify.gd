@@ -100,13 +100,14 @@ func _run() -> void:
 	ck("出兵/倒计时文本", spawn.countdown_text().contains(":"))
 	spawn.queue_free()
 
-	# 5.5 永昌堡地形（Hard Vacuum 原生 20px × 2 = 40px 具名图块，120×90）
+	# 5.5 永昌堡地形（DCSS 32px 具名图块，120×90）
 	var TB: GDScript = load("res://scripts/tile_map_builder.gd") as GDScript
+	var TC: GDScript = load("res://scripts/tile_catalog.gd") as GDScript
 	ck("地图/尺寸120x90", TB.COLS == 120 and TB.ROWS == 90)
-	ck("地图/瓦片40px", TB.TILE == 40)
-	ck("地图/尺寸取自单一来源", TB.TILE == (load("res://scripts/tile_catalog.gd") as GDScript).TILE_SIZE)
+	ck("地图/瓦片32px", TB.TILE == 32)
+	ck("地图/瓦片尺寸与目录一致", TB.TILE == TC.TILE_SIZE)
 	var world: Vector2 = TB.WORLD_SIZE
-	ck("地图/世界4800x3600", world == Vector2(4800, 3600))
+	ck("地图/世界尺寸随瓦片派生", world == Vector2(TB.COLS * TB.TILE, TB.ROWS * TB.TILE))
 	ck("地图/三门驿道", TB.LANE_ROWS.size() == 3)
 	var lp: PackedVector2Array = TB.lane_points(0)
 	ck("驿道/控制点≥3", lp.size() >= 3)
