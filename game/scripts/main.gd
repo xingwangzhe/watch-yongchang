@@ -37,6 +37,8 @@ var spawn_system: Node = null
 var build_system: Node = null
 var selected_build: int = 0
 var _build_preview: Node2D = null
+var map_result: Dictionary = {}
+var camera_rig: Camera2D = null
 
 var _workshop_bonus_accum: float = 0.0
 
@@ -103,11 +105,20 @@ func _make_nameplate(parent: Node, p_name: String, pos: Vector2, text: String, a
 	return panel
 
 func _build_tilemap() -> void:
-	var layers := TileMapBuilder.build(self)
-	var buildings: Array = layers["buildings"]
-	print("[TILEMAP] cols=%d rows=%d tile=%d buildings=%d" % [
-		layers["cols"], layers["rows"], layers["tile"], buildings.size()])
-	# 标题已移入顶部状态栏，地图区域不再叠裸文字
+	map_result = TileMapBuilder.build(self)
+	var buildings: Array = map_result["buildings"]
+	print("[TILEMAP] cols=%d rows=%d tile=%d buildings=%d world=%s" % [
+		map_result["cols"], map_result["rows"], map_result["tile"], buildings.size(),
+		str(map_result["world_size"])])
+	# 自由摄像机（RWX 式）：边缘滚动/拖拽/缩放，初始视角在己方主堡附近
+	var rig := preload("res://scripts/camera_rig.gd").new()
+	rig.name = "CameraRig"
+	add_child(rig)
+	rig.setup(map_result["world_size"])
+	var own_c: Vector2 = TileMapBuilder.keep_center(false)
+	rig.position = own_c + Vector2(600.0, 640.0)  # 主堡 + 中央车道同框
+	rig.reset_smoothing()
+	camera_rig = rig
 
 func _build_bases() -> void:
 	var own_a := TileMapBuilder.keep_anchor(false)
@@ -122,13 +133,16 @@ func _build_lanes() -> void:
 		path.name = "Lane_%d" % i
 		var curve := Curve2D.new()
 		var y := TileMapBuilder.lane_y(i)
-		curve.add_point(Vector2(0.0, y))
-		curve.add_point(Vector2(1280.0, y))
+		# 从己方主堡出口到敌方刷新点（大地图端点按瓦片网格派生）
+		var x_start := float(4 * TileMapBuilder.TILE)
+		var x_end := float(TileMapBuilder.SPAWN_COL * TileMapBuilder.TILE)
+		curve.add_point(Vector2(x_start, y))
+		curve.add_point(Vector2(x_end, y))
 		path.curve = curve
 		lanes.add_child(path)
 		lane_paths.append(path)
-		print("[LANE] path=lane_%d row=%d y=%.0f derived_from_tilegrid=true" % [
-			i, TileMapBuilder.LANE_ROWS[i], y])
+		print("[LANE] path=lane_%d row=%d y=%.0f x=%.0f..%.0f" % [
+			i, TileMapBuilder.LANE_ROWS[i], y, x_start, x_end])
 
 func _setup_systems() -> void:
 	spawn_system = SpawnSystemScript.new()
@@ -141,6 +155,7 @@ func _setup_systems() -> void:
 	build_system = BuildSystemScript.new()
 	build_system.name = "BuildSystem"
 	add_child(build_system)
+	build_system.blocked = map_result.get("blocked", {})
 	build_system.building_placed.connect(_on_building_placed)
 	build_system.build_failed.connect(_on_build_failed)
 
@@ -163,6 +178,23 @@ func _build_hud() -> void:
 		hud.build_selected.connect(_select_build)
 		hud.unit_spawn_requested.connect(_on_unit_requested)
 	hud.set_selected_build(selected_build)
+	_add_minimap()
+
+## 右上角小地图（RWX Minimap 式：缩略底图 + 单位点 + 视口框 + 点击跳转）
+func _add_minimap() -> void:
+	if map_result.is_empty() or camera_rig == null:
+		return
+	var mini := preload("res://scripts/minimap.gd").new()
+	mini.name = "MiniMap"
+	mini.setup(map_result, units_layer, camera_rig)
+	mini.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	mini.anchor_left = 1.0
+	mini.anchor_right = 1.0
+	mini.offset_left = -222.0
+	mini.offset_right = -12.0
+	mini.offset_top = 68.0
+	mini.offset_bottom = 226.0
+	hud.add_child(mini)
 	# RWX BuildPreview 式建造占格预览
 	var preview := preload("res://scripts/build_preview.gd").new() as Node2D
 	preview.name = "BuildPreview"
