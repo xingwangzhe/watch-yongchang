@@ -7,12 +7,13 @@ class_name BuildSystem
 signal building_placed(kind: StringName, cell: Vector2i, node: Node2D)
 signal build_failed(reason: String)
 
-const TILE: int = 32
+const TILE: int = 40   # 与 TileMapBuilder.TILE 同步（源 20px × scale2）
 const FOOTPRINT: Vector2i = Vector2i(3, 3)
 const COSTS: Dictionary = {&"jianta": 40, &"junxiefang": 35, &"fenghuotai": 30}
 const BUILDABLE: Array[StringName] = [&"jianta", &"junxiefang", &"fenghuotai"]
 
 var occupied: Dictionary = {}   # 键 "c,r" -> String（建筑 id）
+var blocked: Dictionary = {}    # 地形禁建格（由 main 注入 TileMapBuilder 产出）
 
 const TileMapBuilder = preload("res://scripts/tile_map_builder.gd")
 
@@ -20,25 +21,16 @@ const TileMapBuilder = preload("res://scripts/tile_map_builder.gd")
 func world_to_cell(world_pos: Vector2) -> Vector2i:
 	return Vector2i(int(floor(world_pos.x / TILE)), int(floor(world_pos.y / TILE)))
 
-## 可建造格：在网格内、非道路行、非主堡区、非边缘墙
+## 可建造格：在网格内、非 blocked（道路/水域/山石/主堡/刷新区/边界）
 func is_buildable_cell(cell: Vector2i) -> bool:
 	var c: int = cell.x
 	var r: int = cell.y
-	# 避开两侧城墙（c=0/COLS-1）与顶部水渠（r=1）
 	if c < 2 or c > TileMapBuilder.COLS - 3:
 		return false
 	if r < 2 or r > TileMapBuilder.ROWS - 3:
 		return false
-	# 三条驿道（每条 ROAD_THICKNESS 行）不可占格
-	for row in TileMapBuilder.LANE_ROWS:
-		if r >= int(row) and r < int(row) + TileMapBuilder.ROAD_THICKNESS:
-			return false
-	# 双方主堡 3x8 区域不可占格
-	for enemy in [false, true]:
-		var a: Vector2i = TileMapBuilder.keep_anchor(enemy)
-		if (c >= a.x and c < a.x + TileMapBuilder.KEEP_SIZE.x
-			and r >= a.y and r < a.y + TileMapBuilder.KEEP_SIZE.y):
-			return false
+	if blocked.has(cell):
+		return false
 	return true
 
 ## 锚点为左上角，展开 FOOTPRINT 覆盖的所有格

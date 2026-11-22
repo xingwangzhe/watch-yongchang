@@ -86,19 +86,39 @@ func _run() -> void:
 	ck("波次/ lane轮转", int(spawn_events[3][1]) == 0)
 	spawn.queue_free()
 
+	# 5.5 Hard Vacuum 大地图（Tiled 标准图块，96×72 @ 40px）
+	ck("地图/尺寸96x72", TileMapBuilder.COLS == 96 and TileMapBuilder.ROWS == 72)
+	ck("地图/瓦片40px", TileMapBuilder.TILE == 40)
+	var world: Vector2 = TileMapBuilder.WORLD_SIZE
+	ck("地图/世界3840x2880", world == Vector2(3840, 2880))
+	ck("地图/刷新点在右缘", TileMapBuilder.spawn_world(0).x > 3600.0)
+	var map_parent := Node2D.new()
+	root_node.add_child(map_parent)
+	var bres: Dictionary = TileMapBuilder.build(map_parent)
+	ck("地图/构建产出", not bres.is_empty() and int(bres.get("cols", 0)) == 96)
+	var ground_layer: TileMapLayer = bres.get("ground")
+	ck("地图/9个图块源", ground_layer != null and ground_layer.tile_set.get_source_count() == 9)
+	ck("地图/禁建格非空", (bres.get("blocked") as Dictionary).size() > 1500)
+	ck("地图/相机脚本可加载", ResourceLoader.exists("res://scripts/camera_rig.gd"))
+	ck("地图/小地图脚本可加载", ResourceLoader.exists("res://scripts/minimap.gd"))
+	map_parent.queue_free()
+
 	# 6. 建造系统（Mindustry/RWX 多格占格）
 	var BuildScript: GDScript = load("res://scripts/build_system.gd") as GDScript
 	var build: Node = BuildScript.new() as Node
 	root_node.add_child(build)
+	build.blocked = bres.get("blocked", {})
 	gs.reset_level()
-	var illegal: bool = build.can_place(Vector2i(10, 7), &"jianta")
+	var illegal: bool = build.can_place(Vector2i(20, 18), &"jianta")
 	ck("建造/道路格不可建", not illegal)
-	var legal: bool = build.can_place(Vector2i(5, 3), &"jianta")
+	var illegal_water: bool = build.can_place(Vector2i(5, 5), &"jianta")
+	ck("建造/水域格不可建", not illegal_water)
+	var legal: bool = build.can_place(Vector2i(16, 8), &"jianta")
 	ck("建造/合法格可建", legal)
 	var silver_before: int = gs.silver
 	var holder := Node2D.new()
 	root_node.add_child(holder)
-	var tower: Node2D = build.place(Vector2i(5, 3), &"jianta", holder)
+	var tower: Node2D = build.place(Vector2i(16, 8), &"jianta", holder)
 	ck("建造/放置成功", tower != null)
 	ck("建造/扣银40", gs.silver == silver_before - 40)
 	ck("建造/占格9", build.get_occupied_count() == 9)

@@ -91,9 +91,9 @@ func wave_count(index: int) -> int:
 func _speed_for(type_str: String) -> float:
 	match type_str:
 		"xiangyong":
-			return 30.0
+			return 38.0
 		"gongshou":
-			return 45.0
+			return 56.0
 		"longdeng":
-			return 60.0
-	return 30.0
+			return 75.0
+	return 38.0

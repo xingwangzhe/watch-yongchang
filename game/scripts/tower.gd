@@ -5,7 +5,7 @@ class_name Tower
 @export var tower_id: StringName = &"jianta"
 @export var damage: int = 25
 @export var interval: float = 1.5
-@export var attack_range: float = 150.0
+@export var attack_range: float = 190.0
 @export var lane_index: int = 0
 
 @onready var muzzle: Marker2D = $Muzzle
