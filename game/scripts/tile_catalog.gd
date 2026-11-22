@@ -47,10 +47,10 @@ const SEMANTIC_GROUPS: Dictionary = {
 	# limestone/cobble/dirt 的多数变体自带深色边线，逐格轮换会形成棋盘噪点；
 	# 同一语义固定一块，才能保持整片连续。需要变化时换区域，不换单格。
 	&"field": ["floor/sand_1"],       # 田野/菜畦：亮沙褐，无边框
-	&"soil": ["floor/sand_4"],        # 田埂/场院：与街道同族，避免土色断层
+	&"soil": ["floor/dirt_1_old"],    # 田埂/晒场隔埂：叠在半透明覆盖层上，弱化对比
 	&"sand": ["floor/sand_2"],        # 滩涂/驳岸：比田野略亮，仍无边框
 	&"city_ground": ["floor/sand_3"],  # 城内大面：平滑沙褐，避免 dirt 的碎噪点
-	&"street": ["floor/sand_4"],      # 城内街巷：亮沙褐，接缝比 0.94
+	&"street": ["floor/sand_4"],      # 城内街巷：同族沙面，靠道路层压暗读路
 	&"road_rock": ["wall/brick_gray_1"], # 门道/石桥：灰色砌石，接缝比 0.94
 	&"road_sand": ["floor/sand_4"],   # 沙滩车道：与街道同族，避免橙色土带
 	# —— 墙体 ——
