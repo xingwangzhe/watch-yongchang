@@ -20,16 +20,19 @@ var is_dead: bool = false
 # 交战规则：近距离索敌 → 停止行进 → 攻击硬直 → 继续推进（塔防/RTS 通用）
 const DMG_TABLE: Dictionary = {
 	"xiangyong": 15, "gongshou": 10, "longdeng": 25,
+	"tengpai": 14, "huochong": 34, "jinshi": 40,
 	"wokou_scout": 9, "wokou_ronin": 18, "wokou_shield": 12,
 	"wokou_gun": 16, "wokou_chief": 32,
 }
 const RANGE_TABLE: Dictionary = {
 	"xiangyong": 42.0, "gongshou": 138.0, "longdeng": 55.0,
+	"tengpai": 20.0, "huochong": 140.0, "jinshi": 100.0,
 	"wokou_scout": 42.0, "wokou_ronin": 48.0, "wokou_shield": 44.0,
 	"wokou_gun": 155.0, "wokou_chief": 60.0,
 }
 const ATK_INTERVAL_TABLE: Dictionary = {
 	"xiangyong": 0.9, "gongshou": 1.1, "longdeng": 1.3,
+	"tengpai": 0.9, "huochong": 0.7, "jinshi": 1.1,
 	"wokou_scout": 0.75, "wokou_ronin": 1.0, "wokou_shield": 1.25,
 	"wokou_gun": 1.7, "wokou_chief": 1.15,
 }
@@ -39,6 +42,9 @@ const VISUAL_TABLE: Dictionary = {
 	"xiangyong": {"scale": 0.55, "faces_right": false},
 	"gongshou": {"scale": 0.55, "faces_right": false},
 	"longdeng": {"scale": 0.60, "faces_right": false},
+	"tengpai": {"scale": 0.62, "faces_right": false},
+	"huochong": {"scale": 0.55, "faces_right": false},
+	"jinshi": {"scale": 0.62, "faces_right": false},
 	"wokou_scout": {"scale": 0.55, "faces_right": false},
 	"wokou_gun": {"scale": 0.55, "faces_right": false},
 	"wokou_ronin": {"scale": 0.73, "faces_right": true},

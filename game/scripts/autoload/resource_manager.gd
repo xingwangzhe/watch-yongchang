@@ -5,7 +5,7 @@ var _textures: Dictionary = {}
 var _frames: Dictionary = {}
 
 const UNIT_IDS: Array[String] = [
-	"xiangyong", "gongshou", "longdeng",
+	"xiangyong", "gongshou", "longdeng", "tengpai", "huochong", "jinshi",
 	"wokou_scout", "wokou_ronin", "wokou_shield", "wokou_gun", "wokou_chief",
 ]
 
