@@ -15,7 +15,7 @@ var cooldown: float = 0.0
 var shots: int = 0
 
 func _ready() -> void:
-	# 借鉴 Mindustry/RWX：建筑用动画帧表达攻击状态，帧由资源层统一缓存构建
+	# 建筑用动画帧表达攻击状态，帧由资源层统一缓存构建（Mindustry 式单图多帧）
 	sprite.sprite_frames = ResourceManager.get_building_frames(str(tower_id), "attack")
 	sprite.play("default")
 	print("[TOWER] ready type=%s damage=%d interval=%.1f" % [tower_id, damage, interval])
