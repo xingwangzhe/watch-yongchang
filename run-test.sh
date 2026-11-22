@@ -21,16 +21,24 @@ usage() {
 
 用法: ./run-test.sh [命令]
 
-  play      窗口模式启动游戏，直接试玩（默认）
-  verify     CLI 验证：场景校验 + 启动预检 + 19 项断言（不打开窗口）
+  play      窗口模式启动游戏，从主菜单开始（默认）
+  verify     CLI 验证：3 场景校验 + 启动预检 + 42 项断言（不打开窗口）
   live      启动 gda live daemon，便于用 CLI 观察运行中的场景状态
   stop      停止 live daemon 并卸载临时 harness
   check     先 verify，通过后自动 play
   help      显示本帮助
 
-试玩操作:
-  1 / 2 / 3   出兵（乡勇 / 弓手 / 龙灯队，消耗银）
-  R           重开一局
+游戏流程:
+  主菜单 → 开始守城 / 设置 / 关于与声明 / 退出
+  设置界面可调节 BGM / 音效音量，返回时自动保存
+
+战斗操作:
+  Q / E      切换建造类型（箭塔 / 军械坊 / 烽火台）
+  鼠标左键   在合法瓦片放置建筑
+  1 / 2 / 3  出兵（乡勇 / 弓手 / 龙灯队，消耗银）
+  空格       提前开始下一波
+  ESC        暂停菜单（继续 / 设置 / 重开 / 返回主菜单）
+  R          重开一局
 
 EOF
 }
@@ -38,14 +46,16 @@ EOF
 do_verify() {
   need "$GDA"
   cd "$ROOT"
-  echo "== 1/3 场景静态校验 =="
+  echo "== 1/4 场景静态校验 =="
   "$GDA" scene validate res://scenes/main.tscn --project game --json
-  echo "== 2/3 启动预检 =="
+  "$GDA" scene validate res://scenes/main_menu.tscn --project game --json
+  "$GDA" scene validate res://scenes/settings.tscn --project game --json
+  echo "== 2/4 启动预检 =="
   "$GDA" scene preflight res://scenes/main.tscn --project game --frames 20 --json
-  echo "== 3/3 自动化断言 =="
+  echo "== 3/4 自动化断言 =="
   "$GDA" script run res://tests/verify.gd --project game --json > /tmp/shouwang-verify.json 2>&1
   python3 - <<'PY'
-import json
+import json, re
 d = json.load(open('/tmp/shouwang-verify.json'))
 if 'error' in d:
     print('验证脚本运行失败:', d['error'].get('message'))
@@ -54,8 +64,11 @@ out = d.get('stdout', '')
 for line in out.splitlines():
     if line.startswith('[SUMMARY]') or line.startswith('[FAIL]'):
         print(line)
-raise SystemExit(0 if d.get('exit_status') == 0 and '[SUMMARY] PASS=19 FAIL=0' in out else 1)
+m = re.search(r'\[SUMMARY\] PASS=(\d+) FAIL=(\d+)', out)
+ok = d.get('exit_status') == 0 and m is not None and int(m.group(2)) == 0 and int(m.group(1)) >= 19
+raise SystemExit(0 if ok else 1)
 PY
+  echo "== 4/4 完成 =="
   echo "验证通过。"
 }
 

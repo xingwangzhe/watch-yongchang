@@ -94,7 +94,10 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | `game/scripts/build_system.gd` | 多格建造系统（借鉴 Mindustry/RWX 占格） | 人工定 3×3 占格、道路/主堡禁建、资源校验规则 |
 | `game/scripts/tile_map_builder.gd` | TileMapLayer 分层地图与刷新点派生 | 人工定 32px 瓦片、40×22 网格、建筑多格尺寸 |
 | `game/scripts/unit.gd` / `tower.gd` | 单位双向行进、塔索敌与攻击动画 | 人工修复 tscn 注释导致 Sprite 节点丢失的解析 bug |
-| `game/tests/verify.gd` | 自动化断言（31 项） | 人工设计覆盖点，捕获并修复上述解析 bug |
+| `game/tests/verify.gd` | 自动化断言（42 项） | 人工设计覆盖点，捕获并修复上述解析 bug |
+| `game/scripts/autoload/audio_manager.gd` | 音频管理：BGM 循环、SFX 池、音量分离与配置持久化 | 人工定音效事件映射、音量对数与退出资源释放 |
+| `game/scripts/autoload/game_flow.gd` | 场景导航：主菜单/战斗/设置切换 | 人工定界面流转与设置返回栈 |
+| `game/scripts/ui/*.gd` / `scenes/main_menu.tscn` / `scenes/settings.tscn` | 主菜单、设置、暂停面板、国风背景绘制 | 人工定 UI 结构、lxwk 字体统一、国风配色与交互；修复隐藏面板抢焦点 bug |
 | `tools/convert_hardvacuum_tiles.py` / `tools/process_new_sprites.py` | 瓦片转换与切帧抠图脚本 | 人工调参（chroma、白底阈值、缩放尺寸） |
 
 项目代码许可 **AGPL-3.0**。
