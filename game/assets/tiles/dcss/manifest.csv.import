@@ -1,0 +1,19 @@
+[remap]
+
+importer="csv_translation"
+type="Translation"
+uid="uid://rf18dd5dst2y"
+
+[deps]
+
+files=["res://assets/tiles/dcss/manifest.category.translation", "res://assets/tiles/dcss/manifest.name.translation", "res://assets/tiles/dcss/manifest.opaque.translation", "res://assets/tiles/dcss/manifest.edge.translation", "res://assets/tiles/dcss/manifest.tileable.translation"]
+
+source_file="res://assets/tiles/dcss/manifest.csv"
+dest_files=["res://assets/tiles/dcss/manifest.category.translation", "res://assets/tiles/dcss/manifest.name.translation", "res://assets/tiles/dcss/manifest.opaque.translation", "res://assets/tiles/dcss/manifest.edge.translation", "res://assets/tiles/dcss/manifest.tileable.translation"]
+
+[params]
+
+compress=1
+delimiter=0
+unescape_keys=false
+unescape_translations=true

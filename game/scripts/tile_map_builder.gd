@@ -12,10 +12,8 @@ class_name TileMapBuilder
 ##   城外四周护城河；城内上河、下河两水南北纵贯 + 十条河浃；城内水田 200 余亩。
 ##
 ## 三、图块纪律
-##   只用 assets/tiles/hardvacuum 下文件名即语义的 32×32 具名图块，
+##   只用 assets/tiles/dcss 下文件名即语义的 32×32 具名图块，
 ##   同一语义内由 (col,row) 确定性轮换，不允许跨语义随机取块。
-##   例外（有意为之，非随机）：砌石墙面/马道复用 ROAD_ROCK 的石板纹理，
-##   因为 hardvacuum 里只有它是「人工砌筑」质感的图块。
 ##
 ## 四、视觉分层（顶视读法）
 ##   城墙 3 格厚：d0 外墙面（CLIFF 中灰）→ d1 墙顶马道（ROAD_ROCK 亮砌石）
@@ -35,10 +33,7 @@ const TileCatalogScript = preload("res://scripts/tile_catalog.gd")
 const TILE: int = TileCatalogScript.TILE_SIZE
 const COLS := 120
 const ROWS := 90
-const WORLD_SIZE := Vector2(COLS * TILE, ROWS * TILE)   # 4800×3600 @40px
-
-## 固定种子（布局本身无随机数；仅作散列盐）
-const GEN_SEED := 20260322
+const WORLD_SIZE := Vector2(COLS * TILE, ROWS * TILE)   # 3840×2880 @32px
 
 ## 三条驿道的「城外横向来路」行号：北路、东路（主路，走瓮城）、南路
 const LANE_ROWS := [4, 46, 84]
@@ -47,25 +42,60 @@ const ROAD_THICKNESS := 2
 const SPAWN_COL := 96
 
 # ---------- 瓦片语义 source_id（顺序与 TileCatalog.CAT_ORDER 一致）----------
-const S_MOSS := 0
-const S_SAND := 1
-const S_ROAD := 2
-const S_ROAD_ROCK := 3
-const S_ROAD_SAND := 4
-const S_CLIFF := 5
-const S_CLIFF_DARK := 6
-const S_STONE_TILE := 7
-const S_WATER := 8
+## 语义码 —— **每个语义一个唯一编号**，不再等于图集 source_id。
+##
+## 旧实现把「语义码」和「图集 source_id」混为一谈，导致多个语义共用同一编号时
+## 字典键冲突（GDScript 常量字典不允许重复键）。现在分开：
+##   语义码 = 绘制代码写的标记（唯一）
+##   SEM_OF = 语义码 → 语义组名
+##   语义组名 → TileCatalog 里的块名单 → 块 → 图集 (source, coord)
+const S_FIELD := 0          # 城外田野（苔地）
+const S_SOIL := 1           # 土路 / 场院（暖褐泥地）
+const S_STREET := 2         # 城内街巷（卵石铺面）
+const S_WALL_STONE := 3     # 城墙（灰石砌体）
+const S_WALL_BRICK := 4     # 民居院墙（褐砖）
+const S_WATER_DEEP := 5     # 护城河 / 外海（深水）
+const S_WATER_SHALLOW := 6  # 上河 / 下河 / 河浃（浅水）
+const S_DOOR := 7           # 城门 / 木门
+const S_TREE := 8           # 植被点缀
+const S_SAND := 9           # 沙地 / 滩涂 / 驳岸
+const S_CITY := 10          # 城内大面（平滑沙褐）
+const S_ROAD_ROCK := 11     # 门道 / 石桥（灰色砌石）
+const S_ROAD_SAND := 12     # 沙滩车道（沙褐）
 
-# —— 为兼容既有 minimap 的源 id 别名（新代码请直接用上面的 S_* 或 zone_at）——
-const S_GRASS := S_MOSS
-const S_LONG := S_SAND
-const S_DIRT := S_ROAD
-const S_STONE := S_CLIFF
-const S_G2W := S_ROAD_SAND
-const S_G2S := S_CLIFF_DARK
-const S_G2M := S_ROAD_ROCK
-const S_DECOR := S_STONE_TILE
+## 语义码 → 语义组名（组名定义在 TileCatalog.SEMANTIC_GROUPS）
+const SEM_OF: Dictionary = {
+	S_FIELD: &"field",
+	S_SOIL: &"soil",
+	S_STREET: &"street",
+	S_WALL_STONE: &"wall_stone",
+	S_WALL_BRICK: &"wall_brick",
+	S_WATER_DEEP: &"water_deep",
+	S_WATER_SHALLOW: &"water_shallow",
+	S_DOOR: &"door_wood",
+	S_TREE: &"mangrove",
+	S_SAND: &"sand",
+	S_CITY: &"city_ground",
+	S_ROAD_ROCK: &"road_rock",
+	S_ROAD_SAND: &"road_sand",
+}
+
+## 兼容别名：旧代码里散落的老名字统一指向新语义码，
+## 避免逐处改 _put() 调用（历史语义含义按最接近的映射）。
+const S_MOSS := S_FIELD
+const S_ROAD := S_STREET
+const S_CLIFF := S_WALL_STONE
+const S_CLIFF_DARK := S_WALL_STONE
+const S_STONE_TILE := S_WALL_STONE
+const S_WATER := S_WATER_DEEP
+const S_GRASS := S_FIELD
+const S_LONG := S_FIELD
+const S_DIRT := S_SOIL
+const S_STONE := S_WALL_STONE
+const S_G2W := S_WATER_SHALLOW
+const S_G2S := S_SOIL
+const S_G2M := S_WALL_STONE
+const S_DECOR := S_WALL_STONE
 
 # ---------- 城池外廓 ----------
 ## 史载「城墙高8米，基宽约4米，上宽3.8米」（全文 14576-14578 行）。
@@ -172,19 +202,6 @@ const ZONE_NAMES: Array[StringName] = [
 	&"field", &"mountain", &"salt", &"wild",
 ]
 
-# ---------- 草地明暗三档（按距城远近）----------
-## hardvacuum 的 13 个 moss 变体并非单调明暗（实测亮度 36..59），
-## 故按实测亮度人工分组，而不是按序号区间：
-##   亮 55-59 → moss_00/01/02/03/12：近城菜畦、场院、田面
-##   中 51-56 → moss_04/06/10/11：中距草野
-##   暗 36-44 → moss_05/07/08/09：远处荒草、山脚、滩涂内陆
-const MOSS_NEAR: Array = [0, 1, 2, 3, 12]
-const MOSS_MID: Array = [4, 6, 10, 11]
-const MOSS_FAR: Array = [5, 7, 8, 9]
-## 距城池外廓的格数阈值：近城 ≤6 格，中距 ≤18 格，再远为荒郊
-const NEAR_DIST := 6
-const MID_DIST := 18
-
 ## 堡内水田矩形：留出主街、东西大街与宗祠广场，其余成片为田。
 static func farmland_rects() -> Array:
 	return [
@@ -254,6 +271,57 @@ static func gate_world(gate_name: String) -> Vector2:
 
 static func gate_hole_rect(g: Dictionary) -> Rect2i:
 	return Rect2i(int(g["cx"]), int(g["cy"]), int(g["w"]), int(g["h"]))
+
+## 小地图悬停文案：四座城门按《永昌堡十三进士与抗倭纪略》L14595-14614 命名；
+## 水门不冒充城门，按 L14605“西南和东北城墙各 2 个”标注。
+static func gate_label_at(cell: Vector2i) -> String:
+	for g in GATES:
+		if gate_hole_rect(g).has_point(cell):
+			var side := ""
+			match StringName(g["side"]):
+				&"east": side = "东"
+				&"south": side = "南"
+				&"west": side = "西"
+				&"north": side = "北"
+			return "%s（%s门）" % [String(g["name"]), side]
+	if _in_rects(cell.x, cell.y, water_gate_holes()):
+		return "水门"
+	return ""
+
+## 小地图悬停文案：结构层优先显示具体建筑，而不是一律写「城墙」。
+## 依据《永昌堡十三进士与抗倭纪略》的城门、敌台、铺舍与民居记载。
+static func landmark_label_at(cell: Vector2i) -> String:
+	var gate := gate_label_at(cell)
+	if gate != "":
+		return gate
+	for spec in building_specs():
+		var a: Vector2i = spec["anchor"]
+		var s: Vector2i = spec["size"]
+		if Rect2i(a, s).has_point(cell):
+			return String(spec["name"])
+	if _in_rects(cell.x, cell.y, enemy_tower_rects()):
+		return "敌台"
+	if _in_rects(cell.x, cell.y, post_houses()):
+		return "铺舍"
+	return ""
+
+## 小地图悬停文案：道路层区分新城街、御史巷、东西大街、石桥与驿道。
+## 史载「上河东岸为新城街……沿街店铺林立」「都堂第……下河西岸御史巷一号」。
+static func road_label_at(cell: Vector2i) -> String:
+	if STREET_NS.has_point(cell):
+		return "新城街"
+	if RIVERSIDE.has_point(cell):
+		return "御史巷"
+	if STREET_EW.has_point(cell) or PLAZA.has_point(cell):
+		return "东西大街"
+	if WEST_EXIT.has_point(cell):
+		return "镇山楼石桥"
+	if BARB_YARD.has_point(cell) or BARB_GATE_S.has_point(cell):
+		return "环海楼瓮城"
+	for lane in range(LANE_RECTS.size()):
+		if _in_rects(cell.x, cell.y, lane_rects(lane)):
+			return "驿道"
+	return "道路"
 
 static func _gate_center(g: Dictionary) -> Vector2:
 	var r := gate_hole_rect(g)
@@ -432,7 +500,9 @@ static func building_specs() -> Array:
 
 ## 东侧海岸线所在列（cols >= 此值即纯海）
 static func _shore_col(r: int) -> int:
-	return 101 + int(round(2.0 * sin(float(r) * 0.21)))
+	# 每 3 行取同一岸线，避免逐行 ±1 的单格锯齿；3 行一段仍保留自然弧度。
+	var band := int(floor(float(r) / 3.0))
+	return 101 + int(round(2.0 * sin(float(band) * 0.63)))
 
 ## 西侧山体东缘（cols < 此值即山）
 static func _ridge_right(r: int) -> int:
@@ -461,17 +531,6 @@ static func _in_rects(c: int, r: int, rects: Array) -> bool:
 			and r >= q.position.y and r < q.position.y + q.size.y:
 			return true
 	return false
-
-## 确定性散列。（c*73 + r*151）这类线性组合会在整片上产生斜向条纹，
-## 故用位混合（Wang hash 变体），输出在 [0, 2^31) 内均匀散布且无方向性。
-static func _hash(c: int, r: int, salt: int) -> int:
-	var h: int = (c * 0x1f1f1f1f) ^ (r * 0x85ebca6b) ^ (salt * 0x9e3779b1) ^ GEN_SEED
-	h = h ^ (h >> 15)
-	h = (h * 0x2545f491) & 0x7fffffff
-	h = h ^ (h >> 13)
-	h = (h * 0x27d4eb2d) & 0x7fffffff
-	h = h ^ (h >> 16)
-	return h & 0x7fffffff
 
 # =====================================================================
 # 四、布局计算（缓存）
@@ -598,37 +657,31 @@ static func _city_dist(c: int, r: int) -> int:
 		dy = r - CITY_Y1
 	return maxi(dx, dy)
 
-static func _grass_band(c: int, r: int) -> Array:
-	var d := _city_dist(c, r)
-	if d <= NEAR_DIST:
-		return MOSS_NEAR
-	if d <= MID_DIST:
-		return MOSS_MID
-	return MOSS_FAR
-
 # ---------- 各分区绘制 ----------
 
-## 城外草地：按距城三档取 moss 变体（实测亮度分组），远郊再穿插沙地过渡。
+## 城外地面：**整片一个语义**（田野），具体图块由 pick_variant 按格确定性选取。
+##
+## 这里刻意不做「距城远近换材质 + 稀疏穿插沙地」：
+## 逐格随机换语义会在画面上产生噪点，正是要避免的"胡乱拼凑"。
+## 要让远处看起来不同，应该换**区域**（如整片滩涂用 soil），
+## 而不是在同一个区域里一格一格掷骰子。
 static func _paint_grass(g: Array, gv: Array) -> void:
 	for r in range(ROWS):
 		for c in range(COLS):
 			if _in_city(c, r):
 				continue
-			var band := _grass_band(c, r)
 			var i := _idx(c, r)
-			var pick := _hash(c, r, 7) % band.size()
-			g[i] = S_MOSS
-			gv[i] = int(band[pick])
-			# 远郊：稀疏沙地，向海滩/山脚过渡
-			if band == MOSS_FAR and _hash(c, r, 3) % 8 == 0:
-				g[i] = S_SAND
-				gv[i] = -1
+			g[i] = S_FIELD
+			gv[i] = -1
 
-## 堡内水田：大块田面用亮苔（菜畦/场院），田埂每 8 行 / 10 列一条暗苔细线，
-## 不用沙色 —— 沙色会让整片田读成「黄色密格棋盘」。
+## 堡内水田：田面一个语义，田埂用 soil 走**规则线**。
+## 田埂模数按田块尺寸自适应：宽/高小于 6 格时不在该方向画埂，
+## 否则小田块（如 3 格宽的西片）会几乎整块变成田埂。
 static func _paint_fields(g: Array, gv: Array) -> void:
 	for rect in farmland_rects():
 		var q: Rect2i = rect
+		var ridge_x: bool = q.size.x >= 6
+		var ridge_y: bool = q.size.y >= 6
 		for r in range(q.position.y, q.position.y + q.size.y):
 			for c in range(q.position.x, q.position.x + q.size.x):
 				if not _inb(c, r):
@@ -636,41 +689,31 @@ static func _paint_fields(g: Array, gv: Array) -> void:
 				var i := _idx(c, r)
 				var dy := r - q.position.y
 				var dx := c - q.position.x
-				g[i] = S_MOSS
-				if dy % 8 == 7 or dx % 10 == 9:
-					gv[i] = 7                     # 田埂：暗苔（实测最暗，作细线）
+				if (ridge_y and dy % 10 == 9) or (ridge_x and dx % 8 == 7):
+					g[i] = S_SOIL          # 田埂
 				else:
-					var pick := _hash(c, r, 13) % MOSS_NEAR.size()
-					gv[i] = int(MOSS_NEAR[pick])   # 田面：亮苔
+					g[i] = S_FIELD         # 田面
+				gv[i] = -1
 
-## 城内地面：院落地块（苔地）+ 稀疏街网。
+## 城内地面：**夯土院落**（soil），街道由 _paint_roads 覆盖成石板（street）。
 ##
-## 为什么不做密格棋盘：永昌堡是「一河两街、巷弄纵深」的水乡堡城，街道只有
-## 新城街（南北向、沿上河东岸）、东西大街（连东西门）、滨河街与广场几处；
-## 若按行列等距铺 road，整片城会读成黄色棋盘，既不像城也不好看。
-## 因此：默认铺苔地（近城亮苔，成院/场院感），只在 street_rects() 定义的
-## 街位上抬一层，交给 _paint_roads 覆盖成石板路。
+## 为什么城内不铺田野绿：这是城墙围起来的居住区，主色应是夯土/铺地，
+## 绿色只留在城外农田与城内零星园圃。整片铺草会让城看起来像荒地。
 static func _paint_city_ground(g: Array, gv: Array) -> void:
 	for r in range(CITY_Y0, CITY_Y1 + 1):
 		for c in range(CITY_X0, CITY_X1 + 1):
 			if not _inb(c, r):
 				continue
 			var i := _idx(c, r)
-			# 院内地面：亮苔为主，少量中苔作磨损斑块（4–12 格尺度，避免单点噪声）
-			var patch := _hash(c / 3, r / 3, 21) % 10
-			g[i] = S_MOSS
-			if patch < 7:
-				gv[i] = int(MOSS_NEAR[_hash(c, r, 17) % MOSS_NEAR.size()])
-			else:
-				gv[i] = int(MOSS_MID[_hash(c, r, 19) % MOSS_MID.size()])
-	# 瓮城内院同样铺地
+			g[i] = S_CITY
+			gv[i] = -1
+	# 瓮城内院同样夯土
 	for r in range(BARB_FOOT.position.y, BARB_FOOT.position.y + BARB_FOOT.size.y):
 		for c in range(BARB_FOOT.position.x, BARB_FOOT.position.x + BARB_FOOT.size.x):
 			if not _inb(c, r):
 				continue
-			var j := _idx(c, r)
-			g[j] = S_MOSS
-			gv[j] = int(MOSS_NEAR[_hash(c, r, 23) % MOSS_NEAR.size()])
+			g[_idx(c, r)] = S_CITY
+			gv[_idx(c, r)] = -1
 
 static func _is_farmland(c: int, r: int) -> bool:
 	for rect in farmland_rects():
@@ -688,7 +731,7 @@ static func _in_salt_pan(c: int, r: int) -> bool:
 			return true
 	return false
 
-## 东侧海与沙滩：7 格沙带 → 3 格滩涂渐变（沙与水交替）→ 纯海。
+## 东侧海与沙滩：7 格沙带 → 固定 2 格沙 + 1 格浅水 → 纯海。
 ## 三条驿道登陆点各开一道 3 格高、向东延伸的沙滩豁口，读作上岸滩头。
 static func _paint_coast(g: Array, gv: Array, wet: Array) -> void:
 	var lane_r: Array = LANE_ROWS
@@ -706,24 +749,24 @@ static func _paint_coast(g: Array, gv: Array, wet: Array) -> void:
 			var i := _idx(c, r)
 			g[i] = S_SAND
 			gv[i] = -1
-		# 滩涂渐变：shore-3..shore-1 三列做沙/水交替，形成浅滩纹理
+		# 滩涂渐变：按离岸距离固定分层，不逐格掷骰子。
+		# shore-1 浅水，shore-2 / shore-3 沙地；同一行材质连续，避免单格杂点。
 		for k in range(1, 4):
 			var c2 := shore - k
 			if not _inb(c2, r):
 				continue
 			var i2 := _idx(c2, r)
-			# 越靠海（k 越小）水越多
-			var wet_thresh: int = 3 - k + 1
-			if _hash(c2, r, 11) % 5 < wet_thresh:
-				g[i2] = S_WATER
+			if k == 1:
+				g[i2] = S_WATER_SHALLOW
 				wet[i2] = 1
 			else:
 				g[i2] = S_SAND
 				gv[i2] = -1
+				wet[i2] = 0
 		# 纯海
 		for c in range(shore, COLS):
 			var i3 := _idx(c, r)
-			g[i3] = S_WATER
+			g[i3] = S_WATER_DEEP
 			wet[i3] = 1
 		# 登陆豁口：滩头向东多铺 spit 格沙
 		for k in range(0, spit):
@@ -750,10 +793,12 @@ static func _paint_mountains(st: Array) -> void:
 
 ## 护城河 + 上河/下河 + 十条河浃 + 四座水门
 static func _paint_water(g: Array, wet: Array) -> void:
-	for rect in [MOAT_N, MOAT_S, MOAT_W, MOAT_E, RIVER_LOW, RIVER_UP]:
-		_water_rect(g, wet, rect)
+	for rect in [MOAT_N, MOAT_S, MOAT_W, MOAT_E]:
+		_water_rect(g, wet, rect, S_WATER_DEEP)
+	for rect in [RIVER_LOW, RIVER_UP]:
+		_water_rect(g, wet, rect, S_WATER_SHALLOW)
 	for canal in canals():
-		_water_rect(g, wet, canal["rect"])
+		_water_rect(g, wet, canal["rect"], S_WATER_SHALLOW)
 	# 护城河绕瓮城：先挖出瓮城台基，再补东旁道与南北连通段
 	for r in range(BARB_FOOT.position.y, BARB_FOOT.position.y + BARB_FOOT.size.y):
 		for c in range(BARB_FOOT.position.x, BARB_FOOT.position.x + BARB_FOOT.size.x):
@@ -761,7 +806,7 @@ static func _paint_water(g: Array, wet: Array) -> void:
 				g[_idx(c, r)] = S_MOSS
 				wet[_idx(c, r)] = 0
 	for rect in [MOAT_BYPASS, MOAT_LINK_N, MOAT_LINK_S]:
-		_water_rect(g, wet, rect)
+		_water_rect(g, wet, rect, S_WATER_DEEP)
 	# 城外盐田：沙埂晒盐 —— 田面铺沙（晒场），西侧一条引水沟（water）接海。
 	for pan in salt_pans():
 		var r: Rect2i = pan
@@ -769,25 +814,29 @@ static func _paint_water(g: Array, wet: Array) -> void:
 			for cc in range(r.position.x, r.position.x + r.size.x):
 				if not _inb(cc, rr):
 					continue
-				g[_idx(cc, rr)] = S_SAND
+				var dy := rr - r.position.y
+				var dx := cc - r.position.x
+				var ridge := (r.size.y >= 6 and dy % 4 == 3) \
+					or (r.size.x >= 6 and dx % 5 == 4)
+				g[_idx(cc, rr)] = S_SOIL if ridge else S_CITY
 		for rr in range(r.position.y, r.position.y + r.size.y):
 			if _inb(r.position.x, rr):
-				g[_idx(r.position.x, rr)] = S_WATER
+				g[_idx(r.position.x, rr)] = S_WATER_SHALLOW
 				wet[_idx(r.position.x, rr)] = 1
 	# 庙上河（南引水）
 	for rect in feeder_streams():
-		_water_rect(g, wet, rect)
+		_water_rect(g, wet, rect, S_WATER_SHALLOW)
 	# 水门洞 + 与护城河的连通段
 	for rect in water_gate_holes():
-		_water_rect(g, wet, rect)
+		_water_rect(g, wet, rect, S_WATER_SHALLOW)
 	for rect in water_gate_links():
-		_water_rect(g, wet, rect)
+		_water_rect(g, wet, rect, S_WATER_SHALLOW)
 
-static func _water_rect(g: Array, wet: Array, rect: Rect2i) -> void:
+static func _water_rect(g: Array, wet: Array, rect: Rect2i, sem: int = S_WATER_DEEP) -> void:
 	for r in range(rect.position.y, rect.position.y + rect.size.y):
 		for c in range(rect.position.x, rect.position.x + rect.size.x):
 			if _inb(c, r):
-				g[_idx(c, r)] = S_WATER
+				g[_idx(c, r)] = sem
 				wet[_idx(c, r)] = 1
 
 ## 驳岸：所有与内陆水面 4 邻接的陆地格铺 1 格沙，读作滩地/石砌驳岸。
@@ -821,16 +870,11 @@ static func _paint_banks(g: Array, wet: Array) -> void:
 					continue
 				stamp[ni] = 1
 	for i in range(COLS * ROWS):
-		if stamp[i] == 1 and g[i] == S_MOSS:
+		if stamp[i] == 1 and g[i] != S_WATER_DEEP and g[i] != S_WATER_SHALLOW:
 			g[i] = S_SAND
 
-## 城墙：3 格厚连续实心，不夹草。材料选择依据实测亮度：
-##   cliff / cliff_dark 是「碎散毛石」纹理（亮度 62-90），成片铺开就是"撒碎石"；
-##   road_rock 是全套素材里唯一的「人工砌筑条石」纹理（亮度 91-97），
-##   故墙身用它，暗石只作最外一格的收边阴影，雉堞用最亮的 stone_00（115）。
-##   d==0 外沿收边 + 雉堞（CLIFF_DARK 阴影线，垛口见 _paint_decor）
-##   d==1 墙顶马道（ROAD_ROCK 亮砌石，城墙的「主体」）
-##   d==2 内墙（ROAD_ROCK，与墙顶同材质，保证 2 格宽的实心墙带）
+## 城墙：3 格厚连续实心，不夹草。DCSS 的 gray brick 是专门的砌体纹理，
+## 城墙三格统一用 wall_stone，不再混用卵石街面或暗石。
 ## 史载「城墙高8米，基宽约4米」（全文 14576 行）→ 3.9m ≈ 3 格 @11.7m/格。
 static func _paint_walls(st: Array) -> void:
 	var holes := gate_holes()
@@ -842,7 +886,7 @@ static func _paint_walls(st: Array) -> void:
 				continue
 			if _in_rects(c, r, holes) or _in_rects(c, r, wh):
 				continue
-			_put(st, c, r, S_CLIFF_DARK if d == 0 else S_ROAD_ROCK)
+			_put(st, c, r, S_WALL_STONE)
 
 ## 瓮城：北墙 + 东墙 + 南墙（外城门开在南墙中段 cols 54..55）+ 庭院石铺
 ## 墙体与主城墙同构：外沿 CLIFF、内沿 CLIFF_DARK。
@@ -895,39 +939,24 @@ static func _paint_buildings(st: Array) -> void:
 		var rect := Rect2i(a.x, a.y, s.x, s.y)
 		var id := String(spec["id"])
 		if id == "keep_own":
-			_put_rect(st, rect, S_ROAD_ROCK)
+			_put_rect(st, rect, S_WALL_BRICK)
 		elif id == "keep_enemy":
-			_put_rect(st, rect, S_CLIFF_DARK)
+			_put_rect(st, rect, S_WALL_STONE)
 		elif id.begins_with("tower_"):
-			_put_rect(st, rect, S_ROAD_ROCK)
+			_put_rect(st, rect, S_WALL_STONE)
 		else:
-			_put_rect(st, rect, S_CLIFF)
+			_put_rect(st, rect, S_WALL_BRICK)
 
 ## 装饰：雉堞（外沿每 2 格一堞，形成垛口节奏）+ 主堡台基压边 + 山野乱石
 ## 史载「城墙外侧筑女儿墙，高2.4米，其上雉堞高0.62米」（全文 14577-14579）。
+## 装饰层：只放**有明确位置理由**的东西，不做全图随机撒点。
+##
+## 历史教训：这里曾用 `_hash(c,r,41) % 41 == 0` 每隔 3 格撒一块 stone 当"山野乱石"，
+## 还在城墙外沿隔格叠了一层 stone。32px 下这些块是带高光的碎石图案，混在草地里
+## 就是满屏灰色噪点 —— 这正是用户说的"胡乱拼凑"。已全部删除：
+## 城墙的砌石质感由 _paint_walls 在 structure 层连续完成，不需要再叠。
 static func _paint_decor(dc: Array, rd: Array, st: Array, wet: Array) -> void:
-	var holes := gate_holes()
-	var wh := water_gate_holes()
-	# 城墙外沿：南北边为 row CITY_Y0 / CITY_Y1，东西边为 col CITY_X0 / CITY_X1
-	for c in range(CITY_X0, CITY_X1 + 1):
-		if _in_rects(c, CITY_Y0, holes) or _in_rects(c, CITY_Y0, wh):
-			continue
-		if (c - CITY_X0) % 2 == 0:
-			_put(dc, c, CITY_Y0, S_STONE_TILE)
-		if _in_rects(c, CITY_Y1, holes) or _in_rects(c, CITY_Y1, wh):
-			continue
-		if (c - CITY_X0) % 2 == 0:
-			_put(dc, c, CITY_Y1, S_STONE_TILE)
-	for r in range(CITY_Y0, CITY_Y1 + 1):
-		if _in_rects(CITY_X0, r, holes) or _in_rects(CITY_X0, r, wh):
-			continue
-		if (r - CITY_Y0) % 2 == 0:
-			_put(dc, CITY_X0, r, S_STONE_TILE)
-		if _in_rects(CITY_X1, r, holes) or _in_rects(CITY_X1, r, wh):
-			continue
-		if (r - CITY_Y0) % 2 == 0:
-			_put(dc, CITY_X1, r, S_STONE_TILE)
-	# 主堡/倭营台基压边：外扩一圈 stone_00，让建筑体块从草地/石面上读得出来
+	# 主堡/倭营台基压边：外扩一圈，让建筑体块从草地/石面上读得出来（位置确定、非随机）
 	for enemy in [false, true]:
 		var a := keep_anchor(enemy)
 		var s := keep_size(enemy)
@@ -937,14 +966,6 @@ static func _paint_decor(dc: Array, rd: Array, st: Array, wet: Array) -> void:
 		for r in range(a.y - 1, a.y + s.y + 1):
 			_put(dc, a.x - 1, r, S_STONE_TILE)
 			_put(dc, a.x + s.x, r, S_STONE_TILE)
-	# 山野乱石（确定性散列，只落在空地上）
-	for r in range(0, ROWS, 3):
-		for c in range(0, COLS, 3):
-			if _hash(c, r, 41) % 41 != 0:
-				continue
-			var i := _idx(c, r)
-			if st[i] < 0 and rd[i] < 0 and wet[i] == 0:
-				dc[i] = S_STONE_TILE
 
 # =====================================================================
 # 五、构建
@@ -985,13 +1006,23 @@ static func _build_zone_map(lay: Dictionary, road: TileMapLayer, structure: Tile
 	var codes: Array = lay["zone"]
 	var holes := gate_holes()
 	var wholes := water_gate_holes()
+	var fort_rects: Array = []
+	fort_rects.append_array(enemy_tower_rects())
+	fort_rects.append_array(post_houses())
+	for spec in building_specs():
+		var a: Vector2i = spec["anchor"]
+		var s: Vector2i = spec["size"]
+		fort_rects.append(Rect2i(a, s))
 	for r in range(ROWS):
 		var base := r * COLS
 		for c in range(COLS):
 			var z: StringName = ZONE_NAMES[int(codes[base + c])]
 			var cell := Vector2i(c, r)
 			if structure.get_cell_source_id(cell) != -1:
-				z = &"wall"
+				# 山体也是 structure 层，不能一律改成「城墙」。
+				# 城墙环、瓮城、敌台、铺舍与建筑才是城防结构。
+				if _is_wall_ring(c, r, holes, wholes) or _in_rects(c, r, fort_rects):
+					z = &"wall"
 			if road.get_cell_source_id(cell) != -1:
 				z = &"road"
 			if _in_rects(c, r, holes) or _in_rects(c, r, wholes):
@@ -999,40 +1030,57 @@ static func _build_zone_map(lay: Dictionary, road: TileMapLayer, structure: Tile
 			zmap[cell] = z
 	return zmap
 
+static func _is_wall_ring(c: int, r: int, holes: Array, water_holes: Array) -> bool:
+	if c < CITY_X0 or c > CITY_X1 or r < CITY_Y0 or r > CITY_Y1:
+		# 瓮城墙体在主城环之外
+		for rect in [BARB_WALL_N, BARB_WALL_E, BARB_WALL_S1, BARB_WALL_S2]:
+			if (rect as Rect2i).has_point(Vector2i(c, r)):
+				return true
+		return false
+	var d: int = mini(mini(c - CITY_X0, CITY_X1 - c), mini(r - CITY_Y0, CITY_Y1 - r))
+	if d >= WALL_T:
+		return false
+	return not _in_rects(c, r, holes) and not _in_rects(c, r, water_holes)
+
 ## 逐格写瓦片：语义 = 数组里的类别码；变体 = 显式覆盖（overrides >= 0）或确定性轮换。
 ## salt 由语义在 CAT_ORDER 的下标派生 —— 只为了错开不同材质的轮换相位，
 ## 避免草地/沙地/水面在同一 (c,r) 上取到同号变体而产生对齐条纹。
+## 逐格落瓦：语义码 → 语义组 → 具体图块 → 图集 (source, coord)。
+##
+## 关键点（也是与旧「随便取一块」的根本区别）：
+## 1. 语义码先经 SEM_OF 映射到**语义组名**（如 wall_stone），
+##    组内只含 tileable 的块（TileCatalog 已按图像量过四边透明度）。
+## 2. 具体取哪一块由 TileCatalog.pick_variant 用 (c,r) 确定性散列决定，
+##    同一格永远同一块，重跑构建结果一致。
+## 3. 再用 atlas_coord 查到该块在图集中的真实坐标——**不能**用
+##    「组内下标」直接当图集坐标，因为语义组是图集的子集，下标会错位。
 static func _paint_layer(layer: TileMapLayer, cats: Array, overrides: Variant) -> void:
-	var counts := PackedInt32Array()
-	var salts := PackedInt32Array()
-	for i in range(TileCatalogScript.CAT_ORDER.size()):
-		var category: StringName = TileCatalogScript.CAT_ORDER[i]
-		counts.append(TileCatalogScript.variant_count(category))
-		salts.append((i * 5 + 3) & 0xff)
 	var has_ov: bool = overrides is Array
 	for r in range(ROWS):
 		var base := r * COLS
 		for c in range(COLS):
-			var cat: int = cats[base + c]
-			if cat < 0:
+			var sem_code: int = cats[base + c]
+			if sem_code < 0:
 				continue
-			var v := -1
+			var sem: StringName = SEM_OF.get(sem_code, &"")
+			if sem == &"":
+				continue
+			# 显式覆盖：调用方直接给了「组内第几块」，用于门洞/垛口等需要固定的位置
+			var path := ""
 			if has_ov:
-				v = int((overrides as Array)[base + c])
-			if v < 0:
-				var n: int = counts[cat]
-				if n > 1:
-					v = posmod(c * 7 + r * 3 + salts[cat], n)
-				else:
-					v = 0
-			else:
-				# 显式变体号需落在该语义的变体数内
-				var nc: int = counts[cat]
-				if nc > 0:
-					v = posmod(v, nc)
-				else:
-					v = 0
-			layer.set_cell(Vector2i(c, r), cat, Vector2i(v, 0))
+				var ov := int((overrides as Array)[base + c])
+				if ov >= 0:
+					var arr := TileCatalogScript.palette_of(sem)
+					if not arr.is_empty():
+						path = String((arr[posmod(ov, arr.size())] as Dictionary)["file"])
+			if path.is_empty():
+				path = TileCatalogScript.pick_variant(sem, c, r)
+			if path.is_empty():
+				continue
+			var loc := TileCatalogScript.atlas_coord(path)
+			if loc.is_empty():
+				continue
+			layer.set_cell(Vector2i(c, r), int(loc["source"]), loc["coord"] as Vector2i)
 
 static func _make_layer(p_name: String, tileset: TileSet, z: int) -> TileMapLayer:
 	var layer := TileMapLayer.new()
