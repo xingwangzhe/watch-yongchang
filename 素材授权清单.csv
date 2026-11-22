@@ -49,16 +49,6 @@ docs/01-参考资料包/汤和信俗素材包-tanghe-customs.zip,汤和信俗素
 docs/01-参考资料包/永昌堡参考资料-yongchang-fort.pdf,永昌堡十三进士与抗倭纪略,第三方参考资料,2026 OSGJ 组委会官网提供,-,全文抽取用于创作参考,授权未声明，保留原权利；不得进成品,史实考据参考,否
 docs/02-主题资料/,主题解密载荷与密钥,赛事公开数据,2026 OSGJ 官网,-,AES-GCM解密,赛事官方公开信息,主题解读,否
 docs/03-站点图片/,官网图片与合作伙伴标识,第三方参考资料,2026 OSGJ 官网,-,下载存档,原站点权利归各权利人；不得进成品,界面风格参考,否
-assets/audio/bgm_watch.ogg,bgm_watch,BGM,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏背景音乐,计划使用
-assets/audio/sfx_alarm.ogg,sfx_alarm,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
-assets/audio/sfx_build.ogg,sfx_build,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
-assets/audio/sfx_fire.ogg,sfx_fire,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
-assets/audio/sfx_hit.ogg,sfx_hit,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
-assets/audio/sfx_lose.ogg,sfx_lose,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
-assets/audio/sfx_merge.ogg,sfx_merge,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
-assets/audio/sfx_spawn.ogg,sfx_spawn,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
-assets/audio/sfx_wave.ogg,sfx_wave,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
-assets/audio/sfx_win.ogg,sfx_win,事件音效,程序化原创合成,tools/generate_audio.py（五声音阶加法合成，无第三方采样）,numpy 合成→ffmpeg 转 OGG,CC0 1.0（原创，可商用无署名）,游戏事件反馈,计划使用
 assets/fonts/LXGWWenKai-Regular.ttf,霞鹜文楷 LXGW WenKai,UI 中文字体,开源字体项目（lxgw/LxgwWenKai）,-,复制随项目分发,SIL Open Font License 1.1（须随附 OFL 许可文本）,游戏内所有中文文本渲染,计划使用
 game/assets/tiles/atlas_geology.png,atlas_geology,地形瓦片图集,派生自 Hard Vacuum (Mark Ferrari / Lost Garden) https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip,tools/convert_hardvacuum_tiles.py 切图重着色 + 合成图集,chroma去背景/20x20→32x32 nearest放大/地质色系重新着色,CC BY 3.0（须署名 Mark Ferrari / Lost Garden；来源链接见source列）,游戏内地形/驿道/岩层瓦片图集,已使用
 game/assets/tiles/hardvacuum/***.png,hardvacuum_tiles,地形瓦片（109张）,派生自 Hard Vacuum (Mark Ferrari / Lost Garden) CC BY 3.0,tools/convert_hardvacuum_tiles.py,chroma去背景/重新着色/放大32x32,CC BY 3.0（署名见 AI使用与素材声明.md）,游戏内地表/道路/岩层/水域瓦片,已使用
@@ -129,3 +119,27 @@ generated/ui_art/icons_res/4_game_resource_icons_in_one_h_2026-11-22T08-14-37.pn
 generated/ui_art/icons_build/3_game_building_icons_in_one_h_2026-11-22T08-15-00.png,ui_art_icons_build,UI原始条带图,AI生成,WorkBuddy ImageGen 建造图标3联条带输出,未处理原始输出（保留供AI声明溯源）,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,AI生成过程溯源存档（不入成品）,否
 generated/ui_art/icons_unit/3_game_soldier_unit_icons_in_o_2026-11-22T08-15-27.png,ui_art_icons_unit,UI原始条带图,AI生成,WorkBuddy ImageGen 出兵图标3联条带输出,未处理原始输出（保留供AI声明溯源）,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,AI生成过程溯源存档（不入成品）,否
 tools/process_ui_sprites.py,process_ui_sprites,处理脚本,原创代码,WorkBuddy 会话助手（大语言模型）,人工审校切图/抠图参数（白底阈值、缩放尺寸）,AGPL-3.0（项目代码）,UI素材切图抠图流水线,已使用
+game/assets/audio/bgm_watch.ogg,bgm_watch,BGM,第三方素材（OpenGameArt）,Samurai Nights Demo by majadroid（https://opengameart.org/content/samurai-nights）,mp3→OGG 重编码（tools/process_thirdparty_audio.py）,CC-BY 3.0（第三方署名，见 generated/audio_thirdparty/LICENSES.md）,游戏背景音乐,已使用
+game/assets/audio/sfx_fire.ogg,sfx_fire,事件音效,第三方素材（OpenGameArt）,Battle Sound Effects: Bow by ogrebane（https://opengameart.org/content/battle-sound-effects）,响度归一化+OGG 转码（tools/process_thirdparty_audio.py）,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,塔/远程攻击音效,已使用
+game/assets/audio/sfx_hit.ogg,sfx_hit,事件音效,第三方素材（OpenGameArt）,3 Melee Sounds by remaxim（https://opengameart.org/content/3-melee-sounds）,响度归一化+OGG 转码（同上）,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,单位受击音效,已使用
+game/assets/audio/sfx_build.ogg,sfx_build,事件音效,第三方素材（OpenGameArt）,RPG Audio: Chop by Kenney（https://opengameart.org/content/50-rpg-sound-effects）,响度归一化（同上）,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,建造完成音效,已使用
+game/assets/audio/sfx_spawn.ogg,sfx_spawn,事件音效,第三方素材（OpenGameArt）,RPG Sound Pack: Sword Unsheath by artisticdude（https://opengameart.org/content/rpg-sound-pack）,响度归一化+OGG 转码（同上）,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,出兵音效,已使用
+game/assets/audio/sfx_wave.ogg,sfx_wave,事件音效,第三方素材（OpenGameArt）,Sound Pack 01: Rise01 by wobbleboxx（https://opengameart.org/content/level-up-power-up-coin-get-13-sounds）,响度归一化+AIF→OGG（同上）,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,波次开始音效,已使用
+game/assets/audio/sfx_alarm.ogg,sfx_alarm,事件音效,第三方素材（OpenGameArt）,Sound Pack 01: Alarm by wobbleboxx（同上）,截短 2.2s+淡出+响度归一化（同上）,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,主堡受击警报,已使用
+game/assets/audio/sfx_merge.ogg,sfx_merge,事件音效,第三方素材（OpenGameArt）,RPG Sound Pack: Metal Ringing by artisticdude（https://opengameart.org/content/rpg-sound-pack）,响度归一化+OGG 转码（同上）,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,军械坊合成音效,已使用
+game/assets/audio/sfx_win.ogg,sfx_win,事件音效,第三方素材（OpenGameArt）,Sound Pack 01: Upper01 by wobbleboxx（同上）,响度归一化+AIF→OGG（同上）,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,胜利音效,已使用
+game/assets/audio/sfx_lose.ogg,sfx_lose,事件音效,第三方素材（OpenGameArt）,Sound Pack 01: Downer01 by wobbleboxx（同上）,响度归一化+AIF→OGG（同上）,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,失败音效,已使用
+generated/audio_thirdparty/raw/samurai-nights-demo_majadroid_CC-BY.mp3,raw_bgm_samurai,音频原始素材,第三方（OpenGameArt）,Samurai Nights Demo by majadroid,未修改（保留供溯源与再转换）,CC-BY 3.0（第三方署名，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/bow_ogrebane_CC0.wav,raw_bow,音频原始素材,第三方（OpenGameArt）,Bow by ogrebane,未修改,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/melee-sound_remaxim_CC0.wav,raw_melee,音频原始素材,第三方（OpenGameArt）,Melee Sound by remaxim,未修改,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/chop_kenney_CC0.ogg,raw_chop,音频原始素材,第三方（OpenGameArt）,Chop by Kenney,未修改,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/sword-unsheathe_artisticdude_CC0.wav,raw_unsheathe,音频原始素材,第三方（OpenGameArt）,Sword Unsheath by artisticdude,未修改,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/rise01_wobbleboxx_CC0.aif,raw_rise01,音频原始素材,第三方（OpenGameArt）,Rise01 by wobbleboxx,未修改,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/alarm_wobbleboxx_CC0.aif,raw_alarm,音频原始素材,第三方（OpenGameArt）,Alarm by wobbleboxx,未修改,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/metal-ringing_artisticdude_CC0.wav,raw_metalring,音频原始素材,第三方（OpenGameArt）,Metal Ringing by artisticdude,未修改,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/upper01_wobbleboxx_CC0.aif,raw_upper01,音频原始素材,第三方（OpenGameArt）,Upper01 by wobbleboxx,未修改,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/downer01_wobbleboxx_CC0.aif,raw_downer01,音频原始素材,第三方（OpenGameArt）,Downer01 by wobbleboxx,未修改,CC0 1.0（第三方，见 generated/audio_thirdparty/LICENSES.md）,溯源存档（转换输入）,是
+generated/audio_thirdparty/raw/views-from-atop-the-jade-kings-throne_hitctrl_CC-BY.ogg,raw_jadeking,音频原始素材（备选未用）,第三方（OpenGameArt）,Views From Atop the Jade Kings Throne by hitctrl,未修改,CC-BY 3.0（第三方署名，见 generated/audio_thirdparty/LICENSES.md）,备选 BGM 素材（暂未进入成品）,否
+generated/audio_thirdparty/LICENSES.md,audio_licenses,许可登记文档,原创文档,WorkBuddy 会话助手（大语言模型）,人工核对 URL/作者/许可,CC BY 4.0（项目文档）,第三方音频 TASL 登记与署名文本,已使用
+tools/process_thirdparty_audio.py,process_thirdparty_audio,处理脚本,原创代码,WorkBuddy 会话助手（大语言模型）,人工审校响度/截短/转码参数,AGPL-3.0（项目代码）,第三方音频转换流水线,已使用
+tools/generate_audio.py,generate_audio,处理脚本,原创代码,WorkBuddy 会话助手（大语言模型）,人工审校合成参数,AGPL-3.0（项目代码）,短音效合成兜底工具（素材优先采用第三方，此为后备）,备用
