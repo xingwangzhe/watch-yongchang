@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/tower.gd" id="1_gncsu"]
+
+[node name="tower_node" type="Node2D" unique_id=2101624942]
+script = ExtResource("1_gncsu")
+
+[node name="Muzzle" type="Marker2D" parent="." unique_id=1157075391]
