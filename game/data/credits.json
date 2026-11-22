@@ -104,11 +104,11 @@
       "entries": [
         {
           "name": "Simple animated character",
-          "role": "友军骨架：乡勇 · 弓手 · 龙灯队；倭寇轻装：斥候 · 火枪倭",
+          "role": "友军骨架：乡勇 · 弓手 · 龙灯队 · 藤牌兵 · 火铳兵 · 进士；倭寇轻装：斥候 · 火枪倭",
           "author": "daniloMattos",
           "license": "CC0 1.0",
           "url": "https://opengameart.org/content/simple-animated-character",
-          "note": "抽取行走、近战与远程帧；按兵种重着色，并手工绘制短刀、弓、火绳枪、龙头与头巾；成品为 64×64 RGBA"
+          "note": "抽取行走、近战与远程帧；按兵种重着色，并手工绘制短刀、弓、火绳枪、龙头、头巾、藤牌、乌纱幞头与折扇；成品为 64×64 RGBA"
         },
         {
           "name": "Samurai Sprites",

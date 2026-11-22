@@ -6,7 +6,7 @@
 | 更新日期 | 2026-11-22 |
 | 适用阶段 | 资料收集、设计、Godot 可玩原型、美术重构、UI/HUD、音频与装饰、**永昌堡地形重构 / 定时出兵重构 / 侧栏与滚幕** 阶段 |
 | 对应赛事要求 | 2026 开源游戏开发大赛 第五节「内容要求」、第六节「提交材料」、第八节「Dora 开源社区奖」 |
-| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（169 条：含建筑与 UI 素材、8 组 CC0 角色序列帧、第三方音频 1 BGM + 9 音效、第三方 UI 装饰 10 张成品、DCSS 地形具名图块 106 张及索引/文档/脚本条目） |
+| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（118 条：含建筑与 UI 素材、11 组 CC0 角色序列帧、第三方音频 1 BGM + 9 音效、第三方 UI 装饰 10 张成品、DCSS 地形具名图块 106 张及索引/文档/脚本条目） |
 | 署名呈现 | 游戏内电影式片尾滚幕 `game/scenes/credits.tscn`，数据源 `game/data/credits.json`，逐项含可点击来源链接 |
 
 > 本声明按赛事规则「须申报赛前已有的代码、工具与素材；作品原创，素材来源与授权清晰」「鼓励 AI 辅助创作；使用时须如实说明工具、用途、生成内容与人工修改情况」编制。
@@ -77,7 +77,7 @@
 
 | 类别 | 数量 | 规格 | 来源与处理 |
 |---|---|---|---|
-| 友军序列帧 | 3 组 | 64×64 RGBA，4 帧跑 + 4–5 帧攻击 + 静态 | daniloMattos CC0 原帧；重着色、去底影、绘制头巾/短刀/弓/龙头 |
+| 友军序列帧 | 6 组 | 64×64 RGBA，4 帧跑 + 4–5 帧攻击 + 静态 | daniloMattos CC0 原帧；重着色、去底影、绘制短刀/弓/龙头/藤牌/火铳/乌纱幞头 |
 | 倭寇序列帧 | 5 组 | 64×64 RGBA，4 帧跑 + 4–5 帧攻击 + 静态 | daniloMattos / sebshady CC0 原帧；重着色、绘制头巾/火绳枪/藤牌/盔饰 |
 
 流水线：`tools/process_cc0_sprites.ts`。原始条带保存在 `generated/sprites_thirdparty/raw/`，许可登记见 `generated/sprites_thirdparty/LICENSES.md`。
@@ -178,7 +178,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | 素材（Title） | 作者（Author） | 来源（Source） | 许可（License） | 修改说明 |
 |---|---|---|---|---|
 | Dungeon Crawl Stone Soup **具名图块 106 张** | DCSS contributors（维护：Chris Hamons；原始美术含 DENZI 等多人） | https://opengameart.org/content/dungeon-crawl-32x32-tiles | CC0 1.0（公有领域贡献） | 原始包逐块导出为 32×32 PNG，保留 light/dark 等原始文件名；**未改色**，仅建立语义分组与确定性取块。索引 `game/assets/tiles/dcss/manifest.csv` |
-| Simple animated character | daniloMattos | https://opengameart.org/content/simple-animated-character | CC0 1.0 | 抽取 64×64 行走/近战/远程帧；按兵种重着色；手工绘制短刀、弓、火绳枪、龙头与头巾；清底影；输出 64×64 RGBA |
+| Simple animated character | daniloMattos | https://opengameart.org/content/simple-animated-character | CC0 1.0 | 抽取 64×64 行走/近战/远程帧；按兵种重着色；手工绘制短刀、弓、火绳枪、龙头、头巾、藤牌、乌纱幞头与折扇；清底影；输出 64×64 RGBA |
 | Samurai Sprites | sebshady | https://opengameart.org/content/samurai-sprites | CC0 1.0 | 抽取 48×48 侧向行走/攻击帧；重着色；手工绘制藤牌、肩甲与盔饰；输出 64×64 RGBA |
 | Samurai Nights（Demo） | Maik Hoffmann（majadroid） | https://opengameart.org/content/samurai-nights | CC BY 3.0（亦提供 CC-BY 4.0 / OGA-BY 3.0） | MP3 → OGG Vorbis 重编码（游戏内 BGM） |
 | Battle Sound Effects: Bow / RPG Sound Pack / 3 Melee Sounds / RPG Audio / Sound Pack 01 | ogrebane / artisticdude / remaxim / Kenney / wobbleboxx | https://opengameart.org/content/battle-sound-effects 等（逐项见 `generated/audio_thirdparty/LICENSES.md`） | CC0（多许可包选用 CC0） | 响度归一化、Alarm 截短 2.2s、OGG 转码（游戏内 9 个事件音效） |
@@ -240,5 +240,5 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 1. 将本声明版本号升至 v2.0，在提交锁定版本时更新最终素材清单与 Git 哈希。
 2. 记录锁定提交的 Git 哈希与提交时间。
 3. 补齐至少 3 篇内容不重复的开发者日志（赛事强制要求）。
-4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：字体/DCSS 具名图块/建筑与 UI 素材/CC0 角色序列帧/第三方音频（BGM+音效）/第三方 UI 装饰均已登记（清单共 169 条）。
+4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：字体/DCSS 具名图块/建筑与 UI 素材/CC0 角色序列帧/第三方音频（BGM+音效）/第三方 UI 装饰均已登记（清单共 118 条）。
 5. 若以私有项目提交，重新核对第六节许可声明与实际情况的一致性。
