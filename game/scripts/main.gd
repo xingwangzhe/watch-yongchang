@@ -375,12 +375,18 @@ func _close_sidebar() -> void:
 
 # ---------- 建造链路 ----------
 
-## 打开建造菜单（右栏 build 上下文）；再次打开则收起
+## 打开建造菜单（右栏 build 上下文）；已打开同一上下文时再次触发则收起（快捷键 B 的行为）
 func _open_build_menu() -> void:
 	if _sidebar == null:
 		return
 	if _sidebar.visible and _sidebar.call("get_context") == &"build":
 		_close_sidebar()
+		return
+	_show_build_menu()
+
+## 强制显示建造菜单（不做 toggle）——取消放置、Esc 回退时用
+func _show_build_menu() -> void:
+	if _sidebar == null:
 		return
 	var items: Array = []
 	for def in BUILD_DEFS:
@@ -416,7 +422,7 @@ func _cancel_build() -> void:
 	if _build_preview != null:
 		_build_preview.visible = false
 	# 取消放置后回到建造菜单（而不是直接消失），符合「侧栏跟随上下文」的预期
-	_open_build_menu()
+	_show_build_menu()
 
 func _try_build_at(world_pos: Vector2) -> void:
 	if build_system == null or not build_mode:

@@ -23,7 +23,7 @@ const RESUME_DELAY: float = 2.5       # 手动操作后恢复自然滚动的秒�
 const WHEEL_STEP: float = 90.0
 const KEY_STEP: float = 64.0
 const PAGE_STEP_FACTOR: float = 0.8   # PgUp/PgDn 步长 = 可视高度 × 0.8
-const TAIL_ANCHOR: float = 0.55       # 滚完时「感谢观看」块停在可视区 55% 处
+const TAIL_ANCHOR: float = 0.70       # 滚完时尾部块底边停在可视区 70% 处（避免下方大片空白）
 const BOTTOM_BAR_H: float = 56.0
 const FADE_H: float = 72.0
 
@@ -139,6 +139,7 @@ func _build_bottom_bar() -> void:
 	sb.border_color = C_LINE
 	sb.set_content_margin_all(0)
 	bar.add_theme_stylebox_override("panel", sb)
+	bar.mouse_filter = Control.MOUSE_FILTER_PASS   # 滚轮仍能冒泡给根节点
 	add_child(bar)
 
 	var margin := MarginContainer.new()
@@ -351,11 +352,13 @@ func _on_resized() -> void:
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
+		# _scroll 减小 = 内容上移 = 往后读（自动滚动方向）；
+		# 向上滚 = 回看更早条目 → _scroll 增大。
 		if mb.button_index == MOUSE_BUTTON_WHEEL_UP and mb.pressed:
-			_manual(-WHEEL_STEP)
+			_manual(WHEEL_STEP)
 			accept_event()
 		elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN and mb.pressed:
-			_manual(WHEEL_STEP)
+			_manual(-WHEEL_STEP)
 			accept_event()
 		elif mb.button_index == MOUSE_BUTTON_LEFT:
 			_dragging = mb.pressed
@@ -376,13 +379,13 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_ESCAPE:
 			_back_to_menu()
 		KEY_UP:
-			_manual(-KEY_STEP)
-		KEY_DOWN:
 			_manual(KEY_STEP)
+		KEY_DOWN:
+			_manual(-KEY_STEP)
 		KEY_PAGEUP:
-			_manual(-page)
-		KEY_PAGEDOWN, KEY_SPACE:
 			_manual(page)
+		KEY_PAGEDOWN, KEY_SPACE:
+			_manual(-page)
 		KEY_HOME:
 			_manual(_max_scroll - _scroll)
 		KEY_END:
@@ -390,6 +393,30 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		_:
 			return
 	get_viewport().set_input_as_handled()
+
+# ---------- 调试 / 验收接口（gda script run 用） ----------
+
+## 当前滚动位置（_box.position.y 的等价量）
+func get_scroll_y() -> float:
+	return _scroll
+
+func get_scroll_range() -> Vector2:
+	return Vector2(_min_scroll, _max_scroll)
+
+## 模拟一次手动滚动（正数=回看更早条目）
+func manual_scroll(delta_scroll: float) -> void:
+	_manual(delta_scroll)
+
+## 自动滚动是否处于「手动操作后暂停」窗口内
+func is_auto_paused() -> bool:
+	return _auto_resume_left > 0.0
+
+func is_finished() -> bool:
+	return _finished
+
+## 推进一帧（等价引擎调用 _process，测试里确定性驱动）
+func advance_for_test(dt: float) -> void:
+	_process(dt)
 
 # ---------- 链接 / 返回 ----------
 
@@ -467,7 +494,8 @@ func _btn_style(bg: Color, border: Color) -> StyleBoxFlat:
 
 # ---------- 调试 ----------
 
-const GDA_CALLABLE := ["get_scroll_state", "get_entry_count"]
+const GDA_CALLABLE := ["get_scroll_state", "get_entry_count", "get_scroll_y",
+	"get_scroll_range", "manual_scroll", "is_auto_paused", "is_finished", "advance_for_test"]
 
 func get_scroll_state() -> Dictionary:
 	return {
