@@ -88,7 +88,10 @@ def cut_sheet(src_name: str, semantic: str, out_dir: Path, rows: list[dict]) -> 
             partial = 1 if alpha.getextrema()[0] < 255 else 0
             big = tile.resize((OUT_TS, OUT_TS), Image.NEAREST)
             idx = r * cols_n + c
-            fname = f"{semantic}_{idx:03d}_c{c}_r{r}.png"
+            # 文件名必须含源表名：同一语义常来自多张图集（如 moss <- Grass + Grass2），
+            # 它们的 (col,row) 会重叠，只用语义+坐标会把后来的块覆盖掉前面的。
+            src_slug = src_name.lower().replace("-", "_")
+            fname = f"{semantic}_{src_slug}_{idx:03d}_c{c}_r{r}.png"
             big.save(out_dir / fname)
             rows.append({
                 "file": fname,
@@ -138,6 +141,16 @@ def main() -> None:
     if not SRC_DIR.exists():
         raise SystemExit(f"找不到原始素材目录：{SRC_DIR}")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    stale = list(OUT_DIR.glob("*.png"))
+    for f in stale:
+        f.unlink()
+    if stale:
+        print(f"清掉旧图块 {len(stale)} 个（命名规则已变更）")
+    stale = list(OUT_DIR.glob("*.png"))
+    for f in stale:
+        f.unlink()
+    if stale:
+        print(f"清掉旧图块 {len(stale)} 个（命名规则已变更）")
     SHEET_DIR.mkdir(parents=True, exist_ok=True)
 
     rows: list[dict] = []
