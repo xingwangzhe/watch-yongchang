@@ -6,7 +6,7 @@ signal died(unit: Unit)
 
 @export var type_id: StringName = &"xiangyong"
 @export var max_hp: int = 120
-@export var speed: float = 32.0
+@export var speed: float = 40.0
 @export var lane_index: int = 0
 @export var is_enemy: bool = false
 # 行进方向：1.0 左→右（玩家兵），-1.0 右→左（敌方兵，从右侧刷新点进入）
@@ -19,7 +19,7 @@ var is_dead: bool = false
 
 # 借鉴 RWX 单位交战：近距离索敌 → 停止行进 → 攻击硬直 → 继续推进
 const DMG_TABLE: Dictionary = {"xiangyong": 15, "gongshou": 10, "longdeng": 25}
-const RANGE_TABLE: Dictionary = {"xiangyong": 34.0, "gongshou": 110.0, "longdeng": 44.0}
+const RANGE_TABLE: Dictionary = {"xiangyong": 42.0, "gongshou": 138.0, "longdeng": 55.0}
 const ATK_INTERVAL_TABLE: Dictionary = {"xiangyong": 0.9, "gongshou": 1.1, "longdeng": 1.3}
 
 var _atk_cd: float = 0.0
@@ -71,7 +71,7 @@ func _physics_process(delta: float) -> void:
 		_reach_base()
 
 func _find_enemy_in_range() -> Unit:
-	var rng: float = float(RANGE_TABLE.get(str(type_id), 34.0))
+	var rng: float = float(RANGE_TABLE.get(str(type_id), 42.0))
 	var best: Unit = null
 	var best_d := rng
 	for node in get_tree().get_nodes_in_group("units"):
