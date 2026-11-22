@@ -165,15 +165,15 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 
 | 素材（Title） | 作者（Author） | 来源（Source） | 许可（License） | 修改说明 |
 |---|---|---|---|---|
-| Hard Vacuum 地形瓦片 | Mark Ferrari（Lost Garden） | https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip | CC BY 3.0（https://creativecommons.org/licenses/by/3.0/） | 去 chroma 透明色、20×20→32×32 nearest 放大、地质色系重新着色、合成图集 |
+| Hard Vacuum 地形瓦片 | Mark Ferrari（Lost Garden） | https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip | CC BY 3.0（https://creativecommons.org/licenses/by/3.0/） | v2（当前）：采用 RWX（开源 LibGDX 游戏，MIT）按 Tiled 标准切好的 20×20 位图（色键 008a76），本项目生成对应 .tsx 图块集并按显示比例 ×2 放大（40px），未重新着色；v1（已弃用）：32×32 重着色 atlas |
 | Samurai Nights（Demo） | Maik Hoffmann（majadroid） | https://opengameart.org/content/samurai-nights | CC BY 3.0（亦提供 CC-BY 4.0 / OGA-BY 3.0） | MP3 → OGG Vorbis 重编码（游戏内 BGM） |
 | Battle Sound Effects: Bow / RPG Sound Pack / 3 Melee Sounds / RPG Audio / Sound Pack 01 | ogrebane / artisticdude / remaxim / Kenney / wobbleboxx | https://opengameart.org/content/battle-sound-effects 等（逐项见 `generated/audio_thirdparty/LICENSES.md`） | CC0（多许可包选用 CC0） | 响度归一化、Alarm 截短 2.2s、OGG 转码（游戏内 9 个事件音效） |
 | golden-ui / Free UI Asset Pack 1 | buch / ctatz | https://opengameart.org/content/golden-ui ；https://opengameart.org/content/free-ui-asset-pack-1 | CC0 | 面板精灵裁切（九宫格）；白色符号染金色缩放 64×64（游戏内 UI 装饰与图标，详见 `generated/ui_thirdparty/LICENSES.md`） |
 
-- 用途：游戏内地表、驿道、岩层、水域的图块纹理（`game/assets/tiles/atlas_geology.png` 与 `game/assets/tiles/hardvacuum/*.png`）。原始 BMP 存放于 `assets/third_party/hardvacuum/`，仅作转换输入，不直接入成品。
-- 转换工具：`tools/convert_hardvacuum_tiles.py`（本项目原创脚本）。
+- 用途：游戏内地表、驿道、岩层、水域、水池与山石区的图块纹理（当前：`game/assets/tiles/hv/bitmaps/*.png` 9 张入成品图块集 + `game/assets/tiles/hv/*.tsx` Tiled 标准图块集描述；历史 v1 `atlas_geology.png` 与 `hardvacuum/*.png` 已弃用）。原始 BMP 存放于 `assets/third_party/hardvacuum/`，仅作溯源输入，不直接入成品。
+- 转换链：Hard Vacuum 原始 BMP（CC BY 3.0，Mark Ferrari）→ RWX 仓库切图为 20×20 png（RWX 为 MIT 开源，其转换不改变原素材许可）→ 本项目 `tools/build_hv_tiles.py` 生成 .tsx（tilewidth=20、trans=008a76）并按多 AtlasSource TileSet 接入。CC BY 3.0 署名链不断，最终 attribution 仍指向 Mark Ferrari / Lost Garden。
 - 署名（游戏内 About 与演示片尾须保留）：
-  > Terrain tiles derived from "Hard Vacuum" by Mark Ferrari (Lost Garden), licensed CC BY 3.0. Source: https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip. Changes: chroma-key removed, re-colored to geology palette, rescaled to 32x32.
+  > Terrain tiles derived from "Hard Vacuum" by Mark Ferrari (Lost Garden), licensed CC BY 3.0. Source: https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip. Changes: sliced to 20x20 tiles (via the open-source RWX project, MIT), packaged as Tiled tilesets, scaled 2x for display.
   > Music: "Samurai Nights" by Maik Hoffmann (majadroid), licensed CC-BY 3.0. Source: https://opengameart.org/content/samurai-nights. Changes: re-encoded to Ogg Vorbis.
   > Sound effects from OpenGameArt.org, CC0: Bow (ogrebane), Melee Sound (remaxim), Chop (Kenney), Sword Unsheath / Metal Ringing (artisticdude), Rise01 / Alarm / Upper01 / Downer01 (wobbleboxx).
 - 合规说明：CC BY 3.0 允许商用与改编，不要求相同方式共享（非 SA），须署名并注明修改；本项目按 TASL（Title/Author/Source/License）完整披露。
