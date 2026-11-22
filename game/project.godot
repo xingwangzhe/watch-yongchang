@@ -23,11 +23,15 @@ GameState="*res://scripts/autoload/game_state.gd"
 SupplySystem="*res://scripts/autoload/supply_system.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 GameFlow="*res://scripts/autoload/game_flow.gd"
+DisplayManager="*res://scripts/autoload/display_manager.gd"
 
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
+window/size/resizable=true
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [gui]
 
