@@ -1,0 +1,291 @@
+{
+  "license": "GPL-3.0-or-later",
+  "project": "守望 · 永昌",
+  "subtitle": "2026 OSGJ 开源游戏开发大赛参赛作品",
+  "sections": [
+    {
+      "title": "守望 · 永昌",
+      "entries": [
+        {
+          "name": "《守望 · 永昌》",
+          "role": "参赛作品",
+          "license": "代码 GPL-3.0-or-later · 原创美术与文档 CC BY 4.0",
+          "url": "https://2026gamejam.osgame.org",
+          "note": "以永昌堡抗倭史为题材的守城策略游戏"
+        },
+        {
+          "name": "主题「守 · 望」",
+          "role": "官方赛题",
+          "author": "2026 OSGJ 组委会",
+          "url": "https://2026gamejam.osgame.org",
+          "note": "主题解密、赛制与提交要求见赛事官网"
+        },
+        {
+          "name": "游戏设计 · 数值 · 关卡 · 代码 · 文案",
+          "role": "原创",
+          "license": "CC BY 4.0 / GPL-3.0-or-later",
+          "note": "2026 年赛期内从空目录完成，未使用任何赛前既有成品"
+        }
+      ]
+    },
+    {
+      "title": "源代码许可",
+      "entries": [
+        {
+          "name": "GNU General Public License v3.0 or later",
+          "role": "本项目全部源代码",
+          "license": "GPL-3.0-or-later",
+          "url": "https://www.gnu.org/licenses/gpl-3.0.html",
+          "note": "完整文本见仓库根目录 LICENSE"
+        },
+        {
+          "name": "GDScript · 场景 · 着色器",
+          "role": "游戏工程 game/",
+          "license": "GPL-3.0-or-later",
+          "note": "可自由学习、修改、再分发；衍生作品须同样以 GPL-3.0 开源"
+        }
+      ]
+    },
+    {
+      "title": "引擎与工具链",
+      "entries": [
+        {
+          "name": "Godot Engine 4.7.2",
+          "role": "游戏引擎",
+          "author": "Godot Engine contributors",
+          "license": "MIT",
+          "url": "https://godotengine.org",
+          "note": "2D/UI/音频全部由 Godot 驱动"
+        },
+        {
+          "name": "Python 3.13",
+          "role": "素材处理与构建脚本",
+          "author": "Python Software Foundation",
+          "license": "PSF-2.0",
+          "url": "https://www.python.org"
+        },
+        {
+          "name": "Pillow (PIL Fork)",
+          "role": "切图 · 去背 · 缩放 · 联系表",
+          "author": "Jeffrey A. Clark 与贡献者",
+          "license": "MIT-CMU",
+          "url": "https://python-pillow.org"
+        },
+        {
+          "name": "FFmpeg",
+          "role": "音频转码 · 响度归一化 · 抽帧验收",
+          "license": "LGPL-2.1-or-later",
+          "url": "https://ffmpeg.org"
+        },
+        {
+          "name": "Tesseract OCR",
+          "role": "文化图片文字识别",
+          "license": "Apache-2.0",
+          "url": "https://github.com/tesseract-ocr/tesseract"
+        },
+        {
+          "name": "trafilatura",
+          "role": "网页正文抽取",
+          "author": "Adrien Barbaresi",
+          "license": "Apache-2.0",
+          "url": "https://github.com/adbar/trafilatura"
+        },
+        {
+          "name": "gda (Godot Dev Assistant CLI)",
+          "role": "场景校验 · 启动预检 · 自动化断言",
+          "license": "项目自研工具",
+          "note": "项目自研工具：场景校验 / 启动预检 / 自动化断言，run-test.sh 一键调用",
+          "url": "https://github.com/"
+        }
+      ]
+    },
+    {
+      "title": "地形图块",
+      "entries": [
+        {
+          "name": "Hard Vacuum",
+          "role": "地形图块（草地 · 沙地 · 道路 · 崖石 · 水面）",
+          "author": "Mark Ferrari（美术）· Daniel Cook / Lost Garden（整理发布）",
+          "license": "CC BY 3.0",
+          "url": "https://lostgarden.home.wordpress.com/2019/09/05/free-game-graphics/",
+          "note": "原始包 hardvacuum.zip；本项目仅做切分、重着色与语义化命名，图块均按名引用"
+        },
+        {
+          "name": "Hard Vacuum 原始下载",
+          "role": "素材来源归档",
+          "license": "CC BY 3.0",
+          "url": "https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip"
+        }
+      ]
+    },
+    {
+      "title": "字体",
+      "entries": [
+        {
+          "name": "霞鹜文楷 LXGW WenKai",
+          "role": "全局中文字体（HUD · 菜单 · 滚幕）",
+          "author": "LXGW（落霞孤鹜）",
+          "license": "SIL Open Font License 1.1",
+          "url": "https://github.com/lxgw/LxgwWenKai",
+          "note": "许可全文随包：game/assets/fonts/OFL.txt"
+        }
+      ]
+    },
+    {
+      "title": "音乐",
+      "entries": [
+        {
+          "name": "Samurai Nights (Demo)",
+          "role": "主界面与战斗背景音乐",
+          "author": "Maik Hoffmann (majadroid)",
+          "license": "CC-BY 3.0",
+          "url": "https://opengameart.org/content/samurai-nights",
+          "note": "mp3 → Ogg Vorbis 重编码，其余未修改"
+        }
+      ]
+    },
+    {
+      "title": "音效",
+      "entries": [
+        {
+          "name": "Battle Sound Effects: Bow",
+          "role": "弓箭发射",
+          "author": "ogrebane",
+          "license": "CC0 1.0",
+          "url": "https://opengameart.org/content/battle-sound-effects"
+        },
+        {
+          "name": "3 Melee Sounds",
+          "role": "近战命中",
+          "author": "remaxim",
+          "license": "CC0 1.0",
+          "url": "https://opengameart.org/content/3-melee-sounds"
+        },
+        {
+          "name": "RPG Audio: Chop",
+          "role": "建造完成",
+          "author": "Kenney",
+          "license": "CC0 1.0",
+          "url": "https://opengameart.org/content/50-rpg-sound-effects"
+        },
+        {
+          "name": "RPG Sound Pack",
+          "role": "出兵 · 升级",
+          "author": "artisticdude",
+          "license": "CC0 1.0",
+          "url": "https://opengameart.org/content/rpg-sound-pack"
+        },
+        {
+          "name": "Sound Pack 01",
+          "role": "波次警报 · 胜利 · 失败",
+          "author": "wobbleboxx",
+          "license": "CC0 1.0",
+          "url": "https://opengameart.org/content/level-up-power-up-coin-get-13-sounds"
+        }
+      ]
+    },
+    {
+      "title": "界面装饰",
+      "entries": [
+        {
+          "name": "golden-ui",
+          "role": "九宫格金框面板",
+          "author": "buch",
+          "license": "CC0 1.0",
+          "url": "https://opengameart.org/content/golden-ui"
+        },
+        {
+          "name": "Free UI Asset Pack 1",
+          "role": "按钮符号图标（播放 · 设置 · 信息 · 关闭 · 暂停 · 音量 · 静音 · 确认 · 奖章）",
+          "author": "ctatz",
+          "license": "CC0 1.0",
+          "url": "https://opengameart.org/content/free-ui-asset-pack-1",
+          "note": "白色符号按项目金色重着色"
+        }
+      ]
+    },
+    {
+      "title": "AI 生成内容",
+      "entries": [
+        {
+          "name": "WorkBuddy ImageGen",
+          "role": "兵种序列帧 · 建筑动画 · UI 图标与面板",
+          "license": "本项目原创非代码资产 CC BY 4.0",
+          "note": "提示词与风格基线由人工设定；生成后经人工去背、切帧、缩放与逐张验收"
+        },
+        {
+          "name": "WorkBuddy 会话助手（大语言模型）",
+          "role": "资料归纳 · 设计文档 · 数值表 · 代码辅助",
+          "note": "设计方向与文化考据由人工确认；全部 AI 用法见《AI使用与素材声明.md》",
+          "license": "本项目原创内容 CC BY 4.0",
+          "url": "https://www.workbuddy.cn"
+        }
+      ]
+    },
+    {
+      "title": "文化资料",
+      "entries": [
+        {
+          "name": "《永昌堡十三进士与抗倭纪略》",
+          "role": "城池形制 · 抗倭史实考据",
+          "author": "王靖岳 · 王身康 编著 · 温州市龙湾区永昌堡文化研究会",
+          "url": "https://2026gamejam.osgame.org/downloads/yongchang-fort.pdf",
+          "note": "组委会公开参考资料，仅作考据，不直接嵌入成品"
+        },
+        {
+          "name": "汤和信俗素材包",
+          "role": "拼字龙灯 · 巡游民俗图像参考",
+          "license": "组委会提供，仅限赛事使用",
+          "url": "https://2026gamejam.osgame.org/downloads/tanghe-customs.zip",
+          "note": "用于文化元素提炼，不直接嵌入成品"
+        }
+      ]
+    },
+    {
+      "title": "设计参考（未复制代码）",
+      "entries": [
+        {
+          "name": "OpenHV",
+          "role": "侧栏 / 小地图 / 选择与建造链路的交互参考",
+          "author": "OpenHV contributors",
+          "license": "GPL-3.0",
+          "url": "https://github.com/OpenHV/OpenHV",
+          "note": "仅阅读其规则与界面定义并重写实现，未复制代码"
+        },
+        {
+          "name": "OpenRA",
+          "role": "生产队列 · 侧栏逻辑 · 雷达组件结构参考",
+          "author": "OpenRA contributors",
+          "license": "GPL-3.0",
+          "url": "https://github.com/OpenRA/OpenRA",
+          "note": "仅阅读引擎源码理解链路，未复制代码"
+        },
+        {
+          "name": "Mindustry",
+          "role": "定时出兵（waveInterval / waveSpacing）节奏参考",
+          "author": "Anuken 与贡献者",
+          "license": "GPL-3.0",
+          "url": "https://github.com/Anuken/Mindustry",
+          "note": "借鉴设计思路，代码为独立实现"
+        }
+      ]
+    },
+    {
+      "title": "致谢",
+      "entries": [
+        {
+          "name": "2026 OSGJ 开源游戏开发大赛组委会",
+          "role": "赛事主办",
+          "url": "https://2026gamejam.osgame.org"
+        },
+        {
+          "name": "所有开源素材作者",
+          "role": "Hard Vacuum · OpenGameArt 社区 · 霞鹜文楷",
+          "note": "没有这些开放许可的作品，独立开发者无法完成一款完整的游戏",
+          "license": "见上述各章节",
+          "url": "https://opengameart.org"
+        }
+      ]
+    }
+  ]
+}
