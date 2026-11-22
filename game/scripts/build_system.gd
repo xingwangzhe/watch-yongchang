@@ -7,7 +7,8 @@ class_name BuildSystem
 signal building_placed(kind: StringName, cell: Vector2i, node: Node2D)
 signal build_failed(reason: String)
 
-const TILE: int = 32   # 与 TileMapBuilder.TILE 同步（Hard Vacuum 具名图块原生 32px）
+## 像素尺寸单一来源：TileCatalog.TILE_SIZE（原生 20px × 2 = 40）。禁止硬编码。
+const TILE: int = preload("res://scripts/tile_catalog.gd").TILE_SIZE
 const FOOTPRINT: Vector2i = Vector2i(3, 3)
 const COSTS: Dictionary = {&"jianta": 40, &"junxiefang": 35, &"fenghuotai": 30}
 const BUILDABLE: Array[StringName] = [&"jianta", &"junxiefang", &"fenghuotai"]

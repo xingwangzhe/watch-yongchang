@@ -96,7 +96,7 @@ func _build_tilemap() -> void:
 	map_result = TileMapBuilder.build(self)
 	var buildings: Array = map_result.get("buildings", [])
 	print("[TILEMAP] cols=%d rows=%d tile=%d buildings=%d world=%s" % [
-		map_result.get("cols", 0), map_result.get("rows", 0), map_result.get("tile", 32),
+		map_result.get("cols", 0), map_result.get("rows", 0), map_result.get("tile", 40),
 		buildings.size(), str(map_result.get("world_size", Vector2.ZERO))])
 	var rig := preload("res://scripts/camera_rig.gd").new()
 	rig.name = "CameraRig"

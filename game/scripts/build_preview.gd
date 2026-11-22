@@ -2,7 +2,8 @@ extends Node2D
 ## 建造预览：跟随鼠标显示 3×3 占格，合法绿框 / 非法红框（放置模式下始终可见）。
 ## main_ref 由 main.gd 注入（避免循环 preload）。
 
-const TILE: int = 32
+## 像素尺寸单一来源：TileCatalog.TILE_SIZE（原生 20px × 2 = 40）。禁止硬编码。
+const TILE: int = preload("res://scripts/tile_catalog.gd").TILE_SIZE
 const FOOTPRINT: Vector2i = Vector2i(3, 3)
 const C_OK := Color(0.36, 0.72, 0.42, 0.30)
 const C_BAD := Color(0.75, 0.22, 0.18, 0.30)
