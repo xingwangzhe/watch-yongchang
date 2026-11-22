@@ -12,7 +12,11 @@
 - **弃用声明**：`design/技术借鉴-Mindustry与RWX.md` 及任何 RWX（yomi2539/RWX）派生代码均已移除，禁止再引入；地形与 UI 不许再"随机取块拼凑"
 - 运行时：Godot 4.7.2-stable；工程根 `game/`；主场景 `res://scenes/main.tscn`
 - 字体：霞鹜文楷 / LXGW WenKai（OFL 1.1），全局默认主题 `game/themes/default.tres`
-- 地形：Hard Vacuum（Mark Ferrari, CC BY 3.0）**具名图块** `game/assets/tiles/hardvacuum/{ground,road,rock,water}/*.png`，按名引用、语义分区铺设，见 AI 声明 5.4 节
+- 地形：Hard Vacuum（Mark Ferrari, CC BY 3.0）**20px 原生网格**切割 → **40px 显示**，图块在
+  `game/assets/tiles/hardvacuum/native/`，语义索引 `native/manifest.csv`，联系表 `docs/screenshots/hv_native/`。
+  **禁止用 32px 窗口去切 20px 图集**（会横跨瓦片边界，视觉上变成"一把碎石"）；重新切块跑
+  `python3 tools/cut_hv_native.py`。`cliff`(GrasClif)/`stone` 是 **blob 结构块**（墙顶/墙身/转角），
+  只能按位置取用，不能当地面纹理随机铺。
 - 许可：**代码 GPL-3.0-or-later**；原创非代码资产 CC BY 4.0；音频 CC0/CC-BY；字体 OFL 1.1。片尾滚幕（`scenes/credits.tscn`）逐项列出可点击来源链接
 
 ## Git 约定（重要）
