@@ -46,12 +46,8 @@ func _build_ui() -> void:
 	panel.offset_top = -260.0
 	panel.offset_right = 340.0
 	panel.offset_bottom = 250.0
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color(0.09, 0.13, 0.14, 0.97)
-	sb.set_border_width_all(2)
-	sb.border_color = C_GOLD
-	sb.set_corner_radius_all(8)
-	panel.add_theme_stylebox_override("panel", sb)
+	var UIKit := preload("res://scripts/ui/ui_kit.gd")
+	panel.add_theme_stylebox_override("panel", UIKit.gold_panel_style(14.0))
 	add_child(panel)
 
 	var margin := MarginContainer.new()
