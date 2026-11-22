@@ -19,6 +19,9 @@ assets/third_party/hardvacuum/
 # gda 调试 harness（工具生成，不入库）
 game/addons/gda_harness/
 
+# Bun 工具依赖
+tools/node_modules/
+
 # 地形验算临时产物（专家调试输出，不入库）
 game/tests/_terrain_*.gd
 game/tests/_terrain_*.tscn
