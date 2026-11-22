@@ -9,24 +9,35 @@ signal died(unit: Unit)
 @export var speed: float = 32.0
 @export var lane_index: int = 0
 @export var is_enemy: bool = false
+# 行进方向：1.0 左→右（玩家兵），-1.0 右→左（敌方兵，从右侧刷新点进入）
+@export var direction: float = 1.0
 
 @onready var sprite: AnimatedSprite2D = $Sprite
 
 var hp: int = 0
 var is_dead: bool = false
 
-func setup(p_type: StringName, p_lane: int, p_hp: int, p_speed: float, p_enemy: bool) -> void:
+func setup(p_type: StringName, p_lane: int, p_hp: int, p_speed: float, p_enemy: bool, p_direction: float = 1.0) -> void:
 	type_id = p_type
 	lane_index = p_lane
 	max_hp = p_hp
 	hp = p_hp
 	speed = p_speed
 	is_enemy = p_enemy
+	direction = p_direction
 
 func _ready() -> void:
 	loop = false
 	rotates = false
 	progress = 0.0
+	# 敌方单位从路径末端（右侧）出发，需把 progress 置于末端
+	if direction < 0.0:
+		var path := get_parent() as Path2D
+		if path != null and path.curve != null:
+			progress = path.curve.get_baked_length()
+		else:
+			# 父节点异常时兜底：直接把行进比例拉到末端
+			progress_ratio = 1.0
 	if hp <= 0: hp = max_hp
 	sprite.sprite_frames = ResourceManager.get_frames(str(type_id))
 	sprite.modulate = Color(1.0, 0.68, 0.68) if is_enemy else Color(0.78, 0.95, 1.0)
@@ -37,8 +48,10 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	if is_dead or GameState.phase == GameState.Phase.VICTORY or GameState.phase == GameState.Phase.DEFEAT:
 		return
-	progress += speed * delta
-	if progress_ratio >= 1.0:
+	progress += speed * delta * direction
+	if direction > 0.0 and progress_ratio >= 1.0:
+		_reach_base()
+	elif direction < 0.0 and progress_ratio <= 0.0:
 		_reach_base()
 
 func play_attack() -> void:
