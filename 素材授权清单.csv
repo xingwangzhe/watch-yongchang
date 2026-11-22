@@ -1,0 +1,51 @@
+path,asset_id,category,source,generation_tool,human_postprocess,license,intended_use,in_build
+assets/units/gongshou/attack/frame_01.png,gongshou,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/gongshou/attack/frame_02.png,gongshou,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/gongshou/attack/frame_03.png,gongshou,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/gongshou/attack/frame_04.png,gongshou,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/gongshou/run/frame_01.png,gongshou,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/gongshou/run/frame_02.png,gongshou,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/gongshou/run/frame_03.png,gongshou,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/gongshou/run/frame_04.png,gongshou,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/gongshou/static.png,gongshou,兵种静态图,AI生成,WorkBuddy ImageGen 文本生图,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/longdeng/attack/frame_01.png,longdeng,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/longdeng/attack/frame_02.png,longdeng,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/longdeng/attack/frame_03.png,longdeng,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/longdeng/attack/frame_04.png,longdeng,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/longdeng/run/frame_01.png,longdeng,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/longdeng/run/frame_02.png,longdeng,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/longdeng/run/frame_03.png,longdeng,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/longdeng/run/frame_04.png,longdeng,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/longdeng/static.png,longdeng,兵种静态图,AI生成,WorkBuddy ImageGen 文本生图,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/xiangyong/attack/frame_01.png,xiangyong,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/xiangyong/attack/frame_02.png,xiangyong,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/xiangyong/attack/frame_03.png,xiangyong,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/xiangyong/attack/frame_04.png,xiangyong,兵种攻击序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/xiangyong/run/frame_01.png,xiangyong,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/xiangyong/run/frame_02.png,xiangyong,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/xiangyong/run/frame_03.png,xiangyong,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/xiangyong/run/frame_04.png,xiangyong,兵种跑步序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/units/xiangyong/static.png,xiangyong,兵种静态图,AI生成,WorkBuddy ImageGen 文本生图,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内单位精灵,计划使用
+assets/buildings/fenghuotai/activate/frame_01.png,fenghuotai/activate,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/fenghuotai/activate/frame_02.png,fenghuotai/activate,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/fenghuotai/activate/frame_03.png,fenghuotai/activate,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/fenghuotai/activate/frame_04.png,fenghuotai/activate,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/fenghuotai/static.png,fenghuotai/-,建筑静态图,AI生成,WorkBuddy ImageGen 文本生图,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/jianta/attack/frame_01.png,jianta/attack,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/jianta/attack/frame_02.png,jianta/attack,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/jianta/attack/frame_03.png,jianta/attack,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/jianta/attack/frame_04.png,jianta/attack,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/jianta/static.png,jianta/-,建筑静态图,AI生成,WorkBuddy ImageGen 文本生图,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/junxiefang/produce/frame_01.png,junxiefang/produce,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/junxiefang/produce/frame_02.png,junxiefang/produce,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/junxiefang/produce/frame_03.png,junxiefang/produce,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/junxiefang/produce/frame_04.png,junxiefang/produce,建筑工作序列帧,AI生成,WorkBuddy ImageGen 图生图（以static.png为参考，input_fidelity=high）,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/buildings/junxiefang/static.png,junxiefang/-,建筑静态图,AI生成,WorkBuddy ImageGen 文本生图,去米色背景/去水印/裁切居中/nearest缩放512x512 RGBA,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,游戏内建筑精灵,计划使用
+assets/预览-乡勇.jpg,预览-乡勇,预览联系表,由AI生成素材派生,PIL 拼图,人工排版标注,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,开发预览/开发者日志配图,计划使用
+assets/预览-建筑帧.jpg,预览-建筑帧,预览联系表,由AI生成素材派生,PIL 拼图,人工排版标注,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,开发预览/开发者日志配图,计划使用
+assets/预览-弓手.jpg,预览-弓手,预览联系表,由AI生成素材派生,PIL 拼图,人工排版标注,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,开发预览/开发者日志配图,计划使用
+assets/预览-龙灯队.jpg,预览-龙灯队,预览联系表,由AI生成素材派生,PIL 拼图,人工排版标注,原创非代码资产 CC BY 4.0（AI生成，见《AI使用与素材声明》）,开发预览/开发者日志配图,计划使用
+docs/01-参考资料包/汤和信俗素材包-tanghe-customs.zip,汤和信俗素材包,第三方参考资料,2026 OSGJ 组委会官网提供,-,解压后OCR/文本化用于创作参考,授权未声明，保留原权利；不得进成品,文化考据参考,否
+docs/01-参考资料包/永昌堡参考资料-yongchang-fort.pdf,永昌堡十三进士与抗倭纪略,第三方参考资料,2026 OSGJ 组委会官网提供,-,全文抽取用于创作参考,授权未声明，保留原权利；不得进成品,史实考据参考,否
+docs/02-主题资料/,主题解密载荷与密钥,赛事公开数据,2026 OSGJ 官网,-,AES-GCM解密,赛事官方公开信息,主题解读,否
+docs/03-站点图片/,官网图片与合作伙伴标识,第三方参考资料,2026 OSGJ 官网,-,下载存档,原站点权利归各权利人；不得进成品,界面风格参考,否
