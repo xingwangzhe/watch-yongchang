@@ -100,22 +100,30 @@ func _run() -> void:
 	ck("出兵/倒计时文本", spawn.countdown_text().contains(":"))
 	spawn.queue_free()
 
-	# 5.5 永昌堡地形（具名图块 32px，120×90）
+	# 5.5 永昌堡地形（Hard Vacuum 原生 20px × 2 = 40px 具名图块，120×90）
 	var TB: GDScript = load("res://scripts/tile_map_builder.gd") as GDScript
 	ck("地图/尺寸120x90", TB.COLS == 120 and TB.ROWS == 90)
-	ck("地图/瓦片32px", TB.TILE == 32)
+	ck("地图/瓦片40px", TB.TILE == 40)
+	ck("地图/尺寸取自单一来源", TB.TILE == (load("res://scripts/tile_catalog.gd") as GDScript).TILE_SIZE)
 	var world: Vector2 = TB.WORLD_SIZE
-	ck("地图/世界3840x2880", world == Vector2(3840, 2880))
+	ck("地图/世界4800x3600", world == Vector2(4800, 3600))
 	ck("地图/三门驿道", TB.LANE_ROWS.size() == 3)
 	var lp: PackedVector2Array = TB.lane_points(0)
 	ck("驿道/控制点≥3", lp.size() >= 3)
 	var a: Vector2 = lp[0]
 	var b: Vector2 = lp[lp.size() - 1]
-	var keep_pt: Vector2 = TB.keep_center(false)
+	# 语义判定，不用像素魔法数：一端必须精确落在登陆点（1 格内），
+	# 另一端必须落进主堡占格范围（外扩 2 格），这样改 TILE 后断言仍然成立。
 	var spawn_pt: Vector2 = TB.spawn_world(0)
-	var ends_ok: bool = (a.distance_to(keep_pt) < 900.0 and b.distance_to(spawn_pt) < 96.0) \
-		or (b.distance_to(keep_pt) < 900.0 and a.distance_to(spawn_pt) < 96.0)
-	ck("驿道/两端分别接主堡与登陆点", ends_ok)
+	var ka: Vector2i = TB.keep_anchor(false)
+	var ks: Vector2i = TB.keep_size(false)
+	var keep_rect := Rect2(
+		Vector2(ka - Vector2i(2, 2)) * TB.TILE,
+		Vector2(ks + Vector2i(4, 4)) * TB.TILE)
+	var near_spawn := func(p: Vector2) -> bool: return p.distance_to(spawn_pt) <= TB.TILE
+	var in_keep := func(p: Vector2) -> bool: return keep_rect.has_point(p)
+	ck("驿道/两端分别接主堡与登陆点",
+		(near_spawn.call(a) and in_keep.call(b)) or (near_spawn.call(b) and in_keep.call(a)))
 	ck("驿道/穿门名", str(TB.lane_gate_name(1)) != "")
 	var map_parent := Node2D.new()
 	root_node.add_child(map_parent)
@@ -123,7 +131,9 @@ func _run() -> void:
 	ck("地图/构建产出", not bres.is_empty() and int(bres.get("cols", 0)) == 120)
 	var ground_layer: TileMapLayer = bres.get("ground")
 	ck("地图/图块集已建立", ground_layer != null and ground_layer.tile_set != null)
-	ck("地图/9 个语义图块源", ground_layer != null and ground_layer.tile_set.get_source_count() == 9)
+	var cat_n: int = (load("res://scripts/tile_catalog.gd") as GDScript).CAT_ORDER.size()
+	ck("地图/语义图块源数=%d" % cat_n,
+		ground_layer != null and ground_layer.tile_set.get_source_count() == cat_n)
 	var blocked: Dictionary = bres.get("blocked", {})
 	ck("地图/禁建格非空", blocked.size() > 1500)
 	var zmap: Dictionary = bres.get("zone_map", {})

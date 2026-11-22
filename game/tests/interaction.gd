@@ -72,7 +72,8 @@ func _run() -> void:
 	ck("建造/找到合法锚点", anchor.x >= 0)
 	if anchor.x >= 0:
 		_main.call("_on_build_requested", &"jianta")
-		var world: Vector2 = Vector2(float(anchor.x * 32) + 16.0, float(anchor.y * 32) + 16.0)
+		var ts: int = int(_main.get("map_result").get("tile", 40))
+		var world: Vector2 = Vector2(float(anchor.x * ts) + ts * 0.5, float(anchor.y * ts) + ts * 0.5)
 		_main.call("_try_build_at", world)
 		ck("建造/落地后退出放置", not bool(_main.get("build_mode")))
 		ck("建造/占用格+9", bs.call("get_occupied_count") == 9)
