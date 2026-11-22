@@ -133,20 +133,10 @@ static func _make_layer(p_name: String, tileset: TileSet, z: int) -> TileMapLaye
 	return layer
 
 static func _make_tileset() -> TileSet:
-	var img := Image.create(TILE * 10, TILE, false, Image.FORMAT_RGBA8)
-	_fill_tile(img, 0, C_GRASS_A, Color(0.11, 0.14, 0.10))
-	_fill_tile(img, 1, C_GRASS_B, Color(0.12, 0.15, 0.11))
-	_fill_tile(img, 2, C_ROAD, Color(0.38, 0.31, 0.22))
-	_fill_tile(img, 3, C_ROAD_EDGE, Color(0.22, 0.18, 0.13))
-	_fill_tile(img, 4, C_WALL, Color(0.14, 0.18, 0.20))
-	_fill_tile(img, 5, C_STONE, Color(0.24, 0.25, 0.23))
-	_fill_tile(img, 6, C_FOUNDATION, C_FOUNDATION_LINE)
-	_fill_tile(img, 7, C_WATER, Color(0.10, 0.18, 0.22))
-	_fill_tile(img, 8, C_KEEP_OWN, Color(0.12, 0.24, 0.26))
-	_fill_tile(img, 9, C_KEEP_ENEMY, Color(0.30, 0.10, 0.09))
-
+	# 使用 Hard Vacuum（Mark Ferrari, CC BY 3.0）地质瓦片重新着色后的 atlas
+	var tex := load("res://assets/tiles/atlas_geology.png") as Texture2D
 	var atlas := TileSetAtlasSource.new()
-	atlas.texture = ImageTexture.create_from_image(img)
+	atlas.texture = tex
 	atlas.texture_region_size = Vector2i(TILE, TILE)
 	for i in range(10):
 		atlas.create_tile(Vector2i(i, 0))
