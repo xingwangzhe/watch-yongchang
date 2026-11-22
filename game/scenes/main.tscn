@@ -1,0 +1,112 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_gu75r"]
+[ext_resource type="Script" path="res://scripts/hud.gd" id="2_cbxmt"]
+
+[node name="main" type="Node2D" unique_id=224952886]
+script = ExtResource("1_gu75r")
+
+[node name="Lanes" type="Node2D" parent="." unique_id=1307566898]
+
+[node name="Battle" type="Node2D" parent="." unique_id=614966768]
+
+[node name="Units" type="Node2D" parent="Battle" unique_id=637033547]
+
+[node name="Towers" type="Node2D" parent="Battle" unique_id=1470369645]
+
+[node name="Projectiles" type="Node2D" parent="." unique_id=1781976346]
+
+[node name="FX" type="Node2D" parent="." unique_id=1581875032]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=453618589]
+script = ExtResource("2_cbxmt")
+
+[node name="TopBar" type="PanelContainer" parent="UI" unique_id=2133352778]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 23.0
+grow_horizontal = 2
+
+[node name="TopMargin" type="MarginContainer" parent="UI/TopBar" unique_id=1322331353]
+layout_mode = 2
+
+[node name="TopRow" type="HBoxContainer" parent="UI/TopBar/TopMargin" unique_id=5841299]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="UI/TopBar/TopMargin/TopRow" unique_id=865783706]
+layout_mode = 2
+text = "守望·永昌"
+
+[node name="WaveLabel" type="Label" parent="UI/TopBar/TopMargin/TopRow" unique_id=1774403092]
+layout_mode = 2
+text = "波次 0/3"
+
+[node name="GrainLabel" type="Label" parent="UI/TopBar/TopMargin/TopRow" unique_id=962241816]
+layout_mode = 2
+text = "粮 200"
+
+[node name="SilverLabel" type="Label" parent="UI/TopBar/TopMargin/TopRow" unique_id=2094857635]
+layout_mode = 2
+text = "银 120"
+
+[node name="AmmoLabel" type="Label" parent="UI/TopBar/TopMargin/TopRow" unique_id=960083408]
+layout_mode = 2
+text = "弹 60"
+
+[node name="KeepLabel" type="Label" parent="UI/TopBar/TopMargin/TopRow" unique_id=187930535]
+layout_mode = 2
+text = "主堡 1000"
+
+[node name="WaveToast" type="Label" parent="UI" unique_id=542076728]
+visible = false
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="EventBanner" type="PanelContainer" parent="UI" unique_id=817326955]
+visible = false
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="BannerMargin" type="MarginContainer" parent="UI/EventBanner" unique_id=1218831067]
+layout_mode = 2
+
+[node name="BannerText" type="Label" parent="UI/EventBanner/BannerMargin" unique_id=637378679]
+layout_mode = 2
+
+[node name="EndPanel" type="PanelContainer" parent="UI" unique_id=1132083489]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EndMargin" type="MarginContainer" parent="UI/EndPanel" unique_id=1021384516]
+layout_mode = 2
+
+[node name="EndVBox" type="VBoxContainer" parent="UI/EndPanel/EndMargin" unique_id=2064016422]
+layout_mode = 2
+
+[node name="EndTitle" type="Label" parent="UI/EndPanel/EndMargin/EndVBox" unique_id=297399185]
+layout_mode = 2
+text = "战斗结束"
+
+[node name="EndSummary" type="Label" parent="UI/EndPanel/EndMargin/EndVBox" unique_id=608522973]
+layout_mode = 2
+
+[node name="RestartButton" type="Button" parent="UI/EndPanel/EndMargin/EndVBox" unique_id=1061479983]
+custom_minimum_size = Vector2(180, 48)
+layout_mode = 2
+text = "重开一局"
