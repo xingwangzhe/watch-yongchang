@@ -17,7 +17,7 @@ signal died(unit: Unit)
 var hp: int = 0
 var is_dead: bool = false
 
-# 借鉴 RWX 单位交战：近距离索敌 → 停止行进 → 攻击硬直 → 继续推进
+# 交战规则：近距离索敌 → 停止行进 → 攻击硬直 → 继续推进（塔防/RTS 通用）
 const DMG_TABLE: Dictionary = {"xiangyong": 15, "gongshou": 10, "longdeng": 25}
 const RANGE_TABLE: Dictionary = {"xiangyong": 42.0, "gongshou": 138.0, "longdeng": 55.0}
 const ATK_INTERVAL_TABLE: Dictionary = {"xiangyong": 0.9, "gongshou": 1.1, "longdeng": 1.3}

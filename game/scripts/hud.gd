@@ -1,9 +1,9 @@
 extends CanvasLayer
-## 战斗 HUD：顶部资源栏 / 底部建造操作栏 / 波次横幅 / 事件横幅 / 暂停 / 结算。
+## 战斗 HUD：顶部资源栏（含波次倒计时）/ 右下建造入口 / 事件横幅 / 暂停 / 结算。
+## 建造与出兵列表已迁到右侧栏（SidebarPanel，默认隐藏），HUD 只保留一个入口按钮。
 ## 全部代码构建（统一 lxwk 字体与国风配色），不使用世界坐标裸文字遮挡地图。
 
-signal build_selected(index: int)
-signal unit_spawn_requested(index: int)
+signal build_menu_requested()
 signal pause_toggled()
 
 const FONT_PATH := "res://assets/fonts/LXGWWenKai-Regular.ttf"
@@ -35,6 +35,7 @@ var _silver_value: Label
 var _ammo_value: Label
 var _keep_value: Label
 var _wave_value: Label
+var _countdown_value: Label
 var _keep_bar: ProgressBar
 var _wave_toast: PanelContainer
 var _wave_toast_label: Label
@@ -54,7 +55,7 @@ func _ready() -> void:
 	_build_top_bar()
 	_build_wave_toast()
 	_build_event_banner()
-	_build_build_bar()
+	_build_build_button()
 	_build_end_panel()
 	_build_pause_panel()
 	set_process(true)
@@ -98,6 +99,10 @@ func _build_top_bar() -> void:
 	var wave_chip := _chip("波次", C_RED, "res://assets/ui/icon_signal.png")
 	_wave_value = wave_chip["value"]
 	row.add_child(wave_chip["node"])
+
+	var cd_chip := _chip("下一波", C_GOLD, "res://assets/ui/icon_beacon.png")
+	_countdown_value = cd_chip["value"]
+	row.add_child(cd_chip["node"])
 
 	row.add_child(_vsep())
 
@@ -182,56 +187,19 @@ func _build_event_banner() -> void:
 	_event_banner_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	m.add_child(_event_banner_label)
 
-# ---------- 底部建造 / 出兵操作栏 ----------
-func _build_build_bar() -> void:
-	var bar := PanelContainer.new()
-	bar.name = "BuildBar"
-	bar.anchor_left = 0.5
-	bar.anchor_right = 0.5
-	bar.anchor_top = 1.0
-	bar.anchor_bottom = 1.0
-	bar.offset_left = -430.0
-	bar.offset_right = 430.0
-	bar.offset_top = -122.0
-	bar.offset_bottom = -10.0
-	bar.add_theme_stylebox_override("panel", _panel_style(C_PANEL, C_GOLD, 8.0))
-	add_child(bar)
-
-	var m := MarginContainer.new()
-	m.add_theme_constant_override("margin_left", 16)
-	m.add_theme_constant_override("margin_right", 16)
-	m.add_theme_constant_override("margin_top", 10)
-	m.add_theme_constant_override("margin_bottom", 10)
-	bar.add_child(m)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
-	m.add_child(vbox)
-
-	# 建造行
-	var build_row := HBoxContainer.new()
-	build_row.add_theme_constant_override("separation", 10)
-	var build_caption := _label("建造", 15, C_GOLD)
-	build_caption.custom_minimum_size = Vector2(46, 0)
-	build_row.add_child(build_caption)
-	for i in range(BUILD_LABELS.size()):
-		var btn := _make_button("%s  [%s]" % [BUILD_LABELS[i], BUILD_KEYS[i]], Vector2(170, 44), _on_build_pressed(i), BUILD_ICONS[i])
-		_build_buttons.append(btn)
-		build_row.add_child(btn)
-	vbox.add_child(build_row)
-
-	# 出兵行
-	var unit_row := HBoxContainer.new()
-	unit_row.add_theme_constant_override("separation", 10)
-	var unit_caption := _label("出兵", 15, C_GOLD)
-	unit_caption.custom_minimum_size = Vector2(46, 0)
-	unit_row.add_child(unit_caption)
-	for i in range(UNIT_LABELS.size()):
-		var btn := _make_button("%s  [%d]" % [UNIT_LABELS[i], i + 1], Vector2(170, 44), _on_unit_pressed(i), UNIT_ICONS[i])
-		unit_row.add_child(btn)
-	vbox.add_child(unit_row)
-
-	_set_selected_build(0)
+# ---------- 右下建造入口（列表在右侧栏，默认隐藏） ----------
+func _build_build_button() -> void:
+	var btn := _make_button("营建  [B]", Vector2(148, 46), func(): build_menu_requested.emit(), BUILD_ICONS[0])
+	btn.name = "BuildMenuButton"
+	btn.anchor_left = 1.0
+	btn.anchor_right = 1.0
+	btn.anchor_top = 1.0
+	btn.anchor_bottom = 1.0
+	btn.offset_left = -292.0
+	btn.offset_right = -144.0
+	btn.offset_top = -62.0
+	btn.offset_bottom = -16.0
+	add_child(btn)
 
 # ---------- 结算面板 ----------
 func _build_end_panel() -> void:
@@ -387,25 +355,6 @@ func _button_style(bg: Color, border: Color) -> StyleBoxFlat:
 	return sb
 
 # ---------- 交互回调 ----------
-func _on_build_pressed(index: int) -> Callable:
-	return func(): build_selected.emit(index)
-
-func _on_unit_pressed(index: int) -> Callable:
-	return func(): unit_spawn_requested.emit(index)
-
-func set_selected_build(index: int) -> void:
-	_selected_build = index
-	_set_selected_build(index)
-
-func _set_selected_build(index: int) -> void:
-	for i in range(_build_buttons.size()):
-		var btn := _build_buttons[i]
-		if i == index:
-			btn.add_theme_stylebox_override("normal", _button_style(C_BTN_SELECTED, C_GOLD))
-			btn.add_theme_color_override("font_color", C_GOLD)
-		else:
-			btn.add_theme_stylebox_override("normal", _button_style(C_BTN, Color(0.32, 0.32, 0.28)))
-			btn.add_theme_color_override("font_color", C_INK)
 
 # ---------- 数据更新 ----------
 func update_stats(grain: int, silver: int, ammo: int, keep: int, wave: int) -> void:
@@ -413,8 +362,15 @@ func update_stats(grain: int, silver: int, ammo: int, keep: int, wave: int) -> v
 	_silver_value.text = str(silver)
 	_ammo_value.text = str(ammo)
 	_keep_value.text = str(keep)
-	_wave_value.text = "%d/3" % wave
+	_wave_value.text = str(wave)
 	_keep_bar.value = float(keep)
+
+## 波次倒计时（秒）：由 main 每帧回调，Mindustry 式右上角节拍感
+func set_wave_countdown(seconds: float) -> void:
+	if _countdown_value == null:
+		return
+	var t: float = maxf(0.0, seconds)
+	_countdown_value.text = "%d:%02d" % [int(t) / 60, int(t) % 60]
 
 func _on_wave(wave: int, count: int) -> void:
 	_show_toast("第 %d 波来袭  ·  %d 敌" % [wave, count], C_RED)
@@ -453,7 +409,7 @@ func _on_result(win: bool, reason: String) -> void:
 		"enemy_keep_destroyed": "敌营被摧毁",
 	}
 	var reason_text: String = str(reason_map.get(reason, ""))
-	_end_summary.text = "波次 %d/3  ·  %s  ·  击杀 %d" % [GameState.wave_index, reason_text, GameState.kills]
+	_end_summary.text = "坚守 %d 波  ·  %s  ·  击杀 %d" % [GameState.wave_index, reason_text, GameState.kills]
 	_end_panel.visible = true
 	var vbox := _end_panel.get_node_or_null("MarginContainer/VBoxContainer") as VBoxContainer
 	if vbox != null and vbox.get_child_count() > 2:

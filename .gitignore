@@ -18,3 +18,16 @@ game/.godot/
 assets/third_party/hardvacuum/
 # gda 调试 harness（工具生成，不入库）
 game/addons/gda_harness/
+
+# 地形验算临时产物（专家调试输出，不入库）
+game/tests/_terrain_*.gd
+game/tests/_terrain_*.tscn
+game/tests/_terrain_*.png
+game/tests/_terrain_*.txt
+game/tests/_overview.png
+game/tests/_crop_city.png
+game/tests/_probe*.gd
+game/tests/probe2_tmp.gd
+game/tests/_crop_*.png
+game/tests/probe2_tmp.tscn
+game/tests/_*.tscn

@@ -1,5 +1,5 @@
 extends Node2D
-## RWX BuildPreview 式建造预览：跟随鼠标显示 3x3 占格，合法绿框 / 非法红框。
+## 建造预览：跟随鼠标显示 3×3 占格，合法绿框 / 非法红框（放置模式下始终可见）。
 ## main_ref 由 main.gd 注入（避免循环 preload）。
 
 const TILE: int = 32
