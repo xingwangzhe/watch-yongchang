@@ -70,19 +70,22 @@ func _make_label(parent: Node, p_name: String, pos: Vector2, text: String, color
 func _build_tilemap() -> void:
 	# Mindustry 式分层瓦片地图：floor / overlay / build / decor 四层 TileMapLayer
 	var layers := TileMapBuilder.build(self)
-	print("[TILEMAP] layers=%d cols=%d rows=%d tile=%d" % [
-		layers.size() - 3, layers["cols"], layers["rows"], layers["tile"]])
+	var buildings: Array = layers["buildings"]
+	print("[TILEMAP] cols=%d rows=%d tile=%d buildings=%d" % [
+		layers["cols"], layers["rows"], layers["tile"], buildings.size()])
+	for b in buildings:
+		print("[BUILDING] id=%s anchor=%s size=%s" % [b["id"], b["anchor"], b["size"]])
 	# 标题叠在瓦片之上（z=-9，仍在单位/塔之下）
-	_make_label(self, "Banner", Vector2(40, 28), "守望 · 永昌", COL_INK, 40, -9)
-	_make_label(self, "Subtitle", Vector2(42, 76), "三路驿道 · 烽火传薪 · 众志成城", COL_ROAD, 20, -9)
+	_make_label(self, "Banner", Vector2(30, 24), "守望 · 永昌", COL_INK, 36, -9)
+	_make_label(self, "Subtitle", Vector2(32, 68), "三路驿道 · 烽火传薪 · 众志成城", COL_ROAD, 18, -9)
 
 func _build_bases() -> void:
-	# 城门已由瓦片层（T_FOUNDATION）绘出；此处只叠加阵营色标与文字。
-	var y := TileMapBuilder.lane_y(1)
-	_make_rect(self, "OwnKeep", Vector2(2, y - 96), Vector2(14, 192), COL_OWN, -15)
-	_make_rect(self, "EnemyKeep", Vector2(1264, y - 96), Vector2(14, 192), COL_ENEMY, -15)
-	_make_label(self, "OwnKeepLabel", Vector2(2, y + 100), "永昌", COL_INK, 22, -14)
-	_make_label(self, "EnemyKeepLabel", Vector2(1220, y + 100), "倭营", COL_INK, 22, -14)
+	# 主堡占 3×8 瓦片，已由 StructureLayer 绘出；文字标注贴在城池正下方。
+	var own_a := TileMapBuilder.keep_anchor(false)
+	var enemy_a := TileMapBuilder.keep_anchor(true)
+	var label_y := float((own_a.y + TileMapBuilder.KEEP_SIZE.y) * TileMapBuilder.TILE) + 6.0
+	_make_label(self, "OwnKeepLabel", Vector2(float(own_a.x * TileMapBuilder.TILE) - 4.0, label_y), "永昌", COL_INK, 22, -14)
+	_make_label(self, "EnemyKeepLabel", Vector2(float(enemy_a.x * TileMapBuilder.TILE) - 4.0, label_y), "倭营", COL_INK, 22, -14)
 
 func _build_lanes() -> void:
 	# 路径点从瓦片网格派生：直线沿道路行中心，起点/终点在城门格。
@@ -104,8 +107,9 @@ func _build_towers() -> void:
 	var scene := load("res://scenes/tower_node.tscn") as PackedScene
 	for i in range(TileMapBuilder.TOWER_COLS.size()):
 		var t := scene.instantiate() as Node2D
-		# 塔基瓦片在 (TOWER_COLS[i], LANE_ROWS[i]-1)，塔精灵落在道路行中心上方半格
-		t.position = Vector2(TileMapBuilder.tower_x(i), TileMapBuilder.lane_y(i) - 24.0)
+		# 塔占 3×3 瓦片（96px），精灵中心对齐多格建筑中心
+		var c := TileMapBuilder.tower_center(i)
+		t.position = c
 		t.set("lane_index", i)
 		towers_layer.add_child(t)
 

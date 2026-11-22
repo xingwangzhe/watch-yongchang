@@ -8,7 +8,7 @@ script = ExtResource("1_gncsu")
 
 [node name="Sprite" type="Sprite2D" parent="."]
 texture = ExtResource("2_jianta")
-scale = Vector2(0.16, 0.16)
+scale = Vector2(0.18, 0.18)
 position = Vector2(0, -10)
 
 [node name="Muzzle" type="Marker2D" parent="." unique_id=1157075391]
