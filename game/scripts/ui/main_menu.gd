@@ -126,9 +126,9 @@ func _build_about_panel() -> void:
 	_about_panel.anchor_right = 0.5
 	_about_panel.anchor_bottom = 0.5
 	_about_panel.offset_left = -320.0
-	_about_panel.offset_top = -230.0
+	_about_panel.offset_top = -264.0
 	_about_panel.offset_right = 320.0
-	_about_panel.offset_bottom = 230.0
+	_about_panel.offset_bottom = 264.0
 	_about_panel.add_theme_stylebox_override("panel", _make_style(Color(0.08, 0.11, 0.12, 0.98), C_GOLD))
 	_about_panel.visible = false
 	add_child(_about_panel)
@@ -160,13 +160,14 @@ func _build_about_panel() -> void:
 本作美术素材由 WorkBuddy ImageGen 生成并经人工后处理；
 设计文档、数值表与代码由会话助手辅助编写、人工审校。
 地形瓦片派生自 Hard Vacuum（Mark Ferrari / Lost Garden, CC BY 3.0），已署名。
-代码 AGPL-3.0；原创非代码资产 CC BY 4.0；BGM/音效 CC0；字体 OFL-1.1。
+BGM「Samurai Nights」by majadroid（CC BY 3.0，opengameart.org）；
+音效取自 OpenGameArt（CC0）。代码 AGPL-3.0；原创非代码资产 CC BY 4.0；字体 OFL-1.1。
 完整清单见仓库 AI使用与素材声明.md 与 素材授权清单.csv。
 """
 	var body := Label.new()
 	body.text = body_text
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.custom_minimum_size = Vector2(560, 300)
+	body.custom_minimum_size = Vector2(560, 340)
 	body.add_theme_font_override("font", _font)
 	body.add_theme_font_size_override("font_size", 17)
 	body.add_theme_color_override("font_color", C_INK)
