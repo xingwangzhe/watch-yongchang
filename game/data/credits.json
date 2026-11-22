@@ -100,6 +100,27 @@
       ]
     },
     {
+      "title": "角色精灵与动画",
+      "entries": [
+        {
+          "name": "Simple animated character",
+          "role": "友军骨架：乡勇 · 弓手 · 龙灯队；倭寇轻装：斥候 · 火枪倭",
+          "author": "daniloMattos",
+          "license": "CC0 1.0",
+          "url": "https://opengameart.org/content/simple-animated-character",
+          "note": "抽取行走、近战与远程帧；按兵种重着色，并手工绘制短刀、弓、火绳枪、龙头与头巾；成品为 64×64 RGBA"
+        },
+        {
+          "name": "Samurai Sprites",
+          "role": "倭寇骨架：浪人 · 藤牌武士 · 倭将",
+          "author": "sebshady",
+          "license": "CC0 1.0",
+          "url": "https://opengameart.org/content/samurai-sprites",
+          "note": "抽取 3/4 视角侧向行走与攻击帧；重着色并手工绘制藤牌、肩甲与盔饰；成品为 64×64 RGBA"
+        }
+      ]
+    },
+    {
       "title": "地形图块",
       "entries": [
         {
@@ -211,7 +232,7 @@
       "entries": [
         {
           "name": "WorkBuddy ImageGen",
-          "role": "兵种序列帧 · 建筑动画 · UI 图标与面板",
+          "role": "建筑动画 · UI 图标与面板",
           "license": "本项目原创非代码资产 CC BY 4.0",
           "note": "提示词与风格基线由人工设定；生成后经人工去背、切帧、缩放与逐张验收"
         },
@@ -282,7 +303,7 @@
         },
         {
           "name": "所有开源素材作者",
-          "role": "Dungeon Crawl Stone Soup · OpenGameArt 社区 · 霞鹜文楷",
+          "role": "Dungeon Crawl Stone Soup · daniloMattos · sebshady · OpenGameArt 社区 · 霞鹜文楷",
           "note": "没有这些开放许可的作品，独立开发者无法完成一款完整的游戏",
           "license": "见上述各章节",
           "url": "https://opengameart.org"
