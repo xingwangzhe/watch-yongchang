@@ -2,11 +2,11 @@
 
 | 项目 | 内容 |
 |---|---|
-| 文档版本 | v1.4 |
+| 文档版本 | v1.5 |
 | 更新日期 | 2026-11-22 |
-| 适用阶段 | 资料收集、设计、核心样例素材制作、Godot 可玩原型与美术重构、UI/HUD、音频阶段 |
+| 适用阶段 | 资料收集、设计、核心样例素材制作、Godot 可玩原型与美术重构、UI/HUD、音频与 UI 装饰阶段 |
 | 对应赛事要求 | 2026 开源游戏开发大赛 第五节「内容要求」、第六节「提交材料」、第八节「Dora 开源社区奖」 |
-| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（144 条：含美术重构批次 42 张新素材 + 7 张原始条带图 + UI 素材批次 11 张成品 + 4 张原始条带 + 第三方音频 1 BGM + 9 音效及 11 份原始音频/文档/脚本条目） |
+| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（158 条：含美术重构批次 42 张新素材 + UI 素材批次 11 张 + 第三方音频 1 BGM + 9 音效 + 第三方 UI 装饰 10 张成品及原始/文档/脚本条目） |
 
 > 本声明按赛事规则「须申报赛前已有的代码、工具与素材；作品原创，素材来源与授权清晰」「鼓励 AI 辅助创作；使用时须如实说明工具、用途、生成内容与人工修改情况」编制。
 > 最终提交前须更新版本号、产出清单与锁定提交哈希，并补齐开发者日志。
@@ -44,6 +44,8 @@
 
 ## 三、AI 生成内容清单
 
+> **补充（2026-11-22 晚，v1.5 第三方 UI 装饰）**：按「装饰素材可商用 + 通用化 + 契合深底金描边风」要求，引入 OpenGameArt 两套 **CC0** 素材：**golden-ui by buch**（裁切琥珀金像素面板 `panel_gold.png` 作九宫格面板）与 **Free UI Asset Pack 1 by ctatz**（9 枚白色符号染金色 → 通用图标：播放/设置/信息/关闭/暂停/音量/静音/勾选/奖杯）。经 `tools/process_thirdparty_ui.py` 处理，`game/scripts/ui/ui_kit.gd` 作统一出口接入主菜单按钮、关于/设置/HUD 暂停与结算/事件横幅面板。TASL 逐项登记见 `generated/ui_thirdparty/LICENSES.md`。
+>
 > **补充（2026-11-22 晚，v1.4 音频来源调整）**：应素材策略要求（**长音乐/短音效优先采用 CC0 或免费可商用现成素材，脚本合成仅作兜底**），工程 `game/assets/audio/` 全部音频已更换为第三方素材：BGM 采用 OpenGameArt 的 **「Samurai Nights」by majadroid（CC-BY 3.0，二胡/笛/古琴中式器乐）**，9 个事件音效取自 OpenGameArt 的 CC0 音效包（Kenney / artisticdude / remaxim / ogrebane / wobbleboxx），经 `tools/process_thirdparty_audio.py` 响度归一化、截短与 OGG 转码后嵌入。TASL 逐项登记见 `generated/audio_thirdparty/LICENSES.md`；原合成工具 `tools/generate_audio.py` 保留为**短音效兜底方案**（当前无成品使用）。中文 UI 字体统一采用 **lxwk（霞鹜文楷 / LXGW WenKai）**，已设为 Godot 工程全局默认字体；字体许可 **SIL OFL 1.1**，完整协议文本随字体存放于 `assets/fonts/OFL.txt` 与 `game/assets/fonts/OFL.txt`。
 
 ### 3.1 图像资产（`assets/` 与 `game/assets/`）
@@ -111,10 +113,11 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | `game/tests/verify.gd` | 自动化断言（42 项） | 人工设计覆盖点，捕获并修复上述解析 bug |
 | `game/scripts/autoload/audio_manager.gd` | 音频管理：BGM 循环、SFX 池、音量分离与配置持久化 | 人工定音效事件映射、音量对数与退出资源释放 |
 | `game/scripts/autoload/game_flow.gd` | 场景导航：主菜单/战斗/设置切换 | 人工定界面流转与设置返回栈 |
-| `game/scripts/ui/*.gd` / `scenes/main_menu.tscn` / `scenes/settings.tscn` | 主菜单、设置、暂停面板、国风背景绘制 | 人工定 UI 结构、lxwk 字体统一、国风配色与交互；修复隐藏面板抢焦点 bug |
+| `game/scripts/ui/*.gd` / `scenes/main_menu.tscn` / `scenes/settings.tscn` | 主菜单、设置、暂停面板、国风背景绘制、`ui_kit.gd` 通用装饰套件（金框面板九宫格 + CC0 图标接入） | 人工定 UI 结构、lxwk 字体统一、国风配色与交互；修复隐藏面板抢焦点 bug |
 | `tools/convert_hardvacuum_tiles.py` / `tools/process_new_sprites.py` / `tools/process_ui_sprites.py` | 瓦片转换与切帧/切图抠图脚本 | 人工调参（chroma、白底阈值、缩放尺寸） |
 | `tools/process_thirdparty_audio.py` | 第三方音频转换流水线（响度归一化、Alarm 截短、OGG 转码） | 人工定响度目标与截短时长；人工选曲与逐项映射音效 |
 | `tools/generate_audio.py` | 短音效合成兜底工具（五声音阶加法合成，当前无成品使用） | 人工定「第三方素材优先、合成兜底」策略 |
+| `tools/process_thirdparty_ui.py` | 第三方 UI 装饰流水线（golden-ui 面板裁切、ctatz 符号染金色） | 人工选源、定裁切框与金色基线；联系表人工验收 |
 
 项目代码许可 **AGPL-3.0**。
 
@@ -165,6 +168,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | Hard Vacuum 地形瓦片 | Mark Ferrari（Lost Garden） | https://lostgardenhome.files.wordpress.com/2019/09/hardvacuum.zip | CC BY 3.0（https://creativecommons.org/licenses/by/3.0/） | 去 chroma 透明色、20×20→32×32 nearest 放大、地质色系重新着色、合成图集 |
 | Samurai Nights（Demo） | Maik Hoffmann（majadroid） | https://opengameart.org/content/samurai-nights | CC BY 3.0（亦提供 CC-BY 4.0 / OGA-BY 3.0） | MP3 → OGG Vorbis 重编码（游戏内 BGM） |
 | Battle Sound Effects: Bow / RPG Sound Pack / 3 Melee Sounds / RPG Audio / Sound Pack 01 | ogrebane / artisticdude / remaxim / Kenney / wobbleboxx | https://opengameart.org/content/battle-sound-effects 等（逐项见 `generated/audio_thirdparty/LICENSES.md`） | CC0（多许可包选用 CC0） | 响度归一化、Alarm 截短 2.2s、OGG 转码（游戏内 9 个事件音效） |
+| golden-ui / Free UI Asset Pack 1 | buch / ctatz | https://opengameart.org/content/golden-ui ；https://opengameart.org/content/free-ui-asset-pack-1 | CC0 | 面板精灵裁切（九宫格）；白色符号染金色缩放 64×64（游戏内 UI 装饰与图标，详见 `generated/ui_thirdparty/LICENSES.md`） |
 
 - 用途：游戏内地表、驿道、岩层、水域的图块纹理（`game/assets/tiles/atlas_geology.png` 与 `game/assets/tiles/hardvacuum/*.png`）。原始 BMP 存放于 `assets/third_party/hardvacuum/`，仅作转换输入，不直接入成品。
 - 转换工具：`tools/convert_hardvacuum_tiles.py`（本项目原创脚本）。
@@ -206,5 +210,5 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 1. 将本声明版本号升至 v2.0，在提交锁定版本时更新最终素材清单与 Git 哈希。
 2. 记录锁定提交的 Git 哈希与提交时间。
 3. 补齐至少 3 篇内容不重复的开发者日志（赛事强制要求）。
-4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：字体/Hard Vacuum/重构批次素材/UI 素材批次/第三方音频（BGM+音效）均已登记（清单共 144 条）。
+4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：字体/Hard Vacuum/重构批次素材/UI 素材批次/第三方音频（BGM+音效）/第三方 UI 装饰均已登记（清单共 158 条）。
 5. 若以私有项目提交，重新核对第六节许可声明与实际情况的一致性。
