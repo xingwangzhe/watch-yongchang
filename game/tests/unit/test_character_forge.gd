@@ -207,3 +207,103 @@ func test_preview_scene_instantiates_eight_recipes() -> void:
 	add_child_autofree(preview)
 	await wait_process_frames(2)
 	assert_eq((preview.get("forges") as Array).size(), 8)
+
+
+func test_runtime_random_recipe_is_deterministic() -> void:
+	var forge := ForgeScript.new()
+	add_child_autofree(forge)
+	if not forge.load_data():
+		fail_test("character forge data must load")
+		return
+	var first: Dictionary = forge.random_recipe(24680, "ming")
+	var second: Dictionary = forge.random_recipe(24680, "ming")
+	assert_eq(first, second)
+	assert_true(first.has("skin"))
+	assert_true(first.has("weapon"))
+	assert_eq(forge.combo_family_for("dao", "dao"), "same")
+	assert_eq(forge.combo_family_for("dao", "jian"), "mixed")
+	assert_eq(forge.combo_family_for("dao", "dun"), "shield")
+	assert_eq(forge.combo_family_for("dao", "none"), "")
+
+
+func test_runtime_random_recipes_cover_weapons_and_offhands() -> void:
+	var forge := ForgeScript.new()
+	add_child_autofree(forge)
+	if not forge.load_data():
+		fail_test("character forge data must load")
+		return
+	var mains := {}
+	var offhands := {}
+	var combos := {}
+	for index in 512:
+		var recipe: Dictionary = forge.random_recipe(9000 + index)
+		mains[str(recipe["weapon"])] = true
+		var offhand := str(recipe["offhand"])
+		if offhand != "none":
+			offhands[offhand] = true
+			combos[forge.combo_family_for(str(recipe["weapon"]), offhand)] = true
+	assert_eq(mains.size(), 13, "random recipes must reach every main weapon")
+	assert_true(offhands.size() >= 5, "random recipes must reach offhand variety")
+	assert_eq(combos.size(), 3, "random recipes must reach all combo families")
+
+
+func test_every_declared_combination_has_atlas_rows() -> void:
+	var data := _load_data()
+	if data.is_empty():
+		return
+	var body_rows: Dictionary = data["atlases"]["body"]["rows"]
+	var outfit_rows: Dictionary = data["atlases"]["outfit"]["rows"]
+	var head_rows: Dictionary = data["atlases"]["headgear"]["rows"]
+	var back_rows: Dictionary = data["atlases"]["backgear"]["rows"]
+	var weapon_rows: Dictionary = data["atlases"]["weapon"]["rows"]
+	var offhand_rows: Dictionary = data["atlases"]["offhand"]["rows"]
+	var allowed: Array = data["offhand_allowed"]
+	var pairs: Dictionary = data["combo_pairs"]
+	var mains: Array = []
+	for weapon: Dictionary in data["weapons"]:
+		if str(weapon["slot"]) == "main":
+			mains.append(weapon)
+	var failures: Array[String] = []
+	var count := 0
+	for skin: Dictionary in data["skins"]:
+		for outfit: Dictionary in data["outfits"]:
+			for headgear: Dictionary in data["headgear"]:
+				for backgear: Dictionary in data["backgear"]:
+					for weapon: Dictionary in mains:
+						var options: Array = ["none"]
+						if str(weapon["grip"]) == "one_hand":
+							options.append_array(allowed)
+						for offhand_value in options:
+							var offhand := str(offhand_value)
+							var variant := str(weapon["id"])
+							var weapon_key := str(weapon["id"])
+							if offhand != "none":
+								variant = "combo_" + str(pairs[weapon_key + "+" + offhand])
+								weapon_key += "+" + offhand
+							count += 1
+							if not body_rows.has(str(skin["id"]) + "|" + variant):
+								failures.append("body " + variant)
+							if not outfit_rows.has(str(outfit["id"]) + "|" + variant):
+								failures.append("outfit " + variant)
+							if not head_rows.has(str(headgear["id"]) + "|" + str(weapon["id"])):
+								failures.append("headgear " + str(weapon["id"]))
+							if not back_rows.has(str(backgear["id"]) + "|" + str(weapon["id"])):
+								failures.append("backgear " + str(weapon["id"]))
+							if not weapon_rows.has(weapon_key):
+								failures.append("weapon " + weapon_key)
+							if offhand != "none" and not offhand_rows.has(str(weapon["id"]) + "|" + offhand):
+								failures.append("offhand " + str(weapon["id"]) + "|" + offhand)
+							if failures.size() > 12:
+								break
+						if failures.size() > 12:
+							break
+					if failures.size() > 12:
+						break
+				if failures.size() > 12:
+					break
+			if failures.size() > 12:
+				break
+		if failures.size() > 12:
+			break
+	assert_eq(count, int(data["combination_count"]))
+	assert_eq(failures.size(), 0, "missing atlas rows: %s" % str(failures))

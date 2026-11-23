@@ -104,12 +104,65 @@ func current_weapon_row_key() -> String:
 	return str(weapon.get("id", "")) + "+" + str(offhand.get("id", ""))
 
 
+func combo_family_for(main_id: String, offhand_id: String) -> String:
+	if offhand_id == "none" or data.is_empty():
+		return ""
+	var pairs: Dictionary = data.get("combo_pairs", {})
+	return str(pairs.get(main_id + "+" + offhand_id, ""))
+
+
+func random_recipe(seed: int, faction: String = "") -> Dictionary:
+	if data.is_empty() and not load_data():
+		return {}
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	var skins := _faction_candidates("skins", faction)
+	var outfits := _faction_candidates("outfits", faction)
+	var headgear := _faction_candidates("headgear", faction)
+	var backgear := _faction_candidates("backgear", faction)
+	var mains: Array = []
+	for entry: Variant in data.get("weapons", []):
+		if entry is Dictionary and str(entry.get("slot", "")) == "main":
+			mains.append(entry)
+	if skins.is_empty() or outfits.is_empty() or headgear.is_empty() or backgear.is_empty() or mains.is_empty():
+		return {}
+	var weapon: Dictionary = mains[rng.randi_range(0, mains.size() - 1)]
+	var offhand := "none"
+	if str(weapon.get("grip", "")) == "one_hand" and rng.randf() < 0.62:
+		var allowed: Array = data.get("offhand_allowed", [])
+		if not allowed.is_empty():
+			offhand = str(allowed[rng.randi_range(0, allowed.size() - 1)])
+	return {
+		"skin": str(skins[rng.randi_range(0, skins.size() - 1)]["id"]),
+		"outfit": str(outfits[rng.randi_range(0, outfits.size() - 1)]["id"]),
+		"headgear": str(headgear[rng.randi_range(0, headgear.size() - 1)]["id"]),
+		"backgear": str(backgear[rng.randi_range(0, backgear.size() - 1)]["id"]),
+		"weapon": str(weapon.get("id", "")),
+		"offhand": offhand,
+	}
+
+
+func _faction_candidates(group: String, faction: String) -> Array:
+	var all: Array = data.get(group, [])
+	if faction.is_empty():
+		return all
+	var filtered: Array = []
+	for entry: Variant in all:
+		if not (entry is Dictionary):
+			continue
+		var tags: Array = entry.get("tags", [])
+		if faction in tags or "neutral" in tags:
+			filtered.append(entry)
+	return filtered if not filtered.is_empty() else all
+
+
 func _pose_variant(weapon: Dictionary, offhand: Dictionary) -> String:
 	var main_id := str(weapon.get("id", ""))
 	if offhand.is_empty():
 		return main_id
-	var pair_key := main_id + "+" + str(offhand.get("id", ""))
-	var family := str(data.get("combo_pairs", {}).get(pair_key, "mixed"))
+	var family := combo_family_for(main_id, str(offhand.get("id", "")))
+	if family.is_empty():
+		family = "mixed"
 	return "combo_" + family
 
 
