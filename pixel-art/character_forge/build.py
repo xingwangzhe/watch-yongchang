@@ -24,6 +24,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
+Image.MAX_IMAGE_PIXELS = None
+
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "skills" / "pixel-art-studio" / "scripts"))
 
@@ -32,6 +34,7 @@ from pixelstudio import Sprite  # noqa: E402
 
 CELL = 128
 FRAME_COUNT = 48
+ATLAS_PAGE_ROWS = 128
 ARM_UPPER = 17.0
 ARM_LOWER = 17.0
 LEG_UPPER = 21.0
@@ -122,6 +125,41 @@ ACTION_NAMES = {
         ("横扫式", "Side Sweep"),
         ("锁兵式", "Weapon Lock"),
         ("破阵叉", "Formation Fork"),
+    ),
+    "qijia_dao": (
+        ("戚家刀·断浪", "Qi Saber: Wave Break"),
+        ("戚家刀·回锋", "Qi Saber: Return Edge"),
+        ("戚家刀·破锋", "Qi Saber: Edge Breaker"),
+        ("戚家刀·撩阵", "Qi Saber: Formation Rise"),
+        ("戚家刀·斩倭", "Qi Saber: Wokou Cut"),
+    ),
+    "langxian": (
+        ("狼筅·扫阵", "Wolf Brush: Formation Sweep"),
+        ("狼筅·压枝", "Wolf Brush: Branch Press"),
+        ("狼筅·回旋", "Wolf Brush: Whirl"),
+        ("狼筅·拒马", "Wolf Brush: Horse Repel"),
+        ("狼筅·破围", "Wolf Brush: Break Encirclement"),
+    ),
+    "tangpa": (
+        ("镋钯·锁兵", "Tangpa: Weapon Lock"),
+        ("镋钯·挑刺", "Tangpa: Rising Thrust"),
+        ("镋钯·横拦", "Tangpa: Cross Guard"),
+        ("镋钯·压阵", "Tangpa: Formation Press"),
+        ("镋钯·破甲", "Tangpa: Armour Breaker"),
+    ),
+    "wokou_dao": (
+        ("倭刀·居合", "Wokou Sword: Iai"),
+        ("倭刀·袈裟斩", "Wokou Sword: Kesagiri"),
+        ("倭刀·回旋", "Wokou Sword: Whirl"),
+        ("倭刀·逆袈裟", "Wokou Sword: Reverse Kesagiri"),
+        ("倭刀·断浪", "Wokou Sword: Wave Break"),
+    ),
+    "tengpai": (
+        ("藤牌·旋盾", "Rattan Shield: Whirl"),
+        ("藤牌·格挡", "Rattan Shield: Block"),
+        ("藤牌·撞阵", "Rattan Shield: Charge"),
+        ("藤牌·掩身", "Rattan Shield: Cover"),
+        ("藤牌·回盾", "Rattan Shield: Return"),
     ),
     "gong": (
         ("开弓式", "Bow Draw"),
@@ -249,6 +287,7 @@ SKINS = [
 OUTFITS = [
     {
         "id": "ming_lamellar_red", "name_zh": "明军朱红札甲", "name_en": "Ming Red Lamellar",
+        "faction": "ming",
         "cloth": RED, "cloth_d": RED_D, "cloth_l": RED_L,
         "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_L,
         "accent": GOLD, "accent_l": GOLD_L,
@@ -257,6 +296,7 @@ OUTFITS = [
     },
     {
         "id": "ming_brigandine_blue", "name_zh": "明军青布罩甲", "name_en": "Ming Blue Brigandine",
+        "faction": "ming",
         "cloth": BLUE, "cloth_d": BLUE_D, "cloth_l": BLUE_L,
         "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_L,
         "accent": GOLD, "accent_l": GOLD_L,
@@ -265,6 +305,7 @@ OUTFITS = [
     },
     {
         "id": "ming_robe_ochre", "name_zh": "明军赭褐短打", "name_en": "Ming Ochre Short Robe",
+        "faction": "ming",
         "cloth": OCHRE, "cloth_d": OCHRE_D, "cloth_l": OCHRE_L,
         "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_L,
         "accent": LEATHER, "accent_l": LEATHER_L,
@@ -273,6 +314,7 @@ OUTFITS = [
     },
     {
         "id": "ming_guard_iron", "name_zh": "明军铁灰札甲", "name_en": "Ming Iron Guard",
+        "faction": "ming",
         "cloth": IRON_D, "cloth_d": BLACK, "cloth_l": IRON,
         "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_LL,
         "accent": GOLD, "accent_l": GOLD_L,
@@ -281,6 +323,7 @@ OUTFITS = [
     },
     {
         "id": "ming_navy_green", "name_zh": "明军水营绿袄", "name_en": "Ming Navy Green Coat",
+        "faction": "ming",
         "cloth": GREEN, "cloth_d": GREEN_D, "cloth_l": GREEN_L,
         "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_L,
         "accent": GOLD, "accent_l": GOLD_L,
@@ -288,7 +331,19 @@ OUTFITS = [
         "skirt": True, "armored": False, "tags": ["ming", "navy"],
     },
     {
+        "id": "ming_qijia_armor", "name_zh": "戚家军鸳鸯阵甲", "name_en": "Qi Jia Formation Armour",
+        "faction": "ming",
+        "cloth": RED_D, "cloth_d": "#2b1211", "cloth_l": RED,
+        "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_LL,
+        "accent": GOLD, "accent_l": GOLD_L,
+        "sleeve": "long", "legs": "greaves", "shoulders": "plate",
+        "skirt": True, "armored": True, "armor_style": "qijia",
+        "exclusive": True,
+        "tags": ["ming", "army", "qijia"],
+    },
+    {
         "id": "wokou_ragged_brown", "name_zh": "倭寇褐布破衣", "name_en": "Wokou Ragged Brown",
+        "faction": "wokou",
         "cloth": "#6d5138", "cloth_d": "#3f2e21", "cloth_l": "#957455",
         "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_L,
         "accent": LEATHER, "accent_l": LEATHER_L,
@@ -297,6 +352,7 @@ OUTFITS = [
     },
     {
         "id": "wokou_dark_navy", "name_zh": "倭寇深蓝短甲", "name_en": "Wokou Dark Navy",
+        "faction": "wokou",
         "cloth": "#263947", "cloth_d": "#14212a", "cloth_l": "#426175",
         "metal": IRON_D, "metal_d": BLACK, "metal_l": IRON,
         "accent": GOLD, "accent_l": GOLD_L,
@@ -304,7 +360,30 @@ OUTFITS = [
         "skirt": True, "armored": True, "tags": ["wokou"],
     },
     {
+        "id": "wokou_domaru", "name_zh": "倭寇胴丸", "name_en": "Wokou Do-maru",
+        "faction": "wokou",
+        "cloth": "#59302d", "cloth_d": "#2b1717", "cloth_l": "#875048",
+        "metal": IRON_D, "metal_d": BLACK, "metal_l": IRON,
+        "accent": "#b8874f", "accent_l": GOLD_L,
+        "sleeve": "long", "legs": "pants", "shoulders": "plate",
+        "skirt": True, "armored": True, "armor_style": "domaru",
+        "exclusive": True,
+        "tags": ["wokou", "armour", "domaru"],
+    },
+    {
+        "id": "wokou_haramaki", "name_zh": "倭寇腹卷", "name_en": "Wokou Haramaki",
+        "faction": "wokou",
+        "cloth": "#334a50", "cloth_d": "#1b292d", "cloth_l": "#567078",
+        "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_L,
+        "accent": "#a65d43", "accent_l": RED_L,
+        "sleeve": "short", "legs": "pants", "shoulders": "cloth",
+        "skirt": False, "armored": True, "armor_style": "haramaki",
+        "exclusive": True,
+        "tags": ["wokou", "armour", "haramaki"],
+    },
+    {
         "id": "pirate_teal", "name_zh": "海盗青皮甲", "name_en": "Pirate Teal",
+        "faction": "wokou",
         "cloth": "#2d5557", "cloth_d": "#183333", "cloth_l": "#4e7d79",
         "metal": LEATHER, "metal_d": LEATHER_D, "metal_l": LEATHER_L,
         "accent": GOLD, "accent_l": GOLD_L,
@@ -313,6 +392,7 @@ OUTFITS = [
     },
     {
         "id": "monk_grey", "name_zh": "僧兵灰褐法衣", "name_en": "Sohei Grey Robe",
+        "faction": "wokou",
         "cloth": GREY, "cloth_d": GREY_D, "cloth_l": GREY_L,
         "metal": LEATHER, "metal_d": LEATHER_D, "metal_l": LEATHER_L,
         "accent": OCHRE, "accent_l": OCHRE_L,
@@ -321,6 +401,7 @@ OUTFITS = [
     },
     {
         "id": "general_purple", "name_zh": "将官紫金重甲", "name_en": "Purple Gold General",
+        "faction": "wokou",
         "cloth": PURPLE, "cloth_d": PURPLE_D, "cloth_l": PURPLE_L,
         "metal": GOLD, "metal_d": GOLD_D, "metal_l": GOLD_L,
         "accent": IRON_LL, "accent_l": WHITE,
@@ -329,6 +410,7 @@ OUTFITS = [
     },
     {
         "id": "oni_red", "name_zh": "鬼面赤甲", "name_en": "Oni Red Armour",
+        "faction": "wokou",
         "cloth": "#7e2925", "cloth_d": "#461411", "cloth_l": "#b84a38",
         "metal": IRON_D, "metal_d": BLACK, "metal_l": IRON,
         "accent": GOLD, "accent_l": GOLD_L,
@@ -337,93 +419,182 @@ OUTFITS = [
     },
     {
         "id": "villager_linen", "name_zh": "乡勇本色麻衣", "name_en": "Villager Linen",
+        "faction": "neutral",
         "cloth": "#a38f6f", "cloth_d": "#665844", "cloth_l": "#cbb894",
         "metal": LEATHER, "metal_d": LEATHER_D, "metal_l": LEATHER_L,
         "accent": WRAP, "accent_l": WRAP_L,
         "sleeve": "short", "legs": "shorts", "shoulders": "none",
-        "skirt": False, "armored": False, "tags": ["ming", "militia", "neutral"],
+        "skirt": False, "armored": False, "tags": ["neutral", "militia"],
+    },
+    {
+        "id": "common_leather_vest", "name_zh": "通用皮札背心", "name_en": "Common Leather Vest",
+        "faction": "neutral",
+        "cloth": "#7c5b3c", "cloth_d": "#493321", "cloth_l": "#a57a50",
+        "metal": LEATHER, "metal_d": LEATHER_D, "metal_l": LEATHER_L,
+        "accent": WRAP, "accent_l": WRAP_L,
+        "sleeve": "short", "legs": "pants", "shoulders": "cloth",
+        "skirt": False, "armored": False, "tags": ["neutral", "traveler"],
     },
 ]
 
 HEADGEAR = [
-    {"id": "none", "name_zh": "无冠", "name_en": "Bare Head", "kind": "none", "tags": ["neutral"]},
+    {"id": "none", "name_zh": "无冠", "name_en": "Bare Head", "kind": "none",
+     "faction": "neutral", "tags": ["neutral"]},
     {"id": "ming_helmet_red", "name_zh": "明军红缨铁盔", "name_en": "Ming Red-Plume Helmet",
-     "kind": "ming_helmet", "cloth": RED, "cloth_d": RED_D, "cloth_l": RED_L, "tags": ["ming"]},
+     "faction": "ming", "kind": "ming_helmet", "cloth": RED, "cloth_d": RED_D,
+     "cloth_l": RED_L, "tags": ["ming"]},
     {"id": "ming_helmet_iron", "name_zh": "明军素铁盔", "name_en": "Ming Iron Helmet",
-     "kind": "ming_helmet", "cloth": IRON_D, "cloth_d": BLACK, "cloth_l": IRON_L, "tags": ["ming"]},
+     "faction": "ming", "kind": "ming_helmet", "cloth": IRON_D, "cloth_d": BLACK,
+     "cloth_l": IRON_L, "tags": ["ming"]},
     {"id": "ming_hat", "name_zh": "明军毡帽", "name_en": "Ming Felt Hat",
-     "kind": "felt_hat", "cloth": OCHRE, "cloth_d": OCHRE_D, "cloth_l": OCHRE_L, "tags": ["ming"]},
+     "faction": "ming", "kind": "felt_hat", "cloth": OCHRE, "cloth_d": OCHRE_D,
+     "cloth_l": OCHRE_L, "tags": ["ming"]},
     {"id": "ming_officer", "name_zh": "明军乌纱帽", "name_en": "Ming Officer Cap",
-     "kind": "officer", "cloth": BLACK, "cloth_d": INK, "cloth_l": BLACK_L, "tags": ["ming"]},
+     "faction": "ming", "kind": "officer", "cloth": BLACK, "cloth_d": INK,
+     "cloth_l": BLACK_L, "tags": ["ming"]},
+    {"id": "common_headwrap", "name_zh": "通用布头巾", "name_en": "Common Headwrap",
+     "faction": "neutral", "kind": "headband", "cloth": WRAP, "cloth_d": WRAP_D,
+     "cloth_l": WRAP_L, "tags": ["neutral"]},
     {"id": "wokou_headband", "name_zh": "倭寇头巾", "name_en": "Wokou Headband",
-     "kind": "headband", "cloth": "#7b3c32", "cloth_d": "#3f1e1a", "cloth_l": "#b35f4f", "tags": ["wokou"]},
+     "faction": "wokou", "kind": "headband", "cloth": "#7b3c32", "cloth_d": "#3f1e1a",
+     "cloth_l": "#b35f4f", "tags": ["wokou"]},
     {"id": "wokou_kasa", "name_zh": "倭寇阵笠", "name_en": "Wokou War Hat",
-     "kind": "kasa", "cloth": "#8d764f", "cloth_d": "#4d3f29", "cloth_l": "#b99c68", "tags": ["wokou"]},
+     "faction": "wokou", "kind": "kasa", "cloth": "#8d764f", "cloth_d": "#4d3f29",
+     "cloth_l": "#b99c68", "exclusive": True, "tags": ["wokou", "jingasa"]},
     {"id": "wokou_helmet", "name_zh": "倭寇铁兜", "name_en": "Wokou Iron Helmet",
-     "kind": "horned_helmet", "cloth": IRON_D, "cloth_d": BLACK, "cloth_l": IRON_L, "tags": ["wokou"]},
+     "faction": "wokou", "kind": "horned_helmet", "cloth": IRON_D, "cloth_d": BLACK,
+     "cloth_l": IRON_L, "tags": ["wokou"]},
     {"id": "monk_hood", "name_zh": "僧兵头巾", "name_en": "Sohei Hood",
-     "kind": "monk_hood", "cloth": GREY, "cloth_d": GREY_D, "cloth_l": GREY_L, "tags": ["wokou"]},
+     "faction": "wokou", "kind": "monk_hood", "cloth": GREY, "cloth_d": GREY_D,
+     "cloth_l": GREY_L, "tags": ["wokou"]},
     {"id": "oni_mask", "name_zh": "鬼面", "name_en": "Oni Mask",
-     "kind": "oni_mask", "cloth": RED, "cloth_d": RED_D, "cloth_l": RED_L, "tags": ["wokou"]},
+     "faction": "wokou", "kind": "oni_mask", "cloth": RED, "cloth_d": RED_D,
+     "cloth_l": RED_L, "tags": ["wokou"]},
     {"id": "pirate_bandana", "name_zh": "海盗红巾", "name_en": "Pirate Bandana",
-     "kind": "bandana", "cloth": RED, "cloth_d": RED_D, "cloth_l": RED_L, "tags": ["wokou"]},
+     "faction": "wokou", "kind": "bandana", "cloth": RED, "cloth_d": RED_D,
+     "cloth_l": RED_L, "tags": ["wokou"]},
 ]
 
 BACKGEAR = [
-    {"id": "none", "name_zh": "无披挂", "name_en": "No Backgear", "kind": "none", "tags": ["neutral"]},
+    {"id": "none", "name_zh": "无披挂", "name_en": "No Backgear", "kind": "none",
+     "faction": "neutral", "tags": ["neutral"]},
     {"id": "ming_cape_red", "name_zh": "明军红披风", "name_en": "Ming Red Cape",
-     "kind": "cape", "cloth": RED, "cloth_d": RED_D, "cloth_l": RED_L, "tags": ["ming"]},
+     "faction": "ming", "kind": "cape", "cloth": RED, "cloth_d": RED_D,
+     "cloth_l": RED_L, "tags": ["ming"]},
     {"id": "wokou_cloak_dark", "name_zh": "倭寇黑披风", "name_en": "Wokou Dark Cloak",
-     "kind": "cape", "cloth": "#28303a", "cloth_d": "#14181e", "cloth_l": "#465463", "tags": ["wokou"]},
+     "faction": "wokou", "kind": "cape", "cloth": "#28303a", "cloth_d": "#14181e",
+     "cloth_l": "#465463", "tags": ["wokou"]},
     {"id": "ming_banner", "name_zh": "明军令旗", "name_en": "Ming Signal Banner",
-     "kind": "banner", "cloth": RED, "cloth_d": RED_D, "cloth_l": RED_L, "tags": ["ming"]},
+     "faction": "ming", "kind": "banner", "cloth": RED, "cloth_d": RED_D,
+     "cloth_l": RED_L, "tags": ["ming"]},
 ]
 
 WEAPONS = [
     {"id": "dao", "name_zh": "腰刀", "name_en": "Dao Saber", "kind": "dao",
-     "grip": "one_hand", "slot": "main", "attack_profile": "saber_diagonal", "offhand": True},
+     "faction": "neutral", "grip": "one_hand", "slot": "main",
+     "attack_profile": "saber_diagonal", "offhand": True, "tags": ["neutral"]},
     {"id": "jian", "name_zh": "长剑", "name_en": "Jian Sword", "kind": "jian",
-     "grip": "one_hand", "slot": "main", "attack_profile": "sword_thrust", "offhand": True},
+     "faction": "neutral", "grip": "one_hand", "slot": "main",
+     "attack_profile": "sword_thrust", "offhand": True, "tags": ["neutral"]},
     {"id": "qiang", "name_zh": "长枪", "name_en": "Qiang Spear", "kind": "qiang",
-     "grip": "two_hand", "slot": "main", "attack_profile": "spear_lunge", "offhand": False},
+     "faction": "neutral", "grip": "two_hand", "slot": "main",
+     "attack_profile": "spear_lunge", "offhand": False, "tags": ["neutral"]},
     {"id": "ji", "name_zh": "画戟", "name_en": "Ji Halberd", "kind": "ji",
-     "grip": "two_hand", "slot": "main", "attack_profile": "halberd_sweep", "offhand": False},
+     "faction": "neutral", "grip": "two_hand", "slot": "main",
+     "attack_profile": "halberd_sweep", "offhand": False, "tags": ["neutral"]},
     {"id": "fu", "name_zh": "战斧", "name_en": "Fu Axe", "kind": "fu",
-     "grip": "two_hand", "slot": "main", "attack_profile": "axe_chop", "offhand": False},
+     "faction": "neutral", "grip": "two_hand", "slot": "main",
+     "attack_profile": "axe_chop", "offhand": False, "tags": ["neutral"]},
     {"id": "yue", "name_zh": "大钺", "name_en": "Yue Battle-Axe", "kind": "yue",
-     "grip": "two_hand", "slot": "main", "attack_profile": "yue_wide_sweep", "offhand": False},
+     "faction": "neutral", "grip": "two_hand", "slot": "main",
+     "attack_profile": "yue_wide_sweep", "offhand": False, "tags": ["neutral"]},
     {"id": "gou", "name_zh": "钩", "name_en": "Gou Hook", "kind": "gou",
-     "grip": "one_hand", "slot": "main", "attack_profile": "hook_cross", "offhand": True},
+     "faction": "neutral", "grip": "one_hand", "slot": "main",
+     "attack_profile": "hook_cross", "offhand": True, "tags": ["neutral"]},
     {"id": "cha", "name_zh": "三股叉", "name_en": "Cha Trident", "kind": "cha",
-     "grip": "two_hand", "slot": "main", "attack_profile": "trident_triple", "offhand": False},
+     "faction": "neutral", "grip": "two_hand", "slot": "main",
+     "attack_profile": "trident_triple", "offhand": False, "tags": ["neutral"]},
+    {"id": "qijia_dao", "name_zh": "戚家刀", "name_en": "Qi Family Saber", "kind": "qijia_dao",
+     "faction": "ming", "grip": "one_hand", "slot": "main",
+     "attack_profile": "qi_saber", "offhand": True, "exclusive": True,
+     "tags": ["ming", "anti_wokou", "exclusive"]},
+    {"id": "langxian", "name_zh": "狼筅", "name_en": "Wolf Brush", "kind": "langxian",
+     "faction": "ming", "grip": "two_hand", "slot": "main",
+     "attack_profile": "wolf_brush", "offhand": False, "exclusive": True,
+     "tags": ["ming", "anti_wokou", "exclusive"]},
+    {"id": "tangpa", "name_zh": "镋钯", "name_en": "Tangpa Polearm", "kind": "tangpa",
+     "faction": "ming", "grip": "two_hand", "slot": "main",
+     "attack_profile": "tangpa_guard", "offhand": False, "exclusive": True,
+     "tags": ["ming", "anti_wokou", "exclusive"]},
     {"id": "gong", "name_zh": "弓", "name_en": "Bow", "kind": "gong",
-     "grip": "ranged", "slot": "main", "attack_profile": "bow_draw", "offhand": False},
+     "faction": "neutral", "grip": "ranged", "slot": "main",
+     "attack_profile": "bow_draw", "offhand": False, "tags": ["neutral"]},
     {"id": "nu", "name_zh": "弩", "name_en": "Crossbow", "kind": "nu",
-     "grip": "ranged", "slot": "main", "attack_profile": "crossbow_volley", "offhand": False},
+     "faction": "neutral", "grip": "ranged", "slot": "main",
+     "attack_profile": "crossbow_volley", "offhand": False, "tags": ["neutral"]},
     {"id": "niaochong", "name_zh": "手铳", "name_en": "Hand Cannon", "kind": "niaochong",
-     "grip": "ranged", "slot": "main", "attack_profile": "hand_cannon", "offhand": False},
+     "faction": "neutral", "grip": "ranged", "slot": "main",
+     "attack_profile": "hand_cannon", "offhand": False, "tags": ["neutral"]},
     {"id": "longdeng", "name_zh": "龙灯", "name_en": "Dragon Lantern", "kind": "longdeng",
-     "grip": "one_hand", "slot": "main", "attack_profile": "lantern_sweep", "offhand": True},
+     "faction": "ming", "grip": "one_hand", "slot": "main",
+     "attack_profile": "lantern_sweep", "offhand": True, "tags": ["ming", "culture"]},
     {"id": "lingqi", "name_zh": "令旗", "name_en": "Signal Flag", "kind": "lingqi",
-     "grip": "one_hand", "slot": "main", "attack_profile": "signal_command", "offhand": True},
+     "faction": "ming", "grip": "one_hand", "slot": "main",
+     "attack_profile": "signal_command", "offhand": True, "tags": ["ming", "culture"]},
+    {"id": "wokou_dao", "name_zh": "倭刀", "name_en": "Wokou Saber", "kind": "wokou_dao",
+     "faction": "wokou", "grip": "two_hand", "slot": "main",
+     "attack_profile": "wokou_slash", "offhand": False, "exclusive": True,
+     "tags": ["wokou", "exclusive"]},
     {"id": "dun", "name_zh": "盾", "name_en": "Shield", "kind": "dun",
-     "grip": "offhand", "slot": "offhand", "attack_profile": "shield_bash", "offhand": True},
+     "faction": "neutral", "grip": "offhand", "slot": "offhand",
+     "attack_profile": "shield_bash", "offhand": True, "tags": ["neutral"]},
+    {"id": "tengpai", "name_zh": "藤牌", "name_en": "Rattan Shield", "kind": "tengpai",
+     "faction": "ming", "grip": "offhand", "slot": "offhand",
+     "attack_profile": "rattan_shield", "offhand": True, "exclusive": True,
+     "tags": ["ming", "anti_wokou", "exclusive"]},
 ]
 
 WEAPON_BY_ID = {item["id"]: item for item in WEAPONS}
 MAIN_WEAPONS = [item for item in WEAPONS if item["slot"] == "main"]
 OFFHAND_WEAPONS = [item for item in WEAPONS if item["offhand"]]
-OFFHAND_ALLOWED_IDS = ("dao", "jian", "gou", "longdeng", "lingqi", "dun")
+OFFHAND_ALLOWED_IDS = ("dao", "jian", "gou", "longdeng", "lingqi", "dun", "tengpai")
 POSE_SETS = tuple(item["id"] for item in WEAPONS)
 REQUIRED_WEAPONS = (
     "dao", "qiang", "jian", "ji", "fu", "yue", "gou", "cha", "dun", "gong", "nu",
+    "qijia_dao", "langxian", "tangpa", "tengpai", "wokou_dao",
 )
 ONE_HAND_MAIN_IDS = tuple(item["id"] for item in MAIN_WEAPONS if item["grip"] == "one_hand")
 COMBO_FAMILIES = ("same", "mixed", "shield")
+FACTION_IDS = ("ming", "wokou", "neutral")
+
+
+def item_faction(item: dict | None) -> str:
+    if not item:
+        return "neutral"
+    return str(item.get("faction", "neutral"))
+
+
+def faction_items(items: list[dict], faction: str) -> list[dict]:
+    return [item for item in items if item_faction(item) in ("neutral", faction)]
+
+
+def items_faction_compatible(first: dict | None, second: dict | None) -> bool:
+    factions = {item_faction(first), item_faction(second)} - {"neutral"}
+    return len(factions) <= 1
+
+
+def pair_faction(main_id: str, offhand_id: str) -> str:
+    factions = {
+        item_faction(WEAPON_BY_ID.get(main_id)),
+        item_faction(WEAPON_BY_ID.get(offhand_id)),
+    } - {"neutral"}
+    if not factions:
+        return "neutral"
+    return next(iter(factions))
 
 
 def combo_family(main_id: str, offhand_id: str) -> str:
-    if offhand_id == "dun":
+    if offhand_id in ("dun", "tengpai"):
         return "shield"
     if main_id == offhand_id:
         return "same"
@@ -435,6 +606,10 @@ def combo_pairs() -> list[tuple[str, str]]:
         (main_id, offhand_id)
         for main_id in ONE_HAND_MAIN_IDS
         for offhand_id in OFFHAND_ALLOWED_IDS
+        if items_faction_compatible(
+            WEAPON_BY_ID.get(main_id),
+            WEAPON_BY_ID.get(offhand_id),
+        )
     ]
 
 
@@ -1390,6 +1565,15 @@ EXTRA_ATTACK_SPECS = {
 for _weapon_id, _extra_actions in EXTRA_ATTACK_SPECS.items():
     ATTACK_SPECS[_weapon_id].update(_extra_actions)
 
+for _weapon_id, _template_id in {
+    "qijia_dao": "dao",
+    "langxian": "qiang",
+    "tangpa": "cha",
+    "wokou_dao": "qiang",
+    "tengpai": "dun",
+}.items():
+    ATTACK_SPECS[_weapon_id] = ATTACK_SPECS[_template_id]
+
 
 COMBO_ATTACK_SPECS = {
     "same": {
@@ -2057,6 +2241,31 @@ def draw_outfit_torso(
             s.px(*pt((upper_x - 7, y + 1)), outfit["accent"])
             s.px(*pt((upper_x + 8, y + 1)), outfit["accent"])
         s.px(*pt((upper_x, shoulder_y + 7)), outfit["accent_l"])
+        armor_style = str(outfit.get("armor_style", "plate"))
+        if armor_style == "domaru":
+            for y in range(int(shoulder_y) + 7, int(waist_y) - 2, 8):
+                line(s, (upper_x - 11, y), (upper_x + 11, y), RED_L)
+                line(s, (upper_x - 10, y + 1), (upper_x + 10, y + 1), RED_D)
+                s.px(upper_x - 9, y + 2, GOLD_L)
+                s.px(upper_x + 9, y + 2, GOLD_L)
+            line(s, (upper_x - 7, shoulder_y + 4), (upper_x - 11, waist_y - 3), metal_l)
+            line(s, (upper_x + 7, shoulder_y + 4), (upper_x + 11, waist_y - 3), metal_l)
+        elif armor_style == "haramaki":
+            s.rect(pt((upper_x - 3, shoulder_y + 5)), pt((upper_x + 3, waist_y - 3)), cloth)
+            line(s, (upper_x - 2, shoulder_y + 6), (upper_x - 2, waist_y - 4), cloth_l)
+            line(s, (upper_x + 2, shoulder_y + 6), (upper_x + 2, waist_y - 4), cloth_d)
+            for y in range(int(shoulder_y) + 9, int(waist_y) - 3, 5):
+                line(s, (upper_x - 12, y), (upper_x - 7, y), outfit["accent"])
+                line(s, (upper_x + 7, y), (upper_x + 12, y), outfit["accent"])
+                s.px(upper_x - 12, y + 1, GOLD_L)
+                s.px(upper_x + 12, y + 1, GOLD_L)
+        elif armor_style == "qijia":
+            s.rect(pt((upper_x - 5, shoulder_y + 8)), pt((upper_x + 5, shoulder_y + 14)), GOLD_D)
+            s.rect(pt((upper_x - 4, shoulder_y + 9)), pt((upper_x + 4, shoulder_y + 13)), GOLD_L)
+            line(s, (upper_x - 10, shoulder_y + 12), (upper_x - 4, shoulder_y + 8), RED_L)
+            line(s, (upper_x + 10, shoulder_y + 12), (upper_x + 4, shoulder_y + 8), RED_L)
+            line(s, (upper_x - 9, waist_y - 6), (upper_x + 9, waist_y - 6), RED_L)
+            line(s, (upper_x - 8, waist_y - 5), (upper_x + 8, waist_y - 5), RED_D)
     else:
         line(s, (upper_x - 10, shoulder_y + 4), (upper_x + 3, waist_y - 3), cloth_l)
         line(s, (upper_x + 9, shoulder_y + 4), (upper_x - 2, waist_y - 3), cloth_d)
@@ -2098,6 +2307,21 @@ def draw_outfit_pelvis(
                 line(s, (upper_x + x0 + 1, waist_y + 3), (upper_x + x1 - 1, waist_y + 3), metal_l)
                 s.px(*pt((upper_x + x0 + 2, hip_y + 3)), outfit["accent"])
                 s.px(*pt((upper_x + x1 - 2, hip_y + 3)), outfit["accent"])
+            armor_style = str(outfit.get("armor_style", "plate"))
+            if armor_style == "domaru":
+                for y in (waist_y + 5, hip_y):
+                    line(s, (upper_x - 14, y), (upper_x + 14, y), RED_L)
+                    line(s, (upper_x - 13, y + 1), (upper_x + 13, y + 1), RED_D)
+            elif armor_style == "qijia":
+                for x0, x1 in ((-13, -5), (-1, 1), (5, 13)):
+                    polygon(
+                        s,
+                        [(upper_x + x0, waist_y + 4), (upper_x + x1, waist_y + 4),
+                         (upper_x + x1, hip_y + 3), (upper_x + x0, hip_y + 3)],
+                        RED_D,
+                    )
+                    line(s, (upper_x + x0 + 1, hip_y + 2),
+                         (upper_x + x1 - 1, hip_y + 2), RED_L)
         else:
             skirt = [
                 (upper_x - 11, waist_y + 1), (upper_x + 11, waist_y + 1),
@@ -2515,6 +2739,28 @@ def draw_weapon_dao(s: Sprite, pose: dict) -> None:
     _slash_effect(s, pose, hand, 31, WHITE if int(pose["stage"]) == 3 else GOLD_L)
 
 
+def draw_weapon_qijia_dao(s: Sprite, pose: dict) -> None:
+    hand = pose["near_hand"]
+    angle = float(pose["weapon_angle"])
+    d = (math.cos(angle), math.sin(angle))
+    n = (-d[1], d[0])
+    line(s, add(hand, mul(d, -9)), hand, LEATHER_D)
+    line(s, add(hand, mul(d, -8)), add(hand, mul(d, -3)), LEATHER_L)
+    line(s, add(hand, mul(n, -6)), add(hand, mul(n, 6)), GOLD_D)
+    line(s, add(hand, mul(n, -5)), add(hand, mul(n, 5)), GOLD_L)
+    s.px(*pt(add(hand, mul(d, -9))), RED_L)
+    s.px(*pt(add(hand, mul(d, -10))), RED)
+    tip, blade_n = _blade_polygon(s, hand, angle, 27, 2.7, IRON, IRON_LL, -1.2)
+    line(s, add(hand, mul(d, 4)), add(tip, mul(blade_n, 0.4)), IRON_L)
+    line(
+        s,
+        add(hand, mul(d, 7)),
+        add(hand, mul(d, 24)),
+        WARM_WHITE,
+    )
+    _slash_effect(s, pose, hand, 29, WHITE if int(pose["stage"]) == 3 else GOLD_L)
+
+
 def draw_weapon_jian(s: Sprite, pose: dict) -> None:
     near = pose["near_hand"]
     angle = float(pose["weapon_angle"])
@@ -2559,6 +2805,34 @@ def draw_weapon_qiang(s: Sprite, pose: dict) -> None:
         tip = add(end, mul(d, 10))
         for offset in (-6, 0, 6):
             line(s, add(tip, mul(n, offset)), add(tip, add(mul(d, 10), mul(n, offset))), WARM_WHITE)
+
+
+def draw_weapon_langxian(s: Sprite, pose: dict) -> None:
+    far = pose["far_hand"]
+    near = pose["near_hand"]
+    d = unit(sub(near, far))
+    n = (-d[1], d[0])
+    start = add(far, mul(d, -15))
+    end = add(near, mul(d, 20))
+    draw_segment(s, start, end, 4.0, 3.5, GREEN_D, INK, GREEN, rim=False)
+    line(s, add(start, mul(d, 3)), add(end, mul(d, -2)), GREEN_L)
+    for index, offset in enumerate((-10, -6, -2, 2, 6, 10)):
+        root = add(end, add(mul(d, -5 - abs(offset) * 0.3), mul(n, offset * 0.35)))
+        outer = add(root, add(mul(n, offset), mul(d, 6.0 - abs(offset) * 0.25)))
+        line(s, root, outer, WOOD_L)
+        leaf = [
+            outer,
+            add(outer, add(mul(n, 2 if offset >= 0 else -2), mul(d, 3))),
+            add(outer, mul(d, 5)),
+            add(outer, add(mul(n, -2 if offset >= 0 else 2), mul(d, 3))),
+        ]
+        polygon(s, leaf, GREEN_L if index % 2 == 0 else GREEN)
+    s.rect(pt(add(end, mul(d, -2))), pt(add(end, mul(d, 3))), LEATHER_D)
+    line(s, add(end, add(mul(n, -3), mul(d, 5))), add(end, add(mul(n, -5), mul(d, 13))), WOOD)
+    line(s, add(end, add(mul(n, 3), mul(d, 5))), add(end, add(mul(n, 5), mul(d, 13))), WOOD)
+    if int(pose["stage"]) in (2, 3, 4):
+        draw_arc(s, near, math.degrees(float(pose["weapon_angle"])) - 42,
+                 math.degrees(float(pose["weapon_angle"])) + 42, 28, GREEN_L)
 
 
 def draw_weapon_ji(s: Sprite, pose: dict) -> None:
@@ -2693,6 +2967,59 @@ def draw_weapon_cha(s: Sprite, pose: dict) -> None:
             line(s, add(end, add(mul(d, 11), mul(n, offset))), add(end, add(mul(d, 20), mul(n, offset))), WARM_WHITE)
 
 
+def draw_weapon_tangpa(s: Sprite, pose: dict) -> None:
+    far = pose["far_hand"]
+    near = pose["near_hand"]
+    d = unit(sub(near, far))
+    n = (-d[1], d[0])
+    start = add(far, mul(d, -13))
+    end = add(near, mul(d, 22))
+    draw_segment(s, start, end, 4.5, 3.5, WOOD, LEATHER_D, WOOD_L, rim=False)
+    line(s, add(start, mul(d, 4)), add(end, mul(d, -2)), OCHRE_L)
+    head = add(end, mul(d, 4))
+    polygon(
+        s,
+        [add(head, mul(n, -2)), add(head, mul(d, 8)),
+         add(head, mul(n, 2))],
+        IRON_LL,
+    )
+    for side in (-1, 1):
+        base = add(end, add(mul(n, 3 * side), mul(d, -1)))
+        mid = add(end, add(mul(n, 10 * side), mul(d, 3)))
+        tip = add(end, add(mul(n, 7 * side), mul(d, 10)))
+        line(s, base, mid, IRON_L)
+        line(s, mid, tip, IRON_LL)
+        line(s, add(mid, mul(d, 1)), add(tip, mul(d, 2)), WHITE)
+    cross = add(end, mul(d, -3))
+    for side in (-1, 1):
+        line(s, add(cross, mul(n, 2 * side)), add(cross, add(mul(n, 9 * side), mul(d, -5))), GOLD)
+        line(s, add(cross, add(mul(n, 5 * side), mul(d, -2))),
+             add(cross, add(mul(n, 9 * side), mul(d, -5))), GOLD_L)
+    s.rect(pt(add(end, mul(n, -2))), pt(add(end, mul(n, 2))), GOLD_D)
+    if int(pose["stage"]) in (2, 3, 4):
+        draw_arc(s, near, math.degrees(float(pose["weapon_angle"])) - 36,
+                 math.degrees(float(pose["weapon_angle"])) + 36, 31, GOLD_L)
+
+
+def draw_weapon_wokou_dao(s: Sprite, pose: dict) -> None:
+    far = pose["far_hand"]
+    near = pose["near_hand"]
+    d = unit(sub(near, far))
+    n = (-d[1], d[0])
+    angle = math.atan2(d[1], d[0])
+    hilt_start = add(far, mul(d, -9))
+    draw_segment(s, hilt_start, near, 5.0, 4.0, LEATHER_D, INK, LEATHER_L, rim=False)
+    for offset in (0.0, 0.28, 0.56, 0.84):
+        band = add(hilt_start, mul(d, length(sub(near, hilt_start)) * offset))
+        line(s, add(band, mul(n, -3)), add(band, mul(n, 3)), WRAP_L)
+    line(s, add(near, mul(n, -7)), add(near, mul(n, 7)), GOLD_D)
+    line(s, add(near, mul(n, -6)), add(near, mul(n, 6)), GOLD_L)
+    tip, blade_n = _blade_polygon(s, near, angle, 33, 2.5, IRON, IRON_LL, 2.2)
+    line(s, add(near, mul(d, 4)), add(tip, mul(blade_n, 0.8)), IRON_L)
+    s.px(*pt(tip), WHITE)
+    _slash_effect(s, pose, near, 34, WHITE if int(pose["stage"]) == 3 else WARM_WHITE)
+
+
 def draw_weapon_gong(s: Sprite, pose: dict) -> None:
     bow_hand = pose["near_hand"]
     string_hand = pose["far_hand"]
@@ -2787,6 +3114,25 @@ def draw_weapon_dun(s: Sprite, pose: dict) -> None:
         draw_arc(s, center, -70, 55, 25, GOLD_L)
 
 
+def draw_weapon_tengpai(s: Sprite, pose: dict) -> None:
+    center = pose["near_hand"]
+    x, y = pt(add(center, (1, -1)))
+    s.ellipse(x - 14, y - 18, x + 14, y + 18, LEATHER_D, fill=True)
+    s.ellipse(x - 13, y - 17, x + 13, y + 17, OCHRE, fill=True)
+    s.ellipse(x - 11, y - 14, x + 11, y + 14, OCHRE_L, fill=True)
+    s.ellipse(x - 7, y - 10, x + 7, y + 10, OCHRE, fill=True)
+    for dx, dy in ((-11, 0), (11, 0), (0, -14), (0, 14),
+                   (-8, -10), (8, -10), (-8, 10), (8, 10)):
+        line(s, (x, y), (x + dx, y + dy), LEATHER)
+    s.ellipse(x - 4, y - 5, x + 4, y + 5, RED_D, fill=True)
+    s.ellipse(x - 3, y - 4, x + 3, y + 4, RED, fill=True)
+    s.circle(x, y, 2, GOLD, fill=True)
+    s.px(x - 1, y - 1, GOLD_L)
+    line(s, (x - 12, y + 15), (x + 12, y + 15), LEATHER_D)
+    if int(pose["stage"]) in (2, 3, 4):
+        draw_arc(s, center, -70, 55, 26, GOLD_L)
+
+
 def draw_weapon_niaochong(s: Sprite, pose: dict) -> None:
     hand = pose["near_hand"]
     support = pose["far_hand"]
@@ -2873,10 +3219,14 @@ def draw_weapon_layer(s: Sprite, pose: dict, weapon: dict) -> None:
     kind = weapon["kind"]
     if kind == "dao":
         draw_weapon_dao(s, pose)
+    elif kind == "qijia_dao":
+        draw_weapon_qijia_dao(s, pose)
     elif kind == "jian":
         draw_weapon_jian(s, pose)
     elif kind == "qiang":
         draw_weapon_qiang(s, pose)
+    elif kind == "langxian":
+        draw_weapon_langxian(s, pose)
     elif kind == "ji":
         draw_weapon_ji(s, pose)
     elif kind == "fu":
@@ -2887,6 +3237,10 @@ def draw_weapon_layer(s: Sprite, pose: dict, weapon: dict) -> None:
         draw_weapon_gou(s, pose)
     elif kind == "cha":
         draw_weapon_cha(s, pose)
+    elif kind == "tangpa":
+        draw_weapon_tangpa(s, pose)
+    elif kind == "wokou_dao":
+        draw_weapon_wokou_dao(s, pose)
     elif kind == "gong":
         draw_weapon_gong(s, pose)
     elif kind == "nu":
@@ -2895,6 +3249,8 @@ def draw_weapon_layer(s: Sprite, pose: dict, weapon: dict) -> None:
         draw_weapon_niaochong(s, pose)
     elif kind == "dun":
         draw_weapon_dun(s, pose)
+    elif kind == "tengpai":
+        draw_weapon_tengpai(s, pose)
     elif kind == "longdeng":
         draw_weapon_longdeng(s, pose)
     elif kind == "lingqi":
@@ -3032,6 +3388,8 @@ def offhand_rows() -> list[tuple[dict, dict, dict, dict, dict, dict | None, str]
         if main["grip"] != "one_hand":
             continue
         for offhand in allowed:
+            if not items_faction_compatible(main, offhand):
+                continue
             rows.append((SKINS[0], OUTFITS[0], HEADGEAR[0], BACKGEAR[0], main, offhand, main["id"]))
     return rows
 
@@ -3075,23 +3433,26 @@ def row_maps() -> dict:
 
 def make_recipe(
     seed: int,
-    faction: str | None = None,
+    faction: str = "ming",
 ) -> dict:
+    if faction not in ("ming", "wokou", "neutral"):
+        raise ValueError(f"unknown faction: {faction}")
     rng = random.Random(seed)
     skins = SKINS
-    outfits = OUTFITS
-    headgear = HEADGEAR
-    backgear = BACKGEAR
-    weapons = MAIN_WEAPONS
-    if faction:
-        outfits = [item for item in outfits if faction in item.get("tags", [])] or OUTFITS
-        headgear = [item for item in headgear if faction in item.get("tags", []) or "neutral" in item.get("tags", [])] or HEADGEAR
-        backgear = [item for item in backgear if faction in item.get("tags", []) or "neutral" in item.get("tags", [])] or BACKGEAR
+    outfits = faction_items(OUTFITS, faction)
+    headgear = faction_items(HEADGEAR, faction)
+    backgear = faction_items(BACKGEAR, faction)
+    weapons = faction_items(MAIN_WEAPONS, faction)
+    offhands = faction_items(
+        [WEAPON_BY_ID[item_id] for item_id in OFFHAND_ALLOWED_IDS],
+        faction,
+    )
     weapon = rng.choice(weapons)
     offhand = "none"
-    if weapon["grip"] == "one_hand" and rng.random() < 0.62:
-        offhand = rng.choice([WEAPON_BY_ID[item_id] for item_id in OFFHAND_ALLOWED_IDS])["id"]
+    if weapon["grip"] == "one_hand" and offhands and rng.random() < 0.62:
+        offhand = rng.choice(offhands)["id"]
     return {
+        "faction": faction,
         "skin": rng.choice(skins)["id"],
         "outfit": rng.choice(outfits)["id"],
         "headgear": rng.choice(headgear)["id"],
@@ -3113,6 +3474,7 @@ def can_equip_offhand(main: dict, offhand: dict | None) -> bool:
         offhand is not None
         and main["grip"] == "one_hand"
         and offhand["id"] in OFFHAND_ALLOWED_IDS
+        and items_faction_compatible(main, offhand)
     )
 
 
@@ -3129,11 +3491,40 @@ def resolve_recipe(recipe: dict) -> tuple[dict, dict, dict, dict, dict, dict | N
     return skin, outfit, headgear, backgear, weapon, offhand, str(weapon["grip"])
 
 
+def recipe_faction(recipe: dict) -> str:
+    skin, outfit, headgear, backgear, weapon, offhand, _grip = resolve_recipe(recipe)
+    del skin
+    factions = {
+        item_faction(outfit),
+        item_faction(headgear),
+        item_faction(backgear),
+        item_faction(weapon),
+        item_faction(offhand),
+    } - {"neutral"}
+    if len(factions) > 1:
+        return "mixed"
+    return next(iter(factions)) if factions else "neutral"
+
+
+def validate_recipe_faction(recipe: dict) -> None:
+    resolved = recipe_faction(recipe)
+    if resolved == "mixed":
+        raise ValueError(f"mixed faction recipe: {recipe}")
+    if "faction" not in recipe:
+        return
+    declared = str(recipe["faction"])
+    if declared in ("ming", "wokou") and resolved not in (declared, "neutral"):
+        raise ValueError(f"recipe declares {declared} but uses {resolved} gear: {recipe}")
+    if declared == "neutral" and resolved != "neutral":
+        raise ValueError(f"neutral recipe uses {resolved} gear: {recipe}")
+
+
 def compose_recipe_frame(
     recipe: dict,
     frame: int,
     atlases: dict[str, Image.Image] | None = None,
 ) -> Image.Image:
+    validate_recipe_faction(recipe)
     skin, outfit, headgear, backgear, weapon, offhand, _grip = resolve_recipe(recipe)
     if atlases is None:
         atlases = load_preview_atlases()
@@ -3167,9 +3558,40 @@ def compose_recipe_frame(
 
 def save_atlas(name: str, atlas: Image.Image, target: Path) -> None:
     target.mkdir(parents=True, exist_ok=True)
-    path = target / name
-    atlas.save(path, optimize=True)
-    print(f"saved {path.relative_to(ROOT)} {atlas.width}x{atlas.height}")
+    row_count = atlas.height // CELL
+    for page in atlas_pages(name, row_count):
+        start = page["row_offset"] * CELL
+        end = (page["row_offset"] + page["row_count"]) * CELL
+        crop = atlas.crop((0, start, atlas.width, end))
+        path = target / str(page["file"])
+        crop.save(path, optimize=True)
+        print(f"saved {path.relative_to(ROOT)} {crop.width}x{crop.height}")
+
+
+def atlas_page_name(name: str, page_index: int) -> str:
+    if page_index == 0:
+        return name
+    stem = Path(name).stem
+    suffix = Path(name).suffix
+    return f"{stem}_{page_index + 1}{suffix}"
+
+
+def atlas_pages(name: str, row_count: int) -> list[dict]:
+    pages = []
+    offset = 0
+    page_index = 0
+    while offset < row_count:
+        count = min(ATLAS_PAGE_ROWS, row_count - offset)
+        filename = atlas_page_name(name, page_index)
+        pages.append({
+            "file": filename,
+            "path": f"res://assets/character_forge/{filename}",
+            "row_offset": offset,
+            "row_count": count,
+        })
+        offset += count
+        page_index += 1
+    return pages
 
 
 def preview_atlases(
@@ -3192,13 +3614,25 @@ def preview_atlases(
 
 def load_preview_atlases() -> dict[str, Image.Image]:
     out = Path(__file__).resolve().parent
+    maps = row_maps()
+
+    def load_layer(name: str, row_key: str) -> Image.Image:
+        row_count = max(maps[row_key].values()) + 1
+        pages = atlas_pages(name, row_count)
+        first = Image.open(out / str(pages[0]["file"])).convert("RGBA")
+        full = Image.new("RGBA", (first.width, row_count * CELL), (0, 0, 0, 0))
+        for page in pages:
+            image = Image.open(out / str(page["file"])).convert("RGBA")
+            full.alpha_composite(image, (0, int(page["row_offset"]) * CELL))
+        return full
+
     return {
-        "body": Image.open(out / "body_base.png").convert("RGBA"),
-        "outfit": Image.open(out / "outfits.png").convert("RGBA"),
-        "headgear": Image.open(out / "headgear.png").convert("RGBA"),
-        "backgear": Image.open(out / "backgear.png").convert("RGBA"),
-        "weapon": Image.open(out / "weapons.png").convert("RGBA"),
-        "offhand": Image.open(out / "offhands.png").convert("RGBA"),
+        "body": load_layer("body_base.png", "body"),
+        "outfit": load_layer("outfits.png", "outfits"),
+        "headgear": load_layer("headgear.png", "headgear"),
+        "backgear": load_layer("backgear.png", "backgear"),
+        "weapon": load_layer("weapons.png", "weapons"),
+        "offhand": load_layer("offhands.png", "offhands"),
     }
 
 
@@ -3219,7 +3653,7 @@ def random_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
     rows = (count + cols - 1) // cols
     cell = CELL * 2
     gap = 10
-    label_h = 34
+    label_h = 42
     sheet = Image.new(
         "RGB",
         (cols * (cell + gap) + gap, rows * (cell + label_h + gap) + gap),
@@ -3228,7 +3662,8 @@ def random_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
     draw = ImageDraw.Draw(sheet)
     frames = (15, 21, 27, 33, 39, 9, 45, 3)
     for index in range(count):
-        recipe = make_recipe(7000 + index * 13)
+        faction = "ming" if index % 2 == 0 else "wokou"
+        recipe = make_recipe(7000 + index * 13, faction)
         frame = frames[index % len(frames)]
         image = compose_recipe_frame(recipe, frame, atlases)
         image = image.resize((cell, cell), Image.Resampling.NEAREST)
@@ -3239,9 +3674,15 @@ def random_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
         sheet.paste(image, (x, y), image)
         _label(
             draw,
-            f"{recipe['weapon']}+{recipe.get('offhand', 'none')} · {recipe['outfit']} · f{frame:02d}",
-            (x + 2, y + cell + 3),
-            13,
+            f"[{faction}] {recipe['weapon']}+{recipe.get('offhand', 'none')}",
+            (x + 2, y + cell + 2),
+            11,
+        )
+        _label(
+            draw,
+            f"{recipe['outfit']} · {recipe['headgear']} · f{frame:02d}",
+            (x + 2, y + cell + 18),
+            9,
         )
     return sheet
 
@@ -3272,7 +3713,8 @@ def bow_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
         x = gap + col * (cell + gap)
         _label(draw, title, (x + 4, 5), 14)
     for index in range(count):
-        recipe = make_recipe(9100 + index * 17)
+        faction = "ming" if index % 2 == 0 else "wokou"
+        recipe = make_recipe(9100 + index * 17, faction)
         recipe["weapon"] = "gong"
         recipe["offhand"] = "none"
         y = header_h + gap + index * (cell + label_h + gap)
@@ -3283,7 +3725,8 @@ def bow_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
             sheet.paste(image, (x, y), image)
         _label(
             draw,
-            f"gong · {recipe['skin']} · {recipe['outfit']} · {recipe['headgear']} · {recipe['backgear']}",
+            f"[{faction}] gong · {recipe['skin']} · {recipe['outfit']} · "
+            f"{recipe['headgear']} · {recipe['backgear']}",
             (gap + 2, y + cell + 3),
             13,
         )
@@ -3305,12 +3748,17 @@ def dual_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
     )
     draw = ImageDraw.Draw(sheet)
     for row, (main, offhand) in enumerate(pairs):
+        faction = pair_faction(main, offhand)
+        outfits = faction_items(OUTFITS, faction)
+        headgear = faction_items(HEADGEAR, faction)
+        backgear = faction_items(BACKGEAR, faction)
         for col, frame in enumerate(frames):
             recipe = {
+                "faction": faction,
                 "skin": "tan" if row % 2 else "light",
-                "outfit": OUTFITS[row % len(OUTFITS)]["id"],
-                "headgear": "ming_helmet_red" if row % 3 else "none",
-                "backgear": "ming_cape_red" if row % 4 == 0 else "none",
+                "outfit": outfits[row % len(outfits)]["id"],
+                "headgear": headgear[(row // 2) % len(headgear)]["id"],
+                "backgear": backgear[(row // 3) % len(backgear)]["id"],
                 "weapon": main,
                 "offhand": offhand,
             }
@@ -3321,10 +3769,157 @@ def dual_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
             sheet.paste(image, (x, y), image)
         _label(
             draw,
-            f"{main} + {offhand} · combo/{combo_family(main, offhand)} · attacks 1-5",
+            f"[{faction}] {main} + {offhand} · combo/{combo_family(main, offhand)} · attacks 1-5",
             (gap + 2, gap + row * (cell + label_h + gap) + cell + 2),
             13,
         )
+    return sheet
+
+
+def faction_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
+    sections = (
+        (
+            "明军抗倭 · MING",
+            "明军专属 + 通用；禁止出现倭刀、胴丸、腹卷、阵笠",
+            (31, 43, 45),
+            (166, 78, 58),
+            (
+                {
+                    "label": "狼筅 · 戚家军甲 · 明盔",
+                    "skin": "tan", "outfit": "ming_qijia_armor",
+                    "headgear": "ming_helmet_red", "backgear": "none",
+                    "weapon": "langxian", "offhand": "none",
+                },
+                {
+                    "label": "戚家刀 + 藤牌 · 明札甲",
+                    "skin": "light", "outfit": "ming_lamellar_red",
+                    "headgear": "ming_helmet_iron", "backgear": "none",
+                    "weapon": "qijia_dao", "offhand": "tengpai",
+                },
+                {
+                    "label": "镋钯 · 明青罩甲 · 令旗",
+                    "skin": "pale", "outfit": "ming_brigandine_blue",
+                    "headgear": "ming_helmet_red", "backgear": "ming_banner",
+                    "weapon": "tangpa", "offhand": "none",
+                },
+                {
+                    "label": "通用长枪 + 明铁甲 · 通用布巾",
+                    "skin": "tan", "outfit": "ming_guard_iron",
+                    "headgear": "common_headwrap", "backgear": "ming_cape_red",
+                    "weapon": "qiang", "offhand": "none",
+                },
+            ),
+        ),
+        (
+            "倭寇 · WOKOU",
+            "倭寇专属 + 通用；禁止出现狼筅、戚家刀、藤牌、镋钯、明甲",
+            (40, 33, 40),
+            (178, 92, 72),
+            (
+                {
+                    "label": "倭刀 · 胴丸 · 阵笠",
+                    "skin": "deep", "outfit": "wokou_domaru",
+                    "headgear": "wokou_kasa", "backgear": "none",
+                    "weapon": "wokou_dao", "offhand": "none",
+                },
+                {
+                    "label": "倭刀 · 腹卷 · 倭头巾",
+                    "skin": "tan", "outfit": "wokou_haramaki",
+                    "headgear": "wokou_headband", "backgear": "none",
+                    "weapon": "wokou_dao", "offhand": "none",
+                },
+                {
+                    "label": "通用长枪 · 胴丸 · 阵笠",
+                    "skin": "deep", "outfit": "wokou_domaru",
+                    "headgear": "wokou_kasa", "backgear": "wokou_cloak_dark",
+                    "weapon": "qiang", "offhand": "none",
+                },
+                {
+                    "label": "通用腰刀 · 腹卷 · 通用布巾",
+                    "skin": "tan", "outfit": "wokou_haramaki",
+                    "headgear": "common_headwrap", "backgear": "none",
+                    "weapon": "dao", "offhand": "none",
+                },
+            ),
+        ),
+        (
+            "通用 · NEUTRAL",
+            "只取通用装备；不挂明军或倭寇专属标识",
+            (31, 39, 43),
+            (112, 140, 136),
+            (
+                {
+                    "label": "通用弓 · 皮札背心 · 布头巾",
+                    "skin": "tan", "outfit": "common_leather_vest",
+                    "headgear": "common_headwrap", "backgear": "none",
+                    "weapon": "gong", "offhand": "none",
+                },
+                {
+                    "label": "通用腰刀 · 乡勇麻衣",
+                    "skin": "light", "outfit": "villager_linen",
+                    "headgear": "common_headwrap", "backgear": "none",
+                    "weapon": "dao", "offhand": "none",
+                },
+                {
+                    "label": "通用长剑 + 通用盾 · 皮札背心",
+                    "skin": "pale", "outfit": "common_leather_vest",
+                    "headgear": "none", "backgear": "none",
+                    "weapon": "jian", "offhand": "dun",
+                },
+            ),
+        ),
+    )
+    frames = (0, 15, 27, 39)
+    cols = len(frames)
+    cell = CELL * 2
+    gap = 10
+    title_h = 62
+    section_h = 38
+    label_h = 46
+    row_h = cell + label_h + gap
+    total_rows = sum(len(section[4]) for section in sections)
+    height = title_h + gap
+    for _title, _rule, _bg, _accent, rows in sections:
+        height += section_h + len(rows) * row_h + gap
+    width = gap + cols * (cell + gap)
+    sheet = Image.new("RGB", (width, height), (18, 23, 26))
+    draw = ImageDraw.Draw(sheet)
+    _label(draw, "阵营组合验收 · 明军 / 倭寇 / 通用不得混装", (gap, 7), 24)
+    _label(
+        draw,
+        "MING: 狼筅 戚家刀 藤牌 镋钯 戚家军甲   "
+        "WOKOU: 倭刀 胴丸 腹卷 阵笠   COMMON: 皮札背心 布头巾 通用兵器",
+        (gap, 35),
+        13,
+    )
+    y = title_h + gap
+    for title, rule, bg, accent, rows in sections:
+        draw.rectangle((gap, y, width - gap, y + section_h - 4), fill=bg)
+        draw.rectangle((gap, y, gap + 7, y + section_h - 4), fill=accent)
+        _label(draw, title, (gap + 16, y + 6), 18)
+        _label(draw, rule, (gap + 360, y + 9), 12)
+        y += section_h
+        for row in rows:
+            faction = "ming" if "MING" in title else "wokou" if "WOKOU" in title else "neutral"
+            recipe = dict(row)
+            recipe["faction"] = faction
+            label_text = str(recipe.pop("label"))
+            for col, frame in enumerate(frames):
+                image = compose_recipe_frame(recipe, frame, atlases)
+                image = image.resize((cell, cell), Image.Resampling.NEAREST)
+                x = gap + col * (cell + gap)
+                sheet.paste(image, (x, y), image)
+            _label(draw, f"[{faction}] {label_text}", (gap + 2, y + cell + 2), 12)
+            _label(
+                draw,
+                f"{recipe['weapon']}+{recipe['offhand']} · {recipe['outfit']} · "
+                f"{recipe['headgear']} · f{frames[0]:02d}/{frames[1]:02d}/{frames[2]:02d}/{frames[3]:02d}",
+                (gap + 2, y + cell + 19),
+                10,
+            )
+            y += row_h
+        y += gap
+    assert total_rows == 11
     return sheet
 
 
@@ -3365,7 +3960,7 @@ def joint_contact_sheet(body: Image.Image) -> Image.Image:
 
 def weapon_action_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
     cols = len(ATTACK_ACTIONS)
-    showcase = MAIN_WEAPONS + [WEAPON_BY_ID["dun"]]
+    showcase = MAIN_WEAPONS + [WEAPON_BY_ID["dun"], WEAPON_BY_ID["tengpai"]]
     rows = len(showcase)
     cell = CELL * 2
     gap = 8
@@ -3378,15 +3973,20 @@ def weapon_action_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
     draw = ImageDraw.Draw(sheet)
     frames = [CLIPS[f"attack_{action}"]["start"] + 3 for action in ATTACK_ACTIONS]
     for row, weapon in enumerate(showcase):
+        faction = item_faction(weapon)
+        outfits = faction_items(OUTFITS, faction)
+        headgear = faction_items(HEADGEAR, faction)
+        backgear = faction_items(BACKGEAR, faction)
         for col, frame in enumerate(frames):
-            outfit = OUTFITS[0] if row % 2 == 0 else OUTFITS[1]
+            outfit = outfits[row % len(outfits)]
             recipe = {
+                "faction": faction,
                 "skin": "tan",
                 "outfit": outfit["id"],
-                "headgear": "none",
-                "backgear": "none",
+                "headgear": headgear[(row // 2) % len(headgear)]["id"],
+                "backgear": backgear[(row // 3) % len(backgear)]["id"],
                 "weapon": "dao" if weapon["slot"] == "offhand" else weapon["id"],
-                "offhand": "dun" if weapon["slot"] == "offhand" else "none",
+                "offhand": weapon["id"] if weapon["slot"] == "offhand" else "none",
             }
             image = compose_recipe_frame(recipe, frame, atlases)
             image = image.resize((cell, cell), Image.Resampling.NEAREST)
@@ -3457,6 +4057,7 @@ def naked_pose_sheet(body: Image.Image) -> Image.Image:
 
 def layer_breakdown(atlases: dict[str, Image.Image]) -> Image.Image:
     recipe = {
+        "faction": "ming",
         "skin": "tan",
         "outfit": "ming_lamellar_red",
         "headgear": "ming_helmet_red",
@@ -3503,6 +4104,7 @@ def layer_breakdown(atlases: dict[str, Image.Image]) -> Image.Image:
 
 def save_gif(atlases: dict[str, Image.Image], path: Path) -> None:
     recipe = {
+        "faction": "ming",
         "skin": "tan",
         "outfit": "ming_lamellar_red",
         "headgear": "ming_helmet_red",
@@ -3529,15 +4131,74 @@ def save_gif(atlases: dict[str, Image.Image], path: Path) -> None:
     )
 
 
+def faction_loadout_count(faction: str) -> int:
+    mains = faction_items(MAIN_WEAPONS, faction)
+    offhands = faction_items(
+        [WEAPON_BY_ID[item_id] for item_id in OFFHAND_ALLOWED_IDS],
+        faction,
+    )
+    count = len(mains)
+    for main in mains:
+        if main["grip"] != "one_hand":
+            continue
+        count += sum(1 for offhand in offhands if can_equip_offhand(main, offhand))
+    return count
+
+
+def faction_combination_count(faction: str) -> int:
+    return (
+        len(SKINS)
+        * len(faction_items(OUTFITS, faction))
+        * len(faction_items(HEADGEAR, faction))
+        * len(faction_items(BACKGEAR, faction))
+        * faction_loadout_count(faction)
+    )
+
+
 def data_document() -> dict:
     maps = row_maps()
+
+    def atlas_entry(name: str, row_key: str) -> dict:
+        rows = maps[row_key]
+        row_count = max(rows.values()) + 1
+        pages = atlas_pages(name, row_count)
+        return {
+            "path": pages[0]["path"],
+            "rows": rows,
+            "pages": [
+                {
+                    "path": page["path"],
+                    "row_offset": page["row_offset"],
+                    "row_count": page["row_count"],
+                }
+                for page in pages
+            ],
+        }
+
     loadouts = sum(
-        1 + (len(OFFHAND_ALLOWED_IDS) if item["grip"] == "one_hand" else 0)
+        1 + (
+            sum(
+                1
+                for offhand_id in OFFHAND_ALLOWED_IDS
+                if can_equip_offhand(item, WEAPON_BY_ID[offhand_id])
+            )
+            if item["grip"] == "one_hand"
+            else 0
+        )
         for item in MAIN_WEAPONS
     )
-    combinations = len(SKINS) * len(OUTFITS) * len(HEADGEAR) * len(BACKGEAR) * loadouts
+    raw_combinations = len(SKINS) * len(OUTFITS) * len(HEADGEAR) * len(BACKGEAR) * loadouts
+    faction_loadouts = {
+        faction: faction_loadout_count(faction)
+        for faction in ("ming", "wokou")
+    }
+    faction_combinations = {
+        faction: faction_combination_count(faction)
+        for faction in ("ming", "wokou")
+    }
+    combinations = sum(faction_combinations.values())
     return {
-        "version": 3,
+        "version": 4,
         "license": "CC BY 4.0",
         "author": "xingwangzhe",
         "source": "pixel-art/character_forge/build.py",
@@ -3562,31 +4223,53 @@ def data_document() -> dict:
             f"{main_id}+{offhand_id}": combo_family(main_id, offhand_id)
             for main_id, offhand_id in combo_pairs()
         },
+        "combo_pair_factions": {
+            f"{main_id}+{offhand_id}": pair_faction(main_id, offhand_id)
+            for main_id, offhand_id in combo_pairs()
+        },
         "layer_order": ["backgear", "body", "outfit", "headgear", "offhand", "weapon"],
+        "factions": [
+            {"id": "ming", "name_zh": "明军抗倭", "name_en": "Ming Anti-Wokou"},
+            {"id": "wokou", "name_zh": "倭寇", "name_en": "Wokou"},
+            {"id": "neutral", "name_zh": "通用", "name_en": "Common"},
+        ],
+        "faction_rules": {
+            "ming": "ming + neutral",
+            "wokou": "wokou + neutral",
+            "neutral": "neutral only",
+            "forbidden": "ming + wokou",
+        },
         "combination_count": combinations,
+        "raw_combination_count": raw_combinations,
         "loadout_count": loadouts,
+        "faction_loadout_counts": faction_loadouts,
+        "faction_combination_counts": faction_combinations,
         "skins": [
             {"id": item["id"], "name_zh": item["name_zh"], "name_en": item["name_en"]}
             for item in SKINS
         ],
         "outfits": [
             {"id": item["id"], "name_zh": item["name_zh"], "name_en": item["name_en"],
+             "faction": item_faction(item), "exclusive": bool(item.get("exclusive", False)),
              "tags": item["tags"]}
             for item in OUTFITS
         ],
         "headgear": [
             {"id": item["id"], "name_zh": item["name_zh"], "name_en": item["name_en"],
+             "faction": item_faction(item), "exclusive": bool(item.get("exclusive", False)),
              "tags": item["tags"]}
             for item in HEADGEAR
         ],
         "backgear": [
             {"id": item["id"], "name_zh": item["name_zh"], "name_en": item["name_en"],
+             "faction": item_faction(item), "exclusive": bool(item.get("exclusive", False)),
              "tags": item["tags"]}
             for item in BACKGEAR
         ],
         "weapons": [
             {"id": item["id"], "name_zh": item["name_zh"], "name_en": item["name_en"],
-             "grip": item["grip"], "slot": item["slot"],
+             "faction": item_faction(item), "grip": item["grip"], "slot": item["slot"],
+             "exclusive": bool(item.get("exclusive", False)), "tags": item.get("tags", []),
              "arm_layer": ARM_LAYER_RULES[item["grip"]],
              "actions": [
                  {
@@ -3602,43 +4285,85 @@ def data_document() -> dict:
         ],
         "offhand_allowed": list(OFFHAND_ALLOWED_IDS),
         "atlases": {
-            "body": {"path": "res://assets/character_forge/body_base.png", "rows": maps["body"]},
-            "outfit": {"path": "res://assets/character_forge/outfits.png", "rows": maps["outfits"]},
-            "headgear": {"path": "res://assets/character_forge/headgear.png", "rows": maps["headgear"]},
-            "backgear": {"path": "res://assets/character_forge/backgear.png", "rows": maps["backgear"]},
-            "weapon": {"path": "res://assets/character_forge/weapons.png", "rows": maps["weapons"]},
-            "offhand": {"path": "res://assets/character_forge/offhands.png", "rows": maps["offhands"]},
+            "body": atlas_entry("body_base.png", "body"),
+            "outfit": atlas_entry("outfits.png", "outfits"),
+            "headgear": atlas_entry("headgear.png", "headgear"),
+            "backgear": atlas_entry("backgear.png", "backgear"),
+            "weapon": atlas_entry("weapons.png", "weapons"),
+            "offhand": atlas_entry("offhands.png", "offhands"),
         },
         "recipes": {
             "hero": {
+                "faction": "ming",
                 "skin": "tan", "outfit": "ming_lamellar_red",
                 "headgear": "ming_helmet_red", "backgear": "ming_cape_red",
                 "weapon": "dao", "offhand": "dun",
             },
             "ming_guard": {
+                "faction": "ming",
                 "skin": "light", "outfit": "ming_guard_iron",
                 "headgear": "ming_helmet_iron", "backgear": "ming_banner",
                 "weapon": "qiang", "offhand": "none",
             },
+            "ming_wolf_brush": {
+                "faction": "ming",
+                "skin": "tan", "outfit": "ming_qijia_armor",
+                "headgear": "ming_helmet_red", "backgear": "ming_cape_red",
+                "weapon": "langxian", "offhand": "none",
+            },
+            "ming_qijia_saber": {
+                "faction": "ming",
+                "skin": "light", "outfit": "ming_lamellar_red",
+                "headgear": "ming_helmet_iron", "backgear": "none",
+                "weapon": "qijia_dao", "offhand": "tengpai",
+            },
+            "ming_tangpa": {
+                "faction": "ming",
+                "skin": "pale", "outfit": "ming_brigandine_blue",
+                "headgear": "ming_helmet_red", "backgear": "none",
+                "weapon": "tangpa", "offhand": "none",
+            },
             "wokou_raider": {
+                "faction": "wokou",
                 "skin": "deep", "outfit": "wokou_ragged_brown",
                 "headgear": "wokou_headband", "backgear": "none",
                 "weapon": "dao", "offhand": "none",
             },
             "wokou_gunner": {
+                "faction": "wokou",
                 "skin": "tan", "outfit": "wokou_dark_navy",
                 "headgear": "wokou_kasa", "backgear": "none",
                 "weapon": "niaochong", "offhand": "none",
             },
             "wokou_general": {
+                "faction": "wokou",
                 "skin": "deep", "outfit": "general_purple",
                 "headgear": "wokou_helmet", "backgear": "wokou_cloak_dark",
                 "weapon": "ji", "offhand": "none",
             },
+            "wokou_swordsman_domaru": {
+                "faction": "wokou",
+                "skin": "deep", "outfit": "wokou_domaru",
+                "headgear": "wokou_kasa", "backgear": "none",
+                "weapon": "wokou_dao", "offhand": "none",
+            },
+            "wokou_swordsman_haramaki": {
+                "faction": "wokou",
+                "skin": "tan", "outfit": "wokou_haramaki",
+                "headgear": "wokou_headband", "backgear": "wokou_cloak_dark",
+                "weapon": "wokou_dao", "offhand": "none",
+            },
             "oni_duelist": {
+                "faction": "wokou",
                 "skin": "deep", "outfit": "oni_red",
                 "headgear": "oni_mask", "backgear": "none",
                 "weapon": "gou", "offhand": "gou",
+            },
+            "common_villager": {
+                "faction": "neutral",
+                "skin": "tan", "outfit": "common_leather_vest",
+                "headgear": "common_headwrap", "backgear": "none",
+                "weapon": "gong", "offhand": "none",
             },
         },
     }
@@ -3708,6 +4433,29 @@ def main() -> None:
     data_dir = ROOT / "game" / "data"
     out.mkdir(parents=True, exist_ok=True)
 
+    if "--split-only" in sys.argv:
+        for name in (
+            "body_base.png", "outfits.png", "headgear.png",
+            "backgear.png", "weapons.png", "offhands.png",
+        ):
+            image = Image.open(out / name).convert("RGBA")
+            save_atlas(name, image, out)
+            save_atlas(name, image, runtime)
+        write_data(data_dir)
+        print("atlases split into paged textures and data refreshed")
+        return
+
+    if "--weapons-only" in sys.argv:
+        weapons = build_atlas("weapon", weapon_rows())
+        offhands = build_atlas("offhand", offhand_rows())
+        save_atlas("weapons.png", weapons, out)
+        save_atlas("offhands.png", offhands, out)
+        save_atlas("weapons.png", weapons, runtime)
+        save_atlas("offhands.png", offhands, runtime)
+        write_data(data_dir)
+        print("weapon and offhand atlases refreshed")
+        return
+
     if "--previews-only" in sys.argv:
         atlases = load_preview_atlases()
         body = atlases["body"]
@@ -3718,6 +4466,7 @@ def main() -> None:
         random_combo_sheet(atlases).save(out / "random_combo_sheet.png")
         bow_combo_sheet(atlases).save(out / "bow_combo_sheet.png")
         dual_combo_sheet(atlases).save(out / "dual_combo_sheet.png")
+        faction_combo_sheet(atlases).save(out / "faction_combo_sheet.png")
         weapon_action_sheet(atlases).save(out / "weapon_action_sheet.png")
         save_gif(atlases, out / "hero_forge_demo.gif")
         write_data(data_dir)
@@ -3752,6 +4501,7 @@ def main() -> None:
     random_combo_sheet(atlases).save(out / "random_combo_sheet.png")
     bow_combo_sheet(atlases).save(out / "bow_combo_sheet.png")
     dual_combo_sheet(atlases).save(out / "dual_combo_sheet.png")
+    faction_combo_sheet(atlases).save(out / "faction_combo_sheet.png")
     weapon_action_sheet(atlases).save(out / "weapon_action_sheet.png")
     save_gif(atlases, out / "hero_forge_demo.gif")
     write_data(data_dir)
