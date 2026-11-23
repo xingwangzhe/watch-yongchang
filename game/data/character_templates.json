@@ -1,11 +1,12 @@
 {
-  "version": 2,
+  "version": 3,
   "license": "CC BY 4.0",
   "author": "xingwangzhe",
   "source": "pixel-art/character_forge/build.py",
   "cell": 128,
-  "frame_count": 32,
-  "columns": 32,
+  "frame_count": 48,
+  "columns": 48,
+  "attack_action_count": 5,
   "clips": {
     "idle": {
       "start": 0,
@@ -32,10 +33,25 @@
       "count": 6,
       "fps": 11
     },
-    "hit": {
+    "attack_4": {
       "start": 30,
+      "count": 6,
+      "fps": 12
+    },
+    "attack_5": {
+      "start": 36,
+      "count": 6,
+      "fps": 10
+    },
+    "hit": {
+      "start": 42,
       "count": 2,
       "fps": 10
+    },
+    "guard": {
+      "start": 44,
+      "count": 4,
+      "fps": 6
     }
   },
   "grips": [
@@ -47,8 +63,148 @@
   "arm_layer_rules": {
     "two_hand": "both_front",
     "ranged": "both_front",
-    "one_hand": "far_back_near_front",
-    "offhand": "far_back_near_front"
+    "one_hand": "both_front",
+    "offhand": "both_front"
+  },
+  "arm_layer_policy": "all_arms_front",
+  "pose_variants": [
+    "dao",
+    "jian",
+    "qiang",
+    "ji",
+    "fu",
+    "yue",
+    "gou",
+    "cha",
+    "gong",
+    "nu",
+    "niaochong",
+    "longdeng",
+    "lingqi",
+    "dun",
+    "combo_same",
+    "combo_mixed",
+    "combo_shield"
+  ],
+  "combo_families": [
+    "same",
+    "mixed",
+    "shield"
+  ],
+  "combo_actions": {
+    "same": [
+      {
+        "id": "attack_1",
+        "name_zh": "同心斩",
+        "name_en": "Twin Heart Cut"
+      },
+      {
+        "id": "attack_2",
+        "name_zh": "双回风",
+        "name_en": "Twin Backwind"
+      },
+      {
+        "id": "attack_3",
+        "name_zh": "叠浪式",
+        "name_en": "Twin Wave"
+      },
+      {
+        "id": "attack_4",
+        "name_zh": "合璧式",
+        "name_en": "Paired Jade"
+      },
+      {
+        "id": "attack_5",
+        "name_zh": "双龙出海",
+        "name_en": "Twin Dragons"
+      }
+    ],
+    "mixed": [
+      {
+        "id": "attack_1",
+        "name_zh": "左牵右引",
+        "name_en": "Left Draw, Right Guide"
+      },
+      {
+        "id": "attack_2",
+        "name_zh": "长短互济",
+        "name_en": "Long and Short"
+      },
+      {
+        "id": "attack_3",
+        "name_zh": "错锋式",
+        "name_en": "Crossed Edges"
+      },
+      {
+        "id": "attack_4",
+        "name_zh": "阴阳式",
+        "name_en": "Yin and Yang"
+      },
+      {
+        "id": "attack_5",
+        "name_zh": "合击式",
+        "name_en": "Joint Strike"
+      }
+    ],
+    "shield": [
+      {
+        "id": "attack_1",
+        "name_zh": "盾掩刀锋",
+        "name_en": "Shield Covers Blade"
+      },
+      {
+        "id": "attack_2",
+        "name_zh": "撞盾斩",
+        "name_en": "Shield Charge Cut"
+      },
+      {
+        "id": "attack_3",
+        "name_zh": "守势反击",
+        "name_en": "Guard Counter"
+      },
+      {
+        "id": "attack_4",
+        "name_zh": "压盾式",
+        "name_en": "Shield Press"
+      },
+      {
+        "id": "attack_5",
+        "name_zh": "破阵合击",
+        "name_en": "Breaker Combo"
+      }
+    ]
+  },
+  "combo_pairs": {
+    "dao+dao": "same",
+    "dao+jian": "mixed",
+    "dao+gou": "mixed",
+    "dao+longdeng": "mixed",
+    "dao+lingqi": "mixed",
+    "dao+dun": "shield",
+    "jian+dao": "mixed",
+    "jian+jian": "same",
+    "jian+gou": "mixed",
+    "jian+longdeng": "mixed",
+    "jian+lingqi": "mixed",
+    "jian+dun": "shield",
+    "gou+dao": "mixed",
+    "gou+jian": "mixed",
+    "gou+gou": "same",
+    "gou+longdeng": "mixed",
+    "gou+lingqi": "mixed",
+    "gou+dun": "shield",
+    "longdeng+dao": "mixed",
+    "longdeng+jian": "mixed",
+    "longdeng+gou": "mixed",
+    "longdeng+longdeng": "same",
+    "longdeng+lingqi": "mixed",
+    "longdeng+dun": "shield",
+    "lingqi+dao": "mixed",
+    "lingqi+jian": "mixed",
+    "lingqi+gou": "mixed",
+    "lingqi+longdeng": "mixed",
+    "lingqi+lingqi": "same",
+    "lingqi+dun": "shield"
   },
   "layer_order": [
     "backgear",
@@ -58,8 +214,8 @@
     "offhand",
     "weapon"
   ],
-  "combination_count": 69696,
-  "loadout_count": 33,
+  "combination_count": 90816,
+  "loadout_count": 43,
   "skins": [
     {
       "id": "light",
@@ -322,7 +478,34 @@
       "name_en": "Dao Saber",
       "grip": "one_hand",
       "slot": "main",
-      "arm_layer": "far_back_near_front",
+      "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "劈山式",
+          "name_en": "Mountain Split"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "撩云式",
+          "name_en": "Cloud Rise"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "横斩式",
+          "name_en": "Cross Cut"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "回风式",
+          "name_en": "Backwind Cut"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "断浪式",
+          "name_en": "Wave Breaker"
+        }
+      ],
       "attack_profile": "saber_diagonal",
       "offhand": true,
       "required": true
@@ -333,7 +516,34 @@
       "name_en": "Jian Sword",
       "grip": "one_hand",
       "slot": "main",
-      "arm_layer": "far_back_near_front",
+      "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "点星式",
+          "name_en": "Star Point"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "撩月式",
+          "name_en": "Moon Rise"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "刺虹式",
+          "name_en": "Rainbow Thrust"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "回锋式",
+          "name_en": "Returning Edge"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "贯日式",
+          "name_en": "Sun Piercer"
+        }
+      ],
       "attack_profile": "sword_thrust",
       "offhand": true,
       "required": true
@@ -345,6 +555,33 @@
       "grip": "two_hand",
       "slot": "main",
       "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "中平刺",
+          "name_en": "Level Thrust"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "拦拿扎",
+          "name_en": "Parry and Pierce"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "崩枪式",
+          "name_en": "Spear Snap"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "回马枪",
+          "name_en": "Turning Spear"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "穿云刺",
+          "name_en": "Cloud Piercer"
+        }
+      ],
       "attack_profile": "spear_lunge",
       "offhand": false,
       "required": true
@@ -356,6 +593,33 @@
       "grip": "two_hand",
       "slot": "main",
       "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "横戟式",
+          "name_en": "Level Halberd"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "勾啄式",
+          "name_en": "Hook and Peck"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "回旋斩",
+          "name_en": "Whirl Cut"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "挑月式",
+          "name_en": "Moon Lift"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "破阵式",
+          "name_en": "Formation Breaker"
+        }
+      ],
       "attack_profile": "halberd_sweep",
       "offhand": false,
       "required": true
@@ -367,6 +631,33 @@
       "grip": "two_hand",
       "slot": "main",
       "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "开山劈",
+          "name_en": "Mountain Cleave"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "横抡斧",
+          "name_en": "Side Swing"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "回风劈",
+          "name_en": "Backwind Cleave"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "撩斧式",
+          "name_en": "Axe Rise"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "断岳式",
+          "name_en": "Ridge Breaker"
+        }
+      ],
       "attack_profile": "axe_chop",
       "offhand": false,
       "required": true
@@ -378,6 +669,33 @@
       "grip": "two_hand",
       "slot": "main",
       "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "横扫千军",
+          "name_en": "Army Sweep"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "回旋钺",
+          "name_en": "Whirl Axe"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "上撩式",
+          "name_en": "Upward Rise"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "压顶式",
+          "name_en": "Crown Press"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "裂阵式",
+          "name_en": "Line Breaker"
+        }
+      ],
       "attack_profile": "yue_wide_sweep",
       "offhand": false,
       "required": true
@@ -388,7 +706,34 @@
       "name_en": "Gou Hook",
       "grip": "one_hand",
       "slot": "main",
-      "arm_layer": "far_back_near_front",
+      "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "锁喉钩",
+          "name_en": "Throat Hook"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "回勾式",
+          "name_en": "Returning Hook"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "双撩钩",
+          "name_en": "Twin Hook Rise"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "缠腕式",
+          "name_en": "Wrist Coil"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "破甲钩",
+          "name_en": "Armour Hook"
+        }
+      ],
       "attack_profile": "hook_cross",
       "offhand": true,
       "required": true
@@ -400,6 +745,33 @@
       "grip": "two_hand",
       "slot": "main",
       "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "中平叉",
+          "name_en": "Level Trident"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "挑刺式",
+          "name_en": "Rising Thrust"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "横扫式",
+          "name_en": "Side Sweep"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "锁兵式",
+          "name_en": "Weapon Lock"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "破阵叉",
+          "name_en": "Formation Fork"
+        }
+      ],
       "attack_profile": "trident_triple",
       "offhand": false,
       "required": true
@@ -411,6 +783,33 @@
       "grip": "ranged",
       "slot": "main",
       "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "开弓式",
+          "name_en": "Bow Draw"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "满月式",
+          "name_en": "Full Moon"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "连珠式",
+          "name_en": "Rapid Volley"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "仰射式",
+          "name_en": "High Shot"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "回身射",
+          "name_en": "Turning Shot"
+        }
+      ],
       "attack_profile": "bow_draw",
       "offhand": false,
       "required": true
@@ -422,6 +821,33 @@
       "grip": "ranged",
       "slot": "main",
       "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "上弦式",
+          "name_en": "Crossbow Span"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "平射式",
+          "name_en": "Level Shot"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "连弩式",
+          "name_en": "Repeating Volley"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "压弩式",
+          "name_en": "Press Shot"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "回身射",
+          "name_en": "Turning Shot"
+        }
+      ],
       "attack_profile": "crossbow_volley",
       "offhand": false,
       "required": true
@@ -433,6 +859,33 @@
       "grip": "ranged",
       "slot": "main",
       "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "举铳式",
+          "name_en": "Cannon Raise"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "瞄准式",
+          "name_en": "Take Aim"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "击发式",
+          "name_en": "Fire"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "压铳式",
+          "name_en": "Recoil Brace"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "回身铳",
+          "name_en": "Turning Shot"
+        }
+      ],
       "attack_profile": "hand_cannon",
       "offhand": false,
       "required": false
@@ -443,9 +896,36 @@
       "name_en": "Dragon Lantern",
       "grip": "one_hand",
       "slot": "main",
-      "arm_layer": "far_back_near_front",
+      "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "龙灯起式",
+          "name_en": "Lantern Rise"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "盘龙式",
+          "name_en": "Coiled Dragon"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "摆灯式",
+          "name_en": "Lantern Swing"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "回龙式",
+          "name_en": "Returning Dragon"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "龙腾式",
+          "name_en": "Dragon Soars"
+        }
+      ],
       "attack_profile": "lantern_sweep",
-      "offhand": false,
+      "offhand": true,
       "required": false
     },
     {
@@ -454,9 +934,36 @@
       "name_en": "Signal Flag",
       "grip": "one_hand",
       "slot": "main",
-      "arm_layer": "far_back_near_front",
+      "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "举旗式",
+          "name_en": "Flag Raise"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "挥旗式",
+          "name_en": "Flag Sweep"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "卷旗式",
+          "name_en": "Flag Coil"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "指阵式",
+          "name_en": "Formation Call"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "破阵旗",
+          "name_en": "Formation Breaker"
+        }
+      ],
       "attack_profile": "signal_command",
-      "offhand": false,
+      "offhand": true,
       "required": false
     },
     {
@@ -465,7 +972,34 @@
       "name_en": "Shield",
       "grip": "offhand",
       "slot": "offhand",
-      "arm_layer": "far_back_near_front",
+      "arm_layer": "both_front",
+      "actions": [
+        {
+          "id": "attack_1",
+          "name_zh": "举盾式",
+          "name_en": "Shield Raise"
+        },
+        {
+          "id": "attack_2",
+          "name_zh": "盾击式",
+          "name_en": "Shield Bash"
+        },
+        {
+          "id": "attack_3",
+          "name_zh": "格挡式",
+          "name_en": "Shield Block"
+        },
+        {
+          "id": "attack_4",
+          "name_zh": "撞阵式",
+          "name_en": "Shield Charge"
+        },
+        {
+          "id": "attack_5",
+          "name_zh": "回盾式",
+          "name_en": "Shield Return"
+        }
+      ],
       "attack_profile": "shield_bash",
       "offhand": true,
       "required": true
@@ -475,6 +1009,8 @@
     "dao",
     "jian",
     "gou",
+    "longdeng",
+    "lingqi",
     "dun"
   ],
   "atlases": {
@@ -495,48 +1031,60 @@
         "light|longdeng": 11,
         "light|lingqi": 12,
         "light|dun": 13,
-        "tan|dao": 14,
-        "tan|jian": 15,
-        "tan|qiang": 16,
-        "tan|ji": 17,
-        "tan|fu": 18,
-        "tan|yue": 19,
-        "tan|gou": 20,
-        "tan|cha": 21,
-        "tan|gong": 22,
-        "tan|nu": 23,
-        "tan|niaochong": 24,
-        "tan|longdeng": 25,
-        "tan|lingqi": 26,
-        "tan|dun": 27,
-        "deep|dao": 28,
-        "deep|jian": 29,
-        "deep|qiang": 30,
-        "deep|ji": 31,
-        "deep|fu": 32,
-        "deep|yue": 33,
-        "deep|gou": 34,
-        "deep|cha": 35,
-        "deep|gong": 36,
-        "deep|nu": 37,
-        "deep|niaochong": 38,
-        "deep|longdeng": 39,
-        "deep|lingqi": 40,
-        "deep|dun": 41,
-        "pale|dao": 42,
-        "pale|jian": 43,
-        "pale|qiang": 44,
-        "pale|ji": 45,
-        "pale|fu": 46,
-        "pale|yue": 47,
-        "pale|gou": 48,
-        "pale|cha": 49,
-        "pale|gong": 50,
-        "pale|nu": 51,
-        "pale|niaochong": 52,
-        "pale|longdeng": 53,
-        "pale|lingqi": 54,
-        "pale|dun": 55
+        "light|combo_same": 14,
+        "light|combo_mixed": 15,
+        "light|combo_shield": 16,
+        "tan|dao": 17,
+        "tan|jian": 18,
+        "tan|qiang": 19,
+        "tan|ji": 20,
+        "tan|fu": 21,
+        "tan|yue": 22,
+        "tan|gou": 23,
+        "tan|cha": 24,
+        "tan|gong": 25,
+        "tan|nu": 26,
+        "tan|niaochong": 27,
+        "tan|longdeng": 28,
+        "tan|lingqi": 29,
+        "tan|dun": 30,
+        "tan|combo_same": 31,
+        "tan|combo_mixed": 32,
+        "tan|combo_shield": 33,
+        "deep|dao": 34,
+        "deep|jian": 35,
+        "deep|qiang": 36,
+        "deep|ji": 37,
+        "deep|fu": 38,
+        "deep|yue": 39,
+        "deep|gou": 40,
+        "deep|cha": 41,
+        "deep|gong": 42,
+        "deep|nu": 43,
+        "deep|niaochong": 44,
+        "deep|longdeng": 45,
+        "deep|lingqi": 46,
+        "deep|dun": 47,
+        "deep|combo_same": 48,
+        "deep|combo_mixed": 49,
+        "deep|combo_shield": 50,
+        "pale|dao": 51,
+        "pale|jian": 52,
+        "pale|qiang": 53,
+        "pale|ji": 54,
+        "pale|fu": 55,
+        "pale|yue": 56,
+        "pale|gou": 57,
+        "pale|cha": 58,
+        "pale|gong": 59,
+        "pale|nu": 60,
+        "pale|niaochong": 61,
+        "pale|longdeng": 62,
+        "pale|lingqi": 63,
+        "pale|dun": 64,
+        "pale|combo_same": 65,
+        "pale|combo_mixed": 66,
+        "pale|combo_shield": 67
       }
     },
     "outfit": {
@@ -556,160 +1104,196 @@
         "ming_lamellar_red|longdeng": 11,
         "ming_lamellar_red|lingqi": 12,
         "ming_lamellar_red|dun": 13,
-        "ming_brigandine_blue|dao": 14,
-        "ming_brigandine_blue|jian": 15,
-        "ming_brigandine_blue|qiang": 16,
-        "ming_brigandine_blue|ji": 17,
-        "ming_brigandine_blue|fu": 18,
-        "ming_brigandine_blue|yue": 19,
-        "ming_brigandine_blue|gou": 20,
-        "ming_brigandine_blue|cha": 21,
-        "ming_brigandine_blue|gong": 22,
-        "ming_brigandine_blue|nu": 23,
-        "ming_brigandine_blue|niaochong": 24,
-        "ming_brigandine_blue|longdeng": 25,
-        "ming_brigandine_blue|lingqi": 26,
-        "ming_brigandine_blue|dun": 27,
-        "ming_robe_ochre|dao": 28,
-        "ming_robe_ochre|jian": 29,
-        "ming_robe_ochre|qiang": 30,
-        "ming_robe_ochre|ji": 31,
-        "ming_robe_ochre|fu": 32,
-        "ming_robe_ochre|yue": 33,
-        "ming_robe_ochre|gou": 34,
-        "ming_robe_ochre|cha": 35,
-        "ming_robe_ochre|gong": 36,
-        "ming_robe_ochre|nu": 37,
-        "ming_robe_ochre|niaochong": 38,
-        "ming_robe_ochre|longdeng": 39,
-        "ming_robe_ochre|lingqi": 40,
-        "ming_robe_ochre|dun": 41,
-        "ming_guard_iron|dao": 42,
-        "ming_guard_iron|jian": 43,
-        "ming_guard_iron|qiang": 44,
-        "ming_guard_iron|ji": 45,
-        "ming_guard_iron|fu": 46,
-        "ming_guard_iron|yue": 47,
-        "ming_guard_iron|gou": 48,
-        "ming_guard_iron|cha": 49,
-        "ming_guard_iron|gong": 50,
-        "ming_guard_iron|nu": 51,
-        "ming_guard_iron|niaochong": 52,
-        "ming_guard_iron|longdeng": 53,
-        "ming_guard_iron|lingqi": 54,
-        "ming_guard_iron|dun": 55,
-        "ming_navy_green|dao": 56,
-        "ming_navy_green|jian": 57,
-        "ming_navy_green|qiang": 58,
-        "ming_navy_green|ji": 59,
-        "ming_navy_green|fu": 60,
-        "ming_navy_green|yue": 61,
-        "ming_navy_green|gou": 62,
-        "ming_navy_green|cha": 63,
-        "ming_navy_green|gong": 64,
-        "ming_navy_green|nu": 65,
-        "ming_navy_green|niaochong": 66,
-        "ming_navy_green|longdeng": 67,
-        "ming_navy_green|lingqi": 68,
-        "ming_navy_green|dun": 69,
-        "wokou_ragged_brown|dao": 70,
-        "wokou_ragged_brown|jian": 71,
-        "wokou_ragged_brown|qiang": 72,
-        "wokou_ragged_brown|ji": 73,
-        "wokou_ragged_brown|fu": 74,
-        "wokou_ragged_brown|yue": 75,
-        "wokou_ragged_brown|gou": 76,
-        "wokou_ragged_brown|cha": 77,
-        "wokou_ragged_brown|gong": 78,
-        "wokou_ragged_brown|nu": 79,
-        "wokou_ragged_brown|niaochong": 80,
-        "wokou_ragged_brown|longdeng": 81,
-        "wokou_ragged_brown|lingqi": 82,
-        "wokou_ragged_brown|dun": 83,
-        "wokou_dark_navy|dao": 84,
-        "wokou_dark_navy|jian": 85,
-        "wokou_dark_navy|qiang": 86,
-        "wokou_dark_navy|ji": 87,
-        "wokou_dark_navy|fu": 88,
-        "wokou_dark_navy|yue": 89,
-        "wokou_dark_navy|gou": 90,
-        "wokou_dark_navy|cha": 91,
-        "wokou_dark_navy|gong": 92,
-        "wokou_dark_navy|nu": 93,
-        "wokou_dark_navy|niaochong": 94,
-        "wokou_dark_navy|longdeng": 95,
-        "wokou_dark_navy|lingqi": 96,
-        "wokou_dark_navy|dun": 97,
-        "pirate_teal|dao": 98,
-        "pirate_teal|jian": 99,
-        "pirate_teal|qiang": 100,
-        "pirate_teal|ji": 101,
-        "pirate_teal|fu": 102,
-        "pirate_teal|yue": 103,
-        "pirate_teal|gou": 104,
-        "pirate_teal|cha": 105,
-        "pirate_teal|gong": 106,
-        "pirate_teal|nu": 107,
-        "pirate_teal|niaochong": 108,
-        "pirate_teal|longdeng": 109,
-        "pirate_teal|lingqi": 110,
-        "pirate_teal|dun": 111,
-        "monk_grey|dao": 112,
-        "monk_grey|jian": 113,
-        "monk_grey|qiang": 114,
-        "monk_grey|ji": 115,
-        "monk_grey|fu": 116,
-        "monk_grey|yue": 117,
-        "monk_grey|gou": 118,
-        "monk_grey|cha": 119,
-        "monk_grey|gong": 120,
-        "monk_grey|nu": 121,
-        "monk_grey|niaochong": 122,
-        "monk_grey|longdeng": 123,
-        "monk_grey|lingqi": 124,
-        "monk_grey|dun": 125,
-        "general_purple|dao": 126,
-        "general_purple|jian": 127,
-        "general_purple|qiang": 128,
-        "general_purple|ji": 129,
-        "general_purple|fu": 130,
-        "general_purple|yue": 131,
-        "general_purple|gou": 132,
-        "general_purple|cha": 133,
-        "general_purple|gong": 134,
-        "general_purple|nu": 135,
-        "general_purple|niaochong": 136,
-        "general_purple|longdeng": 137,
-        "general_purple|lingqi": 138,
-        "general_purple|dun": 139,
-        "oni_red|dao": 140,
-        "oni_red|jian": 141,
-        "oni_red|qiang": 142,
-        "oni_red|ji": 143,
-        "oni_red|fu": 144,
-        "oni_red|yue": 145,
-        "oni_red|gou": 146,
-        "oni_red|cha": 147,
-        "oni_red|gong": 148,
-        "oni_red|nu": 149,
-        "oni_red|niaochong": 150,
-        "oni_red|longdeng": 151,
-        "oni_red|lingqi": 152,
-        "oni_red|dun": 153,
-        "villager_linen|dao": 154,
-        "villager_linen|jian": 155,
-        "villager_linen|qiang": 156,
-        "villager_linen|ji": 157,
-        "villager_linen|fu": 158,
-        "villager_linen|yue": 159,
-        "villager_linen|gou": 160,
-        "villager_linen|cha": 161,
-        "villager_linen|gong": 162,
-        "villager_linen|nu": 163,
-        "villager_linen|niaochong": 164,
-        "villager_linen|longdeng": 165,
-        "villager_linen|lingqi": 166,
-        "villager_linen|dun": 167
+        "ming_lamellar_red|combo_same": 14,
+        "ming_lamellar_red|combo_mixed": 15,
+        "ming_lamellar_red|combo_shield": 16,
+        "ming_brigandine_blue|dao": 17,
+        "ming_brigandine_blue|jian": 18,
+        "ming_brigandine_blue|qiang": 19,
+        "ming_brigandine_blue|ji": 20,
+        "ming_brigandine_blue|fu": 21,
+        "ming_brigandine_blue|yue": 22,
+        "ming_brigandine_blue|gou": 23,
+        "ming_brigandine_blue|cha": 24,
+        "ming_brigandine_blue|gong": 25,
+        "ming_brigandine_blue|nu": 26,
+        "ming_brigandine_blue|niaochong": 27,
+        "ming_brigandine_blue|longdeng": 28,
+        "ming_brigandine_blue|lingqi": 29,
+        "ming_brigandine_blue|dun": 30,
+        "ming_brigandine_blue|combo_same": 31,
+        "ming_brigandine_blue|combo_mixed": 32,
+        "ming_brigandine_blue|combo_shield": 33,
+        "ming_robe_ochre|dao": 34,
+        "ming_robe_ochre|jian": 35,
+        "ming_robe_ochre|qiang": 36,
+        "ming_robe_ochre|ji": 37,
+        "ming_robe_ochre|fu": 38,
+        "ming_robe_ochre|yue": 39,
+        "ming_robe_ochre|gou": 40,
+        "ming_robe_ochre|cha": 41,
+        "ming_robe_ochre|gong": 42,
+        "ming_robe_ochre|nu": 43,
+        "ming_robe_ochre|niaochong": 44,
+        "ming_robe_ochre|longdeng": 45,
+        "ming_robe_ochre|lingqi": 46,
+        "ming_robe_ochre|dun": 47,
+        "ming_robe_ochre|combo_same": 48,
+        "ming_robe_ochre|combo_mixed": 49,
+        "ming_robe_ochre|combo_shield": 50,
+        "ming_guard_iron|dao": 51,
+        "ming_guard_iron|jian": 52,
+        "ming_guard_iron|qiang": 53,
+        "ming_guard_iron|ji": 54,
+        "ming_guard_iron|fu": 55,
+        "ming_guard_iron|yue": 56,
+        "ming_guard_iron|gou": 57,
+        "ming_guard_iron|cha": 58,
+        "ming_guard_iron|gong": 59,
+        "ming_guard_iron|nu": 60,
+        "ming_guard_iron|niaochong": 61,
+        "ming_guard_iron|longdeng": 62,
+        "ming_guard_iron|lingqi": 63,
+        "ming_guard_iron|dun": 64,
+        "ming_guard_iron|combo_same": 65,
+        "ming_guard_iron|combo_mixed": 66,
+        "ming_guard_iron|combo_shield": 67,
+        "ming_navy_green|dao": 68,
+        "ming_navy_green|jian": 69,
+        "ming_navy_green|qiang": 70,
+        "ming_navy_green|ji": 71,
+        "ming_navy_green|fu": 72,
+        "ming_navy_green|yue": 73,
+        "ming_navy_green|gou": 74,
+        "ming_navy_green|cha": 75,
+        "ming_navy_green|gong": 76,
+        "ming_navy_green|nu": 77,
+        "ming_navy_green|niaochong": 78,
+        "ming_navy_green|longdeng": 79,
+        "ming_navy_green|lingqi": 80,
+        "ming_navy_green|dun": 81,
+        "ming_navy_green|combo_same": 82,
+        "ming_navy_green|combo_mixed": 83,
+        "ming_navy_green|combo_shield": 84,
+        "wokou_ragged_brown|dao": 85,
+        "wokou_ragged_brown|jian": 86,
+        "wokou_ragged_brown|qiang": 87,
+        "wokou_ragged_brown|ji": 88,
+        "wokou_ragged_brown|fu": 89,
+        "wokou_ragged_brown|yue": 90,
+        "wokou_ragged_brown|gou": 91,
+        "wokou_ragged_brown|cha": 92,
+        "wokou_ragged_brown|gong": 93,
+        "wokou_ragged_brown|nu": 94,
+        "wokou_ragged_brown|niaochong": 95,
+        "wokou_ragged_brown|longdeng": 96,
+        "wokou_ragged_brown|lingqi": 97,
+        "wokou_ragged_brown|dun": 98,
+        "wokou_ragged_brown|combo_same": 99,
+        "wokou_ragged_brown|combo_mixed": 100,
+        "wokou_ragged_brown|combo_shield": 101,
+        "wokou_dark_navy|dao": 102,
+        "wokou_dark_navy|jian": 103,
+        "wokou_dark_navy|qiang": 104,
+        "wokou_dark_navy|ji": 105,
+        "wokou_dark_navy|fu": 106,
+        "wokou_dark_navy|yue": 107,
+        "wokou_dark_navy|gou": 108,
+        "wokou_dark_navy|cha": 109,
+        "wokou_dark_navy|gong": 110,
+        "wokou_dark_navy|nu": 111,
+        "wokou_dark_navy|niaochong": 112,
+        "wokou_dark_navy|longdeng": 113,
+        "wokou_dark_navy|lingqi": 114,
+        "wokou_dark_navy|dun": 115,
+        "wokou_dark_navy|combo_same": 116,
+        "wokou_dark_navy|combo_mixed": 117,
+        "wokou_dark_navy|combo_shield": 118,
+        "pirate_teal|dao": 119,
+        "pirate_teal|jian": 120,
+        "pirate_teal|qiang": 121,
+        "pirate_teal|ji": 122,
+        "pirate_teal|fu": 123,
+        "pirate_teal|yue": 124,
+        "pirate_teal|gou": 125,
+        "pirate_teal|cha": 126,
+        "pirate_teal|gong": 127,
+        "pirate_teal|nu": 128,
+        "pirate_teal|niaochong": 129,
+        "pirate_teal|longdeng": 130,
+        "pirate_teal|lingqi": 131,
+        "pirate_teal|dun": 132,
+        "pirate_teal|combo_same": 133,
+        "pirate_teal|combo_mixed": 134,
+        "pirate_teal|combo_shield": 135,
+        "monk_grey|dao": 136,
+        "monk_grey|jian": 137,
+        "monk_grey|qiang": 138,
+        "monk_grey|ji": 139,
+        "monk_grey|fu": 140,
+        "monk_grey|yue": 141,
+        "monk_grey|gou": 142,
+        "monk_grey|cha": 143,
+        "monk_grey|gong": 144,
+        "monk_grey|nu": 145,
+        "monk_grey|niaochong": 146,
+        "monk_grey|longdeng": 147,
+        "monk_grey|lingqi": 148,
+        "monk_grey|dun": 149,
+        "monk_grey|combo_same": 150,
+        "monk_grey|combo_mixed": 151,
+        "monk_grey|combo_shield": 152,
+        "general_purple|dao": 153,
+        "general_purple|jian": 154,
+        "general_purple|qiang": 155,
+        "general_purple|ji": 156,
+        "general_purple|fu": 157,
+        "general_purple|yue": 158,
+        "general_purple|gou": 159,
+        "general_purple|cha": 160,
+        "general_purple|gong": 161,
+        "general_purple|nu": 162,
+        "general_purple|niaochong": 163,
+        "general_purple|longdeng": 164,
+        "general_purple|lingqi": 165,
+        "general_purple|dun": 166,
+        "general_purple|combo_same": 167,
+        "general_purple|combo_mixed": 168,
+        "general_purple|combo_shield": 169,
+        "oni_red|dao": 170,
+        "oni_red|jian": 171,
+        "oni_red|qiang": 172,
+        "oni_red|ji": 173,
+        "oni_red|fu": 174,
+        "oni_red|yue": 175,
+        "oni_red|gou": 176,
+        "oni_red|cha": 177,
+        "oni_red|gong": 178,
+        "oni_red|nu": 179,
+        "oni_red|niaochong": 180,
+        "oni_red|longdeng": 181,
+        "oni_red|lingqi": 182,
+        "oni_red|dun": 183,
+        "oni_red|combo_same": 184,
+        "oni_red|combo_mixed": 185,
+        "oni_red|combo_shield": 186,
+        "villager_linen|dao": 187,
+        "villager_linen|jian": 188,
+        "villager_linen|qiang": 189,
+        "villager_linen|ji": 190,
+        "villager_linen|fu": 191,
+        "villager_linen|yue": 192,
+        "villager_linen|gou": 193,
+        "villager_linen|cha": 194,
+        "villager_linen|gong": 195,
+        "villager_linen|nu": 196,
+        "villager_linen|niaochong": 197,
+        "villager_linen|longdeng": 198,
+        "villager_linen|lingqi": 199,
+        "villager_linen|dun": 200,
+        "villager_linen|combo_same": 201,
+        "villager_linen|combo_mixed": 202,
+        "villager_linen|combo_shield": 203
       }
     },
     "headgear": {
@@ -948,7 +1532,37 @@
         "niaochong": 10,
         "longdeng": 11,
         "lingqi": 12,
-        "dun": 13
+        "dun": 13,
+        "dao+dao": 14,
+        "dao+jian": 15,
+        "dao+gou": 16,
+        "dao+longdeng": 17,
+        "dao+lingqi": 18,
+        "dao+dun": 19,
+        "jian+dao": 20,
+        "jian+jian": 21,
+        "jian+gou": 22,
+        "jian+longdeng": 23,
+        "jian+lingqi": 24,
+        "jian+dun": 25,
+        "gou+dao": 26,
+        "gou+jian": 27,
+        "gou+gou": 28,
+        "gou+longdeng": 29,
+        "gou+lingqi": 30,
+        "gou+dun": 31,
+        "longdeng+dao": 32,
+        "longdeng+jian": 33,
+        "longdeng+gou": 34,
+        "longdeng+longdeng": 35,
+        "longdeng+lingqi": 36,
+        "longdeng+dun": 37,
+        "lingqi+dao": 38,
+        "lingqi+jian": 39,
+        "lingqi+gou": 40,
+        "lingqi+longdeng": 41,
+        "lingqi+lingqi": 42,
+        "lingqi+dun": 43
       }
     },
     "offhand": {
@@ -957,23 +1571,33 @@
         "dao|dao": 0,
         "dao|jian": 1,
         "dao|gou": 2,
-        "dao|dun": 3,
-        "jian|dao": 4,
-        "jian|jian": 5,
-        "jian|gou": 6,
-        "jian|dun": 7,
-        "gou|dao": 8,
-        "gou|jian": 9,
-        "gou|gou": 10,
-        "gou|dun": 11,
-        "longdeng|dao": 12,
-        "longdeng|jian": 13,
-        "longdeng|gou": 14,
-        "longdeng|dun": 15,
-        "lingqi|dao": 16,
-        "lingqi|jian": 17,
-        "lingqi|gou": 18,
-        "lingqi|dun": 19
+        "dao|longdeng": 3,
+        "dao|lingqi": 4,
+        "dao|dun": 5,
+        "jian|dao": 6,
+        "jian|jian": 7,
+        "jian|gou": 8,
+        "jian|longdeng": 9,
+        "jian|lingqi": 10,
+        "jian|dun": 11,
+        "gou|dao": 12,
+        "gou|jian": 13,
+        "gou|gou": 14,
+        "gou|longdeng": 15,
+        "gou|lingqi": 16,
+        "gou|dun": 17,
+        "longdeng|dao": 18,
+        "longdeng|jian": 19,
+        "longdeng|gou": 20,
+        "longdeng|longdeng": 21,
+        "longdeng|lingqi": 22,
+        "longdeng|dun": 23,
+        "lingqi|dao": 24,
+        "lingqi|jian": 25,
+        "lingqi|gou": 26,
+        "lingqi|longdeng": 27,
+        "lingqi|lingqi": 28,
+        "lingqi|dun": 29
       }
     }
   },

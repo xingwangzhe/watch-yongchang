@@ -15,42 +15,60 @@ func _ready() -> void:
 
 	_label("角色锻造验收 · 明式抗倭", Vector2(36, 20), 24, Color("#e5d8bd"))
 	_label(
-		"同一骨架 · 双臂前层 · 副手独立层 · 32 帧",
+		"裸体骨架 · 5 段武器动作 · 同/异种双持组合 · 48 帧",
 		Vector2(36, 54),
 		15,
 		Color("#9fb8b4")
 	)
 
-	var recipes := [
-		{"label": "主将 刀 + 盾", "recipe": "hero"},
-		{"label": "明军 长枪", "recipe": "ming_guard"},
-		{"label": "倭寇 腰刀", "recipe": "wokou_raider"},
-		{"label": "鬼面 双钩", "recipe": "oni_duelist"},
+	var specs := [
+		{"label": "主将 刀 + 盾", "preset": "hero"},
+		{"label": "明军 长枪", "preset": "ming_guard"},
+		{"label": "弓手 弓", "recipe": _recipe("gong", "none", "ming_navy_green")},
+		{"label": "手铳", "preset": "wokou_gunner"},
+		{"label": "双刀 同种", "recipe": _recipe("dao", "dao", "ming_lamellar_red")},
+		{"label": "刀 + 剑 异种", "recipe": _recipe("dao", "jian", "ming_guard_iron")},
+		{"label": "双钩 同种", "preset": "oni_duelist"},
+		{"label": "钩 + 盾", "recipe": _recipe("gou", "dun", "wokou_ragged_brown")},
 	]
 	var positions := [
-		Vector2(190, 330),
-		Vector2(490, 330),
-		Vector2(790, 330),
-		Vector2(1090, 330),
+		Vector2(180, 175), Vector2(490, 175), Vector2(800, 175), Vector2(1110, 175),
+		Vector2(180, 475), Vector2(490, 475), Vector2(800, 475), Vector2(1110, 475),
 	]
-	for index in recipes.size():
+	for index in specs.size():
 		var forge := ForgeScript.new() as Node2D
 		forge.position = positions[index]
-		forge.scale = Vector2(2.15, 2.15)
+		forge.scale = Vector2(1.45, 1.45)
 		add_child(forge)
 		if not forge.load_data():
 			continue
 		var data: Dictionary = forge.data
-		forge.set_recipe(data["recipes"][recipes[index]["recipe"]])
+		var recipe: Dictionary = (
+			data["recipes"][specs[index]["preset"]]
+			if specs[index].has("preset")
+			else specs[index]["recipe"]
+		)
+		forge.set_recipe(recipe)
 		forges.append(forge)
 		_label(
-			str(recipes[index]["label"]),
-			positions[index] + Vector2(-92, 172),
-			15,
+			str(specs[index]["label"]),
+			positions[index] + Vector2(-88, 128),
+			13,
 			Color("#d6c8ad")
 		)
 
-	_label("循环：待机 4 · 行走 8 · 攻击 18 · 受击 2", Vector2(36, 684), 14, Color("#829c98"))
+	_label("循环：待机 4 · 行走 8 · 攻击 30 · 受击 2 · 戒备 4", Vector2(36, 684), 14, Color("#829c98"))
+
+
+func _recipe(main: String, offhand: String, outfit: String) -> Dictionary:
+	return {
+		"skin": "tan",
+		"outfit": outfit,
+		"headgear": "none",
+		"backgear": "none",
+		"weapon": main,
+		"offhand": offhand,
+	}
 
 
 func _label(text: String, position: Vector2, size: int, color: Color) -> Label:
@@ -65,7 +83,7 @@ func _label(text: String, position: Vector2, size: int, color: Color) -> Label:
 
 func _process(delta: float) -> void:
 	elapsed += delta
-	var next_frame := int(elapsed * 8.0) % 32
+	var next_frame := int(elapsed * 8.0) % 48
 	if next_frame == frame:
 		return
 	frame = next_frame
