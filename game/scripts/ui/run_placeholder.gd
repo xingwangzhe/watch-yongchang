@@ -1,6 +1,7 @@
 extends Control
 
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
+const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
 
@@ -19,6 +20,7 @@ func _ready() -> void:
 	var run_theme := Theme.new()
 	run_theme.default_font = UI_FONT
 	run_theme.default_font_size = 20
+	UIControls.install(run_theme)
 	theme = run_theme
 
 	var backdrop := BackdropScript.new()
@@ -98,18 +100,7 @@ func _ready() -> void:
 	_back.add_theme_font_override("font", UI_FONT)
 	_back.add_theme_font_size_override("font_size", 17)
 	_back.add_theme_color_override("font_color", PAPER)
-	var normal := StyleBoxFlat.new()
-	normal.bg_color = Color("#742c22")
-	normal.border_color = Color(GOLD, 0.8)
-	normal.set_border_width_all(2)
-	normal.set_corner_radius_all(2)
-	normal.content_margin_left = 16.0
-	normal.content_margin_right = 16.0
-	normal.content_margin_top = 6.0
-	normal.content_margin_bottom = 6.0
-	_back.add_theme_stylebox_override("normal", normal)
-	_back.add_theme_stylebox_override("hover", normal)
-	_back.add_theme_stylebox_override("pressed", normal)
+	UIControls.apply_compact(_back)
 	_back.pressed.connect(_return_to_menu)
 	footer.add_child(_back)
 

@@ -116,6 +116,7 @@
 					"© 2026 xingwangzhe。保留署名权。",
 					"代码：GPL-3.0-or-later。",
 					"原创非代码资产：CC BY 4.0。",
+					"UI 面板与控件素材：WorkBuddy ImageGen 生成面板底板，tools/build_ui_controls.py 派生按钮、下拉、滑条、开关、滚动条与提示框；原创非代码资产 CC BY 4.0，详见《AI 使用与素材声明》。",
 					"第三方音乐、字体、音效保留原许可；署名与来源见上方条目。",
 					"霞鹜文楷：OFL 1.1，版权归 LXGW 与 Klee Project Authors，全文见 game/assets/fonts/OFL.txt。",
 					"本作与永昌堡、汤和信俗相关机构无隶属关系；历史资料仅用于文化考据与创作。"
@@ -124,6 +125,7 @@
 					"© 2026 xingwangzhe. Attribution rights reserved.",
 					"Code: GPL-3.0-or-later.",
 					"Original non-code assets: CC BY 4.0.",
+					"UI panels and controls: panel base generated with WorkBuddy ImageGen; buttons, dropdowns, sliders, toggles, scrollbars, and tooltips derived by tools/build_ui_controls.py; original non-code assets under CC BY 4.0. See the AI Use & Asset Statement.",
 					"Third-party music, fonts, and sound effects keep their original licenses; see the entries above.",
 					"LXGW WenKai: OFL 1.1, copyright LXGW and the Klee Project Authors; full text in game/assets/fonts/OFL.txt.",
 					"This work is not affiliated with Yongchang Fort or Tang He tradition institutions; historical material is used for cultural research and creative work."
@@ -181,6 +183,11 @@
 			"title": "Bun",
 			"license": "MIT",
 			"url": "https://bun.sh"
+			},
+			{
+				"title": "Pillow",
+				"license": "MIT-CMU",
+				"url": "https://python-pillow.org"
 		}
 	]
 }

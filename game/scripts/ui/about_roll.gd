@@ -1,6 +1,7 @@
 extends Control
 
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
+const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
 const CREDITS_PATH := "res://data/credits.json"
 const ABOUT_BGM_PATH := "res://assets/audio/bgm_about.ogg"
@@ -12,7 +13,7 @@ const VERMILION := Color("#8f3326")
 const INK := Color("#06090c")
 
 const SCROLL_SPEED := 38.0
-const START_DELAY := 2.5
+const START_DELAY := 1.0
 
 var _credits: Dictionary = {}
 var _scroll: ScrollContainer
@@ -338,9 +339,7 @@ func _build_chrome() -> void:
 	back.add_theme_font_size_override("font_size", 15)
 	back.add_theme_color_override("font_color", PAPER)
 	back.add_theme_color_override("font_hover_color", Color("#fff0cf"))
-	back.add_theme_stylebox_override("normal", _button_box(Color("#702b22"), Color(GOLD, 0.72)))
-	back.add_theme_stylebox_override("hover", _button_box(Color("#91392b"), GOLD))
-	back.add_theme_stylebox_override("pressed", _button_box(Color("#572019"), Color(GOLD, 0.68)))
+	UIControls.apply_compact(back)
 	back.pressed.connect(_return_to_menu)
 	footer.add_child(back)
 
@@ -499,16 +498,3 @@ func _add_spacer(height: float) -> void:
 	var spacer := Control.new()
 	spacer.custom_minimum_size = Vector2(0.0, height)
 	_content.add_child(spacer)
-
-
-func _button_box(fill: Color, border: Color) -> StyleBoxFlat:
-	var box := StyleBoxFlat.new()
-	box.bg_color = fill
-	box.border_color = border
-	box.set_border_width_all(1)
-	box.set_corner_radius_all(2)
-	box.content_margin_left = 14.0
-	box.content_margin_right = 14.0
-	box.content_margin_top = 5.0
-	box.content_margin_bottom = 5.0
-	return box
