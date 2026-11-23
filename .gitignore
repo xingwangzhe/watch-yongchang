@@ -1,5 +1,4 @@
 # 第三方原始素材包（约 1.2GB，来源 URL 与校验值见 docs/source-manifest.json）
-# 参赛定稿时按素材授权声明逐项处理，不把原始包纳入版本库
 docs/01-参考资料包/
 
 # 编辑器与系统临时文件
@@ -10,30 +9,18 @@ Thumbs.db
 
 # Godot 引擎缓存
 game/.godot/
+game/addons/gda_harness/
 
 # CodeGraph 索引库（本地生成，不入库）
 .codegraph/
 
-# 第三方原始素材包（CC BY 3.0，来源 URL 见素材授权清单；派生瓦片已入库）
+# 第三方原始素材包（不入库）
 assets/third_party/hardvacuum/
-# gda 调试 harness（工具生成，不入库）
-game/addons/gda_harness/
 
-# Bun 工具依赖
-tools/node_modules/
+# Python / Pillow 运行缓存
+__pycache__/
+*.pyc
+.venv/
 
-# 地形验算临时产物（专家调试输出，不入库）
-game/tests/_terrain_*.gd
-game/tests/_terrain_*.tscn
-game/tests/_terrain_*.png
-game/tests/_terrain_*.txt
-game/tests/_overview.png
-game/tests/_crop_city.png
-game/tests/_probe*.gd
-game/tests/probe2_tmp.gd
-game/tests/_crop_*.png
-game/tests/probe2_tmp.tscn
-game/tests/_*.tscn
-
-game/tests/*_tmp.gd
-game/tests/*_tmp.tscn
+# 像素素材临时输出
+pixel-art/**/*_study/
