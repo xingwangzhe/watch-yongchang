@@ -2,8 +2,17 @@ extends Control
 
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
+const IconChips := preload("res://scripts/ui/icon_chip.gd")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
+const ICON_KATANA := preload("res://assets/icons/game_icons/wpn_katana.svg")
+const ICON_SPEAR := preload("res://assets/icons/game_icons/wpn_spear.svg")
+const ICON_BOW := preload("res://assets/icons/game_icons/wpn_bow.svg")
+const ICON_MUSKET := preload("res://assets/icons/game_icons/wpn_musket.svg")
+const ICON_SHIELD := preload("res://assets/icons/game_icons/wpn_shield.svg")
+const ICON_DRAGON := preload("res://assets/icons/game_icons/wpn_dragon_lantern.svg")
+const ICON_CANNON := preload("res://assets/icons/game_icons/wpn_cannon.svg")
+const ICON_BANNER := preload("res://assets/icons/game_icons/wpn_banner.svg")
 
 const PAPER := Color("#e8d8b6")
 const MUTED := Color("#a99778")
@@ -14,6 +23,8 @@ var _body: Label
 var _saved: Label
 var _back: Button
 var _hint: Label
+var _arsenal_heading: Label
+var _arsenal_labels: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -30,9 +41,9 @@ func _ready() -> void:
 
 	var panel := PanelContainer.new()
 	panel.name = "RunPanel"
-	panel.position = Vector2(374.0, 186.0)
-	panel.custom_minimum_size = Vector2(532.0, 334.0)
-	panel.size = Vector2(532.0, 334.0)
+	panel.position = Vector2(230.0, 110.0)
+	panel.custom_minimum_size = Vector2(820.0, 500.0)
+	panel.size = Vector2(820.0, 500.0)
 	var panel_box := StyleBoxTexture.new()
 	panel_box.texture = PANEL_TEXTURE
 	panel_box.texture_margin_left = 28.0
@@ -72,6 +83,14 @@ func _ready() -> void:
 	_body.custom_minimum_size = Vector2(0.0, 92.0)
 	column.add_child(_body)
 
+	_arsenal_heading = Label.new()
+	_arsenal_heading.name = "ArsenalHeading"
+	_arsenal_heading.add_theme_font_override("font", UI_FONT)
+	_arsenal_heading.add_theme_font_size_override("font_size", 17)
+	_arsenal_heading.add_theme_color_override("font_color", Color(GOLD, 0.92))
+	column.add_child(_arsenal_heading)
+	_build_arsenal(column)
+
 	_saved = Label.new()
 	_saved.name = "RunSaved"
 	_saved.add_theme_font_override("font", UI_FONT)
@@ -104,7 +123,7 @@ func _ready() -> void:
 	_back.pressed.connect(_return_to_menu)
 	footer.add_child(_back)
 
-	Locale.language_changed.connect(_refresh_texts)
+	Locale.language_changed.connect(_on_language_changed)
 	SaveSystem.saved.connect(_refresh_saved)
 	_refresh_texts()
 	SaveSystem.autosave({"last_mode": "run"})
@@ -117,6 +136,35 @@ func _ready() -> void:
 	timer.autostart = true
 	timer.timeout.connect(_on_autosave_timeout)
 	add_child(timer)
+
+
+func _build_arsenal(parent: VBoxContainer) -> void:
+	var row := HBoxContainer.new()
+	row.name = "ArsenalRow"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 10)
+	parent.add_child(row)
+	var items := [
+		{"name": "ArsenalKatana", "key": "weapon.katana", "icon": ICON_KATANA},
+		{"name": "ArsenalSpear", "key": "weapon.spear", "icon": ICON_SPEAR},
+		{"name": "ArsenalBow", "key": "weapon.bow", "icon": ICON_BOW},
+		{"name": "ArsenalMusket", "key": "weapon.musket", "icon": ICON_MUSKET},
+		{"name": "ArsenalShield", "key": "weapon.shield", "icon": ICON_SHIELD},
+		{"name": "ArsenalDragonLantern", "key": "weapon.dragon_lantern", "icon": ICON_DRAGON},
+		{"name": "ArsenalCannon", "key": "weapon.cannon", "icon": ICON_CANNON},
+		{"name": "ArsenalBanner", "key": "weapon.banner", "icon": ICON_BANNER},
+	]
+	for spec in items:
+		var key := str(spec["key"])
+		var chip: Dictionary = IconChips.make_tile(
+			spec["icon"] as Texture2D,
+			Locale.t(key),
+			42
+		)
+		var chip_root: Control = chip["root"]
+		chip_root.name = str(spec["name"])
+		row.add_child(chip_root)
+		_arsenal_labels.append({"label": chip["label"] as Label, "key": key})
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -137,7 +185,16 @@ func _refresh_texts() -> void:
 	_body.text = Locale.t("run.body")
 	_back.text = Locale.t("run.back")
 	_hint.text = Locale.t("run.hint")
+	_arsenal_heading.text = Locale.t("run.arsenal")
+	for entry in _arsenal_labels:
+		var label: Label = entry["label"]
+		if is_instance_valid(label):
+			label.text = Locale.t(str(entry["key"]))
 	_refresh_saved()
+
+
+func _on_language_changed(_code: String) -> void:
+	_refresh_texts()
 
 
 func _refresh_saved() -> void:

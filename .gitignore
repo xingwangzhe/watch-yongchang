@@ -29,6 +29,9 @@ __pycache__/
 # 像素素材临时输出
 pixel-art/**/*_study/
 
+# game-icons.net 下载缓存（筛选后再复制到 game/assets，未采用的文件不入库）
+generated/game_icons/
+
 # CI 工具与构建产物
 .tools/
 artifacts/

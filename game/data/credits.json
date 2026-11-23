@@ -157,6 +157,140 @@
 			"changes_en": "Original OGG file; looped"
 		}
 	],
+	"icons": [
+		{
+			"title": "Asian lantern / 亚洲灯笼",
+			"artist": "Delapouite",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/delapouite/asian-lantern.html",
+			"file": "res://assets/icons/game_icons/ui_lantern.svg",
+			"usage_zh": "主菜单“首夜支点”的灯火标识",
+			"usage_en": "Lantern marker in the main-menu night anchors",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Watchtower / 望楼",
+			"artist": "Delapouite",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/delapouite/watchtower.html",
+			"file": "res://assets/icons/game_icons/ui_watchtower.svg",
+			"usage_zh": "主菜单“首夜支点”的望楼标识",
+			"usage_en": "Watchtower marker in the main-menu night anchors",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Scroll unfurled / 展开卷轴",
+			"artist": "Lorc",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/lorc/scroll-unfurled.html",
+			"file": "res://assets/icons/game_icons/ui_scroll.svg",
+			"usage_zh": "主菜单“首夜支点”的图鉴标识",
+			"usage_en": "Codex marker in the main-menu night anchors",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Bowl of rice / 米饭碗",
+			"artist": "Caro Asercion",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/caro-asercion/bowl-of-rice.html",
+			"file": "res://assets/icons/game_icons/ui_feast.svg",
+			"usage_zh": "主菜单“首夜支点”的百家宴标识",
+			"usage_en": "Community-feast marker in the main-menu night anchors",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Katana / 腰刀",
+			"artist": "Delapouite",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/delapouite/katana.html",
+			"file": "res://assets/icons/game_icons/wpn_katana.svg",
+			"usage_zh": "开局页腰刀军备卡",
+			"usage_en": "Saber loadout card on the run screen",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Barbed Spear / 倒钩长枪",
+			"artist": "Lorc",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/lorc/barbed-spear.html",
+			"file": "res://assets/icons/game_icons/wpn_spear.svg",
+			"usage_zh": "开局页长枪军备卡",
+			"usage_en": "Long-spear loadout card on the run screen",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Bow arrow / 弓箭",
+			"artist": "Delapouite",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/delapouite/bow-arrow.html",
+			"file": "res://assets/icons/game_icons/wpn_bow.svg",
+			"usage_zh": "开局页弓军备卡",
+			"usage_en": "Bow loadout card on the run screen",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Musket / 手铳",
+			"artist": "Skoll",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/skoll/musket.html",
+			"file": "res://assets/icons/game_icons/wpn_musket.svg",
+			"usage_zh": "开局页手铳军备卡",
+			"usage_en": "Hand-cannon loadout card on the run screen",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Round shield / 圆盾",
+			"artist": "Willdabeast",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/willdabeast/round-shield.html",
+			"file": "res://assets/icons/game_icons/wpn_shield.svg",
+			"usage_zh": "主菜单藤牌标识与开局页藤牌军备卡",
+			"usage_en": "Rattan-shield marker in the menu and loadout card on the run screen",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Dragon head / 龙首",
+			"artist": "Faithtoken",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/faithtoken/dragon-head.html",
+			"file": "res://assets/icons/game_icons/wpn_dragon_lantern.svg",
+			"usage_zh": "开局页龙灯军备卡",
+			"usage_en": "Dragon-lantern loadout card on the run screen",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Cannon / 火炮",
+			"artist": "Lorc",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/lorc/cannon.html",
+			"file": "res://assets/icons/game_icons/wpn_cannon.svg",
+			"usage_zh": "开局页佛郎机军备卡",
+			"usage_en": "Folangji-cannon loadout card on the run screen",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		},
+		{
+			"title": "Tattered banner / 破损军旗",
+			"artist": "Lorc",
+			"license": "CC BY 3.0",
+			"url": "https://game-icons.net/1x1/lorc/tattered-banner.html",
+			"file": "res://assets/icons/game_icons/wpn_banner.svg",
+			"usage_zh": "开局页令旗军备卡",
+			"usage_en": "Command-banner loadout card on the run screen",
+			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+		}
+	],
 	"fonts": [
 		{
 			"title": "LXGW WenKai / 霞鹜文楷",

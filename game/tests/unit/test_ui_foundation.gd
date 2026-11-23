@@ -129,6 +129,13 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 		assert_true((entry.get("url", "") as String).begins_with("https://"))
 	var font_entry: Dictionary = (credits.get("fonts", []) as Array)[0]
 	assert_string_contains(font_entry.get("notice_zh", ""), "OFL")
+	var icon_entries: Array = credits.get("icons", [])
+	assert_eq(icon_entries.size(), 12, "every used game-icons asset must be credited")
+	for entry in icon_entries:
+		assert_true(entry is Dictionary)
+		assert_eq(str(entry.get("license", "")), "CC BY 3.0")
+		assert_true(str(entry.get("url", "")).begins_with("https://game-icons.net/"))
+		assert_true(ResourceLoader.exists(str(entry.get("file", ""))))
 	var about_sections: Array = (credits.get("about", {}) as Dictionary).get("sections", [])
 	var linked_sections: Array[Dictionary] = []
 	for section in about_sections:
@@ -214,6 +221,51 @@ func test_main_menu_builds_and_opens_settings() -> void:
 	menu.close_settings()
 	await wait_process_frames(1)
 	assert_false(overlay.visible, "close_settings must hide the overlay")
+
+
+func test_main_menu_exposes_night_anchor_icons() -> void:
+	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
+	add_child_autofree(menu)
+	await wait_process_frames(3)
+	var anchors: HBoxContainer = menu.find_child("NightAnchors", true, false)
+	assert_not_null(anchors, "the main menu must show the night-anchor icon row")
+	assert_eq(anchors.get_child_count(), 5)
+	for chip in anchors.get_children():
+		var icon := chip.find_child("Icon", true, false) as TextureRect
+		var label := chip.find_child("IconLabel", true, false) as Label
+		assert_not_null(icon, "each night anchor must render an icon")
+		assert_not_null(icon.texture)
+		assert_not_null(label)
+		assert_gt(label.text.length(), 0)
+
+
+func test_run_placeholder_exposes_loadout_icons() -> void:
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	var heading: Label = run.find_child("ArsenalHeading", true, false)
+	var row: HBoxContainer = run.find_child("ArsenalRow", true, false)
+	assert_not_null(heading)
+	assert_not_null(row, "the run placeholder must show the loadout row")
+	assert_eq(row.get_child_count(), 8)
+	assert_eq(heading.text, Locale.t("run.arsenal"))
+	for chip in row.get_children():
+		var icon := chip.find_child("Icon", true, false) as TextureRect
+		assert_not_null(icon, "each loadout card must render an icon")
+		assert_not_null(icon.texture)
+	Locale.set_language("en")
+	await wait_process_frames(2)
+	assert_eq(heading.text, "First Night Loadout")
+	var first_label := row.get_child(0).find_child("IconLabel", true, false) as Label
+	assert_eq(first_label.text, "Saber")
+
+
+func test_game_icons_include_license_and_attribution() -> void:
+	for path in [
+		"res://assets/icons/game_icons/LICENSE-CC-BY-3.0.txt",
+		"res://assets/icons/game_icons/ATTRIBUTION.md",
+	]:
+		assert_true(FileAccess.file_exists(path), "missing icon license file: %s" % path)
 
 
 func test_language_switch_updates_live_menu_copy() -> void:

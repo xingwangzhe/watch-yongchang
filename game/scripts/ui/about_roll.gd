@@ -226,6 +226,21 @@ func _build_roll() -> void:
 		_add_line(_bi(entry, "notice"), 14, Color(MUTED, 0.72), 0)
 		_add_spacer(10)
 
+	_add_heading(Locale.t("about.icons"))
+	for entry in _array_value(_credits.get("icons", [])):
+		if not entry is Dictionary:
+			continue
+		_add_link(str(entry.get("title", "")), str(entry.get("url", "")), 19)
+		_add_line(
+			"%s · %s" % [str(entry.get("artist", "")), str(entry.get("license", ""))],
+			14,
+			Color(MUTED, 0.92),
+			0
+		)
+		_add_line(_bi(entry, "usage"), 14, Color(PAPER, 0.82), 0)
+		_add_line(_bi(entry, "changes"), 13, Color(MUTED, 0.72), 0)
+		_add_spacer(7)
+
 	_add_heading(Locale.t("about.tools"))
 	for entry in _array_value(_credits.get("tools", [])):
 		if not entry is Dictionary:
