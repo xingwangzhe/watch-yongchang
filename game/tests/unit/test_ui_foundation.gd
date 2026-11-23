@@ -11,6 +11,9 @@ func before_each() -> void:
 	GameSettings.language = "zh"
 	GameSettings.bgm_volume = 0.62
 	GameSettings.sfx_volume = 0.78
+	GameSettings.fps_limit = GameSettings.DEFAULT_FPS_LIMIT
+	GameSettings.vsync = true
+	GameSettings._apply_performance()
 	Locale.set_language("zh", false)
 	AudioBus.menu_enabled = true
 
@@ -20,6 +23,9 @@ func after_each() -> void:
 	GameSettings.config_path = GameSettings.CONFIG_PATH
 	Locale.set_language("zh", false)
 	GameSettings.language = "zh"
+	GameSettings.fps_limit = GameSettings.DEFAULT_FPS_LIMIT
+	GameSettings.vsync = true
+	GameSettings._apply_performance()
 	AudioBus.menu_enabled = true
 	_remove_user_file(TEST_SAVE)
 	_remove_user_file(TEST_SETTINGS)
@@ -85,6 +91,17 @@ func test_settings_file_persists_audio_values() -> void:
 	var config := ConfigFile.new()
 	assert_eq(config.load(TEST_SETTINGS), OK)
 	assert_almost_eq(float(config.get_value("audio", "bgm_volume", 0.0)), 0.33, 0.001)
+
+
+func test_settings_file_persists_fps_and_vsync() -> void:
+	GameSettings.set_fps_limit(0)
+	GameSettings.set_vsync(false)
+	assert_true(FileAccess.file_exists(TEST_SETTINGS))
+	var config := ConfigFile.new()
+	assert_eq(config.load(TEST_SETTINGS), OK)
+	assert_eq(int(config.get_value("display", "fps_limit", -1)), 0)
+	assert_false(bool(config.get_value("display", "vsync", true)))
+	assert_eq(Engine.max_fps, 0, "unlimited frame limit must clear the engine cap")
 
 
 func test_audio_bus_loads_looping_bgm() -> void:
@@ -167,18 +184,33 @@ func test_main_menu_builds_and_opens_settings() -> void:
 	var start: Button = menu.find_child("StartButton", true, false)
 	var about: Button = menu.find_child("AboutButton", true, false)
 	var timer: Timer = menu.find_child("AutosaveTimer", true, false)
+	var fps_option: OptionButton = menu.find_child("FpsLimitOption", true, false)
+	var vsync_toggle: CheckButton = menu.find_child("VsyncToggle", true, false)
 	assert_not_null(overlay)
 	assert_not_null(start)
 	assert_not_null(about)
 	assert_not_null(timer, "the menu must own its autosave timer")
+	assert_not_null(fps_option, "the menu must expose a frame limit setting")
+	assert_not_null(vsync_toggle, "the menu must expose a VSync setting")
 	assert_almost_eq(timer.wait_time, 20.0, 0.01)
 	assert_false(timer.is_stopped(), "autosave timer must be running")
 	assert_false(overlay.visible, "settings must start closed")
 	assert_eq(start.text, Locale.t("menu.start"))
 	assert_eq(about.text, Locale.t("menu.about"))
+	assert_eq(fps_option.get_item_text(fps_option.selected), "60 FPS")
+	assert_eq(vsync_toggle.text, Locale.t("settings.on"))
 	menu.open_settings()
 	await wait_process_frames(1)
 	assert_true(overlay.visible, "open_settings must reveal the overlay")
+	var unlimited_index: int = GameSettings.FPS_LIMITS.find(0)
+	fps_option.select(unlimited_index)
+	fps_option.item_selected.emit(unlimited_index)
+	vsync_toggle.set_pressed_no_signal(false)
+	vsync_toggle.toggled.emit(false)
+	await wait_process_frames(1)
+	assert_eq(GameSettings.fps_limit, 0, "unlimited option must reach GameSettings")
+	assert_false(GameSettings.vsync, "VSync toggle must reach GameSettings")
+	assert_eq(Engine.max_fps, 0)
 	menu.close_settings()
 	await wait_process_frames(1)
 	assert_false(overlay.visible, "close_settings must hide the overlay")
