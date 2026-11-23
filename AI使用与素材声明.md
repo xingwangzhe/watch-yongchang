@@ -9,7 +9,7 @@
 
 | 项目 | 内容 |
 |---|---|
-| 文档版本 | v1.14 |
+| 文档版本 | v1.21 |
 | 更新日期 | 2026-11-23 |
 | 适用阶段 | 资料收集、设计、Godot 可玩原型、美术重构、UI/HUD、音频与装饰、永昌堡地形重构 / 定时出兵重构 / 侧栏与滚幕、**明代兵种精灵重绘** 阶段 |
 | 对应赛事要求 | 2026 开源游戏开发大赛 第五节「内容要求」、第六节「提交材料」、第八节「Dora 开源社区奖」 |
@@ -53,6 +53,26 @@
 ---
 
 ## 三、AI 生成内容清单
+
+> **补充（2026-11-23，v1.21 角色锻造模板）**：新增模块化角色锻造系统，
+> 源文件 `pixel-art/character_forge/build.py`，导出 `body_base.png`、`outfits.png`、
+> `headgear.png`、`backgear.png`、`weapons.png` 与 `offhands.png` 六张 128×128 图集，
+> 每行 48 帧；4 肤色 × 12 服装 × 11 头饰 × 4 背挂 × 43 套主副手组合，共 **90,816** 种。
+> 武器含刀、枪、剑、戟、斧、钺、钩、叉、盾、弓、弩、手铳、龙灯与令旗；盾与双持为独立副手层，
+> 刀/剑/钩/龙灯/令旗支持同种或异种双持，并区分同种、异种与主手+盾三类组合动作。
+> 14 类武器各绑定 5 段具名动作：劈、斩、刺、扫、砸、勾、射、架盾等，不再只复用握法级动作；
+> 双持组合另有同种、异种、盾击各 5 段合击。肩、肘、髋、膝、踝共享同一骨架端点，
+> 构建时同时校验臂长与腿长；双手、远程与单手武器均把双臂固定在躯干前层，双持主手与副手
+> 使用真实配对姿态行，保证挥动、持握与武器和手的贴合可读。每轮导出后查看
+> `joint_contact_sheet.png`、`dual_combo_sheet.png`、`random_combo_sheet.png` 与
+> `weapon_action_sheet.png`。参考包仅用于观察比例、关节连接和动作节奏：
+> LPC Character Bases（CC-BY-SA 3.0 / GPL 3.0）、RGS_Dev modular characters（CC0 1.0）、
+> Kenney Modular Characters（CC0 1.0）；原始包下载到已忽略的
+> `generated/character_candidates/`，**没有 PNG/GIF/SVG/ZIP 或描摹结果进入成品**。
+> 本批次不是扩散模型生图，由 `skills/pixel-art-studio`（MIT）配合 Python/Pillow 程序化绘制；
+> 授权为**原创非代码资产 CC BY 4.0**，署名 xingwangzhe。Godot 运行时为
+> `game/scripts/character/character_forge.gd`，验收场景为
+> `game/scenes/character_forge_preview.tscn`，GUT 覆盖图集尺寸、行映射、双持与配方。
 
 > **补充（2026-11-22 晚，v1.5 第三方 UI 装饰）**：按「装饰素材可商用 + 通用化 + 契合深底金描边风」要求，引入 OpenGameArt 两套 **CC0** 素材：**golden-ui by buch**（裁切琥珀金像素面板 `panel_gold.png` 作九宫格面板）与 **Free UI Asset Pack 1 by ctatz**（9 枚白色符号染金色 → 通用图标：播放/设置/信息/关闭/暂停/音量/静音/勾选/奖杯）。经 `tools/process_thirdparty_ui.py` 处理，`game/scripts/ui/ui_kit.gd` 作统一出口接入主菜单按钮、关于/设置/HUD 暂停与结算/事件横幅面板。TASL 逐项登记见 `generated/ui_thirdparty/LICENSES.md`。
 >

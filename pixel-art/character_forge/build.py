@@ -2,7 +2,7 @@
 """Modular 128x128 character forge for WATCH · YONGCHANG.
 
 The forge renders a shared human body, grip-specific clothing layers, universal
-headgear/backgear, and weapon action layers on the same 32-frame timeline. All
+headgear/backgear, and weapon action layers on the same 48-frame timeline. All
 art is drawn pixel by pixel with skills/pixel-art-studio; the downloaded CC0 /
 CC-BY-SA packs are visual and architectural references only and never enter the
 exported atlases.
@@ -31,7 +31,7 @@ from pixelstudio import Sprite  # noqa: E402
 
 
 CELL = 128
-FRAME_COUNT = 32
+FRAME_COUNT = 48
 ARM_UPPER = 17.0
 ARM_LOWER = 17.0
 LEG_UPPER = 21.0
@@ -49,9 +49,10 @@ GRIPS = ("one_hand", "two_hand", "ranged", "offhand")
 ARM_LAYER_RULES = {
     "two_hand": "both_front",
     "ranged": "both_front",
-    "one_hand": "far_back_near_front",
-    "offhand": "far_back_near_front",
+    "one_hand": "both_front",
+    "offhand": "both_front",
 }
+ARM_LAYER_POLICY = "all_arms_front"
 
 CLIPS = {
     "idle": {"start": 0, "count": 4, "fps": 6},
@@ -59,7 +60,134 @@ CLIPS = {
     "attack_1": {"start": 12, "count": 6, "fps": 13},
     "attack_2": {"start": 18, "count": 6, "fps": 13},
     "attack_3": {"start": 24, "count": 6, "fps": 11},
-    "hit": {"start": 30, "count": 2, "fps": 10},
+    "attack_4": {"start": 30, "count": 6, "fps": 12},
+    "attack_5": {"start": 36, "count": 6, "fps": 10},
+    "hit": {"start": 42, "count": 2, "fps": 10},
+    "guard": {"start": 44, "count": 4, "fps": 6},
+}
+ATTACK_ACTIONS = (1, 2, 3, 4, 5)
+ACTION_NAMES = {
+    "dao": (
+        ("劈山式", "Mountain Split"),
+        ("撩云式", "Cloud Rise"),
+        ("横斩式", "Cross Cut"),
+        ("回风式", "Backwind Cut"),
+        ("断浪式", "Wave Breaker"),
+    ),
+    "jian": (
+        ("点星式", "Star Point"),
+        ("撩月式", "Moon Rise"),
+        ("刺虹式", "Rainbow Thrust"),
+        ("回锋式", "Returning Edge"),
+        ("贯日式", "Sun Piercer"),
+    ),
+    "qiang": (
+        ("中平刺", "Level Thrust"),
+        ("拦拿扎", "Parry and Pierce"),
+        ("崩枪式", "Spear Snap"),
+        ("回马枪", "Turning Spear"),
+        ("穿云刺", "Cloud Piercer"),
+    ),
+    "ji": (
+        ("横戟式", "Level Halberd"),
+        ("勾啄式", "Hook and Peck"),
+        ("回旋斩", "Whirl Cut"),
+        ("挑月式", "Moon Lift"),
+        ("破阵式", "Formation Breaker"),
+    ),
+    "fu": (
+        ("开山劈", "Mountain Cleave"),
+        ("横抡斧", "Side Swing"),
+        ("回风劈", "Backwind Cleave"),
+        ("撩斧式", "Axe Rise"),
+        ("断岳式", "Ridge Breaker"),
+    ),
+    "yue": (
+        ("横扫千军", "Army Sweep"),
+        ("回旋钺", "Whirl Axe"),
+        ("上撩式", "Upward Rise"),
+        ("压顶式", "Crown Press"),
+        ("裂阵式", "Line Breaker"),
+    ),
+    "gou": (
+        ("锁喉钩", "Throat Hook"),
+        ("回勾式", "Returning Hook"),
+        ("双撩钩", "Twin Hook Rise"),
+        ("缠腕式", "Wrist Coil"),
+        ("破甲钩", "Armour Hook"),
+    ),
+    "cha": (
+        ("中平叉", "Level Trident"),
+        ("挑刺式", "Rising Thrust"),
+        ("横扫式", "Side Sweep"),
+        ("锁兵式", "Weapon Lock"),
+        ("破阵叉", "Formation Fork"),
+    ),
+    "gong": (
+        ("开弓式", "Bow Draw"),
+        ("满月式", "Full Moon"),
+        ("连珠式", "Rapid Volley"),
+        ("仰射式", "High Shot"),
+        ("回身射", "Turning Shot"),
+    ),
+    "nu": (
+        ("上弦式", "Crossbow Span"),
+        ("平射式", "Level Shot"),
+        ("连弩式", "Repeating Volley"),
+        ("压弩式", "Press Shot"),
+        ("回身射", "Turning Shot"),
+    ),
+    "niaochong": (
+        ("举铳式", "Cannon Raise"),
+        ("瞄准式", "Take Aim"),
+        ("击发式", "Fire"),
+        ("压铳式", "Recoil Brace"),
+        ("回身铳", "Turning Shot"),
+    ),
+    "longdeng": (
+        ("龙灯起式", "Lantern Rise"),
+        ("盘龙式", "Coiled Dragon"),
+        ("摆灯式", "Lantern Swing"),
+        ("回龙式", "Returning Dragon"),
+        ("龙腾式", "Dragon Soars"),
+    ),
+    "lingqi": (
+        ("举旗式", "Flag Raise"),
+        ("挥旗式", "Flag Sweep"),
+        ("卷旗式", "Flag Coil"),
+        ("指阵式", "Formation Call"),
+        ("破阵旗", "Formation Breaker"),
+    ),
+    "dun": (
+        ("举盾式", "Shield Raise"),
+        ("盾击式", "Shield Bash"),
+        ("格挡式", "Shield Block"),
+        ("撞阵式", "Shield Charge"),
+        ("回盾式", "Shield Return"),
+    ),
+}
+COMBO_ACTION_NAMES = {
+    "same": (
+        ("同心斩", "Twin Heart Cut"),
+        ("双回风", "Twin Backwind"),
+        ("叠浪式", "Twin Wave"),
+        ("合璧式", "Paired Jade"),
+        ("双龙出海", "Twin Dragons"),
+    ),
+    "mixed": (
+        ("左牵右引", "Left Draw, Right Guide"),
+        ("长短互济", "Long and Short"),
+        ("错锋式", "Crossed Edges"),
+        ("阴阳式", "Yin and Yang"),
+        ("合击式", "Joint Strike"),
+    ),
+    "shield": (
+        ("盾掩刀锋", "Shield Covers Blade"),
+        ("撞盾斩", "Shield Charge Cut"),
+        ("守势反击", "Guard Counter"),
+        ("压盾式", "Shield Press"),
+        ("破阵合击", "Breaker Combo"),
+    ),
 }
 
 INK = "#07090b"
@@ -275,9 +403,9 @@ WEAPONS = [
     {"id": "niaochong", "name_zh": "手铳", "name_en": "Hand Cannon", "kind": "niaochong",
      "grip": "ranged", "slot": "main", "attack_profile": "hand_cannon", "offhand": False},
     {"id": "longdeng", "name_zh": "龙灯", "name_en": "Dragon Lantern", "kind": "longdeng",
-     "grip": "one_hand", "slot": "main", "attack_profile": "lantern_sweep", "offhand": False},
+     "grip": "one_hand", "slot": "main", "attack_profile": "lantern_sweep", "offhand": True},
     {"id": "lingqi", "name_zh": "令旗", "name_en": "Signal Flag", "kind": "lingqi",
-     "grip": "one_hand", "slot": "main", "attack_profile": "signal_command", "offhand": False},
+     "grip": "one_hand", "slot": "main", "attack_profile": "signal_command", "offhand": True},
     {"id": "dun", "name_zh": "盾", "name_en": "Shield", "kind": "dun",
      "grip": "offhand", "slot": "offhand", "attack_profile": "shield_bash", "offhand": True},
 ]
@@ -285,11 +413,58 @@ WEAPONS = [
 WEAPON_BY_ID = {item["id"]: item for item in WEAPONS}
 MAIN_WEAPONS = [item for item in WEAPONS if item["slot"] == "main"]
 OFFHAND_WEAPONS = [item for item in WEAPONS if item["offhand"]]
-OFFHAND_ALLOWED_IDS = ("dao", "jian", "gou", "dun")
+OFFHAND_ALLOWED_IDS = ("dao", "jian", "gou", "longdeng", "lingqi", "dun")
 POSE_SETS = tuple(item["id"] for item in WEAPONS)
 REQUIRED_WEAPONS = (
     "dao", "qiang", "jian", "ji", "fu", "yue", "gou", "cha", "dun", "gong", "nu",
 )
+ONE_HAND_MAIN_IDS = tuple(item["id"] for item in MAIN_WEAPONS if item["grip"] == "one_hand")
+COMBO_FAMILIES = ("same", "mixed", "shield")
+
+
+def combo_family(main_id: str, offhand_id: str) -> str:
+    if offhand_id == "dun":
+        return "shield"
+    if main_id == offhand_id:
+        return "same"
+    return "mixed"
+
+
+def combo_pairs() -> list[tuple[str, str]]:
+    return [
+        (main_id, offhand_id)
+        for main_id in ONE_HAND_MAIN_IDS
+        for offhand_id in OFFHAND_ALLOWED_IDS
+    ]
+
+
+def pose_variant(weapon_id: str, offhand_id: str) -> str:
+    if offhand_id == "none":
+        return weapon_id
+    return f"combo_{combo_family(weapon_id, offhand_id)}"
+
+
+COMBO_POSE_IDS = tuple(f"combo_{family}" for family in COMBO_FAMILIES)
+POSE_VARIANTS = POSE_SETS + COMBO_POSE_IDS
+COMBO_REPRESENTATIVES = {
+    "combo_same": ("dao", "dao"),
+    "combo_mixed": ("dao", "jian"),
+    "combo_shield": ("dao", "dun"),
+}
+PAIR_STYLE_OFFSETS = {
+    ("dao", "dao"): 0,
+    ("jian", "jian"): 8,
+    ("gou", "gou"): -10,
+    ("dao", "jian"): 0,
+    ("jian", "dao"): 6,
+    ("gou", "dao"): -8,
+    ("dao", "gou"): 8,
+    ("jian", "gou"): -6,
+    ("gou", "jian"): 10,
+    ("dao", "dun"): 0,
+    ("jian", "dun"): 4,
+    ("gou", "dun"): -4,
+}
 
 
 def _all_colors() -> list[str]:
@@ -515,6 +690,8 @@ def shoulder_points(pose: dict, side: str) -> tuple[float, float]:
 
 
 def far_arm_mode(pose: dict) -> str:
+    if ARM_LAYER_POLICY == "all_arms_front":
+        return "front"
     if ARM_LAYER_RULES[pose["grip"]] == "both_front":
         return "front"
     upper_x = 60.0 + float(pose["lean"])
@@ -1000,12 +1177,325 @@ ATTACK_SPECS = {
     },
 }
 
+EXTRA_ATTACK_SPECS = {
+    "dao": {
+        4: _action(
+            ((76, 64), (60, 54), (92, 72), (86, 74)),
+            ((48, 70), (44, 64), (54, 68), (50, 72)),
+            (100, 145, -20, -70),
+            (-82, -100, -40, -68),
+        ),
+        5: _action(
+            ((70, 66), (56, 58), (94, 64), (88, 72)),
+            ((54, 68), (48, 62), (72, 58), (64, 66)),
+            (160, 210, 10, -40),
+            (-80, -130, 30, 62),
+            lunge=4,
+        ),
+    },
+    "jian": {
+        4: _action(
+            ((76, 66), (66, 62), (96, 70), (90, 72)),
+            ((52, 70), (48, 68), (58, 72), (54, 72)),
+            (-10, -25, 5, 8),
+        ),
+        5: _action(
+            ((74, 62), (62, 54), (98, 66), (92, 70)),
+            ((52, 68), (48, 64), (60, 66), (56, 70)),
+            (-30, -60, 0, 5),
+            lunge=4,
+        ),
+    },
+    "gou": {
+        4: _action(
+            ((72, 60), (60, 46), (90, 62), (82, 72)),
+            ((52, 70), (48, 62), (60, 64), (56, 72)),
+            (-100, -150, 10, 70),
+            (-90, -130, 20, 60),
+        ),
+        5: _action(
+            ((70, 70), (56, 72), (94, 76), (86, 72)),
+            ((52, 72), (46, 66), (68, 66), (60, 72)),
+            (150, 200, -10, -60),
+            (-80, -120, 40, 70),
+            lunge=4,
+        ),
+    },
+    "longdeng": {
+        4: _action(
+            ((76, 66), (62, 72), (92, 72), (86, 74)),
+            ((52, 70), (48, 66), (58, 68), (56, 72)),
+            (120, 160, -15, -70),
+        ),
+        5: _action(
+            ((74, 60), (62, 48), (88, 58), (84, 70)),
+            ((52, 68), (48, 64), (58, 66), (56, 72)),
+            (-90, -140, -30, -80),
+        ),
+    },
+    "lingqi": {
+        4: _action(
+            ((74, 64), (62, 70), (92, 68), (82, 72)),
+            ((52, 72), (50, 68), (58, 68), (56, 72)),
+            (100, 150, -20, -60),
+            lunge=2,
+        ),
+        5: _action(
+            ((72, 60), (68, 46), (82, 38), (82, 48)),
+            ((52, 72), (50, 68), (58, 68), (56, 72)),
+            (-80, -110, -95, -85),
+            lunge=1,
+        ),
+    },
+    "dun": {
+        4: _action(
+            ((64, 64), (56, 58), (82, 62), (74, 68)),
+            ((52, 70), (48, 62), (62, 66), (58, 70)),
+            (-82, -95, -72, -80),
+            lunge=3,
+        ),
+        5: _action(
+            ((66, 64), (58, 54), (86, 68), (76, 70)),
+            ((52, 70), (46, 62), (68, 66), (60, 70)),
+            (-82, -100, -60, -78),
+            lunge=4,
+        ),
+    },
+    "qiang": {
+        4: _action(
+            ((64, 62), (56, 58), (78, 68), (70, 70)),
+            ((54, 66), (48, 64), (58, 70), (56, 72)),
+            (0, 0, 0, 0),
+            lunge=3,
+        ),
+        5: _action(
+            ((70, 50), (64, 44), (90, 66), (78, 72)),
+            ((54, 58), (48, 54), (58, 68), (56, 72)),
+            (0, 0, 0, 0),
+            lunge=5,
+        ),
+    },
+    "ji": {
+        4: _action(
+            ((68, 54), (58, 48), (88, 64), (80, 70)),
+            ((54, 60), (48, 56), (62, 66), (58, 70)),
+            (0, 0, 0, 0),
+            lunge=4,
+        ),
+        5: _action(
+            ((68, 44), (60, 38), (82, 72), (76, 72)),
+            ((54, 56), (48, 52), (60, 70), (58, 72)),
+            (0, 0, 0, 0),
+            lunge=5,
+        ),
+    },
+    "fu": {
+        4: _action(
+            ((68, 52), (60, 46), (82, 76), (76, 74)),
+            ((54, 58), (48, 54), (62, 72), (58, 72)),
+            (0, 0, 0, 0),
+            lunge=4,
+        ),
+        5: _action(
+            ((68, 50), (80, 54), (62, 68), (80, 70)),
+            ((54, 60), (62, 62), (50, 68), (60, 70)),
+            (0, 0, 0, 0),
+            lunge=4,
+        ),
+    },
+    "yue": {
+        4: _action(
+            ((68, 54), (56, 50), (86, 60), (80, 68)),
+            ((54, 60), (48, 56), (62, 64), (58, 68)),
+            (0, 0, 0, 0),
+            lunge=4,
+        ),
+        5: _action(
+            ((68, 42), (60, 36), (84, 74), (78, 72)),
+            ((54, 56), (48, 52), (62, 72), (58, 72)),
+            (0, 0, 0, 0),
+            lunge=5,
+        ),
+    },
+    "cha": {
+        4: _action(
+            ((68, 56), (60, 60), (88, 74), (80, 74)),
+            ((54, 62), (48, 66), (58, 72), (56, 72)),
+            (0, 0, 0, 0),
+            lunge=5,
+        ),
+        5: _action(
+            ((68, 54), (56, 60), (90, 64), (82, 70)),
+            ((54, 60), (48, 66), (64, 64), (60, 68)),
+            (0, 0, 0, 0),
+            lunge=4,
+        ),
+    },
+    "gong": {
+        4: _action(
+            ((64, 67), (63, 65), (67, 64), (66, 66)),
+            ((36, 64), (34, 63), (32, 60), (34, 62)),
+            (-5, -8, 4, 5),
+            lunge=1,
+        ),
+        5: _action(
+            ((63, 66), (62, 64), (65, 62), (66, 66)),
+            ((36, 64), (32, 62), (28, 56), (33, 60)),
+            (-8, -12, -2, 3),
+            lunge=1,
+        ),
+    },
+    "nu": {
+        4: _action(
+            ((64, 66), (58, 64), (70, 65), (66, 66)),
+            ((44, 64), (42, 60), (48, 62), (45, 64)),
+            (-2, -6, 0, 1),
+            lunge=2,
+        ),
+        5: _action(
+            ((64, 64), (58, 58), (72, 62), (66, 66)),
+            ((44, 62), (40, 58), (49, 62), (45, 64)),
+            (-5, -10, 2, 1),
+            lunge=3,
+        ),
+    },
+    "niaochong": {
+        4: _action(
+            ((68, 66), (62, 64), (82, 66), (72, 68)),
+            ((56, 62), (52, 60), (60, 62), (58, 64)),
+            (-4, -8, 0, 2),
+            lunge=2,
+        ),
+        5: _action(
+            ((68, 64), (60, 58), (86, 64), (74, 68)),
+            ((56, 62), (50, 58), (64, 62), (58, 64)),
+            (-6, -12, 3, 2),
+            lunge=3,
+        ),
+    },
+}
 
-def attack_pose(action: int, stage: int, pose_id: str) -> dict:
+for _weapon_id, _extra_actions in EXTRA_ATTACK_SPECS.items():
+    ATTACK_SPECS[_weapon_id].update(_extra_actions)
+
+
+COMBO_ATTACK_SPECS = {
+    "same": {
+        1: _action(
+            ((76, 64), (64, 54), (94, 70), (86, 74)),
+            ((48, 70), (44, 64), (58, 66), (54, 72)),
+            (-105, -130, 15, 65),
+            (-82, -100, -30, -70),
+        ),
+        2: _action(
+            ((72, 66), (60, 60), (86, 70), (84, 74)),
+            ((50, 66), (40, 56), (70, 64), (62, 72)),
+            (-80, -100, -20, -60),
+            (-110, -140, 10, 70),
+        ),
+        3: _action(
+            ((72, 60), (62, 48), (94, 64), (88, 72)),
+            ((52, 64), (42, 52), (76, 58), (66, 68)),
+            (-120, -160, 20, 70),
+            (-80, -130, 30, 80),
+            lunge=4,
+        ),
+        4: _action(
+            ((74, 70), (62, 72), (92, 74), (86, 72)),
+            ((50, 60), (42, 50), (74, 62), (64, 70)),
+            (140, 180, -10, -50),
+            (-110, -150, 20, 60),
+        ),
+        5: _action(
+            ((70, 62), (58, 50), (96, 66), (88, 72)),
+            ((52, 68), (44, 58), (74, 60), (66, 68)),
+            (-60, -120, 10, 50),
+            (-70, -130, 20, 70),
+            lunge=5,
+        ),
+    },
+    "mixed": {
+        1: _action(
+            ((74, 60), (62, 50), (94, 66), (86, 72)),
+            ((52, 68), (46, 62), (70, 66), (62, 72)),
+            (-110, -140, 20, 70),
+            (-80, -95, -5, 5),
+        ),
+        2: _action(
+            ((72, 68), (62, 72), (92, 66), (86, 72)),
+            ((50, 60), (40, 50), (64, 58), (58, 68)),
+            (150, 190, 15, -30),
+            (-120, -160, 20, 60),
+        ),
+        3: _action(
+            ((70, 58), (60, 46), (92, 68), (86, 72)),
+            ((52, 66), (42, 56), (74, 62), (64, 70)),
+            (-90, -130, 35, 80),
+            (-70, -120, 45, 85),
+            lunge=4,
+        ),
+        4: _action(
+            ((72, 52), (62, 44), (88, 66), (82, 72)),
+            ((50, 70), (42, 72), (68, 66), (62, 70)),
+            (-80, -120, 15, 60),
+            (130, 170, -10, -50),
+        ),
+        5: _action(
+            ((70, 64), (60, 58), (96, 66), (88, 70)),
+            ((52, 66), (42, 56), (72, 60), (62, 68)),
+            (-10, -25, 5, 8),
+            (-100, -140, 30, 70),
+            lunge=5,
+        ),
+    },
+    "shield": {
+        1: _action(
+            ((70, 68), (60, 70), (88, 70), (82, 72)),
+            ((56, 58), (52, 56), (60, 60), (58, 62)),
+            (140, 180, -10, -40),
+            (-82, -95, -82, -85),
+        ),
+        2: _action(
+            ((72, 64), (62, 54), (92, 68), (84, 72)),
+            ((48, 64), (58, 58), (70, 62), (64, 66)),
+            (-100, -130, 15, 60),
+            (-82, -90, -70, -80),
+            lunge=4,
+        ),
+        3: _action(
+            ((70, 60), (60, 56), (94, 64), (88, 70)),
+            ((52, 54), (48, 52), (58, 56), (56, 60)),
+            (-20, -40, 0, 5),
+            (-82, -100, -80, -85),
+        ),
+        4: _action(
+            ((72, 52), (62, 44), (88, 66), (82, 72)),
+            ((52, 64), (44, 60), (66, 64), (60, 68)),
+            (-80, -120, 15, 60),
+            (-82, -95, -60, -75),
+        ),
+        5: _action(
+            ((70, 64), (58, 58), (96, 66), (88, 72)),
+            ((50, 62), (60, 56), (74, 60), (66, 66)),
+            (-60, -110, 10, 50),
+            (-82, -95, -70, -80),
+            lunge=5,
+        ),
+    },
+}
+
+
+def attack_pose(action: int, stage: int, pose_id: str, offhand_id: str = "none") -> dict:
     weapon = WEAPON_BY_ID.get(pose_id, WEAPONS[0])
     grip = "one_hand" if weapon["grip"] == "offhand" else weapon["grip"]
     pose = _pose_shell(grip)
-    spec = ATTACK_SPECS[weapon["id"]][action]
+    family = None if offhand_id == "none" else combo_family(weapon["id"], offhand_id)
+    spec = (
+        COMBO_ATTACK_SPECS[family][action]
+        if family is not None
+        else ATTACK_SPECS[weapon["id"]][action]
+    )
+    pair_offset = PAIR_STYLE_OFFSETS.get((weapon["id"], offhand_id), 0) if family else 0
     bob = ATTACK_BASE["bob"][stage]
     lean = ATTACK_BASE["lean"][stage]
     pose["lean"] = lean
@@ -1016,8 +1506,13 @@ def attack_pose(action: int, stage: int, pose_id: str) -> dict:
     pose["stage"] = stage
     pose["near_hand"] = _stage_value(stage, *spec["near"])
     pose["far_hand"] = _stage_value(stage, *spec["far"])
-    pose["weapon_angle"] = math.radians(_stage_angle(stage, *spec["near_angle"]))
-    pose["offhand_angle"] = math.radians(_stage_angle(stage, *spec["far_angle"]))
+    near_angle = _stage_angle(stage, *spec["near_angle"]) + pair_offset
+    far_angle = _stage_angle(stage, *spec["far_angle"]) - pair_offset
+    pose["weapon_angle"] = math.radians(near_angle)
+    pose["offhand_angle"] = math.radians(far_angle)
+    if family is not None:
+        pose["combo"] = family
+        pose["pair"] = f"{weapon['id']}+{offhand_id}"
     lunge = int(spec.get("lunge", 3))
     lunge = max(1, min(3, lunge))
     lunge_shift = (0, 0, lunge, lunge, lunge - 1, 0)[stage]
@@ -1058,57 +1553,86 @@ def hit_pose(index: int, grip: str) -> dict:
     return pose
 
 
-def pose_for(frame: int, pose_id: str) -> dict:
+def guard_pose(index: int, grip: str, offhand_id: str = "none") -> dict:
+    pose = idle_pose(index, grip)
+    sway = math.sin(pose["phase"]) * 1.0
+    if offhand_id != "none":
+        pose["near_hand"] = (72.0 + sway, 62.0)
+        pose["far_hand"] = (54.0 - sway, 64.0)
+        pose["weapon_angle"] = math.radians(-35 + sway * 2)
+        pose["offhand_angle"] = math.radians(-115 - sway * 2)
+    elif grip == "two_hand":
+        pose["far_hand"] = (56.0, 64.0)
+        pose["near_hand"] = (72.0 + sway, 58.0)
+        delta = sub(pose["near_hand"], pose["far_hand"])
+        pose["weapon_angle"] = math.atan2(delta[1], delta[0])
+    elif grip == "ranged":
+        pose["far_hand"] = (36.0 - sway, 62.0)
+        pose["near_hand"] = (66.0, 64.0)
+        pose["weapon_angle"] = math.radians(-5 + sway)
+    else:
+        pose["near_hand"] = (72.0 + sway, 64.0)
+        pose["weapon_angle"] = math.radians(-25 + sway * 3)
+    pose["guard"] = index + 1
+    return pose
+
+
+def pose_for(frame: int, pose_id: str, offhand_id: str = "none") -> dict:
     weapon = WEAPON_BY_ID.get(pose_id, WEAPONS[0])
     grip = weapon["grip"]
-    if 0 <= frame < 4:
+    if frame < CLIPS["walk"]["start"]:
         return idle_pose(frame, grip)
-    if 4 <= frame < 12:
-        return walk_pose(frame - 4, grip)
-    if 12 <= frame < 18:
-        return attack_pose(1, frame - 12, weapon["id"])
-    if 18 <= frame < 24:
-        return attack_pose(2, frame - 18, weapon["id"])
-    if 24 <= frame < 30:
-        return attack_pose(3, frame - 24, weapon["id"])
-    return hit_pose(frame - 30, grip)
+    if frame < CLIPS["attack_1"]["start"]:
+        return walk_pose(frame - CLIPS["walk"]["start"], grip)
+    for action in ATTACK_ACTIONS:
+        clip = CLIPS[f"attack_{action}"]
+        if clip["start"] <= frame < clip["start"] + clip["count"]:
+            return attack_pose(action, frame - clip["start"], weapon["id"], offhand_id)
+    hit_clip = CLIPS["hit"]
+    if frame < CLIPS["guard"]["start"]:
+        return hit_pose(frame - hit_clip["start"], grip)
+    return guard_pose(frame - CLIPS["guard"]["start"], grip, offhand_id)
 
 
 def validate_pose_reach() -> None:
     failures = []
-    for pose_id in POSE_SETS:
+    cases = [(pose_id, "none") for pose_id in POSE_SETS] + combo_pairs()
+    for pose_id, offhand_id in cases:
         for frame in range(FRAME_COUNT):
-            pose = pose_for(frame, pose_id)
+            pose = pose_for(frame, pose_id, offhand_id)
             far_shoulder = shoulder_points(pose, "far")
             near_shoulder = shoulder_points(pose, "near")
             for side, shoulder in (("far", far_shoulder), ("near", near_shoulder)):
                 distance = length(sub(pose[f"{side}_hand"], shoulder))
                 if distance > (ARM_UPPER + ARM_LOWER) * 1.08:
                     failures.append(
-                        f"{pose_id} frame={frame} {side} arm reach={distance:.2f}"
+                        f"{pose_id}+{offhand_id} frame={frame} {side} arm reach={distance:.2f}"
                     )
             for side in ("far", "near"):
                 hip, ankle = leg_points(pose, side)
                 distance = length(sub(ankle, hip))
                 if distance > (LEG_UPPER + LEG_LOWER) * 1.01:
                     failures.append(
-                        f"{pose_id} frame={frame} {side} leg reach={distance:.2f}"
+                        f"{pose_id}+{offhand_id} frame={frame} {side} leg reach={distance:.2f}"
                     )
     if failures:
         raise ValueError("unreachable poses:\n" + "\n".join(failures))
 
 
 def validate_arm_layering() -> None:
+    if ARM_LAYER_POLICY != "all_arms_front" or set(ARM_LAYER_RULES.values()) != {"both_front"}:
+        raise ValueError("arm layering must stay locked to both_front for every grip")
     failures = []
-    for pose_id in POSE_SETS:
+    cases = [(pose_id, "none") for pose_id in POSE_SETS] + combo_pairs()
+    for pose_id, offhand_id in cases:
         for frame in range(FRAME_COUNT):
-            pose = pose_for(frame, pose_id)
+            pose = pose_for(frame, pose_id, offhand_id)
             mode = far_arm_mode(pose)
             expected = ARM_LAYER_RULES[pose["grip"]]
             if expected == "both_front" and mode != "front":
-                failures.append(f"{pose_id} frame={frame} grip={pose['grip']} mode={mode}")
+                failures.append(f"{pose_id}+{offhand_id} frame={frame} grip={pose['grip']} mode={mode}")
             if expected == "far_back_near_front" and mode == "front":
-                failures.append(f"{pose_id} frame={frame} grip={pose['grip']} mode={mode}")
+                failures.append(f"{pose_id}+{offhand_id} frame={frame} grip={pose['grip']} mode={mode}")
     if failures:
         raise ValueError("invalid arm layering:\n" + "\n".join(failures))
 
@@ -1972,27 +2496,15 @@ def draw_weapon_dao(s: Sprite, pose: dict) -> None:
 
 
 def draw_weapon_jian(s: Sprite, pose: dict) -> None:
-    far = pose["far_hand"]
     near = pose["near_hand"]
-    if pose.get("offhand"):
-        angle = float(pose["weapon_angle"])
-        d = (math.cos(angle), math.sin(angle))
-        n = (-d[1], d[0])
-        line(s, add(near, mul(d, -7)), near, LEATHER_D)
-        line(s, add(near, mul(d, -6)), add(near, mul(d, -2)), LEATHER_L)
-        line(s, add(near, mul(n, -5)), add(near, mul(n, 5)), GOLD)
-        tip, _ = _blade_polygon(s, near, angle, 27, 2.4, IRON, IRON_LL, 0.0)
-        line(s, add(near, mul(d, 3)), add(tip, mul(n, -0.4)), IRON_L)
-        _slash_effect(s, pose, near, 29, WHITE if int(pose["stage"]) == 3 else GOLD_L)
-        return
-    delta = sub(near, far)
-    d = unit(delta)
+    angle = float(pose["weapon_angle"])
+    d = (math.cos(angle), math.sin(angle))
     n = (-d[1], d[0])
-    line(s, add(far, mul(d, -7)), near, LEATHER_D)
-    line(s, add(far, mul(d, -6)), add(near, mul(d, -1)), LEATHER_L)
-    line(s, add(near, mul(n, -6)), add(near, mul(n, 6)), GOLD)
-    line(s, add(near, mul(n, -5)), add(near, mul(n, 5)), GOLD_L)
-    tip, _ = _blade_polygon(s, near, math.atan2(d[1], d[0]), 29, 2.5, IRON, IRON_LL, 0.0)
+    line(s, add(near, mul(d, -7)), near, LEATHER_D)
+    line(s, add(near, mul(d, -6)), add(near, mul(d, -2)), LEATHER_L)
+    line(s, add(near, mul(n, -5)), add(near, mul(n, 5)), GOLD)
+    line(s, add(near, mul(n, -4)), add(near, mul(n, 4)), GOLD_L)
+    tip, _ = _blade_polygon(s, near, angle, 29, 2.4, IRON, IRON_LL, 0.0)
     line(s, add(near, mul(d, 3)), add(tip, mul(n, -0.4)), IRON_L)
     _slash_effect(s, pose, near, 31, WHITE if int(pose["stage"]) == 3 else GOLD_L)
 
@@ -2378,7 +2890,8 @@ def render_layer(
     frame: int,
 ) -> Image.Image:
     s = Canvas(CELL, CELL, palette=PAL)
-    pose = pose_for(frame, pose_id)
+    offhand_id = str(offhand["id"]) if offhand else "none"
+    pose = pose_for(frame, pose_id, offhand_id)
     if layer == "body":
         draw_body_layer(s, pose, skin)
     elif layer == "outfit":
@@ -2424,21 +2937,28 @@ def build_atlas(
     return atlas
 
 
+def variant_actor(variant: str) -> tuple[dict, dict | None, str]:
+    if variant in COMBO_REPRESENTATIVES:
+        main_id, offhand_id = COMBO_REPRESENTATIVES[variant]
+        return WEAPON_BY_ID[main_id], WEAPON_BY_ID[offhand_id], main_id
+    return WEAPON_BY_ID[variant], None, variant
+
+
 def body_rows() -> list[tuple[dict, dict, dict, dict, dict, dict | None, str]]:
     rows = []
     for skin in SKINS:
-        for pose_id in POSE_SETS:
-            weapon = WEAPON_BY_ID[pose_id]
-            rows.append((skin, OUTFITS[0], HEADGEAR[0], BACKGEAR[0], weapon, None, pose_id))
+        for variant in POSE_VARIANTS:
+            weapon, offhand, pose_id = variant_actor(variant)
+            rows.append((skin, OUTFITS[0], HEADGEAR[0], BACKGEAR[0], weapon, offhand, pose_id))
     return rows
 
 
 def outfit_rows() -> list[tuple[dict, dict, dict, dict, dict, dict | None, str]]:
     rows = []
     for outfit in OUTFITS:
-        for pose_id in POSE_SETS:
-            weapon = WEAPON_BY_ID[pose_id]
-            rows.append((SKINS[0], outfit, HEADGEAR[0], BACKGEAR[0], weapon, None, pose_id))
+        for variant in POSE_VARIANTS:
+            weapon, offhand, pose_id = variant_actor(variant)
+            rows.append((SKINS[0], outfit, HEADGEAR[0], BACKGEAR[0], weapon, offhand, pose_id))
     return rows
 
 
@@ -2464,6 +2984,11 @@ def weapon_rows() -> list[tuple[dict, dict, dict, dict, dict, dict | None, str]]
     rows = []
     for item in WEAPONS:
         rows.append((SKINS[0], OUTFITS[0], HEADGEAR[0], BACKGEAR[0], item, None, item["id"]))
+    for main_id, offhand_id in combo_pairs():
+        rows.append((
+            SKINS[0], OUTFITS[0], HEADGEAR[0], BACKGEAR[0],
+            WEAPON_BY_ID[main_id], WEAPON_BY_ID[offhand_id], main_id,
+        ))
     return rows
 
 
@@ -2481,12 +3006,12 @@ def offhand_rows() -> list[tuple[dict, dict, dict, dict, dict, dict | None, str]
 def row_maps() -> dict:
     body = {}
     for index, skin in enumerate(SKINS):
-        for pose_index, pose_id in enumerate(POSE_SETS):
-            body[f"{skin['id']}|{pose_id}"] = index * len(POSE_SETS) + pose_index
+        for pose_index, variant in enumerate(POSE_VARIANTS):
+            body[f"{skin['id']}|{variant}"] = index * len(POSE_VARIANTS) + pose_index
     outfits = {}
     for index, outfit in enumerate(OUTFITS):
-        for pose_index, pose_id in enumerate(POSE_SETS):
-            outfits[f"{outfit['id']}|{pose_id}"] = index * len(POSE_SETS) + pose_index
+        for pose_index, variant in enumerate(POSE_VARIANTS):
+            outfits[f"{outfit['id']}|{variant}"] = index * len(POSE_VARIANTS) + pose_index
     headgear = {}
     for index, item in enumerate(HEADGEAR):
         for pose_index, pose_id in enumerate(POSE_SETS):
@@ -2497,19 +3022,20 @@ def row_maps() -> dict:
             backgear[f"{item['id']}|{pose_id}"] = index * len(POSE_SETS) + pose_index
     offhands = {}
     row = 0
-    allowed = [WEAPON_BY_ID[item_id] for item_id in OFFHAND_ALLOWED_IDS]
-    for main in MAIN_WEAPONS:
-        if main["grip"] != "one_hand":
-            continue
-        for offhand in allowed:
-            offhands[f"{main['id']}|{offhand['id']}"] = row
-            row += 1
+    for main_id, offhand_id in combo_pairs():
+        offhands[f"{main_id}|{offhand_id}"] = row
+        row += 1
+    weapons = {item["id"]: i for i, item in enumerate(WEAPONS)}
+    row = len(WEAPONS)
+    for main_id, offhand_id in combo_pairs():
+        weapons[f"{main_id}+{offhand_id}"] = row
+        row += 1
     return {
         "body": body,
         "outfits": outfits,
         "headgear": headgear,
         "backgear": backgear,
-        "weapons": {item["id"]: i for i, item in enumerate(WEAPONS)},
+        "weapons": weapons,
         "offhands": offhands,
     }
 
@@ -2580,11 +3106,14 @@ def compose_recipe_frame(
         atlases = load_preview_atlases()
     maps = row_maps()
     pose_id = weapon["id"]
-    body_row = maps["body"][f"{skin['id']}|{pose_id}"]
-    outfit_row = maps["outfits"][f"{outfit['id']}|{pose_id}"]
+    offhand_id = str(offhand["id"]) if offhand else "none"
+    variant = pose_variant(pose_id, offhand_id)
+    body_row = maps["body"][f"{skin['id']}|{variant}"]
+    outfit_row = maps["outfits"][f"{outfit['id']}|{variant}"]
     head_row = maps["headgear"][f"{headgear['id']}|{pose_id}"]
     back_row = maps["backgear"][f"{backgear['id']}|{pose_id}"]
-    weapon_row = maps["weapons"][weapon["id"]]
+    weapon_key = weapon["id"] if offhand is None else f"{pose_id}+{offhand['id']}"
+    weapon_row = maps["weapons"][weapon_key]
     canvas = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
     layers = [
         ("backgear", back_row),
@@ -2664,7 +3193,7 @@ def random_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
         (18, 23, 26),
     )
     draw = ImageDraw.Draw(sheet)
-    frames = (15, 21, 27, 7)
+    frames = (15, 21, 27, 33, 39, 9, 45, 3)
     for index in range(count):
         recipe = make_recipe(7000 + index * 13)
         frame = frames[index % len(frames)]
@@ -2685,53 +3214,45 @@ def random_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
 
 
 def dual_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
-    combos = (
-        ("dao", "dun", 15),
-        ("dao", "dao", 21),
-        ("jian", "dun", 15),
-        ("jian", "jian", 21),
-        ("gou", "gou", 21),
-        ("gou", "dun", 15),
-        ("dao", "jian", 27),
-        ("jian", "dao", 27),
-        ("gou", "dao", 15),
-        ("dao", "gou", 15),
-        ("jian", "gou", 27),
-        ("gou", "jian", 27),
-    )
-    cols = 4
-    rows = (len(combos) + cols - 1) // cols
+    pairs = combo_pairs()
+    frames = [CLIPS[f"attack_{action}"]["start"] + 3 for action in ATTACK_ACTIONS]
+    cols = len(frames)
+    rows = len(pairs)
     cell = CELL * 2
     gap = 10
-    label_h = 34
+    label_h = 28
     sheet = Image.new(
         "RGB",
         (cols * (cell + gap) + gap, rows * (cell + label_h + gap) + gap),
         (18, 23, 26),
     )
     draw = ImageDraw.Draw(sheet)
-    for index, (main, offhand, frame) in enumerate(combos):
-        recipe = {
-            "skin": "tan" if index % 2 else "light",
-            "outfit": OUTFITS[index % len(OUTFITS)]["id"],
-            "headgear": "ming_helmet_red" if index % 3 else "none",
-            "backgear": "ming_cape_red" if index % 4 == 0 else "none",
-            "weapon": main,
-            "offhand": offhand,
-        }
-        image = compose_recipe_frame(recipe, frame, atlases)
-        image = image.resize((cell, cell), Image.Resampling.NEAREST)
-        col = index % cols
-        row = index // cols
-        x = gap + col * (cell + gap)
-        y = gap + row * (cell + label_h + gap)
-        sheet.paste(image, (x, y), image)
-        _label(draw, f"{main} + {offhand} · f{frame:02d}", (x + 2, y + cell + 3), 13)
+    for row, (main, offhand) in enumerate(pairs):
+        for col, frame in enumerate(frames):
+            recipe = {
+                "skin": "tan" if row % 2 else "light",
+                "outfit": OUTFITS[row % len(OUTFITS)]["id"],
+                "headgear": "ming_helmet_red" if row % 3 else "none",
+                "backgear": "ming_cape_red" if row % 4 == 0 else "none",
+                "weapon": main,
+                "offhand": offhand,
+            }
+            image = compose_recipe_frame(recipe, frame, atlases)
+            image = image.resize((cell, cell), Image.Resampling.NEAREST)
+            x = gap + col * (cell + gap)
+            y = gap + row * (cell + label_h + gap)
+            sheet.paste(image, (x, y), image)
+        _label(
+            draw,
+            f"{main} + {offhand} · combo/{combo_family(main, offhand)} · attacks 1-5",
+            (gap + 2, gap + row * (cell + label_h + gap) + cell + 2),
+            13,
+        )
     return sheet
 
 
 def joint_contact_sheet(body: Image.Image) -> Image.Image:
-    frames = (0, 7, 11, 15, 21, 27)
+    frames = (0, 7, 15, 21, 27, 33, 39, 45)
     crops = (
         ("shoulders / elbows", (32, 24, 96, 88)),
         ("torso / hip roots", (36, 40, 100, 104)),
@@ -2766,7 +3287,7 @@ def joint_contact_sheet(body: Image.Image) -> Image.Image:
 
 
 def weapon_action_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
-    cols = 3
+    cols = len(ATTACK_ACTIONS)
     showcase = MAIN_WEAPONS + [WEAPON_BY_ID["dun"]]
     rows = len(showcase)
     cell = CELL * 2
@@ -2778,7 +3299,7 @@ def weapon_action_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
         (18, 23, 26),
     )
     draw = ImageDraw.Draw(sheet)
-    frames = (15, 21, 27)
+    frames = [CLIPS[f"attack_{action}"]["start"] + 3 for action in ATTACK_ACTIONS]
     for row, weapon in enumerate(showcase):
         for col, frame in enumerate(frames):
             outfit = OUTFITS[0] if row % 2 == 0 else OUTFITS[1]
@@ -2829,6 +3350,34 @@ def body_pose_sheet(body: Image.Image) -> Image.Image:
     return sheet
 
 
+def naked_pose_sheet(body: Image.Image) -> Image.Image:
+    frames = (0, 7, 15, 21, 27, 33, 39, 45)
+    cols = len(frames)
+    rows = len(POSE_VARIANTS)
+    cell = CELL * 2
+    gap = 8
+    label_h = 24
+    sheet = Image.new(
+        "RGB",
+        (cols * (cell + gap) + gap, rows * (cell + label_h + gap) + gap),
+        (18, 23, 26),
+    )
+    draw = ImageDraw.Draw(sheet)
+    maps = row_maps()["body"]
+    for row, variant in enumerate(POSE_VARIANTS):
+        row_index = maps[f"tan|{variant}"]
+        for col, frame in enumerate(frames):
+            crop = body.crop(
+                (frame * CELL, row_index * CELL,
+                 (frame + 1) * CELL, (row_index + 1) * CELL)
+            ).resize((cell, cell), Image.Resampling.NEAREST)
+            x = gap + col * (cell + gap)
+            y = gap + row * (cell + label_h + gap)
+            sheet.paste(crop, (x, y), crop)
+        _label(draw, variant, (gap + 2, gap + row * (cell + label_h + gap) + cell + 2), 13)
+    return sheet
+
+
 def layer_breakdown(atlases: dict[str, Image.Image]) -> Image.Image:
     recipe = {
         "skin": "tan",
@@ -2843,13 +3392,14 @@ def layer_breakdown(atlases: dict[str, Image.Image]) -> Image.Image:
     frame = 15
     names = ("backgear", "body", "outfit", "headgear", "offhand", "weapon")
     pose_id = weapon["id"]
+    variant = pose_variant(pose_id, "dun")
     row_ids = {
         "backgear": maps["backgear"][f"{backgear['id']}|{pose_id}"],
-        "body": maps["body"][f"{skin['id']}|{pose_id}"],
-        "outfit": maps["outfits"][f"{outfit['id']}|{pose_id}"],
+        "body": maps["body"][f"{skin['id']}|{variant}"],
+        "outfit": maps["outfits"][f"{outfit['id']}|{variant}"],
         "headgear": maps["headgear"][f"{headgear['id']}|{pose_id}"],
         "offhand": maps["offhands"][f"{pose_id}|dun"],
-        "weapon": maps["weapons"][weapon["id"]],
+        "weapon": maps["weapons"][f"{pose_id}+dun"],
     }
     cell = CELL * 2
     gap = 10
@@ -2910,16 +3460,31 @@ def data_document() -> dict:
     )
     combinations = len(SKINS) * len(OUTFITS) * len(HEADGEAR) * len(BACKGEAR) * loadouts
     return {
-        "version": 2,
+        "version": 3,
         "license": "CC BY 4.0",
         "author": "xingwangzhe",
         "source": "pixel-art/character_forge/build.py",
         "cell": CELL,
         "frame_count": FRAME_COUNT,
         "columns": FRAME_COUNT,
+        "attack_action_count": len(ATTACK_ACTIONS),
         "clips": CLIPS,
         "grips": list(GRIPS),
         "arm_layer_rules": ARM_LAYER_RULES,
+        "arm_layer_policy": ARM_LAYER_POLICY,
+        "pose_variants": list(POSE_VARIANTS),
+        "combo_families": list(COMBO_FAMILIES),
+        "combo_actions": {
+            family: [
+                {"id": f"attack_{index}", "name_zh": name_zh, "name_en": name_en}
+                for index, (name_zh, name_en) in enumerate(names, start=1)
+            ]
+            for family, names in COMBO_ACTION_NAMES.items()
+        },
+        "combo_pairs": {
+            f"{main_id}+{offhand_id}": combo_family(main_id, offhand_id)
+            for main_id, offhand_id in combo_pairs()
+        },
         "layer_order": ["backgear", "body", "outfit", "headgear", "offhand", "weapon"],
         "combination_count": combinations,
         "loadout_count": loadouts,
@@ -2946,6 +3511,14 @@ def data_document() -> dict:
             {"id": item["id"], "name_zh": item["name_zh"], "name_en": item["name_en"],
              "grip": item["grip"], "slot": item["slot"],
              "arm_layer": ARM_LAYER_RULES[item["grip"]],
+             "actions": [
+                 {
+                     "id": f"attack_{action}",
+                     "name_zh": ACTION_NAMES[item["id"]][action - 1][0],
+                     "name_en": ACTION_NAMES[item["id"]][action - 1][1],
+                 }
+                 for action in ATTACK_ACTIONS
+             ],
              "attack_profile": item["attack_profile"], "offhand": item["offhand"],
              "required": item["id"] in REQUIRED_WEAPONS}
             for item in WEAPONS
@@ -3039,6 +3612,7 @@ def main() -> None:
         atlases = load_preview_atlases()
         body = atlases["body"]
         body_pose_sheet(body).save(out / "body_pose_sheet.png")
+        naked_pose_sheet(body).save(out / "naked_pose_sheet.png")
         joint_contact_sheet(body).save(out / "joint_contact_sheet.png")
         layer_breakdown(atlases).save(out / "layer_breakdown.png")
         random_combo_sheet(atlases).save(out / "random_combo_sheet.png")
@@ -3071,6 +3645,7 @@ def main() -> None:
 
     atlases = preview_atlases(body, outfits, headgear, backgear, weapons, offhands)
     body_pose_sheet(body).save(out / "body_pose_sheet.png")
+    naked_pose_sheet(body).save(out / "naked_pose_sheet.png")
     joint_contact_sheet(body).save(out / "joint_contact_sheet.png")
     layer_breakdown(atlases).save(out / "layer_breakdown.png")
     random_combo_sheet(atlases).save(out / "random_combo_sheet.png")

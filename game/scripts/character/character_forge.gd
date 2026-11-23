@@ -9,7 +9,7 @@ var data: Dictionary = {}
 var recipe: Dictionary = {}
 var frame := 0
 var cell_size := 128
-var frame_count := 32
+var frame_count := 48
 
 var _layers: Array[Dictionary] = []
 var _textures: Dictionary = {}
@@ -32,7 +32,7 @@ func load_data(path: String = DATA_PATH) -> bool:
 		return false
 	data = parsed
 	cell_size = int(data.get("cell", 128))
-	frame_count = int(data.get("frame_count", 32))
+	frame_count = int(data.get("frame_count", 48))
 	return true
 
 
@@ -82,6 +82,37 @@ func current_offhand_id() -> String:
 	return str(recipe.get("offhand", "none"))
 
 
+func current_pose_variant() -> String:
+	if data.is_empty():
+		return ""
+	var weapon := _find_item("weapons", str(recipe.get("weapon", "")))
+	var offhand := _find_item("weapons", str(recipe.get("offhand", "none")))
+	if not _offhand_allowed(weapon, offhand):
+		offhand = {}
+	return _pose_variant(weapon, offhand)
+
+
+func current_weapon_row_key() -> String:
+	if data.is_empty():
+		return ""
+	var weapon := _find_item("weapons", str(recipe.get("weapon", "")))
+	var offhand := _find_item("weapons", str(recipe.get("offhand", "none")))
+	if weapon.is_empty():
+		return ""
+	if not _offhand_allowed(weapon, offhand):
+		return str(weapon.get("id", ""))
+	return str(weapon.get("id", "")) + "+" + str(offhand.get("id", ""))
+
+
+func _pose_variant(weapon: Dictionary, offhand: Dictionary) -> String:
+	var main_id := str(weapon.get("id", ""))
+	if offhand.is_empty():
+		return main_id
+	var pair_key := main_id + "+" + str(offhand.get("id", ""))
+	var family := str(data.get("combo_pairs", {}).get(pair_key, "mixed"))
+	return "combo_" + family
+
+
 func _rebuild_layers() -> void:
 	for entry in _layers:
 		var sprite := entry["sprite"] as Sprite2D
@@ -102,13 +133,14 @@ func _rebuild_layers() -> void:
 	if not _offhand_allowed(weapon, offhand):
 		offhand_id = "none"
 		offhand = {}
+	var variant := _pose_variant(weapon, offhand)
 
 	var rows := {
 		"backgear": str(backgear.get("id", "none")) + "|" + pose_id,
-		"body": str(skin["id"]) + "|" + pose_id,
-		"outfit": str(outfit["id"]) + "|" + pose_id,
+		"body": str(skin["id"]) + "|" + variant,
+		"outfit": str(outfit["id"]) + "|" + variant,
 		"headgear": str(headgear.get("id", "none")) + "|" + pose_id,
-		"weapon": str(weapon["id"]),
+		"weapon": current_weapon_row_key(),
 	}
 	if not offhand.is_empty():
 		rows["offhand"] = pose_id + "|" + offhand_id
