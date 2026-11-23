@@ -1,6 +1,7 @@
 extends Control
 
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
+const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
 
@@ -31,6 +32,8 @@ var _bgm_value: Label
 var _sfx_slider: HSlider
 var _sfx_value: Label
 var _fullscreen_toggle: CheckButton
+var _fps_option: OptionButton
+var _vsync_toggle: CheckButton
 var _language_option: OptionButton
 var _back_button: Button
 
@@ -94,6 +97,7 @@ func _build_theme() -> void:
 	var menu_theme := Theme.new()
 	menu_theme.default_font = UI_FONT
 	menu_theme.default_font_size = 20
+	UIControls.install(menu_theme)
 	theme = menu_theme
 
 
@@ -263,9 +267,9 @@ func _build_settings_overlay() -> void:
 
 	_settings_panel = PanelContainer.new()
 	_settings_panel.name = "SettingsPanel"
-	_settings_panel.position = Vector2(328.0, 104.0)
-	_settings_panel.custom_minimum_size = Vector2(624.0, 512.0)
-	_settings_panel.size = Vector2(624.0, 512.0)
+	_settings_panel.position = Vector2(328.0, 54.0)
+	_settings_panel.custom_minimum_size = Vector2(624.0, 612.0)
+	_settings_panel.size = Vector2(624.0, 612.0)
 	_settings_panel.add_theme_stylebox_override("panel", _panel_texture_box(28))
 	_settings_overlay.add_child(_settings_panel)
 
@@ -326,11 +330,28 @@ func _build_settings_overlay() -> void:
 	_fullscreen_toggle.toggled.connect(_on_fullscreen_toggled)
 	_setting_row(column, "settings.fullscreen", _fullscreen_toggle)
 
+	_fps_option = OptionButton.new()
+	_fps_option.name = "FpsLimitOption"
+	_fps_option.custom_minimum_size = Vector2(206.0, 36.0)
+	for limit in GameSettings.FPS_LIMITS:
+		_fps_option.add_item(_fps_option_text(int(limit)))
+	_fps_option.item_selected.connect(_on_fps_selected)
+	UIControls.apply_option(_fps_option)
+	_setting_row(column, "settings.fps", _fps_option)
+
+	_vsync_toggle = CheckButton.new()
+	_vsync_toggle.name = "VsyncToggle"
+	_vsync_toggle.add_theme_font_size_override("font_size", 17)
+	_vsync_toggle.toggled.connect(_on_vsync_toggled)
+	_setting_row(column, "settings.vsync", _vsync_toggle)
+
 	_language_option = OptionButton.new()
 	_language_option.name = "LanguageOption"
+	_language_option.custom_minimum_size = Vector2(206.0, 36.0)
 	_language_option.add_item("中文", 0)
 	_language_option.add_item("English", 1)
 	_language_option.item_selected.connect(_on_language_selected)
+	UIControls.apply_option(_language_option)
 	_setting_row(column, "settings.language", _language_option)
 
 	column.add_child(_rule())
@@ -422,6 +443,20 @@ func _on_fullscreen_toggled(enabled: bool) -> void:
 	SaveSystem.autosave({"settings": GameSettings.to_dict()})
 
 
+func _on_fps_selected(index: int) -> void:
+	if index < 0 or index >= GameSettings.FPS_LIMITS.size():
+		return
+	GameSettings.set_fps_limit(int(GameSettings.FPS_LIMITS[index]))
+	_sync_settings_controls()
+	SaveSystem.autosave({"settings": GameSettings.to_dict()})
+
+
+func _on_vsync_toggled(enabled: bool) -> void:
+	GameSettings.set_vsync(enabled)
+	_sync_settings_controls()
+	SaveSystem.autosave({"settings": GameSettings.to_dict()})
+
+
 func _on_autosave_timeout() -> void:
 	SaveSystem.autosave({"last_mode": "settings" if _settings_overlay.visible else "menu"})
 	_update_stats()
@@ -439,6 +474,9 @@ func _refresh_texts() -> void:
 	_quit_button.text = Locale.t("menu.quit")
 	_back_button.text = Locale.t("settings.back")
 	_fullscreen_toggle.text = Locale.t("settings.on" if GameSettings.fullscreen else "settings.off")
+	for index in range(GameSettings.FPS_LIMITS.size()):
+		_fps_option.set_item_text(index, _fps_option_text(int(GameSettings.FPS_LIMITS[index])))
+	_vsync_toggle.text = Locale.t("settings.on" if GameSettings.vsync else "settings.off")
 
 
 func _sync_settings_controls() -> void:
@@ -448,6 +486,10 @@ func _sync_settings_controls() -> void:
 	_sfx_value.text = "%d%%" % int(round(GameSettings.sfx_volume * 100.0))
 	_fullscreen_toggle.set_pressed_no_signal(GameSettings.fullscreen)
 	_fullscreen_toggle.text = Locale.t("settings.on" if GameSettings.fullscreen else "settings.off")
+	var fps_index := GameSettings.FPS_LIMITS.find(GameSettings.fps_limit)
+	_fps_option.selected = fps_index if fps_index >= 0 else GameSettings.FPS_LIMITS.find(GameSettings.DEFAULT_FPS_LIMIT)
+	_vsync_toggle.set_pressed_no_signal(GameSettings.vsync)
+	_vsync_toggle.text = Locale.t("settings.on" if GameSettings.vsync else "settings.off")
 	_language_option.selected = 0 if Locale.current == "zh" else 1
 
 
@@ -534,27 +576,8 @@ func _make_button(node_name: String, key: String, primary: bool = false) -> Butt
 	button.add_theme_color_override("font_pressed_color", Color("#f4dfb2"))
 	button.add_theme_color_override("font_focus_color", Color("#fff0cf"))
 
-	var normal_fill := Color("#742c22") if primary else PANEL_FILL
-	var hover_fill := Color("#963a2a") if primary else Color(0.115, 0.125, 0.115, 0.96)
-	var pressed_fill := Color("#5c211a") if primary else Color(0.13, 0.09, 0.07, 0.98)
-	button.add_theme_stylebox_override(
-		"normal",
-		_flat_box(normal_fill, Color(GOLD, 0.78) if primary else Color(GOLD, 0.28), 2 if primary else 1, 4)
-	)
-	button.add_theme_stylebox_override(
-		"hover",
-		_flat_box(hover_fill, Color(GOLD, 0.95), 2, 4)
-	)
-	button.add_theme_stylebox_override(
-		"pressed",
-		_flat_box(pressed_fill, Color(GOLD, 0.72), 2, 4)
-	)
-	var focus_box := _flat_box(Color(0.0, 0.0, 0.0, 0.0), Color(GOLD, 0.82), 2, 2)
-	focus_box.expand_margin_left = 2.0
-	focus_box.expand_margin_right = 2.0
-	focus_box.expand_margin_top = 2.0
-	focus_box.expand_margin_bottom = 2.0
-	button.add_theme_stylebox_override("focus", focus_box)
+	if primary:
+		UIControls.apply_primary(button)
 	return button
 
 
@@ -581,10 +604,13 @@ func _make_slider(value: float) -> HSlider:
 	slider.value = value
 	slider.custom_minimum_size = Vector2(300.0, 28.0)
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slider.add_theme_stylebox_override("slider", _flat_box(Color(0.10, 0.09, 0.075, 0.95), Color(GOLD, 0.25), 1, -1, 4))
-	slider.add_theme_stylebox_override("grabber_area", _flat_box(Color(GOLD, 0.72), Color(GOLD, 0.72), 0, -1, 4))
-	slider.add_theme_stylebox_override("grabber_area_highlight", _flat_box(Color(GOLD, 0.92), Color(GOLD, 0.92), 0, -1, 4))
 	return slider
+
+
+func _fps_option_text(limit: int) -> String:
+	if limit <= 0:
+		return Locale.t("settings.fps_unlimited")
+	return "%d FPS" % limit
 
 
 func _rule() -> ColorRect:
