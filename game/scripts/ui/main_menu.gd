@@ -2,8 +2,14 @@ extends Control
 
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
+const IconChips := preload("res://scripts/ui/icon_chip.gd")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
+const ICON_LANTERN := preload("res://assets/icons/game_icons/ui_lantern.svg")
+const ICON_WATCHTOWER := preload("res://assets/icons/game_icons/ui_watchtower.svg")
+const ICON_SCROLL := preload("res://assets/icons/game_icons/ui_scroll.svg")
+const ICON_FEAST := preload("res://assets/icons/game_icons/ui_feast.svg")
+const ICON_SHIELD := preload("res://assets/icons/game_icons/wpn_shield.svg")
 
 const INK := Color("#081014")
 const PAPER := Color("#e8d8b6")
@@ -225,6 +231,8 @@ func _build_watch_panel() -> void:
 	_register_label(_make_label("MusicLicense", "", 12, Color(MUTED, 0.62)), "panel.license")
 	column.add_child(_i18n_labels[-1]["node"])
 
+	_build_night_anchors(column)
+
 	var grow := Control.new()
 	grow.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(grow)
@@ -241,6 +249,32 @@ func _build_watch_panel() -> void:
 	version_row.add_child(version_spacer)
 	var autosave_note := _make_label("AutosaveNote", "●", 12, Color(GOLD, 0.72))
 	version_row.add_child(autosave_note)
+
+
+func _build_night_anchors(parent: VBoxContainer) -> void:
+	var row := HBoxContainer.new()
+	row.name = "NightAnchors"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 8)
+	parent.add_child(row)
+	var anchors := [
+		{"name": "AnchorLantern", "key": "anchor.lantern", "icon": ICON_LANTERN},
+		{"name": "AnchorWatchtower", "key": "anchor.watchtower", "icon": ICON_WATCHTOWER},
+		{"name": "AnchorShield", "key": "anchor.shield", "icon": ICON_SHIELD},
+		{"name": "AnchorFeast", "key": "anchor.feast", "icon": ICON_FEAST},
+		{"name": "AnchorScroll", "key": "anchor.scroll", "icon": ICON_SCROLL},
+	]
+	for spec in anchors:
+		var key := str(spec["key"])
+		var chip: Dictionary = IconChips.make_inline(
+			spec["icon"] as Texture2D,
+			Locale.t(key),
+			22
+		)
+		var chip_root: Control = chip["root"]
+		chip_root.name = str(spec["name"])
+		row.add_child(chip_root)
+		_register_label(chip["label"] as Label, key)
 
 
 func _build_footer() -> void:

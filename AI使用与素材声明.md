@@ -72,6 +72,14 @@
 > 进入关于页时停止全局菜单 BGM，返回时恢复。该曲保留原始 OGG 数据，仅在游戏内循环播放；
 > 来源、署名与修改说明已写入 `game/data/credits.json`、`素材授权清单.csv` 与本声明。
 
+> **补充（2026-11-23，第三方 UI 图标）**：主菜单“首夜支点”与开局页“首夜军备”
+> 接入 **game-icons.net** 的 12 个 SVG 图标，作者为 Delapouite、Lorc、Skoll、
+> Willdabeast、Faithtoken 与 Caro Asercion。许可为 **CC BY 3.0**；白色透明 SVG
+> 在游戏内统一金色调制，未改图形。逐项来源、用途与修改说明见
+> `game/assets/icons/game_icons/ATTRIBUTION.md`、`game/data/credits.json` 与
+> `素材授权清单.csv`；完整许可全文随包于
+> `game/assets/icons/game_icons/LICENSE-CC-BY-3.0.txt`。
+
 ### 3.1 图像资产（`assets/` 与 `game/assets/`）
 
 **早期批次（`assets/`，保留作溯源）**

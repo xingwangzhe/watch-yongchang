@@ -18,6 +18,8 @@
 - 关于页 BGM：`assets/audio/bgm_about.ogg`，
   **Views From Atop the Jade Kings Throne · Hitctrl · CC-BY 3.0**。
 - `scenes/run.tscn`：开局占位场景，显示第一夜并验证自动存档/返回链路。
+- 主菜单与开局页：接入 game-icons.net 的灯火、望楼、藤牌、百家宴、图鉴与
+  八项首夜军备图标；白色 SVG 在运行时金色调制。
 
 ## 运行
 
@@ -52,6 +54,8 @@
 - `assets/units/`：11 组 64×64 兵种序列帧（可复用为角色/敌人）。
 - `assets/tiles/dcss/`：CC0 地形图块 106 张。
 - `assets/ui/`、`assets/audio/`、`assets/fonts/`：已登记素材。
+- `assets/icons/game_icons/`：12 个 game-icons.net SVG，CC BY 3.0；
+  逐项作者与来源见 `ATTRIBUTION.md`，完整许可见 `LICENSE-CC-BY-3.0.txt`。
 - BGM 与字体署名数据在 `data/credits.json`。
 - 文化背景与赛事创作方向来源：
   [2026 OSGJ 开源游戏开发大赛官网](https://2026gamejam.osgame.org/)。
