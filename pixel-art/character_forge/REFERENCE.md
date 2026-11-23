@@ -44,7 +44,8 @@
 - 图层之间只允许遮挡，不允许因锚点不一致产生 1px 以上缝隙。
 - 副手是独立层：盾、双刀、双钩都按主手姿态时间轴渲染，避免副手漂移。
 - 每次修改后重新生成图集，并查看 `body_pose_sheet.png`、`joint_contact_sheet.png`、
-  `random_combo_sheet.png` 和 `dual_combo_sheet.png`。
+  `random_combo_sheet.png` 和 `dual_combo_sheet.png`；弓姿改动还必须查看
+  `bow_combo_sheet.png`，确认持弓手在箭向一侧、拉弦手靠近身体。
 
 ## 下载与使用边界
 

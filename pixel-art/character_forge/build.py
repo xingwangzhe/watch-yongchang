@@ -762,7 +762,7 @@ def _apply_bob(pose: dict, bob: int) -> None:
     pose["near_hand"] = add(pose["near_hand"], (0.0, float(bob)))
 
 
-def idle_pose(index: int, grip: str) -> dict:
+def idle_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
     grip = "one_hand" if grip == "offhand" else grip
     pose = _pose_shell(grip)
     phase = 2.0 * math.pi * index / 4.0
@@ -783,15 +783,21 @@ def idle_pose(index: int, grip: str) -> dict:
         delta = sub(pose["near_hand"], pose["far_hand"])
         pose["weapon_angle"] = math.atan2(delta[1], delta[0])
     else:
-        pose["far_hand"] = (36.0, 64.0)
-        pose["near_hand"] = (66.0, 66.0)
-        pose["weapon_angle"] = math.radians(-3 + sway * 2)
+        if weapon_id == "gong":
+            pose["far_hand"] = (63.0 - sway * 0.5, 59.0)
+            pose["near_hand"] = (95.0 + sway * 0.5, 60.0)
+            delta = sub(pose["near_hand"], pose["far_hand"])
+            pose["weapon_angle"] = math.atan2(delta[1], delta[0])
+        else:
+            pose["far_hand"] = (36.0, 64.0)
+            pose["near_hand"] = (66.0, 66.0)
+            pose["weapon_angle"] = math.radians(-3 + sway * 2)
     _apply_bob(pose, bob)
     pose["head_dy"] = float(bob)
     return pose
 
 
-def walk_pose(index: int, grip: str) -> dict:
+def walk_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
     grip = "one_hand" if grip == "offhand" else grip
     pose = _pose_shell(grip)
     phase = 2.0 * math.pi * index / 8.0
@@ -826,9 +832,15 @@ def walk_pose(index: int, grip: str) -> dict:
         delta = sub(pose["near_hand"], pose["far_hand"])
         pose["weapon_angle"] = math.atan2(delta[1], delta[0])
     else:
-        pose["far_hand"] = (36.0 + swing * 1.0, 64.0)
-        pose["near_hand"] = (65.0 + swing * 1.5, 65.0)
-        pose["weapon_angle"] = math.radians(-4 + math.sin(phase) * 2)
+        if weapon_id == "gong":
+            pose["far_hand"] = (63.0 + swing * 0.8, 59.0 + math.sin(phase * 2.0) * 0.5)
+            pose["near_hand"] = (94.0 + swing * 1.2, 60.0 - math.sin(phase * 2.0) * 0.5)
+            delta = sub(pose["near_hand"], pose["far_hand"])
+            pose["weapon_angle"] = math.atan2(delta[1], delta[0])
+        else:
+            pose["far_hand"] = (36.0 + swing * 1.0, 64.0)
+            pose["near_hand"] = (65.0 + swing * 1.5, 65.0)
+            pose["weapon_angle"] = math.radians(-4 + math.sin(phase) * 2)
     _apply_bob(pose, bob)
     pose["head_dy"] = float(bob)
     return pose
@@ -1117,21 +1129,21 @@ ATTACK_SPECS = {
     },
     "gong": {
         1: _action(
-            ((64, 67), (64, 66), (66, 64), (66, 66)),
-            ((36, 64), (34, 62), (31, 58), (34, 61)),
-            (-5, -3, 2, 4),
+            ((94, 61), (99, 54), (100, 53), (98, 54)),
+            ((63, 59), (64, 54), (64, 54), (63, 55)),
+            (0, 0, 0, 0),
             lunge=1,
         ),
         2: _action(
-            ((64, 67), (63, 66), (64, 63), (64, 66)),
-            ((35, 66), (33, 64), (30, 60), (33, 62)),
-            (0, -5, 0, 2),
+            ((94, 61), (98, 53), (100, 51), (98, 52)),
+            ((63, 59), (64, 54), (67, 52), (64, 54)),
+            (0, 0, 0, 0),
             lunge=1,
         ),
         3: _action(
-            ((62, 64), (62, 62), (63, 59), (64, 63)),
-            ((34, 60), (32, 58), (29, 55), (32, 58)),
-            (-20, -25, -28, -15),
+            ((94, 61), (97, 55), (99, 54), (97, 56)),
+            ((63, 59), (63, 55), (65, 54), (62, 56)),
+            (0, 0, 0, 0),
             lunge=1,
         ),
     },
@@ -1333,15 +1345,15 @@ EXTRA_ATTACK_SPECS = {
     },
     "gong": {
         4: _action(
-            ((64, 67), (63, 65), (67, 64), (66, 66)),
-            ((36, 64), (34, 63), (32, 60), (34, 62)),
-            (-5, -8, 4, 5),
+            ((94, 60), (96, 52), (103, 42), (102, 43)),
+            ((64, 60), (66, 58), (68, 61), (67, 60)),
+            (0, 0, 0, 0),
             lunge=1,
         ),
         5: _action(
-            ((63, 66), (62, 64), (65, 62), (66, 66)),
-            ((36, 64), (32, 62), (28, 56), (33, 60)),
-            (-8, -12, -2, 3),
+            ((94, 61), (90, 56), (97, 54), (95, 55)),
+            ((63, 59), (59, 57), (58, 63), (61, 62)),
+            (0, 0, 0, 0),
             lunge=1,
         ),
     },
@@ -1527,6 +1539,9 @@ def attack_pose(action: int, stage: int, pose_id: str, offhand_id: str = "none")
     if grip == "two_hand":
         delta = sub(pose["near_hand"], pose["far_hand"])
         pose["weapon_angle"] = math.atan2(delta[1], delta[0])
+    elif weapon["id"] == "gong":
+        delta = sub(pose["near_hand"], pose["far_hand"])
+        pose["weapon_angle"] = math.atan2(delta[1], delta[0])
     _apply_bob(pose, bob)
     pose["near_foot"] = (
         float(ATTACK_BASE["near_foot_x"][stage] + lunge_shift),
@@ -1539,8 +1554,8 @@ def attack_pose(action: int, stage: int, pose_id: str, offhand_id: str = "none")
     return pose
 
 
-def hit_pose(index: int, grip: str) -> dict:
-    pose = idle_pose(0, grip)
+def hit_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
+    pose = idle_pose(0, grip, weapon_id)
     pose["lean"] = -3 + index
     pose["head_dx"] = -3.0 + index
     pose["head_dy"] = -1.0
@@ -1553,8 +1568,8 @@ def hit_pose(index: int, grip: str) -> dict:
     return pose
 
 
-def guard_pose(index: int, grip: str, offhand_id: str = "none") -> dict:
-    pose = idle_pose(index, grip)
+def guard_pose(index: int, grip: str, offhand_id: str = "none", weapon_id: str = "none") -> dict:
+    pose = idle_pose(index, grip, weapon_id)
     sway = math.sin(pose["phase"]) * 1.0
     if offhand_id != "none":
         pose["near_hand"] = (72.0 + sway, 62.0)
@@ -1564,6 +1579,11 @@ def guard_pose(index: int, grip: str, offhand_id: str = "none") -> dict:
     elif grip == "two_hand":
         pose["far_hand"] = (56.0, 64.0)
         pose["near_hand"] = (72.0 + sway, 58.0)
+        delta = sub(pose["near_hand"], pose["far_hand"])
+        pose["weapon_angle"] = math.atan2(delta[1], delta[0])
+    elif grip == "ranged" and weapon_id == "gong":
+        pose["far_hand"] = (63.0 - sway, 57.0)
+        pose["near_hand"] = (94.0, 58.0)
         delta = sub(pose["near_hand"], pose["far_hand"])
         pose["weapon_angle"] = math.atan2(delta[1], delta[0])
     elif grip == "ranged":
@@ -1581,17 +1601,17 @@ def pose_for(frame: int, pose_id: str, offhand_id: str = "none") -> dict:
     weapon = WEAPON_BY_ID.get(pose_id, WEAPONS[0])
     grip = weapon["grip"]
     if frame < CLIPS["walk"]["start"]:
-        return idle_pose(frame, grip)
+        return idle_pose(frame, grip, weapon["id"])
     if frame < CLIPS["attack_1"]["start"]:
-        return walk_pose(frame - CLIPS["walk"]["start"], grip)
+        return walk_pose(frame - CLIPS["walk"]["start"], grip, weapon["id"])
     for action in ATTACK_ACTIONS:
         clip = CLIPS[f"attack_{action}"]
         if clip["start"] <= frame < clip["start"] + clip["count"]:
             return attack_pose(action, frame - clip["start"], weapon["id"], offhand_id)
     hit_clip = CLIPS["hit"]
     if frame < CLIPS["guard"]["start"]:
-        return hit_pose(frame - hit_clip["start"], grip)
-    return guard_pose(frame - CLIPS["guard"]["start"], grip, offhand_id)
+        return hit_pose(frame - hit_clip["start"], grip, weapon["id"])
+    return guard_pose(frame - CLIPS["guard"]["start"], grip, offhand_id, weapon["id"])
 
 
 def validate_pose_reach() -> None:
@@ -2674,40 +2694,53 @@ def draw_weapon_cha(s: Sprite, pose: dict) -> None:
 
 
 def draw_weapon_gong(s: Sprite, pose: dict) -> None:
-    far = pose["far_hand"]
-    near = pose["near_hand"]
-    bx, by = far
-    top = (bx, by - 24)
-    bottom = (bx, by + 24)
+    bow_hand = pose["near_hand"]
+    string_hand = pose["far_hand"]
+    aim = unit(sub(bow_hand, string_hand))
+    side = (-aim[1], aim[0])
+    top = add(bow_hand, mul(side, -23))
+    bottom = add(bow_hand, mul(side, 23))
     limbs = (
         top,
-        (bx + 7, by - 17),
-        (bx + 11, by - 8),
-        (bx + 10, by),
-        (bx + 11, by + 8),
-        (bx + 7, by + 17),
+        add(bow_hand, add(mul(side, -16), mul(aim, 6))),
+        add(bow_hand, add(mul(side, -8), mul(aim, 10))),
+        add(bow_hand, mul(aim, 11)),
+        add(bow_hand, add(mul(side, 8), mul(aim, 10))),
+        add(bow_hand, add(mul(side, 16), mul(aim, 6))),
         bottom,
     )
     for index in range(len(limbs) - 1):
         draw_segment(
             s, limbs[index], limbs[index + 1], 3.0, 2.5,
-            WOOD, LEATHER_D, OCHRE_L, rim=False, shade_dir=(-1.0, 0.0),
+            WOOD, LEATHER_D, OCHRE_L, rim=False,
+            shade_dir=(-side[0], -side[1]),
         )
-    s.rect((int(bx) + 8, int(by) - 4), (int(bx) + 12, int(by) + 4), LEATHER_D)
-    line(s, (bx + 9, by - 3), (bx + 11, by + 3), GOLD)
-    line(s, top, near, WARM_WHITE)
-    line(s, near, bottom, WARM_WHITE)
-    s.circle(*pt((bx + 9, by)), 2, LEATHER_D, fill=True)
+    line(s, add(bow_hand, mul(side, -4)), add(bow_hand, mul(side, 4)), LEATHER_D)
+    line(s, add(bow_hand, mul(side, -3)), add(bow_hand, mul(side, 3)), GOLD)
+    line(s, top, string_hand, WARM_WHITE)
+    line(s, string_hand, bottom, WARM_WHITE)
+    s.circle(*pt(bow_hand), 2, LEATHER_D, fill=True)
+    s.px(*pt(add(bow_hand, add(mul(aim, 1), mul(side, -1)))), GOLD_L)
     stage = int(pose["stage"])
+    arrow_tip = add(bow_hand, mul(aim, 20))
     if stage >= 2:
-        arrow_tip = (bx + 44, by)
-        line(s, near, arrow_tip, IRON_L)
-        polygon(s, [(bx + 11, by - 2), (bx + 17, by), (bx + 11, by + 2)], GOLD)
+        line(s, string_hand, arrow_tip, IRON_L)
+        polygon(
+            s,
+            [add(arrow_tip, mul(aim, 3)),
+             add(arrow_tip, add(mul(side, -2), mul(aim, -3))),
+             add(arrow_tip, add(mul(side, 2), mul(aim, -3)))],
+            IRON_LL,
+        )
+        fletch = add(string_hand, mul(aim, 4))
+        for offset in (-2, 0, 2):
+            line(s, fletch, add(fletch, add(mul(aim, 5), mul(side, offset))), RED_L)
         s.px(*pt(arrow_tip), WHITE)
         if stage == 2:
-            draw_arc(s, near, -18, 18, 24, WARM_WHITE)
+            angle = math.degrees(float(pose["weapon_angle"]))
+            draw_arc(s, bow_hand, angle - 18, angle + 18, 25, WARM_WHITE)
     else:
-        line(s, near, (bx + 10, by), IRON_L)
+        line(s, string_hand, add(bow_hand, mul(aim, 8)), IRON_L)
 
 
 def draw_weapon_nu(s: Sprite, pose: dict) -> None:
@@ -3213,6 +3246,50 @@ def random_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
     return sheet
 
 
+def bow_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
+    count = 12
+    frames = (
+        (0, "待机 Idle"),
+        (15, "开弓 Draw"),
+        (21, "满月 Full Moon"),
+        (27, "连珠 Volley"),
+        (33, "仰射 High Shot"),
+        (39, "回身 Turning"),
+        (45, "戒备 Guard"),
+    )
+    cols = len(frames)
+    cell = CELL * 2
+    gap = 8
+    header_h = 28
+    label_h = 28
+    sheet = Image.new(
+        "RGB",
+        (cols * (cell + gap) + gap, header_h + count * (cell + label_h + gap) + gap),
+        (18, 23, 26),
+    )
+    draw = ImageDraw.Draw(sheet)
+    for col, (_frame, title) in enumerate(frames):
+        x = gap + col * (cell + gap)
+        _label(draw, title, (x + 4, 5), 14)
+    for index in range(count):
+        recipe = make_recipe(9100 + index * 17)
+        recipe["weapon"] = "gong"
+        recipe["offhand"] = "none"
+        y = header_h + gap + index * (cell + label_h + gap)
+        for col, (frame, _title) in enumerate(frames):
+            image = compose_recipe_frame(recipe, frame, atlases)
+            image = image.resize((cell, cell), Image.Resampling.NEAREST)
+            x = gap + col * (cell + gap)
+            sheet.paste(image, (x, y), image)
+        _label(
+            draw,
+            f"gong · {recipe['skin']} · {recipe['outfit']} · {recipe['headgear']} · {recipe['backgear']}",
+            (gap + 2, y + cell + 3),
+            13,
+        )
+    return sheet
+
+
 def dual_combo_sheet(atlases: dict[str, Image.Image]) -> Image.Image:
     pairs = combo_pairs()
     frames = [CLIPS[f"attack_{action}"]["start"] + 3 for action in ATTACK_ACTIONS]
@@ -3600,9 +3677,32 @@ def image_stats(name: str, image: Image.Image) -> None:
     )
 
 
+def validate_bow_bounds() -> None:
+    failures = []
+    weapon = WEAPON_BY_ID["gong"]
+    for frame in range(FRAME_COUNT):
+        pose = pose_for(frame, "gong")
+        if float(pose["near_hand"][0]) - float(pose["far_hand"][0]) < 24.0:
+            failures.append(f"frame={frame} bow hand is not ahead of the draw hand")
+        image = render_layer(
+            "weapon", SKINS[0], OUTFITS[0], HEADGEAR[0], BACKGEAR[0],
+            weapon, None, "gong", frame,
+        )
+        bbox = image.getchannel("A").getbbox()
+        if bbox is None:
+            failures.append(f"frame={frame} bow layer is empty")
+            continue
+        left, top, right, bottom = bbox
+        if left == 0 or top == 0 or right == CELL or bottom == CELL:
+            failures.append(f"frame={frame} bow layer clips at {bbox}")
+    if failures:
+        raise ValueError("invalid bow geometry:\n" + "\n".join(failures))
+
+
 def main() -> None:
     validate_pose_reach()
     validate_arm_layering()
+    validate_bow_bounds()
     out = Path(__file__).resolve().parent
     runtime = ROOT / "game" / "assets" / "character_forge"
     data_dir = ROOT / "game" / "data"
@@ -3616,6 +3716,7 @@ def main() -> None:
         joint_contact_sheet(body).save(out / "joint_contact_sheet.png")
         layer_breakdown(atlases).save(out / "layer_breakdown.png")
         random_combo_sheet(atlases).save(out / "random_combo_sheet.png")
+        bow_combo_sheet(atlases).save(out / "bow_combo_sheet.png")
         dual_combo_sheet(atlases).save(out / "dual_combo_sheet.png")
         weapon_action_sheet(atlases).save(out / "weapon_action_sheet.png")
         save_gif(atlases, out / "hero_forge_demo.gif")
@@ -3649,6 +3750,7 @@ def main() -> None:
     joint_contact_sheet(body).save(out / "joint_contact_sheet.png")
     layer_breakdown(atlases).save(out / "layer_breakdown.png")
     random_combo_sheet(atlases).save(out / "random_combo_sheet.png")
+    bow_combo_sheet(atlases).save(out / "bow_combo_sheet.png")
     dual_combo_sheet(atlases).save(out / "dual_combo_sheet.png")
     weapon_action_sheet(atlases).save(out / "weapon_action_sheet.png")
     save_gif(atlases, out / "hero_forge_demo.gif")
