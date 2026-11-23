@@ -16,6 +16,7 @@ run/max_fps=60
 config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
+GdaHarness="*res://addons/gda_harness/gda_harness.gd"
 
 GameSettings="*res://scripts/autoload/game_settings.gd"
 Locale="*res://scripts/autoload/locale.gd"
@@ -43,4 +44,5 @@ theme/custom_font="res://assets/fonts/LXGWWenKai-Regular.ttf"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/canvas_textures/default_texture_filter=0
+textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.031, 0.058, 0.074, 1)

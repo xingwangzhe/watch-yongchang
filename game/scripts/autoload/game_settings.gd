@@ -7,6 +7,11 @@ const DEFAULT_LANGUAGE := "zh"
 const LANGUAGE_CODES := ["zh", "en"]
 const FPS_LIMITS := [30, 60, 90, 120, 144, 240, 0]
 const DEFAULT_FPS_LIMIT := 60
+const RENDERER_AUTO := "auto"
+const RENDERER_VULKAN := "vulkan"
+const RENDERER_OPENGL := "opengl"
+const RENDERER_MODES := [RENDERER_AUTO, RENDERER_VULKAN, RENDERER_OPENGL]
+const RENDERER_MIRROR_NAME := "renderer.cfg"
 
 var config_path: String = CONFIG_PATH
 var language: String = DEFAULT_LANGUAGE
@@ -15,8 +20,14 @@ var sfx_volume: float = 0.78
 var fullscreen: bool = false
 var fps_limit: int = DEFAULT_FPS_LIMIT
 var vsync: bool = true
+var renderer_mode: String = RENDERER_AUTO
+var vulkan_probe_override: int = -1
+var active_renderer_override: String = ""
+var renderer_mirror_override: String = ""
+var restart_enabled: bool = true
 
 var _config := ConfigFile.new()
+var _vulkan_available := -1
 
 
 func _ready() -> void:
@@ -27,6 +38,7 @@ func _ready() -> void:
 
 func load_settings() -> void:
 	if not FileAccess.file_exists(config_path):
+		renderer_mode = _valid_renderer_mode(_read_renderer_mirror())
 		return
 	if _config.load(config_path) != OK:
 		push_warning("Settings file could not be loaded: %s" % config_path)
@@ -37,6 +49,10 @@ func load_settings() -> void:
 	fullscreen = bool(_config.get_value("display", "fullscreen", fullscreen))
 	fps_limit = _valid_fps_limit(int(_config.get_value("display", "fps_limit", fps_limit)))
 	vsync = bool(_config.get_value("display", "vsync", vsync))
+	var stored_mode := str(_config.get_value("rendering", "renderer_mode", ""))
+	if stored_mode.is_empty():
+		stored_mode = _read_renderer_mirror()
+	renderer_mode = _valid_renderer_mode(stored_mode)
 
 
 func save_settings(notify: bool = true) -> void:
@@ -46,9 +62,11 @@ func save_settings(notify: bool = true) -> void:
 	_config.set_value("display", "fullscreen", fullscreen)
 	_config.set_value("display", "fps_limit", fps_limit)
 	_config.set_value("display", "vsync", vsync)
+	_config.set_value("rendering", "renderer_mode", renderer_mode)
 	var error := _config.save(config_path)
 	if error != OK:
 		push_warning("Settings file could not be saved: %s" % config_path)
+	_write_renderer_mirror()
 	if notify:
 		changed.emit()
 
@@ -108,6 +126,96 @@ func set_vsync(enabled: bool) -> void:
 	save_settings()
 
 
+func set_renderer_mode(mode: String) -> void:
+	var next := _valid_renderer_mode(mode)
+	if renderer_mode == next:
+		return
+	renderer_mode = next
+	save_settings()
+
+
+func resolved_renderer() -> String:
+	match renderer_mode:
+		RENDERER_OPENGL:
+			return RENDERER_OPENGL
+		RENDERER_VULKAN:
+			return RENDERER_VULKAN if vulkan_supported() else RENDERER_OPENGL
+		_:
+			return RENDERER_VULKAN if vulkan_supported() else RENDERER_OPENGL
+
+
+func active_renderer() -> String:
+	if not active_renderer_override.is_empty():
+		return active_renderer_override
+	var driver := RenderingServer.get_current_rendering_driver_name().to_lower()
+	if driver.contains("vulkan"):
+		return RENDERER_VULKAN
+	if driver.contains("opengl") or driver.contains("gles"):
+		return RENDERER_OPENGL
+	return ""
+
+
+func vulkan_supported() -> bool:
+	if vulkan_probe_override >= 0:
+		return vulkan_probe_override == 1
+	if _vulkan_available >= 0:
+		return _vulkan_available == 1
+	_vulkan_available = 1 if _probe_vulkan() else 0
+	return _vulkan_available == 1
+
+
+func reset_vulkan_probe() -> void:
+	_vulkan_available = -1
+
+
+func renderer_mirror_path() -> String:
+	if not renderer_mirror_override.is_empty():
+		return renderer_mirror_override
+	match OS.get_name():
+		"Windows":
+			var appdata := OS.get_environment("APPDATA")
+			if appdata.is_empty():
+				appdata = OS.get_environment("USERPROFILE").path_join("AppData/Roaming")
+			return appdata.path_join("WatchYongchang").path_join(RENDERER_MIRROR_NAME)
+		"macOS":
+			return OS.get_environment("HOME").path_join(
+				"Library/Application Support/WatchYongchang"
+			).path_join(RENDERER_MIRROR_NAME)
+		_:
+			var config_home := OS.get_environment("XDG_CONFIG_HOME")
+			if config_home.is_empty():
+				config_home = OS.get_environment("HOME").path_join(".config")
+			return config_home.path_join("watch-yongchang").path_join(RENDERER_MIRROR_NAME)
+
+
+func renderer_requires_restart() -> bool:
+	return resolved_renderer() != active_renderer()
+
+
+func renderer_restart_args() -> PackedStringArray:
+	var target := resolved_renderer()
+	var args := PackedStringArray()
+	if OS.has_feature("editor"):
+		args.append("--path")
+		args.append(ProjectSettings.globalize_path("res://"))
+	args.append("--rendering-method")
+	args.append("forward_plus" if target == RENDERER_VULKAN else "gl_compatibility")
+	args.append("--rendering-driver")
+	args.append("vulkan" if target == RENDERER_VULKAN else "opengl3")
+	return args
+
+
+func restart_with_renderer() -> bool:
+	if not restart_enabled:
+		return false
+	var pid := OS.create_process(OS.get_executable_path(), renderer_restart_args())
+	if pid <= 0:
+		push_error("Could not start a new process for the selected renderer.")
+		return false
+	get_tree().quit()
+	return true
+
+
 func to_dict() -> Dictionary:
 	return {
 		"language": language,
@@ -116,6 +224,7 @@ func to_dict() -> Dictionary:
 		"fullscreen": fullscreen,
 		"fps_limit": fps_limit,
 		"vsync": vsync,
+		"renderer_mode": renderer_mode,
 	}
 
 
@@ -128,6 +237,103 @@ func _valid_language(code: String) -> String:
 
 func _valid_fps_limit(limit: int) -> int:
 	return limit if FPS_LIMITS.has(limit) else DEFAULT_FPS_LIMIT
+
+
+func _valid_renderer_mode(mode: String) -> String:
+	var normalized := mode.to_lower()
+	return normalized if RENDERER_MODES.has(normalized) else RENDERER_AUTO
+
+
+func _write_renderer_mirror() -> void:
+	var path := renderer_mirror_path()
+	var directory := path.get_base_dir()
+	if not directory.is_empty():
+		DirAccess.make_dir_recursive_absolute(directory)
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	if file == null:
+		push_warning("Renderer mirror could not be saved: %s" % path)
+		return
+	file.store_line("renderer_mode=\"%s\"" % renderer_mode)
+
+
+func _read_renderer_mirror() -> String:
+	var path := renderer_mirror_path()
+	if not FileAccess.file_exists(path):
+		return ""
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return ""
+	for line in file.get_as_text().split("\n"):
+		var trimmed := line.strip_edges()
+		if not trimmed.begins_with("renderer_mode="):
+			continue
+		var parts := trimmed.split("=", true, 1)
+		if parts.size() == 2:
+			return str(parts[1]).strip_edges().replace("\"", "")
+	return ""
+
+
+func _probe_vulkan() -> bool:
+	if active_renderer() == RENDERER_VULKAN:
+		return true
+	match OS.get_name():
+		"Windows":
+			return _windows_vulkan_available()
+		"Linux":
+			return _probe_vulkaninfo() or _has_linux_vulkan_device()
+		"Web", "Android", "iOS":
+			return false
+		_:
+			return _probe_vulkaninfo()
+
+
+func _probe_vulkaninfo() -> bool:
+	var output: Array = []
+	var exit_code := OS.execute(
+		"vulkaninfo",
+		PackedStringArray(["--summary"]),
+		output,
+		true
+	)
+	if exit_code == 0:
+		var summary := ""
+		for line in output:
+			summary += str(line) + "\n"
+		return summary.contains("Devices:") and summary.contains("deviceName")
+	return false
+
+
+func _windows_vulkan_available() -> bool:
+	var windows_root := OS.get_environment("SystemRoot")
+	if windows_root.is_empty():
+		windows_root = OS.get_environment("WINDIR")
+	if windows_root.is_empty():
+		windows_root = "C:/Windows"
+	for directory in ["System32", "SysWOW64"]:
+		if FileAccess.file_exists(windows_root.path_join(directory).path_join("vulkan-1.dll")):
+			return true
+	return FileAccess.file_exists("C:/Windows/System32/vulkan-1.dll")
+
+
+func _has_linux_vulkan_device() -> bool:
+	var has_icd := false
+	for directory in [
+		"/usr/share/vulkan/icd.d",
+		"/usr/local/share/vulkan/icd.d",
+		"/etc/vulkan/icd.d",
+	]:
+		for file in DirAccess.get_files_at(directory):
+			if file.ends_with(".json"):
+				has_icd = true
+				break
+		if has_icd:
+			break
+	if not has_icd:
+		return false
+	for device in DirAccess.get_files_at("/dev/dri"):
+		if device.begins_with("renderD"):
+			return true
+	return false
 
 
 func _apply_display() -> void:

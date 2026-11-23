@@ -1,0 +1,50 @@
+{
+  "license": "CC BY 4.0",
+  "author": "xingwangzhe",
+  "source": "原创程序化像素绘制，pixel-art/actors/build.py 为唯一源文件",
+  "wokou_atlas": {
+    "path": "res://assets/actors/wokou_atlas.png",
+    "cell": 128,
+    "columns": 16,
+    "rows": 16,
+    "frame_count": 16,
+    "clips": {
+      "idle": [0, 1],
+      "walk": [2, 3, 4, 5, 6, 7, 8, 9],
+      "attack": [10, 11, 12, 13, 14, 15]
+    }
+  },
+  "hero": {
+    "path": "res://assets/actors/hero_qi_jiguang.png",
+    "cell": 128,
+    "columns": 16,
+    "frame_count": 16,
+    "clips": {
+      "idle": [0, 1],
+      "walk": [2, 3, 4, 5, 6, 7, 8, 9],
+      "attack": [10, 11, 12, 13, 14, 15]
+    },
+    "name_zh": "戚继光",
+    "name_en": "Qi Jiguang",
+    "note_zh": "以明代抗倭名将为原型的原创像素形象，非历史肖像",
+    "note_en": "Original pixel depiction inspired by the Ming anti-wokou general; not a historical portrait"
+  },
+  "wokou": [
+    {"id": "scout", "row": 0, "name_zh": "倭寇斥候", "name_en": "Wokou Scout", "role_zh": "直线快冲", "tier": "normal"},
+    {"id": "ronin", "row": 1, "name_zh": "浪人", "name_en": "Ronin", "role_zh": "中速挥刀", "tier": "normal"},
+    {"id": "gun", "row": 2, "name_zh": "火枪倭", "name_en": "Wokou Gunner", "role_zh": "停步射击", "tier": "ranged"},
+    {"id": "shield", "row": 3, "name_zh": "藤牌武士", "name_en": "Shield Wokou", "role_zh": "正面减伤", "tier": "tank"},
+    {"id": "archer", "row": 4, "name_zh": "倭弓手", "name_en": "Wokou Archer", "role_zh": "抛射封锁", "tier": "ranged"},
+    {"id": "banner", "row": 5, "name_zh": "旗手", "name_en": "Standard Bearer", "role_zh": "周围加速", "tier": "support"},
+    {"id": "pirate", "row": 6, "name_zh": "海盗", "name_en": "Pirate", "role_zh": "斜向冲锋", "tier": "normal"},
+    {"id": "ninja", "row": 7, "name_zh": "倭谍", "name_en": "Wokou Spy", "role_zh": "隐身偷袭", "tier": "elite"},
+    {"id": "general", "row": 8, "name_zh": "倭将", "name_en": "Wokou General", "role_zh": "冲锋旋风斩", "tier": "elite"},
+    {"id": "daimyo", "row": 9, "name_zh": "大名", "name_en": "Daimyo", "role_zh": "三阶段首领", "tier": "boss"},
+    {"id": "ashigaru", "row": 10, "name_zh": "足轻", "name_en": "Ashigaru", "role_zh": "长枪推进", "tier": "normal"},
+    {"id": "teppo_captain", "row": 11, "name_zh": "铁炮队长", "name_en": "Teppo Captain", "role_zh": "齐射指挥", "tier": "elite"},
+    {"id": "sohei", "row": 12, "name_zh": "僧兵", "name_en": "Sohei", "role_zh": "薙刀横扫", "tier": "elite"},
+    {"id": "oni", "row": 13, "name_zh": "鬼面武者", "name_en": "Oni Mask Warrior", "role_zh": "双刀突进", "tier": "elite"},
+    {"id": "water_ghost", "row": 14, "name_zh": "水鬼", "name_en": "Water Raider", "role_zh": "涉水突袭", "tier": "normal"},
+    {"id": "bombardier", "row": 15, "name_zh": "投弹手", "name_en": "Bombardier", "role_zh": "范围爆破", "tier": "ranged"}
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "duration_seconds": 960.0,
+  "boss_second": 930.0,
+  "phases": [
+    {
+      "start": 0.0,
+      "end": 60.0,
+      "rate": 1.7,
+      "mix": [{"id": "scout", "weight": 100}]
+    },
+    {
+      "start": 60.0,
+      "end": 120.0,
+      "rate": 1.9,
+      "mix": [{"id": "scout", "weight": 72}, {"id": "ronin", "weight": 28}]
+    },
+    {
+      "start": 120.0,
+      "end": 240.0,
+      "rate": 2.1,
+      "mix": [{"id": "scout", "weight": 48}, {"id": "ronin", "weight": 36}, {"id": "shield", "weight": 16}]
+    },
+    {
+      "start": 240.0,
+      "end": 360.0,
+      "rate": 2.2,
+      "mix": [{"id": "scout", "weight": 36}, {"id": "ronin", "weight": 30}, {"id": "shield", "weight": 18}, {"id": "gun", "weight": 16}]
+    },
+    {
+      "start": 360.0,
+      "end": 480.0,
+      "rate": 2.4,
+      "mix": [{"id": "scout", "weight": 28}, {"id": "ronin", "weight": 26}, {"id": "shield", "weight": 18}, {"id": "gun", "weight": 14}, {"id": "archer", "weight": 14}]
+    },
+    {
+      "start": 480.0,
+      "end": 600.0,
+      "rate": 2.6,
+      "mix": [{"id": "scout", "weight": 24}, {"id": "ronin", "weight": 22}, {"id": "shield", "weight": 18}, {"id": "gun", "weight": 12}, {"id": "archer", "weight": 12}, {"id": "banner", "weight": 12}]
+    },
+    {
+      "start": 600.0,
+      "end": 720.0,
+      "rate": 2.8,
+      "mix": [{"id": "scout", "weight": 20}, {"id": "ronin", "weight": 20}, {"id": "shield", "weight": 18}, {"id": "gun", "weight": 12}, {"id": "archer", "weight": 12}, {"id": "banner", "weight": 10}, {"id": "general", "weight": 8}]
+    },
+    {
+      "start": 720.0,
+      "end": 840.0,
+      "rate": 3.0,
+      "mix": [{"id": "scout", "weight": 18}, {"id": "ronin", "weight": 18}, {"id": "shield", "weight": 18}, {"id": "gun", "weight": 12}, {"id": "archer", "weight": 12}, {"id": "banner", "weight": 10}, {"id": "general", "weight": 12}]
+    },
+    {
+      "start": 840.0,
+      "end": 930.0,
+      "rate": 3.2,
+      "mix": [{"id": "scout", "weight": 16}, {"id": "ronin", "weight": 16}, {"id": "shield", "weight": 18}, {"id": "gun", "weight": 12}, {"id": "archer", "weight": 12}, {"id": "banner", "weight": 10}, {"id": "general", "weight": 16}]
+    },
+    {
+      "start": 930.0,
+      "end": 960.0,
+      "rate": 2.2,
+      "mix": [{"id": "scout", "weight": 22}, {"id": "ronin", "weight": 22}, {"id": "shield", "weight": 20}, {"id": "gun", "weight": 16}, {"id": "archer", "weight": 20}]
+    }
+  ],
+  "scale_events": [
+    {"t": 120.0, "color": "red", "enemy": "general"},
+    {"t": 240.0, "color": "yellow", "enemy": "general"},
+    {"t": 360.0, "color": "blue", "enemy": "general"},
+    {"t": 480.0, "color": "green", "enemy": "general"},
+    {"t": 600.0, "color": "black", "enemy": "general"}
+  ],
+  "event_lines": [
+    {"t": 20.0, "key": "narr_main_02"},
+    {"t": 150.0, "key": "narr_main_03"},
+    {"t": 330.0, "key": "narr_main_08"},
+    {"t": 390.0, "key": "narr_main_04"},
+    {"t": 600.0, "key": "narr_main_05"},
+    {"t": 720.0, "key": "narr_main_09"},
+    {"t": 870.0, "key": "narr_main_10"},
+    {"t": 900.0, "key": "narr_main_06"},
+    {"t": 930.0, "key": "narr_main_07"}
+  ]
+}

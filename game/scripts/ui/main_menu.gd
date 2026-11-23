@@ -25,6 +25,7 @@ var _start_button: Button
 var _settings_button: Button
 var _about_button: Button
 var _language_button: Button
+var _codex_button: Button
 var _quit_button: Button
 var _autosave_value: Label
 var _last_saved_value: Label
@@ -40,11 +41,15 @@ var _sfx_value: Label
 var _fullscreen_toggle: CheckButton
 var _fps_option: OptionButton
 var _vsync_toggle: CheckButton
+var _renderer_option: OptionButton
+var _renderer_status: Label
+var _renderer_restart_button: Button
 var _language_option: OptionButton
 var _back_button: Button
 
 
 func _ready() -> void:
+	InputSetup.ensure_defaults()
 	_build_theme()
 	_build_backdrop()
 	_build_header()
@@ -86,6 +91,9 @@ func close_settings() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel") and _settings_overlay.visible:
 		close_settings()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("toggle_codex") and not _settings_overlay.visible:
+		_on_codex_pressed()
 		get_viewport().set_input_as_handled()
 
 
@@ -207,6 +215,9 @@ func _build_watch_panel() -> void:
 	var heading_spacer := Control.new()
 	heading_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.add_child(heading_spacer)
+	_codex_button = _make_text_button("CodexButton", Locale.t("menu.codex"), 13, Vector2(86.0, 30.0))
+	_codex_button.pressed.connect(_on_codex_pressed)
+	heading.add_child(_codex_button)
 	var small_seal := _make_label("PanelSeal", "永昌", 13, Color(VERMILION_LIGHT, 0.95))
 	small_seal.add_theme_constant_override("outline_size", 1)
 	small_seal.add_theme_color_override("font_outline_color", Color(GOLD, 0.45))
@@ -242,7 +253,7 @@ func _build_watch_panel() -> void:
 
 	var version_row := HBoxContainer.new()
 	column.add_child(version_row)
-	var version := _make_label("Version", "v0.1 · M0", 12, Color(MUTED, 0.54))
+	var version := _make_label("Version", "v0.4 · M3", 12, Color(MUTED, 0.54))
 	version_row.add_child(version)
 	var version_spacer := Control.new()
 	version_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -301,9 +312,9 @@ func _build_settings_overlay() -> void:
 
 	_settings_panel = PanelContainer.new()
 	_settings_panel.name = "SettingsPanel"
-	_settings_panel.position = Vector2(328.0, 54.0)
-	_settings_panel.custom_minimum_size = Vector2(624.0, 612.0)
-	_settings_panel.size = Vector2(624.0, 612.0)
+	_settings_panel.position = Vector2(328.0, 18.0)
+	_settings_panel.custom_minimum_size = Vector2(624.0, 684.0)
+	_settings_panel.size = Vector2(624.0, 684.0)
 	_settings_panel.add_theme_stylebox_override("panel", _panel_texture_box(28))
 	_settings_overlay.add_child(_settings_panel)
 
@@ -379,6 +390,32 @@ func _build_settings_overlay() -> void:
 	_vsync_toggle.toggled.connect(_on_vsync_toggled)
 	_setting_row(column, "settings.vsync", _vsync_toggle)
 
+	_renderer_option = OptionButton.new()
+	_renderer_option.name = "RendererOption"
+	_renderer_option.custom_minimum_size = Vector2(206.0, 36.0)
+	for mode in GameSettings.RENDERER_MODES:
+		_renderer_option.add_item(_renderer_option_text(str(mode)))
+	_renderer_option.item_selected.connect(_on_renderer_selected)
+	UIControls.apply_option(_renderer_option)
+	_setting_row(column, "settings.renderer", _renderer_option)
+
+	var renderer_status_row := HBoxContainer.new()
+	renderer_status_row.name = "RendererStatusRow"
+	renderer_status_row.add_theme_constant_override("separation", 12)
+	_renderer_status = _make_label("RendererStatus", "", 13, Color(MUTED, 0.80))
+	_renderer_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_renderer_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	renderer_status_row.add_child(_renderer_status)
+	_renderer_restart_button = _make_text_button(
+		"RestartRendererButton",
+		"",
+		14,
+		Vector2(132.0, 34.0)
+	)
+	_renderer_restart_button.pressed.connect(_on_restart_renderer_pressed)
+	renderer_status_row.add_child(_renderer_restart_button)
+	column.add_child(renderer_status_row)
+
 	_language_option = OptionButton.new()
 	_language_option.name = "LanguageOption"
 	_language_option.custom_minimum_size = Vector2(206.0, 36.0)
@@ -425,8 +462,12 @@ func _install_autosave_timer() -> void:
 
 
 func _on_start_pressed() -> void:
-	SaveSystem.begin_run()
-	get_tree().change_scene_to_file("res://scenes/run.tscn")
+	if not bool(SaveSystem.data.get("prologue_seen", false)):
+		SaveSystem.autosave({"last_mode": "prologue"})
+		get_tree().change_scene_to_file("res://scenes/prologue.tscn")
+		return
+	SaveSystem.autosave({"last_mode": "select"})
+	get_tree().change_scene_to_file("res://scenes/character_select.tscn")
 
 
 func _on_language_pressed() -> void:
@@ -438,6 +479,11 @@ func _on_about_pressed() -> void:
 	AudioBus.stop_bgm()
 	SaveSystem.autosave({"last_mode": "about"})
 	get_tree().change_scene_to_file("res://scenes/about.tscn")
+
+
+func _on_codex_pressed() -> void:
+	SaveSystem.autosave({"last_mode": "codex"})
+	get_tree().change_scene_to_file("res://scenes/codex.tscn")
 
 
 func _on_quit_pressed() -> void:
@@ -491,6 +537,21 @@ func _on_vsync_toggled(enabled: bool) -> void:
 	SaveSystem.autosave({"settings": GameSettings.to_dict()})
 
 
+func _on_renderer_selected(index: int) -> void:
+	if index < 0 or index >= GameSettings.RENDERER_MODES.size():
+		return
+	GameSettings.set_renderer_mode(str(GameSettings.RENDERER_MODES[index]))
+	_update_renderer_status()
+	SaveSystem.autosave({"settings": GameSettings.to_dict()})
+
+
+func _on_restart_renderer_pressed() -> void:
+	if GameSettings.restart_with_renderer():
+		return
+	_renderer_status.text = Locale.t("settings.renderer_restart_failed")
+	_renderer_status.add_theme_color_override("font_color", Color(VERMILION_LIGHT, 0.95))
+
+
 func _on_autosave_timeout() -> void:
 	SaveSystem.autosave({"last_mode": "settings" if _settings_overlay.visible else "menu"})
 	_update_stats()
@@ -505,12 +566,16 @@ func _refresh_texts() -> void:
 	_settings_button.text = Locale.t("menu.settings")
 	_about_button.text = Locale.t("menu.about")
 	_language_button.text = Locale.t("menu.language", {"name": Locale.language_name()})
+	_codex_button.text = Locale.t("menu.codex")
 	_quit_button.text = Locale.t("menu.quit")
 	_back_button.text = Locale.t("settings.back")
 	_fullscreen_toggle.text = Locale.t("settings.on" if GameSettings.fullscreen else "settings.off")
 	for index in range(GameSettings.FPS_LIMITS.size()):
 		_fps_option.set_item_text(index, _fps_option_text(int(GameSettings.FPS_LIMITS[index])))
 	_vsync_toggle.text = Locale.t("settings.on" if GameSettings.vsync else "settings.off")
+	_renderer_restart_button.text = Locale.t("settings.renderer_restart")
+	_refresh_renderer_texts()
+	_update_renderer_status()
 
 
 func _sync_settings_controls() -> void:
@@ -524,6 +589,9 @@ func _sync_settings_controls() -> void:
 	_fps_option.selected = fps_index if fps_index >= 0 else GameSettings.FPS_LIMITS.find(GameSettings.DEFAULT_FPS_LIMIT)
 	_vsync_toggle.set_pressed_no_signal(GameSettings.vsync)
 	_vsync_toggle.text = Locale.t("settings.on" if GameSettings.vsync else "settings.off")
+	_renderer_option.selected = GameSettings.RENDERER_MODES.find(GameSettings.renderer_mode)
+	_refresh_renderer_texts()
+	_update_renderer_status()
 	_language_option.selected = 0 if Locale.current == "zh" else 1
 
 
@@ -534,7 +602,7 @@ func _update_stats() -> void:
 	var stamp := SaveSystem.last_saved_text()
 	_last_saved_value.text = stamp if not stamp.is_empty() else Locale.t("common.never")
 	_runs_value.text = str(int(SaveSystem.data.get("runs", 0)))
-	_best_value.text = str(int(SaveSystem.data.get("best_merit", 0)))
+	_best_value.text = str(int(SaveSystem.data.get("total_merit", 0)))
 	_language_value.text = Locale.language_name()
 	_start_button.text = Locale.t("menu.continue" if SaveSystem.has_progress() else "menu.start")
 
@@ -639,6 +707,64 @@ func _make_slider(value: float) -> HSlider:
 	slider.custom_minimum_size = Vector2(300.0, 28.0)
 	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return slider
+
+
+func _renderer_option_text(mode: String) -> String:
+	if mode == GameSettings.RENDERER_AUTO:
+		var detected := (
+			GameSettings.RENDERER_VULKAN
+			if GameSettings.vulkan_supported()
+			else GameSettings.RENDERER_OPENGL
+		)
+		return Locale.t("settings.renderer_auto", {"name": _renderer_display_name(detected)})
+	return Locale.t("settings.renderer_%s" % mode)
+
+
+func _renderer_display_name(renderer: String) -> String:
+	match renderer:
+		GameSettings.RENDERER_VULKAN:
+			return "Vulkan"
+		GameSettings.RENDERER_OPENGL:
+			return "OpenGL"
+		_:
+			return Locale.t("settings.renderer_unknown")
+
+
+func _refresh_renderer_texts() -> void:
+	if not is_instance_valid(_renderer_option):
+		return
+	var vulkan_available := GameSettings.vulkan_supported()
+	for index in range(GameSettings.RENDERER_MODES.size()):
+		var mode := str(GameSettings.RENDERER_MODES[index])
+		_renderer_option.set_item_text(index, _renderer_option_text(mode))
+		_renderer_option.set_item_disabled(
+			index,
+			mode == GameSettings.RENDERER_VULKAN and not vulkan_available
+		)
+
+
+func _update_renderer_status() -> void:
+	if not is_instance_valid(_renderer_status):
+		return
+	var selected := _renderer_display_name(GameSettings.resolved_renderer())
+	var active := _renderer_display_name(GameSettings.active_renderer())
+	var requires_restart := GameSettings.renderer_requires_restart()
+	_renderer_restart_button.visible = requires_restart
+	if requires_restart:
+		_renderer_status.text = Locale.t(
+			"settings.renderer_restart_required",
+			{"selected": selected, "active": active}
+		)
+		_renderer_status.add_theme_color_override("font_color", Color(GOLD, 0.92))
+		return
+	if not GameSettings.vulkan_supported():
+		_renderer_status.text = Locale.t(
+			"settings.renderer_fallback",
+			{"active": active}
+		)
+	else:
+		_renderer_status.text = Locale.t("settings.renderer_active", {"name": active})
+	_renderer_status.add_theme_color_override("font_color", Color(MUTED, 0.80))
 
 
 func _fps_option_text(limit: int) -> String:

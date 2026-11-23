@@ -245,11 +245,15 @@ func _build_roll() -> void:
 	for entry in _array_value(_credits.get("tools", [])):
 		if not entry is Dictionary:
 			continue
-		_add_link(
-			"%s · %s" % [str(entry.get("title", "")), str(entry.get("license", ""))],
-			str(entry.get("url", "")),
-			17
-		)
+		var tool_label := "%s · %s" % [
+			str(entry.get("title", "")),
+			str(entry.get("license", "")),
+		]
+		var tool_url := str(entry.get("url", ""))
+		if tool_url.is_empty():
+			_add_line(tool_label, 17, Color(PAPER, 0.86), 0)
+		else:
+			_add_link(tool_label, tool_url, 17)
 
 	_add_spacer(50)
 	_add_line(Locale.t("about.thanks_end"), 34, GOLD, 0)

@@ -1,0 +1,81 @@
+{
+  "title_zh": "双堡对照 · 汤和与永昌堡",
+  "title_en": "Two Forts · Tang He and Yongchang",
+  "subtitle_zh": "汤和布网，王德过桥，王叔杲筑堡，守灯人点灯。",
+  "subtitle_en": "Tang He cast the net, Wang De crossed the bridge, Wang Shugao built the fort, and the lamp-watch lit the flame.",
+  "facts_zh": [
+    "《永昌堡》主书里“汤和”出现 0 次，“永昌堡”出现 639 次。",
+    "汤和漫画、短文、庙介绍里“永昌堡”出现 0 次。",
+    "唯一把“汤和”和“永昌堡”写进同一句的，是现代索引总结，不是原始史料。"
+  ],
+  "facts_en": [
+    "The main Yongchang Fort source mentions Tang He zero times and Yongchang 639 times.",
+    "The Tang He comic, essay, and temple introduction mention Yongchang zero times.",
+    "Only a modern index sentence puts Tang He and Yongchang in the same line; that is not primary evidence."
+  ],
+  "left": {
+    "title_zh": "宁村所 · 1386",
+    "title_en": "Ningcun Garrison · 1386",
+    "lead_zh": "汤和主持筑所城，留制度与海防网络。",
+    "lead_en": "Tang He built the garrison and left behind an institutional coastal network.",
+    "points_zh": [
+      "洪武十九年，汤和筑宁村所；洪武二十年所城成。",
+      "“寓兵于民”把乡兵、屯田与海防接到一起。",
+      "宁村汤和庙原名“东瓯襄武王汤公庙”，与永昌堡东瓯王庙不是同一座庙。"
+    ],
+    "points_en": [
+      "In 1386 Tang He built Ningcun garrison; it was completed in 1387.",
+      "The 'soldiers among the people' system linked militia, farmland, and coastal defence.",
+      "Ningcun's Tang He temple was originally the Dong'ou Xiangwu Wang Tang Gong temple; it is not Yongchang's Dong'ou King temple."
+    ],
+    "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:3-7；docs/06-资料文本化/文档文本/意绘抗倭英雄汤和-漫画全文.txt:706"
+  },
+  "bridge": {
+    "title_zh": "王德移师宁村 · 1558",
+    "title_en": "Wang De Moves to Ningcun · 1558",
+    "body_zh": "嘉靖三十七年四月十九日，王德为解温州府城之围，移师宁村策应。四月二十日，他从宁村方向驰援，在金岙遭伏殉国。",
+    "body_en": "On 19 April 1558 Wang De moved to Ningcun to relieve Wenzhou. On 20 April he rode out from Ningcun and was ambushed and killed at Jin'ao.",
+    "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:13760；:16301"
+  },
+  "right": {
+    "title_zh": "永昌堡 · 1559",
+    "title_en": "Yongchang Fort · 1559",
+    "lead_zh": "王沛、王德死后，王氏筑堡；王叔杲留下《沿海事宜》。",
+    "lead_en": "After Wang Pei and Wang De died, the Wang clan built the fort; Wang Shugao left the 'Coastal Affairs' assessment.",
+    "points_zh": [
+      "嘉靖三十七年至三十八年，王氏筑永昌堡。",
+      "王叔杲《沿海事宜》评估宁村渡口、宁村马道与国初卫所部署。",
+      "1648 年宁村所被攻破，永昌堡独守八十余日，形成官堡/民堡对照。"
+    ],
+    "points_en": [
+      "The Wang clan built Yongchang Fort in 1558–1559.",
+      "Wang Shugao's 'Coastal Affairs' assessed Ningcun's ferry, horse road, and early-Ming garrison layout.",
+      "In 1648 Ningcun fell while Yongchang held out for over eighty days, a contrast between official and civic forts."
+    ],
+    "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283；:15038；:312"
+  },
+  "timeline": [
+    {"year": "1386", "zh": "汤和筑宁村所", "en": "Tang He builds Ningcun garrison"},
+    {"year": "1387", "zh": "宁村所城成", "en": "Ningcun garrison completed"},
+    {"year": "1558", "zh": "王德移师宁村，次日殉国金岙", "en": "Wang De moves to Ningcun; dies at Jin'ao the next day"},
+    {"year": "1559", "zh": "王氏筑永昌堡", "en": "Wang clan completes Yongchang Fort"},
+    {"year": "1648", "zh": "宁村破，永昌独守八十余日", "en": "Ningcun falls; Yongchang holds for over eighty days"},
+    {"year": "2026", "zh": "汤和诞辰七百周年，五龙拼“天下太平”", "en": "Tang He's 700th anniversary; five dragon lanterns spell peace"}
+  ],
+  "do_not_claim_zh": "不要把永昌堡的东瓯王庙当作汤和庙；它祀汉东瓯王驺摇。也不要把汤和写成 1559 的活人主角。",
+  "do_not_claim_en": "Do not treat Yongchang's Dong'ou King temple as a Tang He temple; it honours the Han-era Zoyao. Do not make Tang He a living protagonist in 1559.",
+  "sources_zh": [
+    "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:279-312、544-552、13760、15038、16301",
+    "docs/06-资料文本化/文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:3-7",
+    "docs/06-资料文本化/文档文本/意绘抗倭英雄汤和-漫画全文.txt:706-710、1122",
+    "docs/06-资料文本化/文档文本/汤和信俗(11.18)__汤和庙基地介绍.txt:4、34-40",
+    "docs/06-资料文本化/文档文本/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3-8"
+  ],
+  "sources_en": [
+    "Yongchang Fort: Thirteen Jinshi and the Anti-Wokou Chronicle, lines 279-312, 544-552, 13760, 15038, 16301",
+    "Tang He tradition: Defender Against the Wokou, lines 3-7",
+    "Illustrated Tang He comic, lines 706-710 and 1122",
+    "Tang He temple site introduction, lines 4 and 34-40",
+    "2026 Longwan Tang He folk-culture festival report, lines 3-8"
+  ]
+}
