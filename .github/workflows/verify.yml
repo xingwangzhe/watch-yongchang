@@ -1,0 +1,43 @@
+name: Godot Verify
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gut:
+    name: Import and run GUT
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GODOT_VERSION: 4.7.2-stable
+      GODOT_BIN: ${{ github.workspace }}/.tools/godot
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Godot
+        run: |
+          set -euo pipefail
+          mkdir -p .tools
+          curl -fL --retry 3 \
+            -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d .tools
+          mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          "$GODOT_BIN" --version
+
+      - name: Import project
+        run: timeout 180 "$GODOT_BIN" --headless --path game --import
+
+      - name: Run GUT
+        run: "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit

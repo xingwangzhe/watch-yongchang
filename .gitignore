@@ -10,6 +10,10 @@ Thumbs.db
 # Godot 引擎缓存
 game/.godot/
 game/addons/gda_harness/
+game/export/
+game/build/
+game/android/build/
+game/ios/build/
 
 # CodeGraph 索引库（本地生成，不入库）
 .codegraph/
@@ -24,3 +28,12 @@ __pycache__/
 
 # 像素素材临时输出
 pixel-art/**/*_study/
+
+# CI 工具与构建产物
+.tools/
+artifacts/
+*.log
+
+# 本地密钥与环境变量
+.env
+.env.*
