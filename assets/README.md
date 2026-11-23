@@ -1,52 +1,18 @@
-# assets/ —— 《守望·永昌》游戏素材（核心样例批次）
+# assets/ — 原始音频与字体源
 
-> 生成日期 2026-11-22 ｜ 风格：国风像素风（青灰城墙 + 暖红/金/翡翠绿 + 米色）
-> 本批为**角色核心样例**：3 兵种（乡勇/弓手/龙灯队）。旧塔防建筑素材已清理，不再保留或进入成品。
-> 共 **27 张 PNG**：3 张兵种静态图 + 24 张兵种序列帧，全部 512×512、透明背景（RGBA）。
->
-> **版权与 AI 声明**：本目录素材全部由 WorkBuddy ImageGen 生成并经人工后处理，来源清晰、无第三方素材风险。逐文件工具、后处理与授权见 [素材授权清单.csv](../素材授权清单.csv)，完整申报见 [AI使用与素材声明.md](../AI使用与素材声明.md)。
+本目录现在只保留可复用的原始音频与字体：
 
-## 目录结构
+- `assets/audio/`：音效与 BGM 源文件。
+- `assets/fonts/`：霞鹜文楷与 OFL 许可。
 
-```
-assets/
-├── units/
-│   ├── xiangyong/         乡勇（斗笠长矛兵）
-│   │   ├── static.png     静态图
-│   │   ├── run/           frame_01..04.png   跑步循环
-│   │   └── attack/        frame_01..04.png   长矛攻击
-│   ├── gongshou/          弓手（绿袍竹弓）
-│   │   ├── static.png
-│   │   ├── run/           frame_01..04.png   跑步循环
-│   │   └── attack/        frame_01..04.png   拉弓→满弓→放箭→收弓
-│   └── longdeng/          龙灯队（红金龙）
-│       ├── static.png
-│       ├── run/           frame_01..04.png   跑步循环
-│       └── attack/        frame_01..04.png   举龙→下扫→冲击→回位
-```
+旧 `assets/units/{xiangyong,gongshou,longdeng}/` 兵种序列和
+`assets/预览-*.jpg` 已删除，不得恢复。
 
-## Godot 导入建议
+正式角色、敌兵、选择页与序章外观只看：
 
-1. **导入设置**：每张 PNG 在 Godot 的 Import 面板把 `Compress Mode` 设为 `Lossless`，`Filter` 关闭（保持像素风硬边缘）。
-2. **SpriteFrames 资源**：
-   - 单位：新建 `SpriteFrames`，`default` 动画放 `static.png`；`run` 动画依次添加 `run/frame_01..04.png`，设 `Speed ≈ 10 FPS` 并勾选 Loop；`attack` 同理，设 12 FPS 不循环。
-3. **节点挂接**：单位用 `AnimatedSprite2D` + `AnimationPlayer`（行为状态机切换动画）。
-4. **像素对齐**：Project Settings → Rendering → 开启 `Use Pixel Snap`；相机与根节点位置用整数坐标，避免像素抖动。
-5. **尺寸**：512×512 更适合预览；正式游戏可统一缩到 128×128 或 256×256（用 nearest 缩放），不损失像素风。
+- `game/assets/units/forge/`
+- `game/data/characters.json`
+- `game/data/enemies.json`
+- `pixel-art/character_forge/bake_battle_sprites.py`
 
-## 风格一致性说明
-
-- 兵种为**横版侧视**（面朝右）。
-- 所有图由文本/图生图模型生成并后处理：去除米色背景转透明、裁切留白、去水印、统一居中到 512 方形。
-- 序列帧采用**逐帧图生图**（以静态图为参考，`input_fidelity=high`），保证角色外观一致；每帧姿势由提示词明确指定。
-
-## 已知局限
-
-- 攻击/跑步为**示意性 4 帧循环**，非专业逐帧动画；若需更长动画可补帧（8 帧更流畅）。
-- 本批为 AI 生成图，**授权清晰**（无第三方素材风险），可直接用于参赛成品，符合赛事"原创 + 授权清晰"要求；完整申报见 [AI使用与素材声明.md](../AI使用与素材声明.md)。
-
-## 后续扩展（待确认后生成）
-
-- 兵种补全：藤牌兵、火铳兵、进士（各静态 + 跑步/攻击帧）
-- 敌人：倭寇斥候/浪人/藤牌武士/火枪倭/倭将（静态 + 跑步/攻击）
-- UI 图标、封面图
+完整硬规则见根目录 `AGENTS.md` §0。

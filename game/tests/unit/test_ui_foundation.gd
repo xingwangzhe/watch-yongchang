@@ -2,17 +2,24 @@ extends GutTest
 
 const TEST_SAVE := "user://test_ui_foundation_save.json"
 const TEST_SETTINGS := "user://test_ui_foundation_settings.cfg"
+const TEST_RENDERER_MIRROR := "user://test_ui_foundation_renderer.cfg"
 
 
 func before_each() -> void:
 	SaveSystem.save_path = TEST_SAVE
 	SaveSystem.reset_memory()
 	GameSettings.config_path = TEST_SETTINGS
+	GameSettings.renderer_mirror_override = TEST_RENDERER_MIRROR
 	GameSettings.language = "zh"
 	GameSettings.bgm_volume = 0.62
 	GameSettings.sfx_volume = 0.78
 	GameSettings.fps_limit = GameSettings.DEFAULT_FPS_LIMIT
 	GameSettings.vsync = true
+	GameSettings.renderer_mode = GameSettings.RENDERER_AUTO
+	GameSettings.vulkan_probe_override = 1
+	GameSettings.active_renderer_override = GameSettings.RENDERER_VULKAN
+	GameSettings.restart_enabled = false
+	GameSettings.reset_vulkan_probe()
 	GameSettings._apply_performance()
 	Locale.set_language("zh", false)
 	AudioBus.menu_enabled = true
@@ -21,14 +28,21 @@ func before_each() -> void:
 func after_each() -> void:
 	SaveSystem.save_path = SaveSystem.SAVE_PATH
 	GameSettings.config_path = GameSettings.CONFIG_PATH
+	GameSettings.renderer_mirror_override = ""
 	Locale.set_language("zh", false)
 	GameSettings.language = "zh"
 	GameSettings.fps_limit = GameSettings.DEFAULT_FPS_LIMIT
 	GameSettings.vsync = true
+	GameSettings.renderer_mode = GameSettings.RENDERER_AUTO
+	GameSettings.vulkan_probe_override = -1
+	GameSettings.active_renderer_override = ""
+	GameSettings.restart_enabled = true
+	GameSettings.reset_vulkan_probe()
 	GameSettings._apply_performance()
 	AudioBus.menu_enabled = true
 	_remove_user_file(TEST_SAVE)
 	_remove_user_file(TEST_SETTINGS)
+	_remove_user_file(TEST_RENDERER_MIRROR)
 
 
 func test_translation_tables_share_the_same_keys() -> void:
@@ -58,12 +72,24 @@ func test_save_roundtrip_keeps_progress() -> void:
 	var payload := SaveSystem.default_data()
 	payload["runs"] = 4
 	payload["best_merit"] = 1200
+	payload["total_merit"] = 2000
 	payload["last_mode"] = "run"
 	assert_eq(SaveSystem.write_to(TEST_SAVE, payload), OK)
 	var loaded := SaveSystem.load_from(TEST_SAVE)
 	assert_eq(int(loaded.get("runs", 0)), 4)
 	assert_eq(int(loaded.get("best_merit", 0)), 1200)
+	assert_eq(int(loaded.get("total_merit", 0)), 2000)
 	assert_eq(str(loaded.get("last_mode", "")), "run")
+
+
+func test_record_run_accumulates_merit_and_unlocks() -> void:
+	SaveSystem.record_run(1200, 400, false, 300.0)
+	SaveSystem.record_run(600, 220, true, 960.0)
+	assert_eq(int(SaveSystem.data.get("total_merit", 0)), 1800)
+	assert_eq(int(SaveSystem.data.get("best_merit", 0)), 1200)
+	assert_eq(int(SaveSystem.data.get("best_kills", 0)), 400)
+	assert_eq(int(SaveSystem.data.get("runs_won", 0)), 1)
+	assert_almost_eq(float(SaveSystem.data.get("best_time", 0.0)), 960.0, 0.01)
 
 
 func test_autosave_writes_settings_and_timestamp() -> void:
@@ -104,6 +130,62 @@ func test_settings_file_persists_fps_and_vsync() -> void:
 	assert_eq(Engine.max_fps, 0, "unlimited frame limit must clear the engine cap")
 
 
+func test_auto_renderer_prefers_vulkan_when_supported() -> void:
+	GameSettings.renderer_mode = GameSettings.RENDERER_AUTO
+	GameSettings.vulkan_probe_override = 1
+	GameSettings.active_renderer_override = GameSettings.RENDERER_VULKAN
+	assert_true(GameSettings.vulkan_supported())
+	assert_eq(GameSettings.resolved_renderer(), GameSettings.RENDERER_VULKAN)
+	assert_false(GameSettings.renderer_requires_restart())
+
+
+func test_auto_renderer_falls_back_to_opengl_without_vulkan() -> void:
+	GameSettings.renderer_mode = GameSettings.RENDERER_AUTO
+	GameSettings.vulkan_probe_override = 0
+	GameSettings.active_renderer_override = GameSettings.RENDERER_OPENGL
+	assert_false(GameSettings.vulkan_supported())
+	assert_eq(GameSettings.resolved_renderer(), GameSettings.RENDERER_OPENGL)
+	assert_false(GameSettings.renderer_requires_restart())
+
+
+func test_manual_vulkan_falls_back_when_unsupported() -> void:
+	GameSettings.renderer_mode = GameSettings.RENDERER_VULKAN
+	GameSettings.vulkan_probe_override = 0
+	assert_eq(GameSettings.resolved_renderer(), GameSettings.RENDERER_OPENGL)
+
+
+func test_renderer_mode_persists_and_builds_restart_args() -> void:
+	GameSettings.vulkan_probe_override = 1
+	GameSettings.set_renderer_mode(GameSettings.RENDERER_OPENGL)
+	var config := ConfigFile.new()
+	assert_eq(config.load(TEST_SETTINGS), OK)
+	assert_eq(
+		str(config.get_value("rendering", "renderer_mode", "")),
+		GameSettings.RENDERER_OPENGL
+	)
+	var mirror := FileAccess.open(TEST_RENDERER_MIRROR, FileAccess.READ)
+	assert_not_null(mirror)
+	assert_string_contains(mirror.get_as_text(), "renderer_mode=\"opengl\"")
+	var args := GameSettings.renderer_restart_args()
+	var method_index := args.find("--rendering-method")
+	var driver_index := args.find("--rendering-driver")
+	assert_true(method_index >= 0)
+	assert_true(driver_index >= 0)
+	assert_eq(args[method_index + 1], "gl_compatibility")
+	assert_eq(args[driver_index + 1], "opengl3")
+
+
+func test_renderer_mirror_is_loaded_without_settings_file() -> void:
+	_remove_user_file(TEST_SETTINGS)
+	var mirror := FileAccess.open(TEST_RENDERER_MIRROR, FileAccess.WRITE)
+	assert_not_null(mirror)
+	mirror.store_line("renderer_mode=\"opengl\"")
+	mirror.close()
+	GameSettings.renderer_mode = GameSettings.RENDERER_AUTO
+	GameSettings.load_settings()
+	assert_eq(GameSettings.renderer_mode, GameSettings.RENDERER_OPENGL)
+
+
 func test_audio_bus_loads_looping_bgm() -> void:
 	AudioBus._sync_volume()
 	assert_not_null(AudioBus.player)
@@ -130,7 +212,7 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	var font_entry: Dictionary = (credits.get("fonts", []) as Array)[0]
 	assert_string_contains(font_entry.get("notice_zh", ""), "OFL")
 	var icon_entries: Array = credits.get("icons", [])
-	assert_eq(icon_entries.size(), 12, "every used game-icons asset must be credited")
+	assert_eq(icon_entries.size(), 65, "every used game-icons asset must be credited")
 	for entry in icon_entries:
 		assert_true(entry is Dictionary)
 		assert_eq(str(entry.get("license", "")), "CC BY 3.0")
@@ -156,6 +238,28 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	assert_true(found_official, "inline sources must include the official OSGJ site")
 	assert_false(credits.has("references"), "sources must not be split into a separate block")
 	assert_false(Locale.table("zh").has("about.references"))
+	var renderer_section: Dictionary = {}
+	var nightscape_section: Dictionary = {}
+	for section in about_sections:
+		if not section is Dictionary:
+			continue
+		match str(section.get("title_zh", "")):
+			"渲染与性能":
+				renderer_section = section
+			"主菜单夜景":
+				nightscape_section = section
+	assert_false(renderer_section.is_empty(), "credits must explain the renderer switch")
+	assert_string_contains(JSON.stringify(renderer_section), "Vulkan")
+	assert_string_contains(JSON.stringify(renderer_section), "OpenGL")
+	assert_string_contains(JSON.stringify(renderer_section), "重启")
+	assert_false(nightscape_section.is_empty(), "credits must explain the animated menu")
+	assert_string_contains(JSON.stringify(nightscape_section), "640×360")
+	var tool_titles: Array[String] = []
+	for tool in credits.get("tools", []):
+		if tool is Dictionary:
+			tool_titles.append(str(tool.get("title", "")))
+	assert_true(tool_titles.has("Pixel Art Studio"))
+	assert_true(tool_titles.has("ffmpeg"))
 
 	var wheel := InputEventMouseButton.new()
 	wheel.button_index = MOUSE_BUTTON_WHEEL_DOWN
@@ -193,12 +297,18 @@ func test_main_menu_builds_and_opens_settings() -> void:
 	var timer: Timer = menu.find_child("AutosaveTimer", true, false)
 	var fps_option: OptionButton = menu.find_child("FpsLimitOption", true, false)
 	var vsync_toggle: CheckButton = menu.find_child("VsyncToggle", true, false)
+	var renderer_option: OptionButton = menu.find_child("RendererOption", true, false)
+	var renderer_status: Label = menu.find_child("RendererStatus", true, false)
+	var restart_button: Button = menu.find_child("RestartRendererButton", true, false)
 	assert_not_null(overlay)
 	assert_not_null(start)
 	assert_not_null(about)
 	assert_not_null(timer, "the menu must own its autosave timer")
 	assert_not_null(fps_option, "the menu must expose a frame limit setting")
 	assert_not_null(vsync_toggle, "the menu must expose a VSync setting")
+	assert_not_null(renderer_option, "the menu must expose a renderer setting")
+	assert_not_null(renderer_status)
+	assert_not_null(restart_button)
 	assert_almost_eq(timer.wait_time, 20.0, 0.01)
 	assert_false(timer.is_stopped(), "autosave timer must be running")
 	assert_false(overlay.visible, "settings must start closed")
@@ -206,6 +316,9 @@ func test_main_menu_builds_and_opens_settings() -> void:
 	assert_eq(about.text, Locale.t("menu.about"))
 	assert_eq(fps_option.get_item_text(fps_option.selected), "60 FPS")
 	assert_eq(vsync_toggle.text, Locale.t("settings.on"))
+	assert_eq(renderer_option.selected, GameSettings.RENDERER_MODES.find(GameSettings.RENDERER_AUTO))
+	assert_string_contains(renderer_status.text, "Vulkan")
+	assert_false(restart_button.visible, "matching renderer must not require a restart")
 	menu.open_settings()
 	await wait_process_frames(1)
 	assert_true(overlay.visible, "open_settings must reveal the overlay")
@@ -218,6 +331,13 @@ func test_main_menu_builds_and_opens_settings() -> void:
 	assert_eq(GameSettings.fps_limit, 0, "unlimited option must reach GameSettings")
 	assert_false(GameSettings.vsync, "VSync toggle must reach GameSettings")
 	assert_eq(Engine.max_fps, 0)
+	var opengl_index := GameSettings.RENDERER_MODES.find(GameSettings.RENDERER_OPENGL)
+	renderer_option.select(opengl_index)
+	renderer_option.item_selected.emit(opengl_index)
+	await wait_process_frames(1)
+	assert_eq(GameSettings.renderer_mode, GameSettings.RENDERER_OPENGL)
+	assert_string_contains(renderer_status.text, "重启游戏以应用渲染变更")
+	assert_true(restart_button.visible)
 	menu.close_settings()
 	await wait_process_frames(1)
 	assert_false(overlay.visible, "close_settings must hide the overlay")
@@ -239,25 +359,151 @@ func test_main_menu_exposes_night_anchor_icons() -> void:
 		assert_gt(label.text.length(), 0)
 
 
-func test_run_placeholder_exposes_loadout_icons() -> void:
+func test_run_scene_builds_survivor_loop() -> void:
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(4)
+	assert_not_null(run.find_child("Battlefield", true, false), "run must own a battle field")
+	assert_not_null(run.find_child("HUD", true, false), "run must own a HUD")
+	assert_not_null(run.find_child("SubtitlePanel", true, false), "run must expose subtitles")
+	assert_not_null(run.level_up_overlay, "run must own the level-up overlay")
+	assert_true(run.story.visible, "first run must start with sourced narrative")
+	assert_eq(run.weapons.size(), 1, "Wang Lu must start with one auto weapon")
+	assert_eq(run.passives.get("gaiters", 0), 1)
+	run.story._skip_all()
+	await wait_process_frames(2)
+	assert_false(run._paused, "closing the intro must start the run")
+	for i in range(240):
+		run._step(1.0 / 60.0)
+	await wait_process_frames(2)
+	assert_gt(run.battlefield.alive_count(), 0, "the wave director must spawn enemies")
+	var before_xp: float = float(run.xp_need)
+	run._add_xp(before_xp)
+	await wait_process_frames(2)
+	assert_true(run.level_up_overlay.visible, "enough XP must open three-card level-up")
+	assert_eq(run._current_upgrade_options.size(), 3)
+	run._on_upgrade_chosen(0)
+	await wait_process_frames(2)
+	assert_false(run.level_up_overlay.visible, "choosing a card must close the overlay")
+
+
+func test_character_select_enforces_unlocks_and_keeps_choice() -> void:
+	SaveSystem.data["total_merit"] = 0
+	var select := (load("res://scenes/character_select.tscn") as PackedScene).instantiate()
+	add_child_autofree(select)
+	await wait_process_frames(4)
+	assert_eq(select.find_children("Character_*", "Button", true, false).size(), 6)
+	assert_eq(select.selected_character(), "wanglu")
+	assert_true((select.find_child("Character_amei", true, false) as Button).disabled)
+	select._select_character("amei")
+	assert_eq(select.selected_character(), "wanglu", "locked characters must not be selected")
+
+	SaveSystem.data["total_merit"] = 2000
+	select._refresh()
+	select._select_character("amei")
+	select._select_map("watergate")
+	assert_eq(select.selected_character(), "amei")
+	assert_eq(select.selected_map(), "watergate")
+	var portrait_texture := (select.find_child("Portrait", true, false) as TextureRect).texture as AtlasTexture
+	assert_not_null(portrait_texture, "select portrait must use a forge idle frame")
+	if portrait_texture != null:
+		assert_string_contains(portrait_texture.atlas.resource_path, "forge/players/amei/idle.png")
+		assert_eq(portrait_texture.region.size, Vector2(128, 128))
+	assert_false((select.find_child("Character_amei", true, false) as Button).disabled)
+	assert_false((select.find_child("Map_watergate", true, false) as Button).disabled)
+
+
+func test_run_uses_selected_character_and_map() -> void:
+	SaveSystem.data["total_merit"] = 2000
+	SaveSystem.data["selected_character"] = "amei"
+	SaveSystem.data["selected_map"] = "watergate"
 	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
 	add_child_autofree(run)
 	await wait_process_frames(3)
-	var heading: Label = run.find_child("ArsenalHeading", true, false)
-	var row: HBoxContainer = run.find_child("ArsenalRow", true, false)
-	assert_not_null(heading)
-	assert_not_null(row, "the run placeholder must show the loadout row")
-	assert_eq(row.get_child_count(), 8)
-	assert_eq(heading.text, Locale.t("run.arsenal"))
-	for chip in row.get_children():
-		var icon := chip.find_child("Icon", true, false) as TextureRect
-		assert_not_null(icon, "each loadout card must render an icon")
-		assert_not_null(icon.texture)
-	Locale.set_language("en")
+	assert_eq(str(run.character_def.get("name_zh", "")), "王陆")
+	assert_eq(str(run.character_def.get("preset_name_zh", "")), "龙灯位")
+	assert_eq(str(run.map_def.get("name_zh", "")), "水门夜潮")
+	assert_eq(run.weapons.size(), 1)
+	assert_eq(str(run.weapons[0].get("id", "")), "dragon_lantern")
+	assert_eq(int(run.passives.get("colored_paper", 0)), 1)
+	assert_eq((run.battlefield as Battlefield).player_idle_frames.size(), 4)
+	assert_eq((run.battlefield as Battlefield).player_walk_frames.size(), 8)
+
+
+func test_run_codex_overlay_pauses_and_returns_to_the_run() -> void:
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	run.story._skip_all()
 	await wait_process_frames(2)
-	assert_eq(heading.text, "First Night Loadout")
-	var first_label := row.get_child(0).find_child("IconLabel", true, false) as Label
-	assert_eq(first_label.text, "Saber")
+	run._open_codex()
+	await wait_process_frames(2)
+	assert_true(run._paused, "opening the codex must pause the watch")
+	assert_not_null(run.codex_overlay)
+	run.codex_overlay._return_to_menu()
+	await wait_process_frames(2)
+	assert_false(run._paused, "closing the embedded codex must resume the watch")
+	assert_null(run.codex_overlay)
+
+
+func test_result_lists_new_unlocks_and_keeps_codex_paused() -> void:
+	SaveSystem.data["total_merit"] = 300
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	run.story._skip_all()
+	run.merit = 50
+	run._show_result(true)
+	assert_true(run.result_overlay.visible)
+	assert_string_contains(run.result_unlocks.text, "龙灯位")
+	assert_false(run.result_unlocks.text.contains("藤牌位"))
+	run._open_codex()
+	await wait_process_frames(2)
+	assert_true(run._paused)
+	run._close_codex()
+	assert_true(run._paused, "closing the codex from settlement must not resume the run")
+	assert_true(run.result_overlay.visible)
+	SaveSystem.data["total_merit"] = 0
+
+
+func test_xp_curve_matches_the_gdd() -> void:
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(2)
+	assert_almost_eq(float(run._xp_need_for_level(1)), 9.35, 0.001)
+	assert_almost_eq(float(run._xp_need_for_level(30)), 440.0, 0.001)
+
+
+func test_family_letter_revives_once_and_settlement_records_once() -> void:
+	SaveSystem.data["runs_won"] = 0
+	SaveSystem.data["total_merit"] = 0
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	run.story._skip_all()
+	run.player["hp"] = float(run.player["max_hp"])
+	run.player["revive"] = 1
+	run._invuln = 0.0
+	run._on_player_hit(99999.0)
+	assert_eq(int(run.player["revive"]), 0)
+	assert_almost_eq(float(run.player["hp"]), float(run.player["max_hp"]) * 0.5, 0.01)
+	run.merit = 123
+	run._show_result(true)
+	run._show_result(true)
+	assert_eq(int(SaveSystem.data.get("runs_won", 0)), 1)
+	assert_eq(int(SaveSystem.data.get("total_merit", 0)), 123)
+
+
+func test_five_scales_trigger_dragon_clear() -> void:
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	run.story._skip_all()
+	for scale_color in ["red", "yellow", "blue", "green", "black"]:
+		run._on_scale_collected(scale_color)
+	assert_eq(run.scales.size(), 5)
+	assert_gte(run.merit, 500)
+	assert_gt(float(run.battlefield._screen_clear_timer), 0.0)
 
 
 func test_game_icons_include_license_and_attribution() -> void:

@@ -1,0 +1,49 @@
+{
+  "maps": {
+    "tideland": {
+      "name_zh": "滩涂夜",
+      "name_en": "Tidal Flats at Night",
+      "subtitle_zh": "永昌堡外 · 芦苇与潮沟",
+      "subtitle_en": "Beyond Yongchang Fort · reeds and tide channels",
+      "description_zh": "开阔滩涂，敌潮从四面合围。标准移速、标准灯油消耗。",
+      "description_en": "Open flats where the tide closes from every side. Standard speed and oil drain.",
+      "unlock_merit": 0,
+      "ground_tint": "#ebf0d0",
+      "enemy_speed_mult": 1.0,
+      "enemy_hp_mult": 1.0,
+      "spawn_rate_mult": 1.0,
+      "oil_interval": 30.0,
+      "light_scale": 1.0
+    },
+    "watergate": {
+      "name_zh": "水门夜潮",
+      "name_en": "Watergate Tide",
+      "subtitle_zh": "护城河 · 桥与堤道",
+      "subtitle_en": "Moat · bridges and causeways",
+      "description_zh": "湿滑堤道拖慢脚步，敌潮更密，但灯油烧得更慢。",
+      "description_en": "Slick causeways slow movement and the tide presses harder, but oil burns slower.",
+      "unlock_merit": 900,
+      "ground_tint": "#c6d9cf",
+      "enemy_speed_mult": 0.92,
+      "enemy_hp_mult": 1.0,
+      "spawn_rate_mult": 1.06,
+      "oil_interval": 34.0,
+      "light_scale": 1.06
+    },
+    "crossstreet": {
+      "name_zh": "十字街",
+      "name_en": "Cross-Street",
+      "subtitle_zh": "永昌堡内 · 窄巷与铺面",
+      "subtitle_en": "Inside Yongchang Fort · lanes and shopfronts",
+      "description_zh": "巷战拥挤，敌人更硬、更少，灯油消耗更快。",
+      "description_en": "Cramped street fighting: tougher but fewer foes, with faster oil drain.",
+      "unlock_merit": 1800,
+      "ground_tint": "#e6d2ad",
+      "enemy_speed_mult": 1.08,
+      "enemy_hp_mult": 1.15,
+      "spawn_rate_mult": 0.88,
+      "oil_interval": 27.0,
+      "light_scale": 0.94
+    }
+  }
+}

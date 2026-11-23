@@ -13,16 +13,24 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  gut:
-    name: Import and run GUT
+  linux-gut:
+    name: Linux GUT
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      GODOT_VERSION: 4.7.2-stable
       GODOT_BIN: ${{ github.workspace }}/.tools/godot
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      - name: Read pinned Godot version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          if [ -z "$VERSION" ]; then
+            echo "game/.godot-version is empty" >&2
+            exit 1
+          fi
+          echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Install Godot
         run: |
@@ -34,7 +42,14 @@ jobs:
           unzip -q /tmp/godot.zip -d .tools
           mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
           chmod +x "$GODOT_BIN"
-          "$GODOT_BIN" --version
+          ACTUAL="$("$GODOT_BIN" --version)"
+          EXPECTED_BASE="${GODOT_VERSION%-*}"
+          EXPECTED_STATUS="${GODOT_VERSION#*-}"
+          echo "expected=${GODOT_VERSION} actual=${ACTUAL}"
+          if [[ "$ACTUAL" != "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]; then
+            echo "Godot binary does not match game/.godot-version" >&2
+            exit 1
+          fi
 
       - name: Import project
         run: timeout 180 "$GODOT_BIN" --headless --path game --import
@@ -42,3 +57,86 @@ jobs:
       - name: Run GUT
         run: |
           "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+
+      - name: Smoke test Linux launcher
+        run: |
+          WATCH_RENDERER=opengl GDA_GODOT="$GODOT_BIN" \
+            timeout 60 ./game/launch.sh --headless --quit-after 2
+
+  windows-gut:
+    name: Windows GUT (native)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Read pinned Godot version
+        shell: pwsh
+        run: |
+          $version = (Get-Content game/.godot-version -Raw).Trim()
+          if (-not $version) {
+            throw "game/.godot-version is empty."
+          }
+          "GODOT_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Install Godot
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path .tools | Out-Null
+          $zip = Join-Path $env:RUNNER_TEMP "godot-win64.zip"
+          $url = "https://github.com/godotengine/godot/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+          curl.exe -fL --retry 3 -o $zip $url
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+          Expand-Archive -Path $zip -DestinationPath .tools -Force
+          $console = Get-ChildItem ".tools" -Filter "Godot_v*_win64_console.exe" | Select-Object -First 1
+          if (-not $console) {
+            throw "Godot Windows console executable was not found."
+          }
+          "GODOT_BIN=$($console.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          $actual = (& $console.FullName --version | Out-String).Trim()
+          $parts = $env:GODOT_VERSION -split "-", 2
+          $expectedPrefix = "$($parts[0]).$($parts[1])."
+          Write-Output "expected=$env:GODOT_VERSION actual=$actual"
+          if (-not $actual.StartsWith($expectedPrefix)) {
+            throw "Godot binary does not match game/.godot-version."
+          }
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+      - name: Import project
+        shell: pwsh
+        run: |
+          & $env:GODOT_BIN --headless --path game --import
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+      - name: Run GUT
+        shell: pwsh
+        run: |
+          & $env:GODOT_BIN --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+          if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+          }
+
+      - name: Smoke test Windows launcher
+        shell: pwsh
+        run: |
+          $env:WATCH_GODOT = $env:GODOT_BIN
+          $env:WATCH_RENDERER = "opengl"
+          $env:WATCH_SETTINGS_PATH = Join-Path $env:RUNNER_TEMP "watch-yongchang-renderer.cfg"
+          $output = cmd.exe /d /c "game\launch.bat --headless --quit-after 2" 2>&1
+          $exitCode = $LASTEXITCODE
+          $output | Write-Output
+          if ($exitCode -ne 0) {
+            exit $exitCode
+          }
+          $joined = $output -join "`n"
+          if ($joined -notmatch "\[launch\] renderer=opengl") {
+            throw "Windows launcher did not select OpenGL."
+          }

@@ -1,0 +1,72 @@
+{
+  "tile_size": 32,
+  "license": "CC BY 4.0",
+  "author": "xingwangzhe",
+  "source": "原创程序化像素绘制，build.py 为唯一源文件",
+  "atlases": {
+    "terrain": {
+      "path": "res://assets/tiles/yongchang/terrain_atlas.png",
+      "columns": 8,
+      "rows": 4,
+      "tiles": [
+        "mud_a", "mud_b", "sand_a", "sand_b",
+        "water_shallow_a", "water_shallow_b", "water_deep_a", "water_deep_b",
+        "mud_grass", "reed_bed", "stone_road_a", "stone_road_b",
+        "earth_road_a", "earth_road_b", "dock_vertical", "dock_horizontal",
+        "shore_n", "shore_s", "shore_e", "shore_w",
+        "shore_nw", "shore_ne", "shore_sw", "shore_se",
+        "puddle", "salt_pan", "gravel", "driftwood",
+        "cracked_mud", "sand_c", "wet_stone", "mud_grass_b"
+      ]
+    },
+    "architecture": {
+      "path": "res://assets/tiles/yongchang/architecture_atlas.png",
+      "columns": 8,
+      "rows": 4,
+      "tiles": [
+        "stone_wall_a", "stone_wall_b", "stone_wall_moss", "arrow_slit",
+        "wall_water_base", "merlon", "wall_cap", "wall_corner",
+        "plaster_plain", "plaster_window", "plaster_door", "plaster_damaged",
+        "roof_ridge", "roof_slope", "roof_eave", "roof_corner",
+        "land_gate_left", "land_gate_arch", "land_gate_right",
+        "water_gate_left", "water_gate_arch", "water_gate_right",
+        "wall_cap_damaged", "merlon_b", "wood_railing", "stone_steps",
+        "plaster_door_b", "red_lantern", "storefront",
+        "gable_left", "gable_right", "wall_water_base_b"
+      ]
+    },
+    "props": {
+      "path": "res://assets/tiles/yongchang/props_atlas.png",
+      "columns": 8,
+      "rows": 2,
+      "tiles": [
+        "reeds", "grass", "stone_lamp", "beacon",
+        "barricade", "crate", "barrel", "fish_trap",
+        "banner_ming", "fishing_boat", "tent", "rope_coil",
+        "fishing_net", "arrow_bundle", "plaque", "bamboo_fence"
+      ]
+    },
+    "animated_props": {
+      "path": "res://assets/tiles/yongchang/animated_props.png",
+      "cell": 32,
+      "columns": 4,
+      "rows": 4,
+      "fps": 8,
+      "clips": {
+        "lantern": 0,
+        "fishing_boat": 1,
+        "ming_banner": 2,
+        "beacon_fire": 3
+      },
+      "placements": [
+        {"clip": "lantern", "tile": [9, 5]},
+        {"clip": "lantern", "tile": [11, 5]},
+        {"clip": "lantern", "tile": [17, 5]},
+        {"clip": "fishing_boat", "tile": [3, 8]},
+        {"clip": "ming_banner", "tile": [12, 4]},
+        {"clip": "ming_banner", "tile": [16, 4]},
+        {"clip": "beacon_fire", "tile": [5, 4]}
+      ]
+    }
+  }
+}

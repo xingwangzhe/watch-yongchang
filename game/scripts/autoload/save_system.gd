@@ -3,7 +3,7 @@ extends Node
 signal saved
 
 const SAVE_PATH := "user://savegame.json"
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2
 
 var save_path: String = SAVE_PATH
 var data: Dictionary = {}
@@ -22,11 +22,19 @@ func default_data() -> Dictionary:
 	return {
 		"version": SAVE_VERSION,
 		"runs": 0,
+		"runs_won": 0,
 		"best_merit": 0,
+		"total_merit": 0,
 		"best_kills": 0,
+		"best_time": 0.0,
+		"prologue_seen": false,
 		"last_mode": "menu",
 		"last_saved_unix": 0,
 		"last_saved_local": "",
+		"selected_character": "wanglu",
+		"selected_map": "tideland",
+		"unlocked_characters": ["wanglu"],
+		"unlocked_maps": ["tideland"],
 		"settings": {},
 	}
 
@@ -50,6 +58,10 @@ func load_from(path: String) -> Dictionary:
 		return {}
 	var merged := default_data()
 	merged.merge(parsed, true)
+	merged["total_merit"] = maxi(
+		int(merged.get("total_merit", 0)),
+		int(merged.get("best_merit", 0))
+	)
 	return merged
 
 
@@ -78,6 +90,14 @@ func autosave(extra: Dictionary = {}) -> void:
 func begin_run() -> void:
 	var runs := int(data.get("runs", 0)) + 1
 	autosave({"runs": runs, "last_mode": "run"})
+
+
+func record_run(merit: int, kills: int, victory: bool, elapsed: float) -> void:
+	data["runs_won"] = int(data.get("runs_won", 0)) + (1 if victory else 0)
+	data["total_merit"] = int(data.get("total_merit", 0)) + maxi(0, merit)
+	data["best_merit"] = maxi(int(data.get("best_merit", 0)), merit)
+	data["best_kills"] = maxi(int(data.get("best_kills", 0)), kills)
+	data["best_time"] = maxf(float(data.get("best_time", 0.0)), elapsed)
 
 
 func has_progress() -> bool:
