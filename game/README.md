@@ -24,6 +24,10 @@ game-icons.net SVG。
 - 自动存档：菜单、设置变化、开局、退出与每 20 秒写入 `user://savegame.json`。
 - 双语：`data/i18n/zh.json` 与 `en.json`，切换后即时刷新界面。
 - BGM：`assets/audio/bgm_watch.ogg`，**Samurai Nights · majadroid · CC-BY 3.0**。
+- 战斗 BGM：`assets/audio/bgm_battle.ogg`，**Hard Battle 1 · MintoDog · CC0 1.0**；
+  进入正篇时切换，返回菜单恢复 `bgm_watch.ogg`。
+- 音效：全局按钮点击、确认与返回，以及经验/灯油/治疗/龙鳞拾取、事件卡、敌兵受击、
+  普通/精英击杀、升级、冲刺与 Boss 提示；Kenney UI Audio / Impact Sounds · CC0 1.0。
 - 关于页 BGM：`assets/audio/bgm_about.ogg`，
   **Views From Atop the Jade Kings Throne · Hitctrl · CC-BY 3.0**。
 - `scenes/prologue.tscn`：1386 宁村所序章，操作汤和点望海灯、定界桩、立乡兵旗。
@@ -155,7 +159,8 @@ game\launch.bat
 - `assets/ui/`、`assets/audio/`、`assets/fonts/`：已登记素材。
 - `assets/icons/game_icons/`：12 个 game-icons.net SVG，CC BY 3.0；
   逐项作者与来源见 `ATTRIBUTION.md`，完整许可见 `LICENSE-CC-BY-3.0.txt`。
-- BGM 与字体署名数据在 `data/credits.json`。
+- BGM、音效与字体署名数据在 `data/credits.json`；音频逐文件映射见
+  `assets/audio/LICENSES.md`。
 - 文化背景与赛事创作方向来源：
   [2026 OSGJ 开源游戏开发大赛官网](https://2026gamejam.osgame.org/)。
 - 新像素素材用 `skills/pixel-art-studio/` 生成，源文件放 `../pixel-art/<slug>/build.py`。

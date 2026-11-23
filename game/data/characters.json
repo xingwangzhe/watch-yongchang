@@ -61,10 +61,10 @@
         "faction": "ming",
         "skin": "tan",
         "outfit": "ming_robe_ochre",
-        "headgear": "common_headwrap",
+        "headgear": "ming_dragon_band",
         "backgear": "none",
         "weapon": "longdeng",
-        "offhand": "lingqi"
+        "offhand": "none"
       },
       "tint": "#ffe2ae",
       "hp": 124.0,
@@ -176,10 +176,10 @@
       "battle_walk_fps": 10,
       "character_recipe": {
         "faction": "ming",
-        "skin": "light",
-        "outfit": "ming_robe_ochre",
-        "headgear": "ming_hat",
-        "backgear": "none",
+        "skin": "tan",
+        "outfit": "ming_navy_green",
+        "headgear": "ming_scout_cap",
+        "backgear": "ming_quiver",
         "weapon": "gong",
         "offhand": "none"
       },
@@ -217,7 +217,7 @@
         "faction": "ming",
         "skin": "tan",
         "outfit": "ming_brigandine_blue",
-        "headgear": "ming_officer",
+        "headgear": "ming_hat",
         "backgear": "ming_banner",
         "weapon": "qiang",
         "offhand": "none"

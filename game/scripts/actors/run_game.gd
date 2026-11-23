@@ -13,6 +13,15 @@ const SFX_FIRE := preload("res://assets/audio/sfx_fire.ogg")
 const SFX_WAVE := preload("res://assets/audio/sfx_wave.ogg")
 const SFX_WIN := preload("res://assets/audio/sfx_win.ogg")
 const SFX_LOSE := preload("res://assets/audio/sfx_lose.ogg")
+const SFX_ALARM := preload("res://assets/audio/sfx_alarm.ogg")
+const SFX_PICKUP := preload("res://assets/audio/sfx_pickup.ogg")
+const SFX_EVENT := preload("res://assets/audio/sfx_event.ogg")
+const SFX_ENEMY_HIT := preload("res://assets/audio/sfx_enemy_hit.ogg")
+const SFX_ENEMY_KILL := preload("res://assets/audio/sfx_enemy_kill.ogg")
+const SFX_ELITE_KILL := preload("res://assets/audio/sfx_elite_kill.ogg")
+const SFX_LEVEL_UP := preload("res://assets/audio/sfx_level_up.ogg")
+const SFX_DASH := preload("res://assets/audio/sfx_dash.ogg")
+const SFX_BOSS := preload("res://assets/audio/sfx_boss.ogg")
 const PAPER := Color("#efe1c2")
 const MUTED := Color("#baa98a")
 const GOLD := Color("#e1b35a")
@@ -40,6 +49,7 @@ var passive_defs: Dictionary = {}
 var enemy_defs: Dictionary = {}
 var character_def: Dictionary = {}
 var map_def: Dictionary = {}
+var map_id := "tideland"
 var wave_data: Dictionary = {}
 var narrative_data: Dictionary = {}
 var _lines_by_id: Dictionary = {}
@@ -90,6 +100,8 @@ var _rng := RandomNumberGenerator.new()
 var _narrative_timer: Timer
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_index := 0
+var _kill_sfx_cd := 0.0
+var _pickup_sfx_cd := 0.0
 var _result_recorded := false
 var _run_start_merit := 0
 
@@ -102,6 +114,7 @@ func _ready() -> void:
 	_build_world()
 	_build_ui()
 	_setup_player()
+	AudioBus.play_battle_bgm()
 	_schedule_intro()
 
 
@@ -141,6 +154,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _open_codex() -> void:
+	AudioBus.play_confirm()
 	_paused = true
 	codex_overlay = (load("res://scenes/codex.tscn") as PackedScene).instantiate()
 	codex_overlay.embedded = true
@@ -167,7 +181,9 @@ func _load_data() -> void:
 	var selected_map := str(SaveSystem.data.get("selected_map", "tideland"))
 	if not maps.has(selected_map):
 		selected_map = "tideland"
-	map_def = maps.get(selected_map, {}) as Dictionary
+	map_id = selected_map
+	map_def = (maps.get(selected_map, {}) as Dictionary).duplicate(true)
+	map_def["id"] = map_id
 	wave_data = GameData.load_json("res://data/waves.json")
 	narrative_data = GameData.load_json("res://data/narrative.json")
 	duration = float(wave_data.get("duration_seconds", 960.0))
@@ -185,7 +201,7 @@ func _build_world() -> void:
 	battlefield = Battlefield.new()
 	battlefield.name = "Battlefield"
 	add_child(battlefield)
-	battlefield.setup(20261123)
+	battlefield.setup(20261123, map_def)
 	battlefield.player_hit.connect(_on_player_hit)
 	battlefield.enemy_killed.connect(_on_enemy_killed)
 	battlefield.xp_collected.connect(_on_xp_collected)
@@ -199,6 +215,10 @@ func _build_world() -> void:
 	camera.name = "RunCamera"
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 7.0
+	camera.limit_left = 0
+	camera.limit_top = 0
+	camera.limit_right = int(battlefield.map_layout.world_size.x)
+	camera.limit_bottom = int(battlefield.map_layout.world_size.y)
 	add_child(camera)
 	camera.make_current()
 
@@ -207,6 +227,7 @@ func _build_ui() -> void:
 	hud = RunHUD.new()
 	hud.name = "HUD"
 	add_child(hud)
+	hud.bind_world(battlefield, map_def, camera)
 	touch_controls = TouchControls.new()
 	hud.add_child(touch_controls)
 	touch_controls.dash_requested.connect(_on_touch_dash_requested)
@@ -239,8 +260,9 @@ func _build_ui() -> void:
 func _setup_player() -> void:
 	var start_weapon := str(character_def.get("starting_weapon", "saber"))
 	var start_passive := str(character_def.get("starting_passive", "gaiters"))
+	var spawn_position := battlefield.player_spawn_position()
 	player = {
-		"pos": Vector2.ZERO,
+		"pos": spawn_position,
 		"radius": 18.0,
 		"hp": float(character_def.get("hp", 100.0)),
 		"max_hp": float(character_def.get("hp", 100.0)),
@@ -278,6 +300,7 @@ func _setup_player() -> void:
 		"skill_cd_mult": 1.0,
 		"dark": false,
 		"light_radius": 232.0 * float(map_def.get("light_scale", 1.0)),
+		"facing": Vector2.RIGHT,
 	}
 	_add_weapon(start_weapon)
 	passives[start_passive] = 1
@@ -343,6 +366,8 @@ func _update_player(delta: float) -> void:
 	_dash_timer = maxf(0.0, _dash_timer - delta)
 	_dash_buff = maxf(0.0, _dash_buff - delta)
 	_invuln = maxf(0.0, _invuln - delta)
+	_kill_sfx_cd = maxf(0.0, _kill_sfx_cd - delta)
+	_pickup_sfx_cd = maxf(0.0, _pickup_sfx_cd - delta)
 	if float(player.get("regen", 0.0)) > 0.0 and float(player["hp"]) > 0.0:
 		player["hp"] = minf(
 			float(player["max_hp"]),
@@ -371,10 +396,14 @@ func _update_player(delta: float) -> void:
 				"color": Color(0.86, 0.66, 0.31, 0.34),
 			})
 	var move_boost := 1.18 if _dash_buff > 0.0 else 1.0
+	var previous_position := player["pos"] as Vector2
+	var desired_position := previous_position
 	if _dash_timer > 0.0:
-		player["pos"] = (player["pos"] as Vector2) + _dash_dir * float(player["speed"]) * 3.5 * delta
+		desired_position += _dash_dir * float(player["speed"]) * 3.5 * delta
 	else:
-		player["pos"] = (player["pos"] as Vector2) + input_vector * float(player["speed"]) * move_boost * delta
+		desired_position += input_vector * float(player["speed"]) * move_boost * delta
+	player["pos"] = battlefield.resolve_player_move(previous_position, desired_position, float(player["radius"]))
+	player["facing"] = _last_move
 	var dark := int(player["oil"]) <= 0
 	player["dark"] = dark
 	var ratio := float(player["oil"]) / maxf(1.0, float(player["oil_max"]))
@@ -400,6 +429,7 @@ func _try_dash() -> void:
 	if is_instance_valid(touch_controls):
 		input_vector = (input_vector + touch_controls.move_vector).limit_length(1.0)
 	_dash_dir = input_vector.normalized() if input_vector.length_squared() > 0.001 else _last_move
+	_play_sfx(SFX_DASH, _rng.randf_range(1.18, 1.32), 0.62)
 	for i in range(5):
 		battlefield.add_effect({
 			"type": "aura",
@@ -426,7 +456,7 @@ func _update_oil(delta: float) -> void:
 		player["oil"] = int(player["oil"]) - 1
 		if int(player["oil"]) == 0:
 			hud.show_banner(Locale.t("banner.dark"), Locale.t("banner.dark_sub"), 3.2)
-			_play_sfx(SFX_WAVE)
+			_play_sfx(SFX_ALARM, 0.92, 0.72)
 
 
 func _update_skills(delta: float) -> void:
@@ -504,7 +534,7 @@ func _cast_skill(behavior: String, level: int) -> void:
 				"radius": radius,
 				"color": Color("#e8b05a"),
 			})
-			_play_sfx(SFX_HIT)
+			_play_sfx(SFX_ENEMY_HIT, 1.08, 0.72)
 		"slow":
 			var radius := (150.0 + 16.0 * float(level)) * area
 			battlefield.apply_slow(origin, radius, 0.60 - 0.035 * float(level), 2.2)
@@ -516,6 +546,7 @@ func _cast_skill(behavior: String, level: int) -> void:
 				"radius": radius,
 				"color": Color("#6ba6b8"),
 			})
+			_play_sfx(SFX_WAVE, 1.28, 0.58)
 		"burn":
 			var radius := (126.0 + 15.0 * float(level)) * area
 			battlefield.apply_burn(
@@ -584,8 +615,10 @@ func _cast_skill(behavior: String, level: int) -> void:
 				"radius": 58.0,
 				"color": Color("#8fbd8b"),
 			})
+			_play_sfx(SFX_PICKUP, 0.82, 0.88)
 		"magnet":
 			battlefield.magnet_all()
+			_play_sfx(SFX_EVENT, 1.18, 0.62)
 
 
 func _update_weapons(delta: float) -> void:
@@ -638,7 +671,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 				"arc": deg_to_rad(arc),
 				"color": Color("#f0c363"),
 			})
-			_play_sfx(SFX_HIT)
+			_play_sfx(SFX_ENEMY_HIT, 0.96, 0.68)
 			return true
 		"line_thrust":
 			var direction := _last_move
@@ -967,7 +1000,7 @@ func _update_spawning(delta: float) -> void:
 		battlefield.spawn_enemy_at("daimyo", (player["pos"] as Vector2) + Vector2(520, 80))
 		_boss_warned = true
 		hud.show_banner(Locale.t("banner.boss"), Locale.t("banner.boss_sub"), 4.0)
-		_play_sfx(SFX_WAVE)
+		_play_sfx(SFX_BOSS, 1.0, 0.92)
 	while _scale_event_index < _scale_events.size():
 		var event := _scale_events[_scale_event_index] as Dictionary
 		if elapsed < float(event.get("t", 0.0)):
@@ -985,6 +1018,7 @@ func _update_timeline_events() -> void:
 		if _lines_by_id.has(line_id):
 			narrative.show_line(_lines_by_id[line_id] as Dictionary)
 			_narrative_timer.start(6.2)
+			_play_sfx(SFX_EVENT, 1.0, 0.48)
 		_event_line_index += 1
 
 
@@ -1058,7 +1092,7 @@ func _on_player_hit(raw_damage: float) -> void:
 		return
 	player["hp"] = float(player["hp"]) - damage
 	_invuln = 0.65
-	_play_sfx(SFX_HIT)
+	_play_sfx(SFX_HIT, 0.82, 0.88)
 	if float(player.get("thorns", 0.0)) > 0.0:
 		battlefield.damage_circle(
 			player["pos"] as Vector2,
@@ -1093,11 +1127,18 @@ func _on_enemy_killed(enemy_id: String, _world_position: Vector2, elite: bool) -
 		)
 	if elite:
 		hud.show_banner(Locale.t("banner.elite"), Locale.t("banner.elite_sub"), 1.8)
+		_play_sfx(SFX_ELITE_KILL, _rng.randf_range(0.94, 1.04), 0.78)
+	elif _kill_sfx_cd <= 0.0:
+		_play_sfx(SFX_ENEMY_KILL, _rng.randf_range(0.90, 1.10), 0.42)
+		_kill_sfx_cd = 0.055
 
 
 func _on_xp_collected(amount: float) -> void:
 	var multiplier := float(player["xp_mult"]) * (1.5 if bool(player["dark"]) else 1.0)
 	_add_xp(amount * multiplier)
+	if _pickup_sfx_cd <= 0.0:
+		_play_sfx(SFX_PICKUP, _rng.randf_range(1.12, 1.24), 0.34)
+		_pickup_sfx_cd = 0.10
 
 
 func _add_xp(amount: float) -> void:
@@ -1117,6 +1158,7 @@ func _xp_need_for_level(current_level: int) -> float:
 
 func _show_level_up() -> void:
 	_paused = true
+	_play_sfx(SFX_LEVEL_UP, 1.0, 0.86)
 	if is_instance_valid(touch_controls):
 		touch_controls.release_all()
 	_current_upgrade_options = _build_upgrade_options()
@@ -1277,6 +1319,7 @@ func _build_upgrade_options() -> Array[Dictionary]:
 func _on_upgrade_chosen(index: int) -> void:
 	if index < 0 or index >= _current_upgrade_options.size():
 		return
+	AudioBus.play_confirm()
 	var option := _current_upgrade_options[index]
 	match str(option.get("family", "")):
 		"weapon_upgrade", "evolve":
@@ -1380,6 +1423,7 @@ func _apply_event(option: Dictionary) -> void:
 		battlefield.spawn_enemy("scout", origin)
 	_show_event_line(option)
 	hud.show_banner(str(option.get("title", "")), str(option.get("effect_summary", "")), 2.8)
+	_play_sfx(SFX_EVENT, 0.88, 0.78)
 
 
 func _show_event_line(option: Dictionary) -> void:
@@ -1407,10 +1451,12 @@ func _has_weapon(weapon_id: String) -> bool:
 func _on_oil_collected(amount: int) -> void:
 	player["oil"] = mini(int(player["oil_max"]), int(player["oil"]) + amount)
 	hud.show_banner(Locale.t("banner.oil"), "", 1.2)
+	_play_sfx(SFX_PICKUP, 1.05, 0.70)
 
 
 func _on_heal_collected(amount: float) -> void:
 	player["hp"] = minf(float(player["max_hp"]), float(player["hp"]) + amount)
+	_play_sfx(SFX_PICKUP, 0.82, 0.72)
 
 
 func _on_scale_collected(color: String) -> void:
@@ -1418,6 +1464,7 @@ func _on_scale_collected(color: String) -> void:
 		return
 	scales.append(color)
 	hud.show_banner(Locale.t("banner.scale", {"count": scales.size()}), "", 1.8)
+	_play_sfx(SFX_PICKUP, 1.34, 0.76)
 	if scales.size() >= 5:
 		var names := {
 			"red": "红",
@@ -1442,6 +1489,7 @@ func _on_boss_defeated(_enemy_id: String) -> void:
 	hud.show_banner(Locale.t("banner.boss_down"), Locale.t("banner.boss_down_sub"), 4.0)
 	merit += 2000
 	_add_xp(260.0)
+	_play_sfx(SFX_ELITE_KILL, 0.72, 0.92)
 	_play_sfx(SFX_WIN)
 
 
@@ -1544,7 +1592,8 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 	_event_line_index = _event_lines.size()
 	_scale_event_index = _scale_events.size()
 	elapsed = maxf(elapsed, 480.0)
-	player["pos"] = Vector2.ZERO
+	var capture_center := battlefield.player_spawn_position()
+	player["pos"] = capture_center
 	player["hp"] = float(player["max_hp"])
 	if card_levels.is_empty():
 		card_levels = {
@@ -1555,21 +1604,21 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 		_recompute_stats()
 	player["shield_max"] = 45.0
 	player["shield"] = 45.0
-	camera.position = Vector2.ZERO
-	battlefield.player_pos = Vector2.ZERO
+	camera.position = capture_center
+	battlefield.player_pos = capture_center
 	battlefield.clear_all_effects()
 	var ring_ids := ["scout", "ronin", "archer", "shield", "gun", "banner", "general"]
 	for i in range(44):
 		var angle := TAU * float(i) / 44.0
 		var radius := 150.0 + float(i % 7) * 26.0
-		var position := Vector2(cos(angle), sin(angle)) * radius
+		var position := capture_center + Vector2(cos(angle), sin(angle)) * radius
 		var enemy_id: String = str(ring_ids[i % ring_ids.size()])
 		battlefield.spawn_enemy_at(enemy_id, position, "red" if enemy_id == "general" else "")
 	for i in range(7):
 		var angle := TAU * float(i) / 7.0
 		battlefield.add_effect({
 			"type": "slash",
-			"pos": Vector2.ZERO,
+			"pos": capture_center,
 			"ttl": 1.4,
 			"max_ttl": 1.4,
 			"radius": 168.0 + float(i) * 20.0,
@@ -1781,13 +1830,15 @@ func _return_to_menu() -> void:
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
-func _play_sfx(stream: AudioStream) -> void:
+func _play_sfx(stream: AudioStream, pitch_scale: float = 1.0, volume_scale: float = 1.0) -> void:
 	if stream == null or DisplayServer.get_name() == "headless" or _sfx_players.is_empty():
 		return
 	var player_node := _sfx_players[_sfx_index]
 	_sfx_index = (_sfx_index + 1) % _sfx_players.size()
 	player_node.stream = stream
-	player_node.volume_db = -80.0 if GameSettings.sfx_volume <= 0.001 else linear_to_db(GameSettings.sfx_volume)
+	player_node.pitch_scale = pitch_scale
+	var volume := clampf(GameSettings.sfx_volume * volume_scale, 0.0, 1.0)
+	player_node.volume_db = -80.0 if volume <= 0.001 else linear_to_db(volume)
 	player_node.play()
 
 

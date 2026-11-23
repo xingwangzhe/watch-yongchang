@@ -5,6 +5,7 @@ const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
 const OIL_METER := preload("res://scripts/ui/oil_meter.gd")
 const SCALE_METER := preload("res://scripts/ui/scale_meter.gd")
+const MINIMAP := preload("res://scripts/ui/minimap.gd")
 const PAPER := Color("#efe1c2")
 const MUTED := Color("#baa98a")
 const GOLD := Color("#e1b35a")
@@ -36,6 +37,7 @@ var _boss_bar: ProgressBar
 var _boss_name: Label
 var _build_label: Label
 var _move_hint: Label
+var _minimap: RunMinimap
 
 
 func _ready() -> void:
@@ -81,6 +83,12 @@ func update_hud(state: Dictionary) -> void:
 		_boss_bar.max_value = maxf(1.0, float(state.get("boss_max_hp", 1.0)))
 		_boss_bar.value = maxf(0.0, float(state.get("boss_hp", 0.0)))
 		_boss_name.text = str(state.get("boss_name", ""))
+
+
+func bind_world(field: Battlefield, definition: Dictionary, camera: Camera2D) -> void:
+	if _minimap == null:
+		return
+	_minimap.bind(field, definition, camera)
 
 
 func show_banner(title: String, subtitle: String = "", duration: float = 3.0) -> void:
@@ -156,14 +164,20 @@ func _build() -> void:
 
 	_kill_label = _label("KillLabel", "", 16, PAPER)
 	_kill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_kill_label.position = Vector2(1016, 18)
-	_kill_label.size = Vector2(222, 24)
+	_kill_label.position = Vector2(782, 18)
+	_kill_label.size = Vector2(212, 24)
 	_root.add_child(_kill_label)
 	_merit_label = _label("MeritLabel", "", 14, GOLD)
 	_merit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_merit_label.position = Vector2(1016, 45)
-	_merit_label.size = Vector2(222, 24)
+	_merit_label.position = Vector2(782, 45)
+	_merit_label.size = Vector2(212, 24)
 	_root.add_child(_merit_label)
+
+	_minimap = MINIMAP.new()
+	_minimap.name = "Minimap"
+	_minimap.position = Vector2(1014, 14)
+	_minimap.size = Vector2(232, 174)
+	_root.add_child(_minimap)
 
 	_oil_label = _label("OilLabel", "", 13, Color(MUTED, 0.9))
 	_oil_label.position = Vector2(34, 618)

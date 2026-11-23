@@ -16,7 +16,6 @@ const ENEMY_BATCH_CAPACITY := 512
 const ENEMY_SPRITE_BASE_SIZE := 96.0
 const PLAYER_SPRITE_SIZE := 96.0
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
-const GROUND_TEXTURE := preload("res://scripts/core/ground_texture.gd")
 const PAPER := Color("#efe1c2")
 const GOLD := Color("#e1b35a")
 
@@ -31,6 +30,7 @@ var effects: Array[Dictionary] = []
 var floaters: Array[Dictionary] = []
 var spatial: Dictionary = {}
 var player_pos := Vector2.ZERO
+var player_facing := Vector2.RIGHT
 var player_radius := 18.0
 var time := 0.0
 var rng := RandomNumberGenerator.new()
@@ -42,21 +42,40 @@ var player_walk_frames: Array[Texture2D] = []
 var player_idle_fps := 6.0
 var player_walk_fps := 10.0
 var enemy_hp_mult := 1.0
+var map_layout: MapLayout
+var map_renderer: MapRenderer
+var map_definition: Dictionary = {}
 var _contact_cd := 0.0
 var _dead_count := 0
 var _screen_clear_timer := 0.0
 var _dragon_phase := 0.0
-var _ground: Texture2D
 var _enemy_batches: Dictionary = {}
 var _enemy_batch_counts: Dictionary = {}
 var _enemy_quad: QuadMesh
 var _player_moving := false
 var _last_player_pos := Vector2.ZERO
+var _flow_timer := 0.0
 
 
-func setup(seed_value: int = 20261123) -> void:
+func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) -> void:
 	rng.seed = seed_value
-	_ground = GROUND_TEXTURE.make(20261123)
+	map_definition = map_definition_value
+	if map_definition.is_empty():
+		var maps := GameData.get_maps()
+		map_definition = maps.get("tideland", {}) as Dictionary
+		if map_definition.is_empty():
+			map_definition = {"layout": {"world_tiles": [120, 84], "start_tile": [60, 42]}}
+	var map_key := str(map_definition.get("id", "tideland"))
+	_ensure_map_key(map_key)
+	map_layout = MapLayout.new()
+	map_layout.setup(map_key, map_definition)
+	map_renderer = MapRenderer.new()
+	map_renderer.name = "MapRenderer"
+	add_child(map_renderer)
+	map_renderer.build(map_layout, map_definition, seed_value)
+	player_pos = map_layout.start_pos
+	_last_player_pos = player_pos
+	map_layout.ensure_flow_field(player_pos)
 	_enemy_quad = QuadMesh.new()
 	_enemy_quad.size = Vector2.ONE
 	enemy_data = GameData.get_enemies()
@@ -69,6 +88,13 @@ func setup(seed_value: int = 20261123) -> void:
 		textures[enemy_id] = frames[0] if not frames.is_empty() else null
 	z_index = 0
 	set_process(true)
+
+
+func _ensure_map_key(map_key: String) -> void:
+	if map_key.is_empty():
+		map_definition["id"] = "tideland"
+	else:
+		map_definition["id"] = map_key
 
 
 func set_player_sprites(definition: Dictionary) -> void:
@@ -122,7 +148,8 @@ func reset(seed_value: int = 20261123) -> void:
 	_contact_cd = 0.0
 	_dead_count = 0
 	_player_moving = false
-	_last_player_pos = Vector2.ZERO
+	player_pos = map_layout.start_pos if map_layout != null else Vector2.ZERO
+	_last_player_pos = player_pos
 	rng.seed = seed_value
 	queue_redraw()
 
@@ -130,6 +157,11 @@ func reset(seed_value: int = 20261123) -> void:
 func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.0) -> void:
 	time += delta
 	player_pos = player.get("pos", Vector2.ZERO) as Vector2
+	_flow_timer -= delta
+	if map_layout != null and _flow_timer <= 0.0:
+		_flow_timer = 0.30
+		map_layout.ensure_flow_field(player_pos)
+	player_facing = player.get("facing", player_facing) as Vector2
 	_player_moving = player_pos.distance_squared_to(_last_player_pos) > 0.25
 	_last_player_pos = player_pos
 	player_radius = float(player.get("radius", 18.0))
@@ -152,9 +184,15 @@ func spawn_enemy(enemy_id: String, center: Vector2, elite_color: String = "") ->
 	if enemies.size() >= 460:
 		return -1
 	var definition: Dictionary = enemy_data[enemy_id] as Dictionary
-	var angle := rng.randf_range(0.0, TAU)
-	var distance := rng.randf_range(760.0, 980.0)
-	var position := center + Vector2(cos(angle), sin(angle)) * distance
+	var position := center
+	if map_layout != null:
+		var candidates := map_layout.spawn_candidates(center, 740.0, 1500.0)
+		if not candidates.is_empty():
+			position = candidates[rng.randi_range(0, candidates.size() - 1)]
+	else:
+		var angle := rng.randf_range(0.0, TAU)
+		var distance := rng.randf_range(760.0, 980.0)
+		position = center + Vector2(cos(angle), sin(angle)) * distance
 	return spawn_enemy_at(enemy_id, position, elite_color)
 
 
@@ -163,6 +201,8 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		return -1
 	if enemies.size() >= 460:
 		return -1
+	if map_layout != null and not map_layout.is_point_walkable(position, 14.0):
+		position = map_layout.find_walkable_position(position, 14.0)
 	var definition: Dictionary = enemy_data[enemy_id] as Dictionary
 	var is_boss := str(definition.get("behavior", "")) == "boss"
 	var is_elite := not elite_color.is_empty() or str(definition.get("behavior", "")) == "elite"
@@ -213,6 +253,16 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 
 func alive_count() -> int:
 	return enemies.size() - _dead_count
+
+
+func resolve_player_move(from: Vector2, to: Vector2, radius: float = 18.0) -> Vector2:
+	if map_layout == null:
+		return to
+	return map_layout.move_circle(from, to, radius)
+
+
+func player_spawn_position() -> Vector2:
+	return map_layout.start_pos if map_layout != null else Vector2.ZERO
 
 
 func nearest_enemy(origin: Vector2, max_range: float) -> Dictionary:
@@ -511,34 +561,44 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 		var direction := to_player / distance
 		var behavior := str(enemy["behavior"])
 		var movement := Vector2.ZERO
+		var navigation := direction
+		if map_layout != null:
+			navigation = map_layout.navigation_direction(position, target)
 		if behavior == "ranged":
 			if distance > float(enemy["attack_range"]) * 0.82:
-				movement = direction
+				movement = navigation
 			elif float(enemy["attack_timer"]) <= 0.0:
 				_fire_enemy_shot(position, direction, float(enemy["damage"]), float(enemy["projectile_speed"]))
 				enemy["attack_timer"] = float(enemy["attack_cooldown"])
 		elif behavior == "support":
 			if distance > 250.0:
-				movement = direction
+				movement = navigation
 			dark_speed = 1.0
 		else:
-			movement = direction
+			movement = navigation
 		if behavior == "elite" or behavior == "boss":
 			if float(enemy["dash_time"]) > 0.0:
 				enemy["dash_time"] = maxf(0.0, float(enemy["dash_time"]) - delta)
 				movement = (enemy["dash_dir"] as Vector2) * (3.4 if behavior == "boss" else 2.8)
 			elif float(enemy["charge_timer"]) <= 0.0 and distance < 520.0:
 				enemy["dash_time"] = 0.34 if behavior == "boss" else 0.26
-				enemy["dash_dir"] = direction
+				enemy["dash_dir"] = navigation
 				enemy["charge_timer"] = float(enemy["charge_cooldown"])
 		if float(enemy.get("stun_timer", 0.0)) > 0.0:
 			movement = Vector2.ZERO
 		var slow_factor := float(enemy.get("slow_factor", 1.0)) if float(enemy.get("slow_timer", 0.0)) > 0.0 else 1.0
 		var speed := float(enemy["speed"]) * speed_mult * dark_speed * slow_factor
+		var previous_position := position
 		position += movement * speed * delta
 		var knockback := enemy["knockback"] as Vector2
 		position += knockback * delta
 		enemy["knockback"] = knockback.move_toward(Vector2.ZERO, 520.0 * delta)
+		if map_layout != null:
+			position = map_layout.move_circle(
+				previous_position,
+				position,
+				clampf(float(enemy["radius"]) * 0.72, 9.0, 26.0)
+			)
 		enemy["pos"] = position
 		if distance < player_radius + float(enemy["radius"]) and _contact_cd <= 0.0:
 			player_hit.emit(float(enemy["damage"]))
@@ -563,7 +623,11 @@ func _update_player_shots(delta: float) -> void:
 		if float(shot["ttl"]) <= 0.0:
 			continue
 		shot["ttl"] = float(shot["ttl"]) - delta
-		var position := (shot["pos"] as Vector2) + (shot["vel"] as Vector2) * delta
+		var previous_position := shot["pos"] as Vector2
+		var position := previous_position + (shot["vel"] as Vector2) * delta
+		if map_layout != null and map_layout.is_segment_wall_blocked(previous_position, position, 3.0):
+			shot["ttl"] = 0.0
+			continue
 		shot["pos"] = position
 		var hit_list: Array = shot["hit"] as Array
 		for index in query_circle(position, 34.0):
@@ -592,7 +656,11 @@ func _update_enemy_shots(delta: float, player: Dictionary) -> void:
 		if float(shot["ttl"]) <= 0.0:
 			continue
 		shot["ttl"] = float(shot["ttl"]) - delta
-		var position := (shot["pos"] as Vector2) + (shot["vel"] as Vector2) * delta
+		var previous_position := shot["pos"] as Vector2
+		var position := previous_position + (shot["vel"] as Vector2) * delta
+		if map_layout != null and map_layout.is_segment_wall_blocked(previous_position, position, 3.0):
+			shot["ttl"] = 0.0
+			continue
 		shot["pos"] = position
 		if position.distance_to(target) < player_radius + 9.0:
 			player_hit.emit(float(shot["damage"]))
@@ -747,8 +815,8 @@ func _scale_color(color_name: String) -> Color:
 
 func _draw() -> void:
 	var center := player_pos
-	draw_rect(Rect2(center - Vector2(840.0, 520.0), Vector2(1680.0, 1040.0)), Color("#111a19"))
-	_draw_ground(center)
+	if map_layout == null:
+		draw_rect(Rect2(center - VIEW_HALF, VIEW_HALF * 2.0), Color("#111a19"))
 	_draw_light(center)
 	_draw_pickups()
 	_draw_enemies()
@@ -757,19 +825,6 @@ func _draw() -> void:
 	_draw_effects()
 	_draw_floaters()
 	_draw_dragons()
-
-
-func _draw_ground(center: Vector2) -> void:
-	if _ground == null:
-		return
-	var tint := get_meta("ground_tint", Color(0.92, 0.94, 0.82, 1.0)) as Color
-	draw_texture_rect(
-		_ground,
-		Rect2(center - VIEW_HALF, VIEW_HALF * 2.0),
-		true,
-		tint
-	)
-
 
 func _draw_light(center: Vector2) -> void:
 	var light_radius := float(get_meta("light_radius", 225.0))

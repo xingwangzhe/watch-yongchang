@@ -57,9 +57,9 @@ func test_character_data_declares_full_ming_loadout() -> void:
 	assert_eq(int(data["loadout_count"]), 59)
 	assert_eq(int(data["faction_loadout_counts"]["ming"]), 58)
 	assert_eq(int(data["faction_loadout_counts"]["wokou"]), 24)
-	assert_eq(int(data["faction_combination_counts"]["ming"]), 33408)
+	assert_eq(int(data["faction_combination_counts"]["ming"]), 59392)
 	assert_eq(int(data["faction_combination_counts"]["wokou"]), 15360)
-	assert_eq(int(data["combination_count"]), 48768)
+	assert_eq(int(data["combination_count"]), 74752)
 	var ids := {}
 	for weapon: Dictionary in data["weapons"]:
 		ids[str(weapon["id"])] = true

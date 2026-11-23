@@ -35,16 +35,16 @@ from pixelstudio import Sprite  # noqa: E402
 CELL = 128
 FRAME_COUNT = 48
 ATLAS_PAGE_ROWS = 128
-ARM_UPPER = 17.0
-ARM_LOWER = 17.0
+ARM_UPPER = 18.0
+ARM_LOWER = 18.5
 LEG_UPPER = 21.0
 LEG_LOWER = 21.0
 BODY_Y = {
-    "shoulder": 40.0,
-    "waist": 62.0,
-    "hip": 74.0,
+    "shoulder": 44.0,
+    "waist": 66.0,
+    "hip": 77.5,
     "ankle": 115.0,
-    "head": 25.0,
+    "head": 30.0,
     "foot_origin": 123,
 }
 
@@ -295,22 +295,24 @@ OUTFITS = [
         "skirt": True, "armored": True, "tags": ["ming", "army"],
     },
     {
-        "id": "ming_brigandine_blue", "name_zh": "明军青布罩甲", "name_en": "Ming Blue Brigandine",
+        "id": "ming_brigandine_blue", "name_zh": "明军青地齐腰甲", "name_en": "Ming Field Lamellar",
         "faction": "ming",
         "cloth": BLUE, "cloth_d": BLUE_D, "cloth_l": BLUE_L,
-        "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_L,
-        "accent": GOLD, "accent_l": GOLD_L,
+        "metal": "#b8aa82", "metal_d": "#6d6048", "metal_l": "#e0d3aa",
+        "accent": LEATHER, "accent_l": LEATHER_L,
         "sleeve": "long", "legs": "pants", "shoulders": "plate",
         "skirt": True, "armored": True, "tags": ["ming", "army"],
+        "style": "field",
     },
     {
-        "id": "ming_robe_ochre", "name_zh": "明军赭褐短打", "name_en": "Ming Ochre Short Robe",
+        "id": "ming_robe_ochre", "name_zh": "明军龙灯朱衣", "name_en": "Ming Dragon-Lantern Coat",
         "faction": "ming",
-        "cloth": OCHRE, "cloth_d": OCHRE_D, "cloth_l": OCHRE_L,
-        "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_L,
-        "accent": LEATHER, "accent_l": LEATHER_L,
-        "sleeve": "short", "legs": "pants", "shoulders": "cloth",
-        "skirt": True, "armored": False, "tags": ["ming", "militia"],
+        "cloth": RED, "cloth_d": RED_D, "cloth_l": RED_L,
+        "metal": GOLD_D, "metal_d": "#4d2f10", "metal_l": GOLD_L,
+        "accent": GOLD, "accent_l": GOLD_L,
+        "sleeve": "long", "legs": "pants", "shoulders": "cloth",
+        "skirt": True, "armored": False, "tags": ["ming", "culture"],
+        "style": "dragon",
     },
     {
         "id": "ming_guard_iron", "name_zh": "明军铁灰札甲", "name_en": "Ming Iron Guard",
@@ -322,13 +324,14 @@ OUTFITS = [
         "skirt": True, "armored": True, "tags": ["ming", "army"],
     },
     {
-        "id": "ming_navy_green", "name_zh": "明军水营绿袄", "name_en": "Ming Navy Green Coat",
+        "id": "ming_navy_green", "name_zh": "明军弓手青袄", "name_en": "Ming Archer Navy Coat",
         "faction": "ming",
-        "cloth": GREEN, "cloth_d": GREEN_D, "cloth_l": GREEN_L,
-        "metal": IRON, "metal_d": IRON_D, "metal_l": IRON_L,
-        "accent": GOLD, "accent_l": GOLD_L,
-        "sleeve": "short", "legs": "pants", "shoulders": "cloth",
-        "skirt": True, "armored": False, "tags": ["ming", "navy"],
+        "cloth": BLUE_D, "cloth_d": "#101c24", "cloth_l": BLUE_L,
+        "metal": LEATHER, "metal_d": LEATHER_D, "metal_l": LEATHER_L,
+        "accent": GREEN, "accent_l": GREEN_L,
+        "sleeve": "long", "legs": "pants", "shoulders": "cloth",
+        "skirt": True, "armored": False, "tags": ["ming", "navy", "archer"],
+        "style": "scout",
     },
     {
         "id": "ming_qijia_armor", "name_zh": "戚家军鸳鸯阵甲", "name_en": "Qi Jia Formation Armour",
@@ -452,6 +455,12 @@ HEADGEAR = [
     {"id": "ming_officer", "name_zh": "明军乌纱帽", "name_en": "Ming Officer Cap",
      "faction": "ming", "kind": "officer", "cloth": BLACK, "cloth_d": INK,
      "cloth_l": BLACK_L, "tags": ["ming"]},
+    {"id": "ming_scout_cap", "name_zh": "明军弓手软帽", "name_en": "Ming Archer Soft Cap",
+     "faction": "ming", "kind": "scout_cap", "cloth": BLUE_D, "cloth_d": INK,
+     "cloth_l": BLUE_L, "accent": GREEN_L, "tags": ["ming", "archer"]},
+    {"id": "ming_dragon_band", "name_zh": "龙灯朱金抹额", "name_en": "Dragon-Lantern Gold Band",
+     "faction": "ming", "kind": "dragon_band", "cloth": RED, "cloth_d": RED_D,
+     "cloth_l": RED_L, "accent": GOLD_L, "tags": ["ming", "culture"]},
     {"id": "common_headwrap", "name_zh": "通用布头巾", "name_en": "Common Headwrap",
      "faction": "neutral", "kind": "headband", "cloth": WRAP, "cloth_d": WRAP_D,
      "cloth_l": WRAP_L, "tags": ["neutral"]},
@@ -487,6 +496,9 @@ BACKGEAR = [
     {"id": "ming_banner", "name_zh": "明军令旗", "name_en": "Ming Signal Banner",
      "faction": "ming", "kind": "banner", "cloth": RED, "cloth_d": RED_D,
      "cloth_l": RED_L, "tags": ["ming"]},
+    {"id": "ming_quiver", "name_zh": "明军箭囊", "name_en": "Ming Arrow Quiver",
+     "faction": "ming", "kind": "quiver", "cloth": LEATHER, "cloth_d": LEATHER_D,
+     "cloth_l": LEATHER_L, "accent": GOLD_L, "tags": ["ming", "archer"]},
 ]
 
 WEAPONS = [
@@ -860,8 +872,8 @@ def leg_points(pose: dict, side: str) -> tuple[tuple[float, float], tuple[float,
 def shoulder_points(pose: dict, side: str) -> tuple[float, float]:
     upper_x = 60.0 + float(pose["lean"])
     if side == "far":
-        return upper_x - 19.0, float(pose["shoulder_y"]) + 2.0
-    return upper_x + 19.0, float(pose["shoulder_y"]) + 1.0
+        return upper_x - 21.5, float(pose["shoulder_y"]) + 2.0
+    return upper_x + 21.5, float(pose["shoulder_y"]) + 1.0
 
 
 def far_arm_mode(pose: dict) -> str:
@@ -945,16 +957,27 @@ def idle_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
     sway = math.sin(phase)
     pose["phase"] = phase
     pose["lean"] = 0
+    pose["head_dx"] = sway * 0.7
+    pose["blink"] = index == 3
     pose["far_foot"] = (52.0 - sway, BODY_Y["ankle"])
     pose["near_foot"] = (68.0 - sway * 0.5, BODY_Y["ankle"])
     if grip == "one_hand":
-        pose["far_hand"] = (40.0 + sway, 73.0)
-        pose["near_hand"] = (84.0 - sway * 0.5, 75.0)
-        pose["weapon_angle"] = math.radians(78 + sway * 3)
+        if weapon_id == "longdeng":
+            pose["far_hand"] = (36.0 - sway * 0.6, 40.0)
+            pose["near_hand"] = (88.0 + sway * 0.6, 39.0)
+            pose["weapon_angle"] = math.radians(-8 + sway * 2)
+        else:
+            pose["far_hand"] = (40.0 + sway, 73.0)
+            pose["near_hand"] = (84.0 - sway * 0.5, 75.0)
+            pose["weapon_angle"] = math.radians(78 + sway * 3)
         pose["offhand_angle"] = math.radians(-82 - sway * 2)
     elif grip == "two_hand":
-        pose["far_hand"] = (54.0, 68.0)
-        pose["near_hand"] = (70.0, 60.0)
+        if weapon_id == "qiang":
+            pose["far_hand"] = (50.0 - sway * 0.5, 72.0)
+            pose["near_hand"] = (74.0 + sway * 0.5, 55.0)
+        else:
+            pose["far_hand"] = (54.0, 68.0)
+            pose["near_hand"] = (70.0, 60.0)
         delta = sub(pose["near_hand"], pose["far_hand"])
         pose["weapon_angle"] = math.atan2(delta[1], delta[0])
     else:
@@ -994,16 +1017,27 @@ def walk_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
     swing = math.cos(phase)
     pose["phase"] = phase
     pose["lean"] = int(round(math.sin(phase) * 1.4))
+    pose["head_dx"] = math.sin(phase) * 0.6
+    pose["blink"] = False
     pose["far_foot"] = (52.0 + far_x, BODY_Y["ankle"] - far_lift)
     pose["near_foot"] = (68.0 + near_x, BODY_Y["ankle"] - near_lift)
     if grip == "one_hand":
-        pose["far_hand"] = (40.0 + swing * 1.5, 73.0 + math.sin(phase * 2.0) * 0.5)
-        pose["near_hand"] = (84.0 - swing * 2.0, 75.0 - math.sin(phase * 2.0) * 0.5)
-        pose["weapon_angle"] = math.radians(80 + math.sin(phase) * 5)
+        if weapon_id == "longdeng":
+            pose["far_hand"] = (36.0 - swing * 1.0, 40.0 + math.sin(phase * 2.0) * 0.7)
+            pose["near_hand"] = (88.0 + swing * 1.2, 39.0 - math.sin(phase * 2.0) * 0.7)
+            pose["weapon_angle"] = math.radians(-8 + math.sin(phase) * 4)
+        else:
+            pose["far_hand"] = (40.0 + swing * 1.5, 73.0 + math.sin(phase * 2.0) * 0.5)
+            pose["near_hand"] = (84.0 - swing * 2.0, 75.0 - math.sin(phase * 2.0) * 0.5)
+            pose["weapon_angle"] = math.radians(80 + math.sin(phase) * 5)
         pose["offhand_angle"] = math.radians(-82 - math.sin(phase) * 4)
     elif grip == "two_hand":
-        pose["far_hand"] = (54.0 + swing * 1.5, 66.0)
-        pose["near_hand"] = (70.0 + swing * 1.5, 62.0)
+        if weapon_id == "qiang":
+            pose["far_hand"] = (50.0 + swing * 1.0, 72.0 + math.sin(phase * 2.0) * 0.8)
+            pose["near_hand"] = (74.0 + swing * 0.8, 55.0 - math.sin(phase * 2.0) * 0.8)
+        else:
+            pose["far_hand"] = (54.0 + swing * 1.5, 66.0)
+            pose["near_hand"] = (70.0 + swing * 1.5, 62.0)
         delta = sub(pose["near_hand"], pose["far_hand"])
         pose["weapon_angle"] = math.atan2(delta[1], delta[0])
     else:
@@ -1860,19 +1894,21 @@ def draw_body_leg(
     hx, hy = pt(hip)
     s.circle(hx, hy, 6, base, fill=True)
     shade_dir = (1.0, 0.0) if far else (-1.0, 0.0)
-    draw_segment(s, hip, knee, 13.0, 10.5, base, dark, light, rim=False, shade_dir=shade_dir)
-    draw_segment(s, knee, ankle, 10.0, 7.5, base, dark, light, rim=False, shade_dir=shade_dir)
+    draw_segment(s, hip, knee, 14.0, 11.0, base, dark, light, rim=False, shade_dir=shade_dir)
+    draw_segment(s, knee, ankle, 11.0, 8.0, base, dark, light, rim=False, shade_dir=shade_dir)
     chord_mid = add(hip, mul(sub(ankle, hip), 0.5))
     draw_joint(s, knee, 4, base, dark, light, sub(chord_mid, knee))
     ax, ay = pt(ankle)
-    s.circle(ax, ay, 3, base, fill=True)
-    line(s, (ax - 3, ay - 1), (ax + 2, ay), dark)
-    line(s, (ax - 2, ay - 2), (ax + 2, ay - 2), light)
+    s.circle(ax, ay, 4, base, fill=True)
+    line(s, (ax - 3, ay - 1), (ax + 3, ay), dark)
+    line(s, (ax - 3, ay - 3), (ax + 2, ay - 3), light)
     line(s, (hx - 3, hy + 1), (hx + 3, hy + 2), dark)
     mid = add(hip, mul(sub(knee, hip), 0.55))
-    line(s, add(mid, (-2, 0)), add(mid, (2, 1)), light)
+    line(s, add(mid, (-3, -1)), add(mid, (1, 0)), light)
+    line(s, add(mid, (-2, 2)), add(mid, (2, 3)), dark)
     calf = add(knee, mul(sub(ankle, knee), 0.42))
-    line(s, add(calf, (-2, 0)), add(calf, (2, 1)), light)
+    line(s, add(calf, (-2, -1)), add(calf, (2, 0)), light)
+    line(s, add(calf, (-2, 2)), add(calf, (1, 3)), dark)
     draw_foot(s, ankle, base, dark, light, boot=False)
 
 
@@ -1890,9 +1926,9 @@ def draw_body_arm(
     shade_dir = (1.0, 0.0) if far else (-1.0, 0.0)
     if not lower_only:
         sx, sy = pt(shoulder)
-        s.circle(sx, sy, 5, base, fill=True)
-        draw_segment(s, shoulder, elbow, 10.0, 9.0, base, dark, light, rim=False, shade_dir=shade_dir)
-    draw_segment(s, elbow, hand, 8.0, 6.0, base, dark, light, rim=False, shade_dir=shade_dir)
+        s.circle(sx, sy, 6, base, fill=True)
+        draw_segment(s, shoulder, elbow, 11.5, 10.0, base, dark, light, rim=False, shade_dir=shade_dir)
+    draw_segment(s, elbow, hand, 9.0, 7.0, base, dark, light, rim=False, shade_dir=shade_dir)
     chord_mid = add(shoulder, mul(sub(hand, shoulder), 0.5))
     draw_joint(s, elbow, 3, base, dark, light, sub(chord_mid, elbow))
     ex, ey = pt(elbow)
@@ -1902,9 +1938,11 @@ def draw_body_arm(
         upper_mid = add(shoulder, mul(sub(elbow, shoulder), 0.55))
         s.px(*pt(add(upper_mid, (-1, -2))), light)
         line(s, (sx - 3, sy + 2), (sx + 2, sy + 3), dark)
-    s.circle(*pt(hand), 3, base, fill=True)
-    line(s, add(hand, (-2, 1)), add(hand, (2, 1)), dark)
-    s.px(*pt(add(hand, (-1, -1))), light)
+    s.circle(*pt(hand), 4, base, fill=True)
+    line(s, add(hand, (-3, 1)), add(hand, (2, 1)), dark)
+    line(s, add(hand, (-3, 2)), add(hand, (2, 2)), base)
+    line(s, add(hand, (-2, -2)), add(hand, (2, -2)), light)
+    s.px(*pt(add(hand, (2, 0))), skin["deep"])
 
 
 def draw_body_torso(
@@ -1917,42 +1955,45 @@ def draw_body_torso(
 ) -> None:
     base, dark, light = _skin_colors(skin, False)
     outer = [
-        (upper_x - 18, shoulder_y + 4), (upper_x - 14, shoulder_y + 1),
-        (upper_x - 5, shoulder_y), (upper_x + 6, shoulder_y),
-        (upper_x + 14, shoulder_y + 1), (upper_x + 18, shoulder_y + 4),
-        (upper_x + 16, shoulder_y + 11), (upper_x + 12, waist_y - 2),
-        (upper_x + 11, hip_y - 2), (upper_x - 11, hip_y - 2),
-        (upper_x - 12, waist_y - 2), (upper_x - 16, shoulder_y + 11),
+        (upper_x - 21, shoulder_y + 4), (upper_x - 16, shoulder_y + 1),
+        (upper_x - 6, shoulder_y - 1), (upper_x + 7, shoulder_y - 1),
+        (upper_x + 16, shoulder_y + 1), (upper_x + 21, shoulder_y + 4),
+        (upper_x + 18, shoulder_y + 11), (upper_x + 13, waist_y - 2),
+        (upper_x + 12, hip_y - 2), (upper_x - 12, hip_y - 2),
+        (upper_x - 13, waist_y - 2), (upper_x - 18, shoulder_y + 11),
     ]
     polygon(s, outer, dark)
     inner = [
-        (upper_x - 16, shoulder_y + 5), (upper_x - 13, shoulder_y + 2),
-        (upper_x - 5, shoulder_y + 1), (upper_x + 6, shoulder_y + 1),
-        (upper_x + 13, shoulder_y + 2), (upper_x + 16, shoulder_y + 5),
-        (upper_x + 14, shoulder_y + 11), (upper_x + 10, waist_y - 2),
-        (upper_x + 9, hip_y - 3), (upper_x - 9, hip_y - 3),
-        (upper_x - 10, waist_y - 2), (upper_x - 14, shoulder_y + 11),
+        (upper_x - 19, shoulder_y + 5), (upper_x - 15, shoulder_y + 2),
+        (upper_x - 6, shoulder_y), (upper_x + 7, shoulder_y),
+        (upper_x + 15, shoulder_y + 2), (upper_x + 19, shoulder_y + 5),
+        (upper_x + 16, shoulder_y + 12), (upper_x + 11, waist_y - 2),
+        (upper_x + 10, hip_y - 3), (upper_x - 10, hip_y - 3),
+        (upper_x - 11, waist_y - 2), (upper_x - 16, shoulder_y + 12),
     ]
     polygon(s, inner, base)
-    line(s, (upper_x - 15, shoulder_y + 6), (upper_x - 5, shoulder_y + 9), light)
-    line(s, (upper_x + 15, shoulder_y + 5), (upper_x + 6, shoulder_y + 8), dark)
-    line(s, (upper_x - 12, shoulder_y + 10), (upper_x - 4, shoulder_y + 8), dark)
-    line(s, (upper_x + 11, shoulder_y + 10), (upper_x + 3, shoulder_y + 8), dark)
+    line(s, (upper_x - 18, shoulder_y + 6), (upper_x - 7, shoulder_y + 9), light)
+    line(s, (upper_x + 18, shoulder_y + 5), (upper_x + 7, shoulder_y + 8), dark)
+    line(s, (upper_x - 15, shoulder_y + 11), (upper_x - 6, shoulder_y + 9), dark)
+    line(s, (upper_x + 14, shoulder_y + 11), (upper_x + 5, shoulder_y + 9), dark)
+    line(s, (upper_x - 11, shoulder_y + 12), (upper_x - 3, shoulder_y + 11), base)
+    line(s, (upper_x + 11, shoulder_y + 12), (upper_x + 3, shoulder_y + 11), base)
     polygon(
         s,
-        [(upper_x - 12, shoulder_y + 14), (upper_x - 2, shoulder_y + 13),
-         (upper_x - 1, waist_y - 5), (upper_x - 8, waist_y - 5)],
+        [(upper_x - 13, shoulder_y + 14), (upper_x - 2, shoulder_y + 13),
+         (upper_x - 1, waist_y - 5), (upper_x - 9, waist_y - 5)],
         light,
     )
     polygon(
         s,
-        [(upper_x + 12, shoulder_y + 13), (upper_x + 2, shoulder_y + 13),
-         (upper_x + 2, waist_y - 6), (upper_x + 9, waist_y - 5)],
+        [(upper_x + 13, shoulder_y + 13), (upper_x + 2, shoulder_y + 13),
+         (upper_x + 2, waist_y - 6), (upper_x + 10, waist_y - 5)],
         dark,
     )
     line(s, (upper_x - 1, shoulder_y + 15), (upper_x - 1, hip_y - 4), dark)
-    for y in (shoulder_y + 20, shoulder_y + 26):
+    for y in (shoulder_y + 20, shoulder_y + 25, shoulder_y + 30):
         line(s, (upper_x - 4, y), (upper_x + 4, y), dark)
+        line(s, (upper_x - 3, y + 1), (upper_x + 3, y + 1), base)
     line(s, (upper_x - 8, waist_y - 3), (upper_x + 8, waist_y - 3), dark)
     s.px(*pt((upper_x - 7, shoulder_y + 16)), light)
     s.px(*pt((upper_x + 6, shoulder_y + 17)), light)
@@ -1967,19 +2008,19 @@ def draw_body_pelvis(
 ) -> None:
     base, dark, light = _skin_colors(skin, False)
     outer = [
-        (upper_x - 12, waist_y - 2), (upper_x + 12, waist_y - 2),
-        (upper_x + 15, hip_y + 1), (upper_x + 10, hip_y + 5),
+        (upper_x - 13, waist_y - 2), (upper_x + 13, waist_y - 2),
+        (upper_x + 16, hip_y + 1), (upper_x + 11, hip_y + 5),
         (upper_x + 4, hip_y + 4), (upper_x, hip_y + 6),
         (upper_x - 4, hip_y + 4), (upper_x - 10, hip_y + 5),
-        (upper_x - 15, hip_y + 1),
+        (upper_x - 16, hip_y + 1),
     ]
     polygon(s, outer, dark)
     inner = [
-        (upper_x - 10, waist_y - 1), (upper_x + 10, waist_y - 1),
-        (upper_x + 12, hip_y), (upper_x + 8, hip_y + 3),
+        (upper_x - 11, waist_y - 1), (upper_x + 11, waist_y - 1),
+        (upper_x + 13, hip_y), (upper_x + 9, hip_y + 3),
         (upper_x + 3, hip_y + 2), (upper_x, hip_y + 4),
-        (upper_x - 3, hip_y + 2), (upper_x - 8, hip_y + 3),
-        (upper_x - 12, hip_y),
+        (upper_x - 3, hip_y + 2), (upper_x - 9, hip_y + 3),
+        (upper_x - 13, hip_y),
     ]
     polygon(s, inner, base)
     line(s, (upper_x - 10, waist_y + 1), (upper_x + 10, waist_y + 1), WRAP_D)
@@ -2011,21 +2052,22 @@ def draw_body_neck(
     base, dark, light = _skin_colors(skin, False)
     polygon(
         s,
-        [(hx - 4, hy + 6), (hx + 4, hy + 6),
-         (hx + 5, shoulder_y + 1), (hx - 5, shoulder_y + 1)],
+        [(hx - 5, hy + 7), (hx + 5, hy + 7),
+         (hx + 6, shoulder_y + 1), (hx - 6, shoulder_y + 1)],
         dark,
     )
     polygon(
         s,
-        [(hx - 3, hy + 7), (hx + 3, hy + 7),
-         (hx + 3, shoulder_y), (hx - 3, shoulder_y)],
+        [(hx - 4, hy + 8), (hx + 4, hy + 8),
+         (hx + 4, shoulder_y), (hx - 4, shoulder_y)],
         base,
     )
-    line(s, (hx - 2, hy + 8), (hx + 3, hy + 8), light)
-    line(s, (upper_x - 12, shoulder_y + 3), (hx - 4, shoulder_y), dark)
-    line(s, (upper_x + 12, shoulder_y + 3), (hx + 4, shoulder_y), dark)
-    line(s, (upper_x - 8, shoulder_y + 5), (hx - 3, shoulder_y + 3), light)
-    line(s, (upper_x + 8, shoulder_y + 5), (hx + 3, shoulder_y + 3), light)
+    line(s, (hx - 3, hy + 9), (hx + 2, hy + 9), light)
+    line(s, (hx + 2, hy + 10), (hx + 3, shoulder_y - 1), skin["deep"])
+    line(s, (upper_x - 14, shoulder_y + 3), (hx - 5, shoulder_y), dark)
+    line(s, (upper_x + 14, shoulder_y + 3), (hx + 5, shoulder_y), dark)
+    line(s, (upper_x - 10, shoulder_y + 6), (hx - 4, shoulder_y + 3), light)
+    line(s, (upper_x + 10, shoulder_y + 6), (hx + 4, shoulder_y + 3), light)
 
 
 def draw_body_head(
@@ -2033,32 +2075,99 @@ def draw_body_head(
     hx: float,
     hy: float,
     skin: dict,
+    blink: bool = False,
 ) -> None:
     base, dark, light = _skin_colors(skin, False)
+    deep = skin["deep"]
     x, y = pt((hx, hy))
-    s.rect((x - 4, y + 7), (x + 4, y + 12), dark)
-    s.ellipse(x - 9, y - 10, x + 8, y + 10, HAIR_D, fill=True)
-    s.ellipse(x - 8, y - 9, x + 8, y + 9, HAIR, fill=True)
-    s.ellipse(x - 8, y - 8, x + 8, y + 8, dark, fill=True)
-    s.ellipse(x - 7, y - 8, x + 7, y + 7, base, fill=True)
-    s.ellipse(x - 5, y - 7, x + 5, y + 5, light, fill=True)
-    s.px(x + 8, y - 1, base)
-    s.px(x + 9, y, dark)
-    s.px(x + 8, y + 1, dark)
-    s.rect((x - 8, y - 5), (x - 6, y + 3), HAIR)
-    s.rect((x - 8, y + 4), (x - 6, y + 9), HAIR_D)
-    s.rect((x - 2, y - 1), (x, y), INK)
-    s.rect((x + 4, y - 1), (x + 6, y), INK)
-    s.px(x - 2, y - 1, WHITE)
-    s.px(x + 4, y - 1, WHITE)
-    line(s, (x - 3, y - 3), (x, y - 4), HAIR_D)
-    line(s, (x + 4, y - 4), (x + 7, y - 3), HAIR_D)
-    s.rect((x + 7, y + 3), (x + 9, y + 4), dark)
-    line(s, (x + 3, y + 4), (x + 7, y + 4), dark)
-    line(s, (x + 1, y + 7), (x + 6, y + 7), dark)
-    s.px(x + 4, y + 8, base)
-    line(s, (x - 6, y - 10), (x + 5, y - 10), HAIR_D)
-    line(s, (x - 8, y - 7), (x - 6, y - 2), HAIR_L)
+    s.rect((x - 5, y + 9), (x + 5, y + 13), dark)
+    polygon(
+        s,
+        [(x - 6, y - 12), (x + 5, y - 12), (x + 10, y - 7),
+         (x + 11, y + 1), (x + 8, y + 6), (x + 5, y + 9),
+         (x - 5, y + 9), (x - 9, y + 6), (x - 11, y + 1),
+         (x - 10, y - 7)],
+        HAIR_D,
+    )
+    s.ellipse(x - 10, y - 9, x + 8, y + 4, HAIR, fill=True)
+    s.ellipse(x - 8, y - 8, x + 6, y + 1, HAIR_L, fill=True)
+    s.ellipse(x - 9, y - 2, x - 7, y + 5, base, fill=True)
+    s.ellipse(x + 7, y - 2, x + 10, y + 5, dark, fill=True)
+    s.px(x - 8, y + 1, light)
+    s.px(x + 9, y + 1, base)
+    polygon(
+        s,
+        [(x - 8, y - 8), (x + 7, y - 8), (x + 9, y - 4),
+         (x + 9, y + 2), (x + 7, y + 7), (x + 4, y + 10),
+         (x, y + 11), (x - 4, y + 10), (x - 7, y + 7),
+         (x - 9, y + 2), (x - 9, y - 4)],
+        deep,
+    )
+    polygon(
+        s,
+        [(x - 7, y - 7), (x + 6, y - 7), (x + 8, y - 3),
+         (x + 8, y + 2), (x + 6, y + 6), (x + 3, y + 9),
+         (x, y + 10), (x - 3, y + 9), (x - 6, y + 6),
+         (x - 8, y + 2), (x - 8, y - 3)],
+        base,
+    )
+    polygon(
+        s,
+        [(x - 6, y - 6), (x - 1, y - 6), (x - 2, y + 1),
+         (x - 4, y + 4), (x - 6, y + 1)],
+        base,
+    )
+    polygon(
+        s,
+        [(x + 5, y - 4), (x + 8, y - 1), (x + 7, y + 5),
+         (x + 3, y + 8), (x + 2, y + 5), (x + 5, y + 1)],
+        dark,
+    )
+    polygon(
+        s,
+        [(x - 9, y - 7), (x - 5, y - 10), (x + 4, y - 10),
+         (x + 8, y - 7), (x + 6, y - 5), (x + 2, y - 6),
+         (x - 1, y - 4), (x - 4, y - 6), (x - 8, y - 5)],
+        HAIR,
+    )
+    line(s, (x - 8, y - 6), (x - 3, y - 8), HAIR_L)
+    line(s, (x + 1, y - 9), (x + 6, y - 7), HAIR_L)
+    line(s, (x - 6, y - 5), (x - 2, y - 6), light)
+    s.px(x - 4, y + 2, light)
+    s.px(x - 5, y + 3, light)
+    s.rect((x - 10, y - 3), (x - 8, y + 5), HAIR_D)
+    s.rect((x + 9, y - 2), (x + 10, y + 4), HAIR)
+    s.px(x - 9, y + 5, HAIR_D)
+    s.px(x + 8, y + 5, HAIR_D)
+    s.rect((x - 13, y - 2), (x - 11, y + 3), deep)
+    s.rect((x - 12, y - 1), (x - 10, y + 2), base)
+    s.px(x - 11, y + 1, dark)
+    s.rect((x + 10, y - 2), (x + 12, y + 3), deep)
+    s.rect((x + 10, y - 1), (x + 11, y + 2), base)
+    s.px(x + 11, y + 1, dark)
+    line(s, (x - 6, y - 3), (x - 2, y - 4), HAIR_D)
+    line(s, (x + 2, y - 4), (x + 6, y - 3), HAIR_D)
+    if blink:
+        line(s, (x - 6, y + 1), (x - 3, y + 2), deep)
+        line(s, (x + 2, y + 2), (x + 5, y + 1), deep)
+    else:
+        s.rect((x - 6, y), (x - 4, y + 1), WARM_WHITE)
+        s.rect((x + 2, y), (x + 4, y + 1), WARM_WHITE)
+        s.rect((x - 5, y), (x - 5, y + 1), HAIR_D)
+        s.rect((x + 3, y), (x + 3, y + 1), HAIR_D)
+        line(s, (x - 6, y - 1), (x - 3, y - 1), dark)
+        line(s, (x + 2, y - 1), (x + 5, y - 1), dark)
+    line(s, (x, y + 1), (x + 1, y + 3), dark)
+    s.px(x - 1, y + 3, light)
+    s.px(x + 2, y + 4, deep)
+    line(s, (x - 2, y + 7), (x + 3, y + 7), deep)
+    s.px(x + 1, y + 8, light)
+    s.px(x + 1, y + 10, light)
+    line(s, (x - 8, y + 3), (x - 6, y + 6), dark)
+    line(s, (x + 7, y + 2), (x + 6, y + 5), dark)
+    line(s, (x - 5, y - 12), (x + 4, y - 12), HAIR_L)
+    s.circle(x + 1, y - 14, 3, HAIR_D, fill=True)
+    s.px(x, y - 15, HAIR_L)
 
 
 def draw_body_layer(s: Sprite, pose: dict, skin: dict) -> None:
@@ -2086,7 +2195,7 @@ def draw_body_layer(s: Sprite, pose: dict, skin: dict) -> None:
     head_x = upper_x + 2.0 + float(pose["head_dx"])
     head_y = BODY_Y["head"] + float(pose["bob"]) + float(pose["head_dy"])
     draw_body_neck(s, head_x, head_y, upper_x, shoulder_y, skin)
-    draw_body_head(s, head_x, head_y, skin)
+    draw_body_head(s, head_x, head_y, skin, bool(pose.get("blink", False)))
 
 
 def _cloth_colors(outfit: dict, far: bool) -> tuple[str, str, str]:
@@ -2112,34 +2221,62 @@ def draw_outfit_leg(
     knee = clamped_ik(hip, ankle, LEG_UPPER, LEG_LOWER, 1 if far else -1, "outfit leg")
     cloth, cloth_d, cloth_l = _cloth_colors(outfit, far)
     metal, metal_d, metal_l = _metal_colors(outfit, far)
+    style = str(outfit.get("style", ""))
     hx, hy = pt(hip)
     s.circle(hx, hy, 5, cloth_d, fill=True)
     s.circle(hx, hy, 4, cloth, fill=True)
-    draw_segment(s, hip, knee, 12.0, 10.0, cloth, cloth_d, cloth_l, rim=False)
+    draw_segment(s, hip, knee, 13.0, 10.5, cloth, cloth_d, cloth_l, rim=False)
     legs = outfit["legs"]
     if legs == "greaves":
-        draw_segment(s, knee, ankle, 10.0, 8.0, metal, metal_d, metal_l, rim=False)
+        draw_segment(s, knee, ankle, 11.0, 8.5, metal, metal_d, metal_l, rim=False)
         kx, ky = pt(knee)
         polygon(
             s,
-            [(kx - 5, ky - 3), (kx + 5, ky - 3),
-             (kx + 4, ky + 4), (kx - 4, ky + 4)],
+            [(kx - 6, ky - 3), (kx + 6, ky - 3),
+             (kx + 5, ky + 4), (kx - 5, ky + 4)],
             metal_d,
         )
         polygon(
             s,
-            [(kx - 4, ky - 2), (kx + 4, ky - 2),
-             (kx + 3, ky + 3), (kx - 3, ky + 3)],
+            [(kx - 5, ky - 2), (kx + 5, ky - 2),
+             (kx + 4, ky + 3), (kx - 4, ky + 3)],
             metal,
         )
-        line(s, (kx - 3, ky - 1), (kx + 3, ky - 1), metal_l)
+        line(s, (kx - 4, ky - 1), (kx + 4, ky - 1), metal_l)
         s.px(kx - 1, ky + 1, outfit["accent"])
         s.px(kx + 2, ky + 1, outfit["accent"])
         draw_foot(s, ankle, LEATHER_D, LEATHER_D, LEATHER_L, boot=True)
     elif legs == "pants":
-        draw_segment(s, knee, ankle, 9.0, 7.0, cloth, cloth_d, cloth_l, rim=False)
+        draw_segment(s, knee, ankle, 10.0, 7.5, cloth, cloth_d, cloth_l, rim=False)
         chord_mid = add(hip, mul(sub(ankle, hip), 0.5))
         draw_joint(s, knee, 4, cloth, cloth_d, cloth_l, sub(chord_mid, knee))
+        if style == "field":
+            kx, ky = pt(knee)
+            polygon(
+                s,
+                [(kx - 5, ky - 3), (kx + 5, ky - 3),
+                 (kx + 4, ky + 2), (kx - 4, ky + 2)],
+                "#d4c59b",
+            )
+            line(s, (kx - 4, ky - 2), (kx + 4, ky - 2), "#eee0b6")
+            line(s, (kx - 4, ky + 1), (kx + 4, ky + 1), metal_d)
+            shin = add(knee, mul(sub(ankle, knee), 0.45))
+            shin_x, shin_y = pt(shin)
+            for offset in (-1, 2, 5):
+                line(s, (shin_x - 4, shin_y + offset), (shin_x + 4, shin_y + offset + 1), LEATHER)
+        elif style == "scout":
+            shin = add(knee, mul(sub(ankle, knee), 0.5))
+            shin_x, shin_y = pt(shin)
+            line(s, (shin_x - 4, shin_y - 4), (shin_x + 4, shin_y - 3), cloth_l)
+            line(s, (shin_x - 4, shin_y), (shin_x + 4, shin_y + 1), LEATHER)
+            line(s, (shin_x - 4, shin_y + 3), (shin_x + 4, shin_y + 4), LEATHER_L)
+            line(s, (shin_x - 3, shin_y + 6), (shin_x + 4, shin_y + 7), GREEN)
+        elif style == "dragon":
+            shin = add(knee, mul(sub(ankle, knee), 0.42))
+            shin_x, shin_y = pt(shin)
+            line(s, (shin_x - 4, shin_y), (shin_x + 4, shin_y), BLUE_D)
+            line(s, (shin_x - 4, shin_y + 3), (shin_x + 4, shin_y + 3), BLUE_D)
+            line(s, (shin_x - 4, shin_y + 4), (shin_x + 4, shin_y + 4), BLUE)
         ax, ay = pt(ankle)
         s.circle(ax, ay, 3, cloth_d, fill=True)
         s.circle(ax, ay, 2, cloth, fill=True)
@@ -2167,34 +2304,67 @@ def draw_outfit_arm(
     cloth, cloth_d, cloth_l = _cloth_colors(outfit, far)
     metal, metal_d, metal_l = _metal_colors(outfit, far)
     sleeve = outfit["sleeve"]
+    style = str(outfit.get("style", ""))
     if sleeve == "none":
         if outfit["armored"]:
-            draw_segment(s, elbow, hand, 8.0, 6.0, metal, metal_d, metal_l, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, metal, metal_d, metal_l, rim=False)
         else:
-            draw_segment(s, elbow, hand, 8.0, 6.0, LEATHER, LEATHER_D, LEATHER_L, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, LEATHER, LEATHER_D, LEATHER_L, rim=False)
     elif sleeve == "short":
         if not lower_only:
             sx, sy = pt(shoulder)
-            s.circle(sx, sy, 6, cloth_d, fill=True)
-            s.circle(sx, sy, 5, cloth, fill=True)
-            draw_segment(s, shoulder, elbow, 11.0, 9.0, cloth, cloth_d, cloth_l, rim=False)
+            s.circle(sx, sy, 7, cloth_d, fill=True)
+            s.circle(sx, sy, 6, cloth, fill=True)
+            draw_segment(s, shoulder, elbow, 12.0, 10.0, cloth, cloth_d, cloth_l, rim=False)
         if outfit["armored"]:
-            draw_segment(s, elbow, hand, 8.0, 6.0, metal, metal_d, metal_l, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, metal, metal_d, metal_l, rim=False)
         else:
-            draw_segment(s, elbow, hand, 8.0, 6.0, LEATHER, LEATHER_D, LEATHER_L, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, LEATHER, LEATHER_D, LEATHER_L, rim=False)
     else:
         if not lower_only:
             sx, sy = pt(shoulder)
-            s.circle(sx, sy, 6, cloth_d, fill=True)
-            s.circle(sx, sy, 5, cloth, fill=True)
-            draw_segment(s, shoulder, elbow, 11.0, 9.0, cloth, cloth_d, cloth_l, rim=False)
+            s.circle(sx, sy, 7, cloth_d, fill=True)
+            s.circle(sx, sy, 6, cloth, fill=True)
+            draw_segment(s, shoulder, elbow, 12.0, 10.0, cloth, cloth_d, cloth_l, rim=False)
         chord_mid = add(shoulder, mul(sub(hand, shoulder), 0.5))
         draw_joint(s, elbow, 4, cloth, cloth_d, cloth_l, sub(chord_mid, elbow))
         if outfit["armored"]:
-            draw_segment(s, elbow, hand, 8.0, 6.0, metal, metal_d, metal_l, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, metal, metal_d, metal_l, rim=False)
         else:
-            draw_segment(s, elbow, hand, 8.0, 6.0, cloth, cloth_d, cloth_l, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, cloth, cloth_d, cloth_l, rim=False)
     forearm_dir = unit(sub(hand, elbow))
+    upper_dir = unit(sub(elbow, shoulder))
+    upper_n = (-upper_dir[1], upper_dir[0])
+    fold = add(shoulder, mul(upper_dir, 8.0))
+    line(s, add(fold, mul(upper_n, -3.5)), add(fold, mul(upper_n, 3.5)), cloth_d)
+    line(s, add(fold, add((0, 1), mul(upper_n, -2.5))),
+         add(fold, add((0, 1), mul(upper_n, 2.5))), cloth_l)
+    if style == "scout":
+        cuff_mid = add(elbow, mul(forearm_dir, 7.0))
+        cuff_n = (-forearm_dir[1], forearm_dir[0])
+        line(s, add(cuff_mid, mul(cuff_n, -3.8)), add(cuff_mid, mul(cuff_n, 3.8)), GREEN_D)
+        line(s, add(cuff_mid, mul(forearm_dir, 1.0)),
+             add(cuff_mid, add(mul(forearm_dir, 1.0), mul(cuff_n, 3.2))), GREEN)
+        bracer = add(elbow, mul(forearm_dir, 11.0))
+        line(s, add(bracer, mul(cuff_n, -3.6)), add(bracer, mul(cuff_n, 3.6)), LEATHER_D)
+        line(s, add(bracer, add(mul(forearm_dir, 1.0), mul(cuff_n, -3.2))),
+             add(bracer, add(mul(forearm_dir, 1.0), mul(cuff_n, 3.2))), LEATHER_L)
+    elif style == "dragon":
+        draw_segment(
+            s, add(hand, mul(forearm_dir, -7.0)), hand,
+            8.0, 6.5, "#20374b", INK, BLUE_L, rim=False,
+        )
+        for offset in (-2.0, 2.0):
+            seam = add(elbow, mul(forearm_dir, 6.0 + offset))
+            seam_n = (-forearm_dir[1], forearm_dir[0])
+            line(s, add(seam, mul(seam_n, -3.5)), add(seam, mul(seam_n, 3.5)), GOLD_D)
+    elif style == "field" and outfit["armored"]:
+        for offset in (4.0, 8.0):
+            band = add(elbow, mul(forearm_dir, offset))
+            band_n = (-forearm_dir[1], forearm_dir[0])
+            line(s, add(band, mul(band_n, -3.2)), add(band, mul(band_n, 3.2)), metal_d)
+            line(s, add(band, add(mul(forearm_dir, 1.0), mul(band_n, -2.6))),
+                 add(band, add(mul(forearm_dir, 1.0), mul(band_n, 2.6))), metal_l)
     cuff = add(hand, mul(forearm_dir, -2.5))
     n = (-forearm_dir[1], forearm_dir[0])
     line(s, add(cuff, mul(n, -3.5)), add(cuff, mul(n, 3.5)), outfit["accent"])
@@ -2211,35 +2381,125 @@ def draw_outfit_torso(
     cloth = outfit["cloth"]
     cloth_d = outfit["cloth_d"]
     cloth_l = outfit["cloth_l"]
+    style = str(outfit.get("style", ""))
     outer = [
-        (upper_x - 17, shoulder_y + 2), (upper_x + 17, shoulder_y + 1),
-        (upper_x + 15, shoulder_y + 11), (upper_x + 11, waist_y),
-        (upper_x - 11, waist_y), (upper_x - 15, shoulder_y + 11),
+        (upper_x - 21, shoulder_y + 3), (upper_x - 15, shoulder_y),
+        (upper_x + 16, shoulder_y), (upper_x + 21, shoulder_y + 2),
+        (upper_x + 18, shoulder_y + 12), (upper_x + 12, waist_y),
+        (upper_x - 12, waist_y), (upper_x - 18, shoulder_y + 12),
     ]
     polygon(s, outer, cloth_d)
     inner = [
-        (upper_x - 15, shoulder_y + 3), (upper_x + 15, shoulder_y + 2),
-        (upper_x + 13, shoulder_y + 11), (upper_x + 9, waist_y - 1),
-        (upper_x - 9, waist_y - 1), (upper_x - 13, shoulder_y + 11),
+        (upper_x - 19, shoulder_y + 4), (upper_x - 14, shoulder_y + 2),
+        (upper_x + 15, shoulder_y + 2), (upper_x + 19, shoulder_y + 4),
+        (upper_x + 16, shoulder_y + 12), (upper_x + 10, waist_y - 1),
+        (upper_x - 10, waist_y - 1), (upper_x - 16, shoulder_y + 12),
     ]
     polygon(s, inner, cloth)
-    if outfit["armored"]:
+    if style == "scout":
+        polygon(
+            s,
+            [(upper_x - 18, shoulder_y + 5), (upper_x - 4, shoulder_y + 3),
+             (upper_x - 1, shoulder_y + 21), (upper_x - 9, waist_y - 1),
+             (upper_x - 16, shoulder_y + 14)],
+            cloth_l,
+        )
+        polygon(
+            s,
+            [(upper_x + 17, shoulder_y + 5), (upper_x + 4, shoulder_y + 3),
+             (upper_x + 1, shoulder_y + 21), (upper_x + 8, waist_y - 1),
+             (upper_x + 15, shoulder_y + 14)],
+            cloth_d,
+        )
+        polygon(
+            s,
+            [(upper_x - 10, shoulder_y + 3), (upper_x, shoulder_y + 16),
+             (upper_x + 10, shoulder_y + 3), (upper_x + 6, shoulder_y + 3),
+             (upper_x, shoulder_y + 11), (upper_x - 6, shoulder_y + 3)],
+            "#16262f",
+        )
+        line(s, (upper_x - 15, shoulder_y + 8), (upper_x - 4, waist_y - 3), cloth_l)
+        line(s, (upper_x + 15, shoulder_y + 8), (upper_x + 5, waist_y - 3), cloth_d)
+        line(s, (upper_x - 17, shoulder_y + 18), (upper_x + 13, waist_y - 3), outfit["accent"])
+        line(s, (upper_x - 16, shoulder_y + 19), (upper_x + 12, waist_y - 2), outfit["accent_l"])
+        line(s, (upper_x - 13, shoulder_y + 9), (upper_x + 10, waist_y - 5), LEATHER)
+        line(s, (upper_x - 12, shoulder_y + 10), (upper_x + 11, waist_y - 4), LEATHER_L)
+        line(s, (upper_x + 13, shoulder_y + 9), (upper_x - 9, waist_y - 5), LEATHER_D)
+        for y in range(int(shoulder_y) + 15, int(waist_y) - 3, 6):
+            s.px(int(upper_x - 7), y, cloth_d)
+            s.px(int(upper_x + 7), y, cloth_d)
+            s.px(int(upper_x - 6), y, cloth_l)
+    elif style == "dragon":
+        polygon(
+            s,
+            [(upper_x - 9, shoulder_y + 3), (upper_x + 9, shoulder_y + 3),
+             (upper_x + 7, waist_y - 2), (upper_x - 7, waist_y - 2)],
+            "#243b50",
+        )
+        line(s, (upper_x - 9, shoulder_y + 3), (upper_x - 7, waist_y - 2), GOLD_D)
+        line(s, (upper_x + 9, shoulder_y + 3), (upper_x + 7, waist_y - 2), GOLD_D)
+        line(s, (upper_x - 8, shoulder_y + 4), (upper_x - 6, waist_y - 3), GOLD_L)
+        line(s, (upper_x + 8, shoulder_y + 4), (upper_x + 6, waist_y - 3), GOLD)
+        polygon(
+            s,
+            [(upper_x - 15, shoulder_y + 4), (upper_x - 6, shoulder_y + 6),
+             (upper_x - 10, shoulder_y + 18), (upper_x - 17, shoulder_y + 12)],
+            cloth_l,
+        )
+        polygon(
+            s,
+            [(upper_x + 15, shoulder_y + 4), (upper_x + 6, shoulder_y + 6),
+             (upper_x + 10, shoulder_y + 18), (upper_x + 17, shoulder_y + 12)],
+            cloth_d,
+        )
+        medallion_y = shoulder_y + 10
+        s.circle(int(upper_x), int(medallion_y), 5, GOLD_D, fill=True)
+        s.circle(int(upper_x), int(medallion_y), 4, GOLD, fill=True)
+        s.circle(int(upper_x), int(medallion_y), 2, RED_D, fill=True)
+        line(s, (upper_x - 3, medallion_y - 1), (upper_x + 3, medallion_y - 1), GOLD_L)
+        for side in (-1, 1):
+            sx = upper_x + side * 4
+            line(s, (sx, medallion_y + 4), (sx + side * 4, medallion_y + 8), GOLD)
+            s.px(int(sx + side * 4), int(medallion_y + 8), GOLD_L)
+        line(s, (upper_x - 18, shoulder_y + 19), (upper_x + 17, shoulder_y + 19), GOLD_D)
+        line(s, (upper_x - 17, shoulder_y + 20), (upper_x + 16, shoulder_y + 20), GOLD)
+    elif outfit["armored"]:
         metal, metal_d, metal_l = _metal_colors(outfit, False)
         plate = [
-            (upper_x - 13, shoulder_y + 4), (upper_x + 13, shoulder_y + 3),
-            (upper_x + 9, waist_y - 3), (upper_x - 9, waist_y - 3),
+            (upper_x - 17, shoulder_y + 4), (upper_x + 17, shoulder_y + 3),
+            (upper_x + 11, waist_y - 3), (upper_x - 11, waist_y - 3),
         ]
         polygon(s, plate, metal_d)
         inner_plate = [
-            (upper_x - 12, shoulder_y + 5), (upper_x + 12, shoulder_y + 4),
-            (upper_x + 8, waist_y - 4), (upper_x - 8, waist_y - 4),
+            (upper_x - 15, shoulder_y + 5), (upper_x + 15, shoulder_y + 4),
+            (upper_x + 9, waist_y - 4), (upper_x - 9, waist_y - 4),
         ]
         polygon(s, inner_plate, metal)
-        for y in range(int(shoulder_y) + 8, int(waist_y) - 3, 4):
-            line(s, (upper_x - 10, y), (upper_x + 10, y), metal_d)
-            line(s, (upper_x - 9, y + 1), (upper_x + 9, y + 1), metal_l)
-            s.px(*pt((upper_x - 7, y + 1)), outfit["accent"])
-            s.px(*pt((upper_x + 8, y + 1)), outfit["accent"])
+        if style == "field":
+            for row, y in enumerate(range(int(shoulder_y) + 7, int(waist_y) - 3, 5)):
+                line(s, (upper_x - 13, y), (upper_x + 13, y), metal_d)
+                line(s, (upper_x - 12, y + 1), (upper_x + 12, y + 1), metal_l)
+                offset = 2 if row % 2 else 0
+                for x in range(int(upper_x - 11 + offset), int(upper_x + 12), 5):
+                    line(s, (x, y + 1), (x + 3, y + 1), metal)
+                    s.px(x + 3, y + 2, metal_d)
+                    s.px(x + 1, y + 2, outfit["accent_l"])
+            polygon(
+                s,
+                [(upper_x - 11, shoulder_y + 4), (upper_x + 1, shoulder_y + 4),
+                 (upper_x - 2, shoulder_y + 18), (upper_x - 12, shoulder_y + 15)],
+                "#d4c59b",
+            )
+            line(s, (upper_x - 10, shoulder_y + 5), (upper_x, shoulder_y + 5), metal_l)
+            line(s, (upper_x - 10, shoulder_y + 16), (upper_x - 2, shoulder_y + 17), metal_d)
+            line(s, (upper_x - 15, shoulder_y + 7), (upper_x + 10, waist_y - 6), outfit["accent"])
+            line(s, (upper_x - 14, shoulder_y + 8), (upper_x + 11, waist_y - 5), outfit["accent_l"])
+        else:
+            for y in range(int(shoulder_y) + 8, int(waist_y) - 3, 4):
+                line(s, (upper_x - 13, y), (upper_x + 13, y), metal_d)
+                line(s, (upper_x - 12, y + 1), (upper_x + 12, y + 1), metal_l)
+                s.px(*pt((upper_x - 9, y + 1)), outfit["accent"])
+                s.px(*pt((upper_x + 10, y + 1)), outfit["accent"])
         s.px(*pt((upper_x, shoulder_y + 7)), outfit["accent_l"])
         armor_style = str(outfit.get("armor_style", "plate"))
         if armor_style == "domaru":
@@ -2267,14 +2527,24 @@ def draw_outfit_torso(
             line(s, (upper_x - 9, waist_y - 6), (upper_x + 9, waist_y - 6), RED_L)
             line(s, (upper_x - 8, waist_y - 5), (upper_x + 8, waist_y - 5), RED_D)
     else:
-        line(s, (upper_x - 10, shoulder_y + 4), (upper_x + 3, waist_y - 3), cloth_l)
-        line(s, (upper_x + 9, shoulder_y + 4), (upper_x - 2, waist_y - 3), cloth_d)
-        line(s, (upper_x - 8, shoulder_y + 9), (upper_x + 10, shoulder_y + 9), outfit["accent"])
+        line(s, (upper_x - 12, shoulder_y + 4), (upper_x + 2, waist_y - 3), cloth_l)
+        line(s, (upper_x + 11, shoulder_y + 4), (upper_x - 2, waist_y - 3), cloth_d)
+        line(s, (upper_x - 9, shoulder_y + 9), (upper_x + 11, shoulder_y + 9), outfit["accent"])
         s.px(*pt((upper_x + 2, shoulder_y + 10)), outfit["accent_l"])
     belt_y = waist_y + 1
-    s.rect(pt((upper_x - 12, belt_y)), pt((upper_x + 12, belt_y + 3)), LEATHER_D)
-    s.rect(pt((upper_x - 11, belt_y + 1)), pt((upper_x + 11, belt_y + 2)), outfit["accent"])
+    s.rect(pt((upper_x - 13, belt_y)), pt((upper_x + 13, belt_y + 4)), LEATHER_D)
+    s.rect(pt((upper_x - 12, belt_y + 1)), pt((upper_x + 12, belt_y + 2)), outfit["accent"])
     s.rect(pt((upper_x - 2, belt_y)), pt((upper_x + 2, belt_y + 3)), outfit["accent_l"])
+    s.px(int(upper_x - 1), int(belt_y + 1), WARM_WHITE)
+    if style in ("scout", "field"):
+        polygon(
+            s,
+            [(upper_x - 13, belt_y + 4), (upper_x - 8, belt_y + 4),
+             (upper_x - 7, belt_y + 8), (upper_x - 12, belt_y + 8)],
+            LEATHER,
+        )
+        line(s, (upper_x - 12, belt_y + 5), (upper_x - 8, belt_y + 5), LEATHER_L)
+        s.px(int(upper_x - 10), int(belt_y + 7), GOLD_L)
 
 
 def draw_outfit_pelvis(
@@ -2287,17 +2557,18 @@ def draw_outfit_pelvis(
     cloth = outfit["cloth"]
     cloth_d = outfit["cloth_d"]
     cloth_l = outfit["cloth_l"]
+    style = str(outfit.get("style", ""))
     if outfit["skirt"]:
         if outfit["armored"]:
             metal, metal_d, metal_l = _metal_colors(outfit, False)
             tasset = [
-                (upper_x - 12, waist_y + 1), (upper_x + 12, waist_y + 1),
-                (upper_x + 16, hip_y + 4), (upper_x + 8, hip_y + 7),
+                (upper_x - 13, waist_y + 1), (upper_x + 13, waist_y + 1),
+                (upper_x + 17, hip_y + 4), (upper_x + 8, hip_y + 7),
                 (upper_x, hip_y + 5), (upper_x - 8, hip_y + 7),
-                (upper_x - 16, hip_y + 4),
+                (upper_x - 17, hip_y + 4),
             ]
             polygon(s, tasset, metal_d)
-            for x0, x1 in ((-16, -7), (-4, 4), (7, 16)):
+            for x0, x1 in ((-17, -8), (-4, 4), (8, 17)):
                 polygon(
                     s,
                     [(upper_x + x0, waist_y + 2), (upper_x + x1, waist_y + 2),
@@ -2307,6 +2578,18 @@ def draw_outfit_pelvis(
                 line(s, (upper_x + x0 + 1, waist_y + 3), (upper_x + x1 - 1, waist_y + 3), metal_l)
                 s.px(*pt((upper_x + x0 + 2, hip_y + 3)), outfit["accent"])
                 s.px(*pt((upper_x + x1 - 2, hip_y + 3)), outfit["accent"])
+            if style == "field":
+                for x0, x1 in ((-14, -7), (-3, 3), (7, 14)):
+                    polygon(
+                        s,
+                        [(upper_x + x0, waist_y + 4), (upper_x + x1, waist_y + 4),
+                         (upper_x + x1 - 1, hip_y + 4), (upper_x + x0 + 1, hip_y + 5)],
+                        "#d4c59b",
+                    )
+                    line(s, (upper_x + x0 + 1, waist_y + 5),
+                         (upper_x + x1 - 1, waist_y + 5), "#eee0b6")
+                    line(s, (upper_x + x0 + 2, hip_y + 4),
+                         (upper_x + x1 - 2, hip_y + 4), metal_d)
             armor_style = str(outfit.get("armor_style", "plate"))
             if armor_style == "domaru":
                 for y in (waist_y + 5, hip_y):
@@ -2324,21 +2607,44 @@ def draw_outfit_pelvis(
                          (upper_x + x1 - 1, hip_y + 2), RED_L)
         else:
             skirt = [
-                (upper_x - 11, waist_y + 1), (upper_x + 11, waist_y + 1),
-                (upper_x + 15, hip_y + 5), (upper_x + 7, hip_y + 8),
+                (upper_x - 12, waist_y + 1), (upper_x + 12, waist_y + 1),
+                (upper_x + 16, hip_y + 5), (upper_x + 7, hip_y + 8),
                 (upper_x, hip_y + 5), (upper_x - 7, hip_y + 8),
-                (upper_x - 15, hip_y + 5),
+                (upper_x - 16, hip_y + 5),
             ]
             polygon(s, skirt, cloth_d)
             inner = [
-                (upper_x - 9, waist_y + 2), (upper_x + 9, waist_y + 2),
-                (upper_x + 12, hip_y + 4), (upper_x + 6, hip_y + 6),
+                (upper_x - 10, waist_y + 2), (upper_x + 10, waist_y + 2),
+                (upper_x + 13, hip_y + 4), (upper_x + 6, hip_y + 6),
                 (upper_x, hip_y + 4), (upper_x - 6, hip_y + 6),
-                (upper_x - 12, hip_y + 4),
+                (upper_x - 13, hip_y + 4),
             ]
             polygon(s, inner, cloth)
             line(s, (upper_x - 4, waist_y + 3), (upper_x - 7, hip_y + 5), cloth_l)
             line(s, (upper_x + 4, waist_y + 3), (upper_x + 7, hip_y + 5), cloth_d)
+            if style == "scout":
+                polygon(
+                    s,
+                    [(upper_x - 4, waist_y + 3), (upper_x + 4, waist_y + 3),
+                     (upper_x + 6, hip_y + 7), (upper_x, hip_y + 9),
+                     (upper_x - 6, hip_y + 7)],
+                    GREEN_D,
+                )
+                line(s, (upper_x - 2, waist_y + 5), (upper_x - 3, hip_y + 6), GREEN)
+                line(s, (upper_x + 2, waist_y + 5), (upper_x + 3, hip_y + 6), GREEN_L)
+                line(s, (upper_x - 13, hip_y + 4), (upper_x + 13, hip_y + 4), GREEN_D)
+            elif style == "dragon":
+                polygon(
+                    s,
+                    [(upper_x - 4, waist_y + 3), (upper_x + 4, waist_y + 3),
+                     (upper_x + 5, hip_y + 8), (upper_x, hip_y + 10),
+                     (upper_x - 5, hip_y + 8)],
+                    "#20374b",
+                )
+                line(s, (upper_x - 4, waist_y + 3), (upper_x - 5, hip_y + 8), GOLD_D)
+                line(s, (upper_x + 4, waist_y + 3), (upper_x + 5, hip_y + 8), GOLD_D)
+                line(s, (upper_x - 11, hip_y + 4), (upper_x + 11, hip_y + 4), GOLD)
+                s.px(int(upper_x), int(hip_y + 6), GOLD_L)
     else:
         s.rect(pt((upper_x - 11, waist_y + 1)), pt((upper_x + 11, hip_y)), cloth_d)
         s.rect(pt((upper_x - 10, waist_y + 2)), pt((upper_x + 10, hip_y - 1)), cloth)
@@ -2356,6 +2662,7 @@ def draw_shoulder_guard(
     far = side == "far"
     cx, cy = pt((shoulder[0], shoulder[1] + 2))
     armored = outfit["shoulders"] == "plate"
+    style = str(outfit.get("style", ""))
     if armored:
         base, dark, light = _metal_colors(outfit, far)
         rim = outfit["accent"]
@@ -2364,29 +2671,82 @@ def draw_shoulder_guard(
         rim = outfit["cloth_l"]
     else:
         return
+    if armored and style == "field":
+        base, dark, light = _metal_colors(outfit, far)
+        outer = [
+            (cx - 10, cy - 5), (cx + 9, cy - 5), (cx + 12, cy + 1),
+            (cx + 9, cy + 8), (cx - 8, cy + 8), (cx - 11, cy + 2),
+        ]
+        inner = [
+            (cx - 9, cy - 4), (cx + 8, cy - 4), (cx + 10, cy + 1),
+            (cx + 8, cy + 6), (cx - 7, cy + 6), (cx - 9, cy + 1),
+        ]
+        polygon(s, outer, dark)
+        polygon(s, inner, base)
+        line(s, (cx - 8, cy - 3), (cx + 7, cy - 3), light)
+        line(s, (cx - 8, cy + 1), (cx + 9, cy + 1), "#6d6048")
+        line(s, (cx - 7, cy + 4), (cx + 8, cy + 4), light)
+        for x in (cx - 5, cx, cx + 5):
+            line(s, (x, cy - 2), (x - 1, cy + 5), "#88775a")
+            s.px(x, cy + 2, outfit["accent_l"])
+        return
+    if not armored and style == "dragon":
+        base, dark, light = _cloth_colors(outfit, far)
+        outer = [
+            (cx - 8, cy - 4), (cx + 7, cy - 4), (cx + 9, cy + 1),
+            (cx + 5, cy + 7), (cx - 5, cy + 7), (cx - 9, cy + 1),
+        ]
+        inner = [
+            (cx - 7, cy - 3), (cx + 6, cy - 3), (cx + 7, cy + 1),
+            (cx + 4, cy + 5), (cx - 4, cy + 5), (cx - 7, cy + 1),
+        ]
+        polygon(s, outer, dark)
+        polygon(s, inner, base)
+        line(s, (cx - 6, cy - 2), (cx + 5, cy - 2), light)
+        line(s, (cx - 7, cy + 3), (cx + 7, cy + 3), GOLD)
+        line(s, (cx - 4, cy + 6), (cx + 5, cy + 6), GOLD_D)
+        s.px(cx - 1, cy, GOLD_L)
+        return
+    spread = 11 if armored else 7
+    drop = 7 if armored else 4
     outer = [
-        (cx - 9, cy + 6), (cx - 10, cy + 1), (cx - 7, cy - 4),
-        (cx - 3, cy - 7), (cx + 2, cy - 7), (cx + 6, cy - 4),
-        (cx + 8, cy), (cx + 8, cy + 6), (cx + 4, cy + 8),
-        (cx - 4, cy + 8),
+        (cx - spread, cy + drop), (cx - spread - 1, cy + 1), (cx - spread + 3, cy - 4),
+        (cx - 3, cy - 7), (cx + 3, cy - 7), (cx + 8, cy - 4),
+        (cx + spread - 1, cy), (cx + spread - 1, cy + drop - 1),
+        (cx + 5, cy + drop + 1), (cx - 5, cy + drop + 1),
     ]
     inner = [
-        (cx - 7, cy + 5), (cx - 8, cy + 1), (cx - 5, cy - 3),
-        (cx - 2, cy - 5), (cx + 1, cy - 5), (cx + 4, cy - 3),
-        (cx + 6, cy), (cx + 6, cy + 5), (cx + 3, cy + 6),
-        (cx - 3, cy + 6),
+        (cx - spread + 2, cy + drop - 1), (cx - spread + 1, cy + 1),
+        (cx - spread + 4, cy - 3),
+        (cx - 2, cy - 5), (cx + 2, cy - 5), (cx + 6, cy - 3),
+        (cx + spread - 3, cy), (cx + spread - 3, cy + drop - 2),
+        (cx + 4, cy + drop - 1), (cx - 4, cy + drop - 1),
     ]
     polygon(s, outer, dark)
     polygon(s, inner, base)
-    line(s, (cx - 7, cy - 1), (cx - 1, cy - 6), light)
-    line(s, (cx - 1, cy - 6), (cx + 5, cy - 2), light)
-    line(s, (cx - 8, cy + 2), (cx + 6, cy + 2), rim)
+    line(s, (cx - 9, cy - 1), (cx - 1, cy - 6), light)
+    line(s, (cx - 1, cy - 6), (cx + 6, cy - 2), light)
+    line(s, (cx - 9, cy + 2), (cx + 8, cy + 2), rim)
     if armored:
-        s.px(cx - 5, cy + 3, outfit["accent_l"])
-        s.px(cx + 4, cy + 3, outfit["accent_l"])
-        line(s, (cx - 4, cy + 6), (cx + 4, cy + 6), dark)
+        for row, y in enumerate((cy + 3, cy + 6)):
+            line(s, (cx - 8 + row, y), (cx + 7 + row, y), rim)
+            line(s, (cx - 8 + row, y + 1), (cx + 7 + row, y + 1), dark)
+            for x in range(cx - 7 + row, cx + 7, 4):
+                s.px(x, y + 1, outfit["accent_l"])
+        if style == "field":
+            line(s, (cx - 9, cy + 1), (cx + 8, cy + 1), "#eee0b6")
+            line(s, (cx - 8, cy + 4), (cx + 7, cy + 4), "#6d6048")
+            for x in (cx - 5, cx + 1):
+                line(s, (x, cy - 2), (x, cy + 1), "#88775a")
     else:
-        line(s, (cx - 5, cy + 5), (cx + 4, cy + 5), dark)
+        line(s, (cx - 7, cy + 5), (cx + 6, cy + 5), dark)
+        line(s, (cx - 6, cy + 6), (cx + 5, cy + 6), light)
+        if style == "dragon":
+            line(s, (cx - 9, cy + 3), (cx + 8, cy + 3), GOLD)
+            s.px(cx, cy, GOLD_L)
+        elif style == "scout":
+            line(s, (cx - 9, cy + 3), (cx + 8, cy + 3), outfit["accent"])
+            s.px(cx - 1, cy + 1, outfit["accent_l"])
 
 
 def draw_outfit_collar(
@@ -2399,6 +2759,45 @@ def draw_outfit_collar(
     head_x = upper_x + 2.0 + float(pose["head_dx"])
     collar_top = shoulder_y - 4
     cloth, cloth_d, cloth_l = _cloth_colors(outfit, False)
+    style = str(outfit.get("style", ""))
+    if style == "scout":
+        polygon(
+            s,
+            [(head_x - 10, collar_top), (head_x, shoulder_y + 6),
+             (head_x + 10, collar_top), (head_x + 6, shoulder_y + 2),
+             (head_x, shoulder_y + 7), (head_x - 6, shoulder_y + 2)],
+            "#172832",
+        )
+        line(s, (head_x - 9, collar_top), (head_x, shoulder_y + 5), cloth_l)
+        line(s, (head_x + 9, collar_top), (head_x, shoulder_y + 5), cloth_d)
+        line(s, (head_x - 7, collar_top - 1), (head_x, shoulder_y + 5), GREEN)
+        line(s, (head_x + 7, collar_top - 1), (head_x, shoulder_y + 5), GREEN_D)
+        s.px(head_x, shoulder_y + 3, GREEN_L)
+        return
+    if style == "dragon":
+        polygon(
+            s,
+            [(head_x - 10, collar_top), (head_x + 10, collar_top),
+             (head_x + 8, shoulder_y + 3), (head_x - 8, shoulder_y + 3)],
+            GOLD_D,
+        )
+        polygon(
+            s,
+            [(head_x - 8, collar_top + 1), (head_x - 1, collar_top + 1),
+             (head_x - 2, shoulder_y + 1), (head_x - 6, shoulder_y + 2)],
+            RED_L,
+        )
+        polygon(
+            s,
+            [(head_x + 1, collar_top + 1), (head_x + 8, collar_top + 1),
+             (head_x + 6, shoulder_y + 2), (head_x + 2, shoulder_y + 1)],
+            RED,
+        )
+        line(s, (head_x - 8, collar_top + 1), (head_x - 2, shoulder_y + 1), GOLD_L)
+        line(s, (head_x + 8, collar_top + 1), (head_x + 2, shoulder_y + 1), GOLD)
+        s.px(head_x - 4, collar_top - 1, GOLD_L)
+        s.px(head_x + 4, collar_top - 1, GOLD_L)
+        return
     if outfit["armored"]:
         metal, metal_d, metal_l = _metal_colors(outfit, False)
         polygon(
@@ -2415,6 +2814,15 @@ def draw_outfit_collar(
         )
         line(s, (head_x - 7, collar_top + 2), (head_x + 7, collar_top + 2), metal_l)
         line(s, (head_x - 5, collar_top + 4), (head_x + 5, collar_top + 4), outfit["accent"])
+        if style == "field":
+            polygon(
+                s,
+                [(head_x - 9, collar_top + 1), (head_x - 2, collar_top + 2),
+                 (head_x - 3, shoulder_y + 8), (head_x - 10, shoulder_y + 6)],
+                "#203b50",
+            )
+            line(s, (head_x - 8, collar_top + 2), (head_x - 4, shoulder_y + 6), "#355d73")
+            s.px(head_x - 7, shoulder_y + 3, GOLD_L)
     else:
         polygon(
             s,
@@ -2508,18 +2916,31 @@ def draw_headgear_layer(s: Sprite, pose: dict, gear: dict) -> None:
         cloth_l = gear["cloth_l"]
         polygon(
             s,
-            [(x - 18, y - 4), (x + 18, y - 4),
-             (x + 11, y - 13), (x - 11, y - 13)],
+            [(x - 24, y - 3), (x + 24, y - 3),
+             (x + 12, y - 15), (x - 12, y - 15)],
             cloth_d,
         )
         polygon(
             s,
-            [(x - 16, y - 5), (x + 16, y - 5),
-             (x + 9, y - 12), (x - 9, y - 12)],
+            [(x - 22, y - 5), (x + 22, y - 5),
+             (x + 10, y - 14), (x - 10, y - 14)],
             cloth,
         )
-        line(s, (x - 16, y - 4), (x + 16, y - 4), cloth_l)
-        s.rect((x - 2, y - 12), (x + 2, y - 10), GOLD)
+        polygon(
+            s,
+            [(x - 22, y - 5), (x + 22, y - 5),
+             (x + 18, y - 2), (x - 18, y - 2)],
+            "#5b4026",
+        )
+        for offset in (-17, -11, -5, 5, 11, 17):
+            line(s, (x + offset, y - 5), (x + int(offset * 0.45), y - 13), cloth_d)
+        line(s, (x - 21, y - 4), (x + 21, y - 4), cloth_l)
+        line(s, (x - 18, y - 2), (x + 18, y - 2), "#d9bc7b")
+        s.rect((x - 3, y - 17), (x + 3, y - 14), cloth_d)
+        s.rect((x - 2, y - 17), (x + 2, y - 14), cloth_l)
+        s.px(x - 1, y - 18, cloth_l)
+        s.px(x + 5, y - 9, cloth_l)
+        s.px(x - 7, y - 7, cloth_l)
     elif kind == "officer":
         polygon(
             s,
@@ -2538,11 +2959,86 @@ def draw_headgear_layer(s: Sprite, pose: dict, gear: dict) -> None:
         s.px(x - 20, y - 4, GOLD)
         s.px(x + 20, y - 4, GOLD)
         s.rect((x - 8, y - 8), (x + 8, y - 7), GOLD)
+    elif kind == "scout_cap":
+        cloth = gear["cloth"]
+        cloth_d = gear["cloth_d"]
+        cloth_l = gear["cloth_l"]
+        accent = gear.get("accent", GREEN_L)
+        polygon(
+            s,
+            [(x - 11, y - 6), (x - 9, y - 13), (x - 3, y - 16),
+             (x + 6, y - 15), (x + 11, y - 10), (x + 10, y - 5),
+             (x + 6, y - 4), (x - 7, y - 4)],
+            cloth_d,
+        )
+        polygon(
+            s,
+            [(x - 9, y - 7), (x - 7, y - 12), (x - 2, y - 14),
+             (x + 5, y - 13), (x + 8, y - 9), (x + 7, y - 6),
+             (x + 3, y - 5), (x - 6, y - 5)],
+            cloth,
+        )
+        line(s, (x - 7, y - 11), (x + 5, y - 12), cloth_l)
+        line(s, (x - 8, y - 7), (x + 7, y - 8), accent)
+        line(s, (x - 8, y - 6), (x + 7, y - 7), cloth_d)
+        line(s, (x + 6, y - 6), (x + 14, y - 10), accent)
+        line(s, (x + 7, y - 5), (x + 15, y - 8), cloth)
+        s.px(x + 15, y - 10, accent)
+        s.px(x + 16, y - 9, accent)
+        s.rect((x - 2, y - 16), (x + 1, y - 14), HAIR_D)
+        s.rect((x - 1, y - 17), (x + 1, y - 15), HAIR)
+        s.px(x, y - 18, HAIR_L)
+    elif kind == "dragon_band":
+        cloth = gear["cloth"]
+        cloth_d = gear["cloth_d"]
+        cloth_l = gear["cloth_l"]
+        accent = gear.get("accent", GOLD_L)
+        polygon(
+            s,
+            [(x - 10, y - 9), (x + 9, y - 9), (x + 9, y - 6),
+             (x + 17, y - 9), (x + 15, y - 3), (x + 8, y - 5),
+             (x - 8, y - 5), (x - 16, y - 2), (x - 13, y - 9)],
+            cloth_d,
+        )
+        polygon(
+            s,
+            [(x - 9, y - 9), (x + 8, y - 9), (x + 8, y - 7),
+             (x + 14, y - 10), (x + 12, y - 6), (x + 7, y - 7),
+             (x - 7, y - 7), (x - 13, y - 5), (x - 11, y - 8)],
+            cloth,
+        )
+        line(s, (x - 7, y - 8), (x + 6, y - 8), cloth_l)
+        polygon(
+            s,
+            [(x, y - 11), (x + 2, y - 9), (x, y - 7), (x - 2, y - 9)],
+            GOLD_D,
+        )
+        polygon(
+            s,
+            [(x, y - 10), (x + 1, y - 9), (x, y - 8), (x - 1, y - 9)],
+            accent,
+        )
+        s.px(x - 7, y - 9, accent)
+        s.px(x + 7, y - 9, accent)
     elif kind == "headband":
-        s.rect((x - 10, y - 6), (x + 10, y - 3), gear["cloth_d"])
-        s.rect((x - 9, y - 6), (x + 9, y - 4), gear["cloth"])
-        line(s, (x + 8, y - 4), (x + 15, y - 8), gear["cloth"])
-        s.px(x + 16, y - 9, gear["cloth_l"])
+        polygon(
+            s,
+            [(x - 10, y - 6), (x + 10, y - 6), (x + 9, y - 3),
+             (x + 13, y - 6), (x + 13, y - 2), (x + 8, y - 3),
+             (x - 8, y - 3), (x - 13, y - 1), (x - 11, y - 5)],
+            gear["cloth_d"],
+        )
+        polygon(
+            s,
+            [(x - 9, y - 6), (x + 9, y - 6), (x + 8, y - 4),
+             (x + 10, y - 5), (x + 10, y - 3), (x + 7, y - 4),
+             (x - 7, y - 4), (x - 10, y - 2), (x - 9, y - 5)],
+            gear["cloth"],
+        )
+        line(s, (x - 8, y - 5), (x + 7, y - 5), gear["cloth_l"])
+        line(s, (x + 8, y - 5), (x + 14, y - 8), gear["cloth"])
+        s.px(x + 15, y - 9, gear["cloth_l"])
+        s.px(x - 7, y - 6, gear["cloth_l"])
     elif kind == "kasa":
         cloth = gear["cloth"]
         cloth_d = gear["cloth_d"]
@@ -2685,6 +3181,38 @@ def draw_backgear_layer(s: Sprite, pose: dict, gear: dict) -> None:
             )
         s.rect(pt((pole_x + 15, 29 + bob)), pt((pole_x + 20, 45 + bob)), GOLD)
         s.rect(pt((pole_x + 17, 31 + bob)), pt((pole_x + 18, 43 + bob)), cloth)
+    elif kind == "quiver":
+        cloth = gear["cloth"]
+        cloth_d = gear["cloth_d"]
+        cloth_l = gear["cloth_l"]
+        accent = gear.get("accent", GOLD_L)
+        top = (upper_x - 25, 42 + bob)
+        bottom = (upper_x - 15, 86 + bob)
+        polygon(
+            s,
+            [add(top, (-5, 0)), add(top, (5, 1)), add(bottom, (6, 2)),
+             add(bottom, (-4, 3))],
+            cloth_d,
+        )
+        polygon(
+            s,
+            [add(top, (-4, 1)), add(top, (4, 2)), add(bottom, (4, 1)),
+             add(bottom, (-3, 2))],
+            cloth,
+        )
+        line(s, add(top, (-3, 2)), add(bottom, (-2, 1)), cloth_l)
+        for y in (53, 62, 71, 79):
+            line(s, (upper_x - 22, y + bob), (upper_x - 12, y + 1 + bob), LEATHER_D)
+            s.px(int(upper_x - 17), int(y + 1 + bob), accent)
+        for index, offset in enumerate((-10, -7, -4, -1, 2)):
+            root = add(top, (offset + 1, 2))
+            tip = add(root, (-5 + offset * 0.2, -17 - index % 2 * 2))
+            line(s, root, tip, WOOD)
+            line(s, add(root, (1, 0)), add(tip, (1, 0)), WOOD_L)
+            fletch = add(tip, (1, 2))
+            line(s, fletch, add(fletch, (-4, 5)), WARM_WHITE)
+            line(s, fletch, add(fletch, (3, 5)), OCHRE_L)
+            line(s, add(fletch, (0, 2)), add(fletch, (-2, 6)), RED_L)
 
 
 def _blade_polygon(
@@ -2788,23 +3316,51 @@ def draw_weapon_qiang(s: Sprite, pose: dict) -> None:
     near = pose["near_hand"]
     d = unit(sub(near, far))
     n = (-d[1], d[0])
-    start = add(far, mul(d, -14))
-    end = add(near, mul(d, 29))
-    _draw_pole(s, start, end)
+    start = add(far, mul(d, -17))
+    end = add(near, mul(d, 28))
+    draw_segment(s, start, end, 4.5, 3.5, WOOD, LEATHER_D, WOOD_L, rim=False)
+    line(s, add(start, mul(d, 2)), add(end, mul(d, -2)), "#a67d4c")
+    line(s, add(start, mul(n, 1.2)), add(end, mul(n, 1.0)), WOOD_L)
+    butt = add(start, mul(d, -3))
     polygon(
         s,
-        [add(end, mul(n, -4)), add(end, mul(d, 10)), add(end, mul(n, 4))],
-        IRON_L,
+        [add(butt, mul(n, -2.5)), add(butt, mul(n, 2.5)),
+         add(butt, mul(d, -6))],
+        IRON_D,
     )
-    line(s, add(end, mul(d, 1)), add(end, mul(d, 8)), IRON_LL)
-    s.rect(pt(add(end, mul(n, -1))), pt(add(end, mul(n, 1))), GOLD)
-    tassel = add(end, mul(d, -1))
-    line(s, tassel, add(tassel, mul(n, 5)), RED_L)
-    line(s, tassel, add(tassel, mul(n, -3)), RED)
+    line(s, add(butt, mul(n, -1.5)), add(butt, mul(d, -5)), IRON_L)
+    s.rect(pt(add(end, mul(d, -2))), pt(add(end, mul(d, 2))), GOLD_D)
+    s.rect(pt(add(end, mul(d, -1))), pt(add(end, mul(d, 1))), GOLD_L)
+    blade_root = add(end, mul(d, 3))
+    blade_tip = add(end, mul(d, 21))
+    blade_mid = add(end, mul(d, 11))
+    polygon(
+        s,
+        [add(blade_root, mul(n, -4.5)), add(blade_mid, mul(n, -5.5)),
+         add(blade_tip, mul(n, 0.0)), add(blade_mid, mul(n, 5.0)),
+         add(blade_root, mul(n, 4.0))],
+        IRON_D,
+    )
+    polygon(
+        s,
+        [add(blade_root, mul(n, -3.2)), add(blade_mid, mul(n, -4.0)),
+         add(blade_tip, mul(n, 0.0)), add(blade_mid, mul(n, 3.6)),
+         add(blade_root, mul(n, 2.8))],
+        IRON,
+    )
+    line(s, add(blade_root, mul(n, -1.4)), add(blade_tip, mul(n, 0.0)), IRON_LL)
+    line(s, add(blade_root, mul(n, 1.6)), add(blade_mid, mul(n, 3.0)), IRON_D)
+    s.px(*pt(add(blade_tip, mul(n, -0.6))), WHITE)
+    tassel = add(end, mul(d, -2))
+    for offset, color in ((-3, RED_D), (0, RED), (3, RED_L)):
+        line(s, add(tassel, mul(n, offset * 0.3)),
+             add(tassel, add(mul(n, offset), mul(d, -7))), color)
+    line(s, add(tassel, mul(d, -2)), add(tassel, add(mul(d, -7), mul(n, 5))), RED_L)
     if int(pose["stage"]) in (2, 3, 4):
-        tip = add(end, mul(d, 10))
+        tip = add(end, mul(d, 22))
         for offset in (-6, 0, 6):
-            line(s, add(tip, mul(n, offset)), add(tip, add(mul(d, 10), mul(n, offset))), WARM_WHITE)
+            line(s, add(tip, mul(n, offset * 0.5)),
+                 add(tip, add(mul(d, 12), mul(n, offset))), WARM_WHITE)
 
 
 def draw_weapon_langxian(s: Sprite, pose: dict) -> None:
@@ -3025,38 +3581,48 @@ def draw_weapon_gong(s: Sprite, pose: dict) -> None:
     string_hand = pose["far_hand"]
     aim = unit(sub(bow_hand, string_hand))
     side = (-aim[1], aim[0])
-    top = add(bow_hand, mul(side, -23))
-    bottom = add(bow_hand, mul(side, 23))
+    top = add(bow_hand, add(mul(side, -24), mul(aim, 2)))
+    bottom = add(bow_hand, add(mul(side, 24), mul(aim, 2)))
     limbs = (
         top,
-        add(bow_hand, add(mul(side, -16), mul(aim, 6))),
-        add(bow_hand, add(mul(side, -8), mul(aim, 10))),
+        add(bow_hand, add(mul(side, -18), mul(aim, 7))),
+        add(bow_hand, add(mul(side, -10), mul(aim, 11))),
         add(bow_hand, mul(aim, 11)),
-        add(bow_hand, add(mul(side, 8), mul(aim, 10))),
-        add(bow_hand, add(mul(side, 16), mul(aim, 6))),
+        add(bow_hand, add(mul(side, 10), mul(aim, 11))),
+        add(bow_hand, add(mul(side, 18), mul(aim, 7))),
         bottom,
     )
     for index in range(len(limbs) - 1):
         draw_segment(
-            s, limbs[index], limbs[index + 1], 3.0, 2.5,
+            s, limbs[index], limbs[index + 1], 3.6, 2.8,
             WOOD, LEATHER_D, OCHRE_L, rim=False,
             shade_dir=(-side[0], -side[1]),
         )
+        line(s, add(limbs[index], mul(aim, 1.2)),
+             add(limbs[index + 1], mul(aim, 1.2)), WOOD_L)
+    line(s, add(top, mul(aim, -1)), add(add(top, mul(side, 3)), mul(aim, -3)), IRON_D)
+    line(s, add(bottom, mul(aim, -1)), add(add(bottom, mul(side, -3)), mul(aim, -3)), IRON_D)
+    s.px(*pt(add(top, mul(side, 1))), IRON_L)
+    s.px(*pt(add(bottom, mul(side, -1))), IRON_L)
     line(s, add(bow_hand, mul(side, -4)), add(bow_hand, mul(side, 4)), LEATHER_D)
     line(s, add(bow_hand, mul(side, -3)), add(bow_hand, mul(side, 3)), GOLD)
+    for offset in (-6, -2, 2, 6):
+        s.px(*pt(add(bow_hand, add(mul(side, offset), mul(aim, -1)))), WRAP_L)
     line(s, top, string_hand, WARM_WHITE)
     line(s, string_hand, bottom, WARM_WHITE)
     s.circle(*pt(bow_hand), 2, LEATHER_D, fill=True)
     s.px(*pt(add(bow_hand, add(mul(aim, 1), mul(side, -1)))), GOLD_L)
     stage = int(pose["stage"])
-    arrow_tip = add(bow_hand, mul(aim, 20))
+    arrow_tip = add(bow_hand, mul(aim, 18))
     if stage >= 2:
-        line(s, string_hand, arrow_tip, IRON_L)
+        line(s, string_hand, arrow_tip, WOOD_L)
+        line(s, add(string_hand, mul(side, 0.8)),
+             add(arrow_tip, mul(side, 0.8)), IRON_L)
         polygon(
             s,
-            [add(arrow_tip, mul(aim, 3)),
-             add(arrow_tip, add(mul(side, -2), mul(aim, -3))),
-             add(arrow_tip, add(mul(side, 2), mul(aim, -3)))],
+            [add(arrow_tip, mul(aim, 5)),
+             add(arrow_tip, add(mul(side, -2.6), mul(aim, -4))),
+             add(arrow_tip, add(mul(side, 2.6), mul(aim, -4)))],
             IRON_LL,
         )
         fletch = add(string_hand, mul(aim, 4))
@@ -3065,9 +3631,22 @@ def draw_weapon_gong(s: Sprite, pose: dict) -> None:
         s.px(*pt(arrow_tip), WHITE)
         if stage == 2:
             angle = math.degrees(float(pose["weapon_angle"]))
-            draw_arc(s, bow_hand, angle - 18, angle + 18, 25, WARM_WHITE)
+            draw_arc(s, bow_hand, angle - 18, angle + 18, 20, WARM_WHITE)
     else:
         line(s, string_hand, add(bow_hand, mul(aim, 8)), IRON_L)
+        nocked_tip = add(bow_hand, mul(aim, 16))
+        line(s, string_hand, nocked_tip, WOOD_L)
+        polygon(
+            s,
+            [add(nocked_tip, mul(aim, 4)),
+             add(nocked_tip, add(mul(side, -2), mul(aim, -3))),
+             add(nocked_tip, add(mul(side, 2), mul(aim, -3)))],
+            IRON_L,
+        )
+        for offset in (-2, 0, 2):
+            fletch = add(string_hand, mul(aim, 4))
+            line(s, fletch, add(fletch, add(mul(aim, 5), mul(side, offset))), RED_L)
+        s.px(*pt(nocked_tip), WARM_WHITE)
 
 
 def draw_weapon_nu(s: Sprite, pose: dict) -> None:
@@ -3158,27 +3737,171 @@ def draw_weapon_niaochong(s: Sprite, pose: dict) -> None:
 
 
 def draw_weapon_longdeng(s: Sprite, pose: dict) -> None:
-    hand = pose["near_hand"]
-    angle = float(pose["weapon_angle"])
-    d = (math.cos(angle), math.sin(angle))
-    n = (-d[1], d[0])
-    start = add(hand, mul(d, -19))
-    end = add(hand, mul(d, 20))
-    _draw_pole(s, start, end)
-    head = add(end, mul(d, 5))
-    hx, hy = pt(head)
-    s.ellipse(hx - 9, hy - 8, hx + 9, hy + 8, RED_D, fill=True)
-    s.ellipse(hx - 8, hy - 7, hx + 8, hy + 7, RED, fill=True)
-    s.ellipse(hx - 5, hy - 5, hx + 5, hy + 4, GOLD, fill=True)
-    s.rect((hx - 4, hy - 2), (hx + 4, hy + 1), WHITE)
-    s.rect((hx - 2, hy - 1), (hx, hy), INK)
-    s.rect((hx + 2, hy - 1), (hx + 4, hy), INK)
-    line(s, (hx - 5, hy + 5), (hx + 5, hy + 5), GOLD_L)
-    for dx, dy in ((-8, -9), (0, -12), (8, -9)):
-        line(s, (hx + dx, hy + dy), (hx + dx - 2, hy + dy - 5), GOLD_L)
+    far = pose["far_hand"]
+    near = pose["near_hand"]
+    mid = mul(add(far, near), 0.5)
+    head_x = max(56.0, min(66.0, mid[0] - 1.0))
+    head_y = max(16.0, min(20.0, mid[1] - 34.0))
+    hx, hy = pt((head_x, head_y))
+    grip_far = (head_x - 23, head_y + 20)
+    grip_near = (head_x + 23, head_y + 20)
+    draw_segment(s, far, grip_far, 3.5, 2.8, WOOD, LEATHER_D, WOOD_L, rim=False)
+    draw_segment(s, near, grip_near, 3.5, 2.8, WOOD, LEATHER_D, WOOD_L, rim=False)
+    for grip in (grip_far, grip_near):
+        s.rect(pt(add(grip, (-2, -3))), pt(add(grip, (2, 3))), GOLD_D)
+        s.rect(pt(add(grip, (-1, -2))), pt(add(grip, (1, 3))), GOLD_L)
+
+    # Gold mane and branching horns sit behind the red head.
+    polygon(
+        s,
+        [(hx - 31, hy + 7), (hx - 35, hy - 1), (hx - 27, hy - 2),
+         (hx - 31, hy - 9), (hx - 21, hy - 6), (hx - 22, hy - 13),
+         (hx - 12, hy - 9), (hx - 7, hy - 15), (hx - 2, hy - 9),
+         (hx + 5, hy + 4), (hx - 3, hy + 9), (hx - 14, hy + 10),
+         (hx - 24, hy + 12)],
+        GOLD_D,
+    )
+    polygon(
+        s,
+        [(hx - 28, hy + 5), (hx - 31, hy), (hx - 24, hy - 1),
+         (hx - 27, hy - 6), (hx - 19, hy - 4), (hx - 19, hy - 9),
+         (hx - 10, hy - 6), (hx - 5, hy - 11), (hx - 2, hy - 6),
+         (hx + 3, hy + 3), (hx - 4, hy + 7), (hx - 15, hy + 8)],
+        GOLD,
+    )
+    line(s, (hx - 30, hy - 1), (hx - 23, hy - 6), GOLD_L)
+    line(s, (hx - 26, hy - 7), (hx - 17, hy - 3), GOLD_L)
+    line(s, (hx - 20, hy - 9), (hx - 10, hy - 5), GOLD_L)
+    polygon(
+        s,
+        [(hx - 13, hy - 10), (hx - 18, hy - 15), (hx - 14, hy - 17),
+         (hx - 7, hy - 12)],
+        GOLD_D,
+    )
+    polygon(
+        s,
+        [(hx - 12, hy - 10), (hx - 16, hy - 14), (hx - 14, hy - 15),
+         (hx - 8, hy - 11)],
+        GOLD_L,
+    )
+    polygon(
+        s,
+        [(hx + 7, hy - 11), (hx + 13, hy - 17), (hx + 18, hy - 16),
+         (hx + 13, hy - 9)],
+        GOLD_D,
+    )
+    polygon(
+        s,
+        [(hx + 9, hy - 11), (hx + 14, hy - 15), (hx + 16, hy - 15),
+         (hx + 12, hy - 9)],
+        GOLD_L,
+    )
+    line(s, (hx + 15, hy - 15), (hx + 23, hy - 17), GOLD)
+    line(s, (hx + 16, hy - 14), (hx + 26, hy - 15), GOLD_L)
+    s.px(hx + 23, hy - 17, GOLD_L)
+    s.px(hx + 26, hy - 15, GOLD_L)
+
+    # Red cranium, long muzzle and open lower jaw read as a side-facing dragon.
+    polygon(
+        s,
+        [(hx - 24, hy + 5), (hx - 27, hy - 1), (hx - 23, hy - 8),
+         (hx - 15, hy - 12), (hx - 4, hy - 13), (hx + 7, hy - 12),
+         (hx + 15, hy - 8), (hx + 20, hy - 4), (hx + 22, hy + 2),
+         (hx + 17, hy + 8), (hx + 8, hy + 10), (hx - 4, hy + 9),
+         (hx - 15, hy + 9)],
+        RED_D,
+    )
+    polygon(
+        s,
+        [(hx - 22, hy + 4), (hx - 24, hy - 1), (hx - 20, hy - 7),
+         (hx - 13, hy - 10), (hx - 4, hy - 11), (hx + 6, hy - 10),
+         (hx + 13, hy - 6), (hx + 17, hy - 3), (hx + 18, hy + 2),
+         (hx + 14, hy + 6), (hx + 7, hy + 8), (hx - 4, hy + 7),
+         (hx - 14, hy + 7)],
+        RED_L,
+    )
+    polygon(
+        s,
+        [(hx - 11, hy - 9), (hx - 3, hy - 12), (hx + 6, hy - 10),
+         (hx + 8, hy - 7), (hx - 2, hy - 7)],
+        "#d95b43",
+    )
+    polygon(
+        s,
+        [(hx + 12, hy - 7), (hx + 38, hy - 6), (hx + 42, hy - 2),
+         (hx + 39, hy + 2), (hx + 31, hy + 4), (hx + 18, hy + 3)],
+        GOLD_D,
+    )
+    polygon(
+        s,
+        [(hx + 14, hy - 6), (hx + 37, hy - 5), (hx + 39, hy - 2),
+         (hx + 36, hy + 1), (hx + 29, hy + 2), (hx + 17, hy + 1)],
+        GOLD,
+    )
+    line(s, (hx + 15, hy - 5), (hx + 36, hy - 4), GOLD_L)
+    s.rect((hx + 36, hy - 2), (hx + 39, hy + 1), GOLD_D)
+    s.px(hx + 37, hy, INK)
+    polygon(
+        s,
+        [(hx + 11, hy + 4), (hx + 35, hy + 5), (hx + 34, hy + 10),
+         (hx + 24, hy + 12), (hx + 14, hy + 9)],
+        RED_D,
+    )
+    polygon(
+        s,
+        [(hx + 13, hy + 5), (hx + 33, hy + 6), (hx + 31, hy + 9),
+         (hx + 23, hy + 10), (hx + 15, hy + 8)],
+        "#421113",
+    )
+    polygon(
+        s,
+        [(hx + 15, hy + 7), (hx + 29, hy + 7), (hx + 27, hy + 9),
+         (hx + 17, hy + 9)],
+        RED_L,
+    )
+    for x in (hx + 16, hx + 21, hx + 26, hx + 31):
+        polygon(s, [(x, hy + 4), (x + 3, hy + 4), (x + 2, hy + 7)], WARM_WHITE)
+    for x in (hx + 17, hx + 22, hx + 27):
+        polygon(s, [(x, hy + 10), (x + 3, hy + 10), (x + 1, hy + 7)], WARM_WHITE)
+    polygon(
+        s,
+        [(hx - 4, hy - 9), (hx + 5, hy - 10), (hx + 11, hy - 7),
+         (hx + 10, hy - 2), (hx + 3, hy - 1), (hx - 4, hy - 4)],
+        GOLD_D,
+    )
+    polygon(
+        s,
+        [(hx - 2, hy - 8), (hx + 4, hy - 9), (hx + 9, hy - 7),
+         (hx + 8, hy - 3), (hx + 2, hy - 2), (hx - 3, hy - 4)],
+        GOLD_L,
+    )
+    s.rect((hx + 1, hy - 7), (hx + 7, hy - 4), WARM_WHITE)
+    s.rect((hx + 4, hy - 7), (hx + 6, hy - 4), INK)
+    s.px(hx + 4, hy - 6, WHITE)
+    line(s, (hx - 2, hy - 9), (hx + 8, hy - 9), RED_D)
+    line(s, (hx - 1, hy + 1), (hx + 9, hy + 0), RED_D)
+    s.rect((hx - 1, hy + 1), (hx + 3, hy + 3), RED_L)
+    line(s, (hx - 4, hy - 3), (hx - 10, hy - 7), GOLD_D)
+    polygon(
+        s,
+        [(hx - 22, hy + 8), (hx - 27, hy + 14), (hx - 16, hy + 12),
+         (hx - 12, hy + 16), (hx - 7, hy + 11)],
+        GOLD_D,
+    )
+    line(s, (hx - 25, hy + 10), (hx - 18, hy + 14), GOLD_L)
+    line(s, (hx - 18, hy + 11), (hx - 13, hy + 15), GOLD)
+    line(s, (hx + 31, hy + 3), (hx + 38, hy + 9), GOLD)
+    line(s, (hx + 33, hy + 5), (hx + 42, hy + 10), GOLD_L)
+    s.px(hx + 38, hy + 9, GOLD_L)
+    s.px(hx + 42, hy + 10, GOLD_L)
+    line(s, (hx + 31, hy + 2), (hx + 36, hy + 13), GOLD_D)
+    line(s, (hx + 28, hy + 11), (hx + 33, hy + 15), GOLD)
     if int(pose["stage"]) in (2, 3, 4):
-        draw_arc(s, head, -80, 60, 28, GOLD_L)
-        draw_arc(s, head, 120, 250, 22, FIRE)
+        for offset in (-2, 0, 2):
+            line(s, (hx + 35, hy + 4 + offset),
+                 (hx + 45 + abs(offset) * 2, hy + 3 + offset * 2), FIRE_L)
+        draw_arc(s, (head_x, head_y), -80, 18, 33, GOLD_L)
+        draw_arc(s, (head_x, head_y), 155, 240, 27, FIRE)
 
 
 def draw_weapon_lingqi(s: Sprite, pose: dict) -> None:
@@ -4454,6 +5177,14 @@ def main() -> None:
         save_atlas("offhands.png", offhands, runtime)
         write_data(data_dir)
         print("weapon and offhand atlases refreshed")
+        return
+
+    if "--outfits-only" in sys.argv:
+        outfits = build_atlas("outfit", outfit_rows())
+        save_atlas("outfits.png", outfits, out)
+        save_atlas("outfits.png", outfits, runtime)
+        write_data(data_dir)
+        print("outfit atlases refreshed")
         return
 
     if "--previews-only" in sys.argv:

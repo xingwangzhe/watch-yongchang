@@ -23,6 +23,7 @@ func before_each() -> void:
 	GameSettings._apply_performance()
 	Locale.set_language("zh", false)
 	AudioBus.menu_enabled = true
+	AudioBus.resume_bgm()
 
 
 func after_each() -> void:
@@ -40,6 +41,7 @@ func after_each() -> void:
 	GameSettings.reset_vulkan_probe()
 	GameSettings._apply_performance()
 	AudioBus.menu_enabled = true
+	AudioBus.resume_bgm()
 	_remove_user_file(TEST_SAVE)
 	_remove_user_file(TEST_SETTINGS)
 	_remove_user_file(TEST_RENDERER_MIRROR)
@@ -192,6 +194,42 @@ func test_audio_bus_loads_looping_bgm() -> void:
 	assert_true(AudioBus.stream is AudioStreamOggVorbis, "BGM must be an Ogg Vorbis stream")
 	assert_true((AudioBus.stream as AudioStreamOggVorbis).loop, "BGM must loop")
 	assert_almost_eq(AudioBus.player.volume_db, linear_to_db(0.62), 0.02)
+	assert_true(AudioBus.battle_stream is AudioStreamOggVorbis, "battle BGM must load")
+	assert_true((AudioBus.battle_stream as AudioStreamOggVorbis).loop, "battle BGM must loop")
+	assert_true(AudioBus.UI_CLICK_STREAM is AudioStreamOggVorbis, "UI click must load")
+	for path in [
+		"res://assets/audio/bgm_battle.ogg",
+		"res://assets/audio/ui_click.ogg",
+		"res://assets/audio/ui_confirm.ogg",
+		"res://assets/audio/ui_back.ogg",
+		"res://assets/audio/sfx_pickup.ogg",
+		"res://assets/audio/sfx_event.ogg",
+		"res://assets/audio/sfx_enemy_hit.ogg",
+		"res://assets/audio/sfx_enemy_kill.ogg",
+		"res://assets/audio/sfx_elite_kill.ogg",
+		"res://assets/audio/sfx_level_up.ogg",
+		"res://assets/audio/sfx_dash.ogg",
+		"res://assets/audio/sfx_boss.ogg",
+	]:
+		assert_true(ResourceLoader.exists(path), "missing audio asset: %s" % path)
+
+
+func test_audio_bus_switches_menu_and_battle_bgm() -> void:
+	AudioBus.play_battle_bgm()
+	assert_eq(AudioBus.current_bgm, "battle")
+	assert_eq(AudioBus.stream, AudioBus.battle_stream)
+	AudioBus.resume_bgm()
+	assert_eq(AudioBus.current_bgm, "menu")
+	assert_eq(AudioBus.stream, AudioBus.menu_stream)
+
+
+func test_audio_bus_binds_button_clicks_once() -> void:
+	var button := Button.new()
+	add_child_autofree(button)
+	AudioBus._bind_button(button)
+	AudioBus._bind_button(button)
+	assert_true(button.has_meta("audio_click_bound"))
+	assert_eq(button.get_signal_connection_list("pressed").size(), 1)
 
 
 func test_about_page_auto_scroll_and_wheel_takeover() -> void:
@@ -205,10 +243,17 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	assert_not_null(about.about_player())
 
 	var credits: Dictionary = about.credits_data()
-	assert_eq((credits.get("music", []) as Array).size(), 2)
+	assert_eq((credits.get("music", []) as Array).size(), 3)
 	for entry in credits.get("music", []):
-		assert_true((entry.get("license", "") as String).begins_with("CC-BY"))
+		var license := str(entry.get("license", ""))
+		assert_true(license.begins_with("CC-BY") or license.begins_with("CC0"))
 		assert_true((entry.get("url", "") as String).begins_with("https://"))
+	var sfx_entries: Array = credits.get("sfx", [])
+	assert_eq(sfx_entries.size(), 2, "Kenney UI and impact packs must be credited")
+	for entry in sfx_entries:
+		assert_eq(str(entry.get("license", "")), "CC0 1.0")
+		assert_true(str(entry.get("url", "")).begins_with("https://kenney.nl/"))
+		assert_true(ResourceLoader.exists(str(entry.get("file", ""))))
 	var font_entry: Dictionary = (credits.get("fonts", []) as Array)[0]
 	assert_string_contains(font_entry.get("notice_zh", ""), "OFL")
 	var icon_entries: Array = credits.get("icons", [])

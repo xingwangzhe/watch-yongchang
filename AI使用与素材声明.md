@@ -9,11 +9,11 @@
 
 | 项目 | 内容 |
 |---|---|
-| 文档版本 | v1.23 |
+| 文档版本 | v1.24 |
 | 更新日期 | 2026-11-23 |
-| 适用阶段 | 资料收集、设计、Godot 可玩原型、美术重构、UI/HUD、音频与装饰、永昌堡地形重构 / 定时出兵重构 / 侧栏与滚幕、**明代兵种精灵重绘**、**主菜单动态夜景**、**原创明式抗倭瓦片**、**原创主角与十六类倭寇精灵**、**MOSS-TTS-Nano 剧情语音** 阶段 |
+| 适用阶段 | 资料收集、设计、Godot 可玩原型、美术重构、UI/HUD、音频与装饰、永昌堡地形重构 / 定时出兵重构 / 侧栏与滚幕、**明代兵种精灵重绘**、**主菜单动态夜景**、**原创明式抗倭瓦片**、**原创主角与十六类倭寇精灵**、**MOSS-TTS-Nano 剧情语音**、**CC0 战斗 BGM 与全事件音效** 阶段 |
 | 对应赛事要求 | 2026 开源游戏开发大赛 第五节「内容要求」、第六节「提交材料」、第八节「Dora 开源社区奖」 |
-| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（含 UI 素材、已删除的 11 组旧兵种序列帧记录、第三方音频 1 BGM + 9 音效、第三方 UI 装饰 10 张成品、**原创明式抗倭瓦片 80 格（地形 32 / 建筑 32 / 道具 16）**、历史 DCSS 地形图块 106 张及索引/文档/脚本条目） |
+| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（含 UI 素材、已删除的 11 组旧兵种序列帧记录、第三方音频 3 BGM + 20 音效、第三方 UI 装饰 10 张成品、**原创明式抗倭瓦片 80 格（地形 32 / 建筑 32 / 道具 16）**、历史 DCSS 地形图块 106 张及索引/文档/脚本条目） |
 | 署名呈现 | 游戏内关于页电影滚幕 `game/scenes/about.tscn` 与片尾滚幕 `game/scenes/credits.tscn`，数据源 `game/data/credits.json`，逐项含可点击来源链接 |
 
 > 本声明按赛事规则「须申报赛前已有的代码、工具与素材；作品原创，素材来源与授权清晰」「鼓励 AI 辅助创作；使用时须如实说明工具、用途、生成内容与人工修改情况」编制。
@@ -26,7 +26,7 @@
 1. **赛前已有的代码、工具与素材**：无。本项目于 2026-11-22 从空目录初始化，所有设计文档、数据表与素材均在本届开发期内产生。
 2. **作品原创性**：游戏概念《守望·永昌》、四阶兵种体系、文化机制转译、关卡结构与数值框架为本项目原创，未使用任何已基本完成的旧项目或换皮内容。
 3. **第三方素材进入成品比例**：当前重构场景的地形使用**项目原创明式抗倭瓦片 80 格**（地形 32 / 建筑 32 / 道具 16，32×32，CC BY 4.0），由 `pixel-art/yongchang_tiles/build.py` 程序化绘制，不使用日式瓦片或日式识别物。历史 **Dungeon Crawl Stone Soup（DCSS）CC0 图块 106 张**仍保留在 `game/assets/tiles/dcss/` 作参考，但当前重构场景未引用。角色为**项目原创程序化像素精灵**：主角戚继光 64×64×4 帧，倭寇 16 类各 48×48×4 姿态，不依赖第三方角色骨架；造型按明代短褐、交领袍、罩甲、毡帽、头巾、铁盔、藤盔、乌纱帽、藤牌、腰刀、手铳、令旗与倭寇头巾、阵笠、铁兜、胴丸、袴、打刀、种子岛火绳枪重绘。组委会提供的素材包与官网图片仍仅用于文化考据，未直接嵌入成品。**原 v2 采用的 RWX 派生切图与旧 Hard Vacuum 图块均已全部移除**。
-4. **AI 生成素材进入成品比例**：当前成品中的 AI 生成部分为 UI 图标与面板；旧塔防建筑两套共 30 张 PNG 已从成品、原始素材与授权清单中清理，早期批次 27 张 PNG 及其根目录旧兵种图已删除，不再作为当前兵种成品。当前角色/敌兵外观为 CharacterForge 程序化合成；明式抗倭瓦片为**程序化像素绘制**（非扩散模型生图、无第三方角色骨架），BGM、音效、字体与部分 UI 装饰为第三方开放许可素材。
+4. **AI 生成素材进入成品比例**：当前成品中的 AI 生成部分为 UI 图标与面板；旧塔防建筑两套共 30 张 PNG 已从成品、原始素材与授权清单中清理，早期批次 27 张 PNG 及其根目录旧兵种图已删除，不再作为当前兵种成品。当前角色/敌兵外观为 CharacterForge 程序化合成；明式抗倭瓦片为**程序化像素绘制**（非扩散模型生图、无第三方角色骨架），BGM、音效、字体与部分 UI 装饰为第三方开放许可素材；战斗 BGM 与新增点击/事件/战斗音效均为 CC0。
 5. **许可策略**：项目代码采用 **GPL-3.0-or-later**（许可证全文见仓库根目录 `LICENSE`），原创非代码资产采用 **CC BY 4.0**，第三方内容保留原许可（CC0 / CC-BY 3.0 / OFL 1.1）并逐项署名；全部署名以电影式片尾滚幕呈现，条目可点击溯源。
 
 ---
@@ -45,9 +45,9 @@
 | **PIL / Pillow** | 图片后处理 | 缩略图、3 张联系表、透明背景素材 | 人工编写后处理脚本：边缘 flood fill 去米色背景、去右下角水印、裁切留白、nearest 缩放至 512×512 RGBA、统一命名 |
 | **Bun / TypeScript / Sharp** | 历史原创像素兵种生成 | 11 组 64×64 RGBA 行走/攻击/静态帧；按明代与倭寇服饰、甲胄、武器参数绘制；现已删除，不再进入成品 | 人工确定兵种轮廓、帽式、甲片、武器位置、帧数与配色；逐帧联系表和主视口截图验收；后续角色改用 CharacterForge |
 | **Pixel Art Studio**（MIT，`skills/pixel-art-studio/`） | 新像素素材生成 | 程序化绘制角色、兵器、图块与动画帧；重建期起使用。2026-11-23 新增明式抗倭 32×32 瓦片图集（地形 32 / 建筑 32 / 道具 16），以及主角戚继光 64×64×4 帧、16 类倭寇 48×48×4 姿态 | 人工定画布尺寸、调色板、轮廓规则与帧数；每轮渲染后看图自检并修改 `build.py`；瓦片按浙南沿海抗倭堡垒考据确定石墙、黛瓦、白灰墙、红漆门、马头墙与水关形制；角色按明代与倭寇服饰、甲胄、武器参数逐类设定 |
-| **ffmpeg** | 素材检查与音频转换 | 抽帧验收板；第三方音频响度归一化、截短、OGG 转码 | 人工查看并判断帧间一致性；人工审校音频转换参数 |
+| **ffmpeg / ffprobe** | 素材检查与音频转换 | 抽帧验收板；第三方音频响度归一化、截短、OGG 转码；新增音频时长与格式核验 | 人工查看并判断帧间一致性；人工审校音频转换参数；逐条核对新增 OGG 时长、声道与采样率 |
 | **MOSS-TTS-Nano 100M ONNX / Rust ONNX 运行时** | 剧情旁白与角色对白 | 9 段中文 + 9 段英文对白，共 18 个 OGG；旁白 Lingyu，汤和/王陆 Junhao；模型内置中文预置音色 | 人工审校史实、制度、民俗、演绎四类台词与 source_ref；按标点分句、压缩模型插入的长静音、补 0.28–0.55 秒短停顿；逐条检查时长、峰值与资源路径；生成脚本 `scripts/generate_voice.ts` |
-| **OpenGameArt.org 素材采集** | 第三方音频素材获取 | BGM「Samurai Nights」及 9 个 CC0 音效原始文件（curl 直链下载） | 人工/助手逐项核查页面许可标注、作者与来源 URL；仅采用 CC0 或 CC-BY（可商用）素材 |
+| **OpenGameArt.org / Kenney.nl 素材采集** | 第三方音频素材获取 | BGM「Samurai Nights」「Hard Battle 1」及 20 个 CC0 音效原始文件（curl / Kenney 签名下载） | 人工/助手逐项核查页面许可标注、作者与来源 URL；仅采用 CC0 或 CC-BY（可商用）素材；Kenney UI Audio 与 Impact Sounds 均复核为 CC0 1.0 |
 
 **未使用**：第三方付费素材库、未授权网络图片、他人游戏源码、生成式音乐。
 **已使用生成式语音**：仅限 MOSS-TTS-Nano 本地推理生成的剧情对白，模型权重不进入成品，音频按本声明与 `素材授权清单.csv` 登记。
@@ -87,9 +87,9 @@
 > **补充（2026-11-23，v1.22 阵营隔离）**：新增模块化角色锻造系统，
 > 源文件 `pixel-art/character_forge/build.py`，导出 `body_base.png`、`outfits*.png`、
 > `headgear*.png`、`backgear.png`、`weapons.png` 与 `offhands.png` 共九张 128×128 分页图集，
-> 每页最多 128 行，每行 48 帧；4 肤色 × 16 服装 × 12 头饰 × 4 背挂 × 59 套主副手组合，
-> 原始组合 181,248 条；按阵营隔离后明军 **33,408** 种、倭寇 **15,360** 种，合法合计
-> **48,768** 种。武器含刀、枪、剑、戟、斧、钺、钩、叉、盾、弓、弩、手铳、龙灯、令旗、
+> 每页最多 128 行，每行 48 帧；4 肤色 × 16 服装 × 14 头饰 × 5 背挂 × 59 套主副手组合，
+> 原始组合 264,320 条；按阵营隔离后明军 **59,392** 种、倭寇 **15,360** 种，合法合计
+> **74,752** 种。武器含刀、枪、剑、戟、斧、钺、钩、叉、盾、弓、弩、手铳、龙灯、令旗、
 > 狼筅、戚家刀、镋钯、倭刀与藤牌；明军专属与倭寇专属不得混装，通用装备可供双方组合。
 > 19 类武器各绑定 5 段具名动作：劈、斩、刺、扫、砸、勾、射、架盾等，不再只复用握法级动作；
 > 双持组合另有同种、异种、盾击各 5 段合击。肩、肘、髋、膝、踝共享同一骨架端点，
@@ -114,6 +114,16 @@
 > 同一套 CharacterForge 待机帧，序章汤和与明军也改画同一套烘焙帧。
 > 本批次同样由 Python/Pillow 程序化合成，无扩散模型生图，授权为
 > **原创非代码资产 CC BY 4.0**，署名 xingwangzhe。
+>
+> **补充（2026-11-23，v1.25 三角色参考重绘）**：按用户提供的三张 64×64 参考图，
+> 重画远射位 `agong`、龙灯位 `amei` 与旗令位 `aqi` 的脸部轮廓、体态、服装与装备。
+> 新增明军弓手软帽、龙灯朱金抹额、明军箭囊；弓手改为深青短袄与绿色绑带，
+> 龙灯改为朱红礼衣与侧向长吻龙首，旗令改为米色分层札甲、蓝色下装与宽叶枪。
+> 三人仍是同一名虚构守夜乡勇王陆的不同阵位，共享一张脸、一套骨架与肤色体系；
+> 参考图不入库、不打包。验收输出 `pixel-art/character_forge/reference_trio_actions.png`
+> 与 `reference_agong_actions.gif`、`reference_amei_actions.gif`、`reference_aqi_actions.gif`，
+> 每个角色含待机 4 帧、行走 8 帧、攻击 6 帧；仍属项目原创程序化像素绘制，
+> 授权 **原创非代码资产 CC BY 4.0**，署名 xingwangzhe。
 >
 > **补充（2026-11-23，v1.23 剧情语音）**：新增 18 个剧情语音 OGG，覆盖 9 条核心对白的中英双语。
 > 文本来自 `game/data/narrative.json`，语音清单为 `game/data/voice_lines.json`；生成工具为
@@ -143,6 +153,15 @@
 > **「Views From Atop the Jade Kings Throne」by Hitctrl（CC-BY 3.0）** 作为专属 BGM，
 > 进入关于页时停止全局菜单 BGM，返回时恢复。该曲保留原始 OGG 数据，仅在游戏内循环播放；
 > 来源、署名与修改说明已写入 `game/data/credits.json`、`素材授权清单.csv` 与本声明。
+>
+> **补充（2026-11-23，v1.24 战斗 BGM 与全事件音效）**：新增 OpenGameArt 的
+> **「Hard Battle 1」by MintoDog（CC0 1.0）**，原始 OGG 数据，循环用于 1559 正篇战斗；
+> 主菜单、选择页与守夜前场景继续使用「Samurai Nights」。新增 Kenney
+> **UI Audio**（click2 / switch3 / click4 / switch1 / switch9）与 **Impact Sounds**
+> （Soft / Punch / Plate / Generic / Bell / Metal 各一条）共 11 个 CC0 音效，
+> 用于全局按钮点击、确认/返回、经验/灯油/治疗/龙鳞拾取、事件卡、敌兵受击、普通/精英击杀、
+> 升级、冲刺与 Boss 出现。音频未改数据，仅按事件变调与节流；来源与逐文件映射见
+> `game/assets/audio/LICENSES.md`、`game/data/credits.json` 与 `素材授权清单.csv`。
 >
 > **补充（2026-11-23，主菜单动态像素夜景）**：主菜单背景改用项目内
 > `skills/pixel-art-studio` 生成，画布为 640×360 母版、统一 32 色调色板、整数 2x 最近邻导出；
@@ -320,9 +339,12 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | 素材（Title） | 作者（Author） | 来源（Source） | 许可（License） | 修改说明 |
 |---|---|---|---|---|
 | Dungeon Crawl Stone Soup **具名图块 106 张** | DCSS contributors（维护：Chris Hamons；原始美术含 DENZI 等多人） | https://opengameart.org/content/dungeon-crawl-32x32-tiles | CC0 1.0（公有领域贡献） | 原始包逐块导出为 32×32 PNG，保留 light/dark 等原始文件名；**未改色**，仅建立语义分组与确定性取块。索引 `game/assets/tiles/dcss/manifest.csv` |
-| Samurai Nights（Demo） | Maik Hoffmann（majadroid） | https://opengameart.org/content/samurai-nights | CC BY 3.0（亦提供 CC-BY 4.0 / OGA-BY 3.0） | MP3 → OGG Vorbis 重编码（主菜单/战斗 BGM） |
+| Samurai Nights（Demo） | Maik Hoffmann（majadroid） | https://opengameart.org/content/samurai-nights | CC BY 3.0（亦提供 CC-BY 4.0 / OGA-BY 3.0） | MP3 → OGG Vorbis 重编码（主菜单/选择页 BGM） |
+| Hard Battle 1 | MintoDog | https://opengameart.org/content/hard-battle-1 | CC0 1.0 | 原始 OGG；未改音频数据；1559 正篇战斗 BGM 循环播放 |
 | Views From Atop the Jade Kings Throne | Hitctrl | https://opengameart.org/content/views-from-atop-the-jade-kings-throne | CC BY 3.0 | 原始 OGG；未改音频数据；关于页滚幕 BGM 循环播放 |
 | Battle Sound Effects: Bow / RPG Sound Pack / 3 Melee Sounds / RPG Audio / Sound Pack 01 | ogrebane / artisticdude / remaxim / Kenney / wobbleboxx | https://opengameart.org/content/battle-sound-effects 等（逐项见 `generated/audio_thirdparty/LICENSES.md`） | CC0（多许可包选用 CC0） | 响度归一化、Alarm 截短 2.2s、OGG 转码（游戏内 9 个事件音效） |
+| Kenney UI Audio | Kenney | https://kenney.nl/assets/ui-audio | CC0 1.0 | 原始 OGG；选取 click2 / switch3 / click4 / switch1 / switch9；全局点击、确认、返回、拾取与事件提示 |
+| Kenney Impact Sounds | Kenney | https://kenney.nl/assets/impact-sounds | CC0 1.0 | 原始 OGG；选取 Soft / Punch / Plate / Generic / Bell / Metal 各一条；敌兵受击、击杀、精英击杀、升级、冲刺与 Boss 提示 |
 | golden-ui / Free UI Asset Pack 1 | buch / ctatz | https://opengameart.org/content/golden-ui ；https://opengameart.org/content/free-ui-asset-pack-1 | CC0 | 面板精灵裁切（九宫格）；白色符号染金色缩放 64×64（游戏内 UI 装饰与图标，详见 `generated/ui_thirdparty/LICENSES.md`） |
 | 霞鹜文楷 LXGW WenKai | LXGW（落霞孤鹜） | https://github.com/lxgw/LxgwWenKai | SIL Open Font License 1.1 | 未修改字体文件；随包 `game/assets/fonts/OFL.txt` |
 
@@ -334,7 +356,9 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
   > Terrain tiles from "Dungeon Crawl Stone Soup" by DCSS contributors, dedicated to the public domain under CC0 1.0. Source: https://opengameart.org/content/dungeon-crawl-32x32-tiles. Changes: exported as 32x32 PNG tiles and grouped semantically; colours unmodified.
   > Music: "Samurai Nights" by Maik Hoffmann (majadroid), licensed CC-BY 3.0. Source: https://opengameart.org/content/samurai-nights. Changes: re-encoded to Ogg Vorbis.
   > Music: "Views From Atop the Jade Kings Throne" by Hitctrl, licensed CC-BY 3.0. Source: https://opengameart.org/content/views-from-atop-the-jade-kings-throne. Changes: none; looped in-game.
+  > Music: "Hard Battle 1" by MintoDog, dedicated to the public domain under CC0 1.0. Source: https://opengameart.org/content/hard-battle-1. Changes: none; looped in-game.
   > Sound effects from OpenGameArt.org, CC0: Bow (ogrebane), Melee Sound (remaxim), Chop (Kenney), Sword Unsheath / Metal Ringing (artisticdude), Rise01 / Alarm / Upper01 / Downer01 (wobbleboxx).
+  > Sound effects from Kenney UI Audio and Impact Sounds, CC0 1.0. Source: https://kenney.nl/assets/ui-audio and https://kenney.nl/assets/impact-sounds. Changes: none; selected files, pitch variation, and event throttling in-engine.
   > Font: LXGW WenKai by LXGW, licensed SIL OFL 1.1. Source: https://github.com/lxgw/LxgwWenKai.
   > UI: golden-ui (buch, CC0), Free UI Asset Pack 1 (ctatz, CC0).
 - 合规说明：DCSS 图块为 CC0 1.0 公有领域贡献，允许商用与改编且不强制署名；本项目仍按 TASL（Title/Author/Source/License）完整披露，并在游戏内滚幕给出可点击链接。
@@ -355,7 +379,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 
 1. **项目代码**：原创代码采用 **GPL-3.0-or-later**，许可证全文见仓库根目录 `LICENSE`。任何分发或衍生作品须以同一许可开源并提供对应源码。
 2. **原创非代码资产**：设计文档、数值表、AI 生成并后处理的图片采用 **CC BY 4.0**。转载须署名并注明许可。
-3. **第三方内容**：当前重构场景的地形为项目原创明式抗倭瓦片 80 格（CC BY 4.0），不含第三方瓦片；历史 DCSS CC0 图块 106 张保留作参考但当前场景未引用。角色序列帧为项目原创像素资产（CC BY 4.0），不含第三方角色骨架；成品音频引入 CC-BY 3.0 BGM「Samurai Nights」（majadroid）、「Views From Atop the Jade Kings Throne」（Hitctrl）与 CC0 音效（OpenGameArt 多作者）；字体为 OFL 1.1 霞鹜文楷；UI 装饰为 CC0。均保留原许可并按 TASL 署名，详见 5.4、5.5 与各第三方目录下的 `LICENSES.md`。
+3. **第三方内容**：当前重构场景的地形为项目原创明式抗倭瓦片 80 格（CC BY 4.0），不含第三方瓦片；历史 DCSS CC0 图块 106 张保留作参考但当前场景未引用。角色序列帧为项目原创像素资产（CC BY 4.0），不含第三方角色骨架；成品音频引入 CC-BY 3.0 BGM「Samurai Nights」（majadroid）、「Views From Atop the Jade Kings Throne」（Hitctrl），CC0 战斗 BGM「Hard Battle 1」（MintoDog），以及 CC0 音效（OpenGameArt 多作者、Kenney UI Audio、Kenney Impact Sounds）；字体为 OFL 1.1 霞鹜文楷；UI 装饰为 CC0。均保留原许可并按 TASL 署名，详见 5.4、5.5 与 `game/assets/audio/LICENSES.md`。
 4. **署名呈现**：全部署名以关于页/片尾电影滚幕（自然滚动、滚轮接管、来源链接可点击）在游戏内呈现，数据源 `game/data/credits.json`，与 `素材授权清单.csv` 一一对应。
 5. **赛事资料**：主题、规则、文化素材的权利归组委会及相关权利人；本项目引用仅限本届参赛用途。
 6. **商标与标识**：官网合作伙伴标识未用于成品，不构成任何授权或背书表示。
