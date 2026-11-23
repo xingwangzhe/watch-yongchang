@@ -32,6 +32,9 @@ pixel-art/**/*_study/
 # game-icons.net 下载缓存（筛选后再复制到 game/assets，未采用的文件不入库）
 generated/game_icons/
 
+# 地图瓦片候选包（仅下载审视，未采用的包与文件不入库）
+generated/tileset_candidates/
+
 # CI 工具与构建产物
 .tools/
 artifacts/
