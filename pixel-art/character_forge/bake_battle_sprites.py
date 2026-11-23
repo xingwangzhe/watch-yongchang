@@ -30,6 +30,9 @@ CHARACTER_DATA = ROOT / "game" / "data" / "characters.json"
 OUTPUT_ROOT = ROOT / "game" / "assets" / "units" / "forge"
 ENEMY_CONTACT_SHEET = Path(__file__).resolve().parent / "enemy_roster.png"
 PLAYER_CONTACT_SHEET = Path(__file__).resolve().parent / "player_roster.png"
+REFERENCE_TRIO_SHEET = Path(__file__).resolve().parent / "reference_trio_actions.png"
+REFERENCE_TRIO_IDS = ("agong", "amei", "aqi")
+REFERENCE_TRIO_CLIPS = ("idle", "walk", "attack_1")
 
 
 def load_enemies() -> dict:
@@ -79,6 +82,91 @@ def build_contact_sheet(
         draw.text((x + 10, forge.CELL * scale + 8), enemy_id, fill=(229, 216, 189, 255))
     sheet.save(target, optimize=True)
     print(f"contact sheet -> {target.relative_to(ROOT)}")
+
+
+def build_reference_trio_sheet(
+    characters: dict,
+    atlases: dict[str, Image.Image],
+) -> None:
+    scale = 2
+    label_width = 128
+    header_height = 34
+    row_height = forge.CELL * scale + 8
+    frame_count = sum(int(forge.CLIPS[clip]["count"]) for clip in REFERENCE_TRIO_CLIPS)
+    width = label_width + frame_count * forge.CELL * scale
+    height = header_height + len(REFERENCE_TRIO_IDS) * row_height
+    sheet = Image.new("RGBA", (width, height), (8, 16, 20, 255))
+    draw = ImageDraw.Draw(sheet)
+    label_font = forge.font(17)
+    small_font = forge.font(13)
+    x = label_width
+    for clip in REFERENCE_TRIO_CLIPS:
+        clip_width = int(forge.CLIPS[clip]["count"]) * forge.CELL * scale
+        draw.text(
+            (x + 8, 8),
+            f"{clip}  {forge.CLIPS[clip]['count']}f @ {forge.CLIPS[clip]['fps']}fps",
+            fill=(229, 216, 189, 255),
+            font=small_font,
+        )
+        draw.line((x, header_height, x, height), fill=(50, 67, 72, 255), width=2)
+        x += clip_width
+
+    for row, character_id in enumerate(REFERENCE_TRIO_IDS):
+        definition = characters[character_id]
+        recipe = definition["character_recipe"]
+        y = header_height + row * row_height
+        draw.text(
+            (12, y + 26),
+            character_id,
+            fill=(235, 222, 194, 255),
+            font=label_font,
+        )
+        draw.text(
+            (12, y + 52),
+            str(definition["preset_name_en"]),
+            fill=(149, 171, 167, 255),
+            font=small_font,
+        )
+        x = label_width
+        for clip in REFERENCE_TRIO_CLIPS:
+            for frame in clip_frames(clip):
+                image = forge.compose_recipe_frame(recipe, frame, atlases)
+                image = image.resize(
+                    (forge.CELL * scale, forge.CELL * scale),
+                    Image.Resampling.NEAREST,
+                )
+                sheet.alpha_composite(image, (x, y))
+                x += forge.CELL * scale
+        draw.line((0, y + row_height, width, y + row_height), fill=(37, 52, 57, 255), width=2)
+    sheet.save(REFERENCE_TRIO_SHEET, optimize=True)
+    print(f"reference trio sheet -> {REFERENCE_TRIO_SHEET.relative_to(ROOT)}")
+
+    for character_id in REFERENCE_TRIO_IDS:
+        recipe = characters[character_id]["character_recipe"]
+        frames: list[Image.Image] = []
+        durations: list[int] = []
+        for clip in REFERENCE_TRIO_CLIPS:
+            clip_data = forge.CLIPS[clip]
+            frame_duration = max(1, round(1000 / int(clip_data["fps"])))
+            for frame in clip_frames(clip):
+                image = forge.compose_recipe_frame(recipe, frame, atlases)
+                canvas = Image.new("RGB", (forge.CELL * scale, forge.CELL * scale), (8, 16, 20))
+                enlarged = image.resize(canvas.size, Image.Resampling.NEAREST)
+                canvas.paste(enlarged, (0, 0), enlarged)
+                frames.append(canvas)
+                durations.append(frame_duration)
+        target = REFERENCE_TRIO_SHEET.with_name(
+            f"reference_{character_id}_actions.gif"
+        )
+        frames[0].save(
+            target,
+            save_all=True,
+            append_images=frames[1:],
+            duration=durations,
+            loop=0,
+            disposal=2,
+        )
+        print(f"reference gif -> {target.relative_to(ROOT)}")
 
 
 def output_path(resource_path: str) -> Path:
@@ -139,6 +227,10 @@ def main() -> None:
                 f"-> {output.relative_to(ROOT)}"
             )
         player_rows.append((character_id, walk))
+    missing_trio = [character_id for character_id in REFERENCE_TRIO_IDS if character_id not in characters]
+    if missing_trio:
+        raise ValueError(f"reference trio characters missing: {missing_trio}")
+    build_reference_trio_sheet(characters, atlases)
     build_contact_sheet(enemy_rows, ENEMY_CONTACT_SHEET)
     build_contact_sheet(player_rows, PLAYER_CONTACT_SHEET)
 
