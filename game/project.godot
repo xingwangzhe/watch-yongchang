@@ -12,18 +12,14 @@ config_version=5
 
 config/name="守望·永昌"
 run/main_scene="res://scenes/main_menu.tscn"
-config/features=PackedStringArray("4.7")
+config/features=PackedStringArray("4.7", "GL Compatibility")
 
 [autoload]
 
-EventBus="*res://scripts/autoload/event_bus.gd"
-DataDB="*res://scripts/autoload/data_db.gd"
-ResourceManager="*res://scripts/autoload/resource_manager.gd"
-GameState="*res://scripts/autoload/game_state.gd"
-SupplySystem="*res://scripts/autoload/supply_system.gd"
-AudioManager="*res://scripts/autoload/audio_manager.gd"
-GameFlow="*res://scripts/autoload/game_flow.gd"
-DisplayManager="*res://scripts/autoload/display_manager.gd"
+GameSettings="*res://scripts/autoload/game_settings.gd"
+Locale="*res://scripts/autoload/locale.gd"
+SaveSystem="*res://scripts/autoload/save_system.gd"
+AudioBus="*res://scripts/autoload/audio_bus.gd"
 
 [display]
 
@@ -33,10 +29,17 @@ window/size/resizable=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
 [gui]
 
-theme/custom="res://themes/default.tres"
+theme/custom_font="res://assets/fonts/LXGWWenKai-Regular.ttf"
 
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/canvas_textures/default_texture_filter=0
+environment/defaults/default_clear_color=Color(0.031, 0.058, 0.074, 1)

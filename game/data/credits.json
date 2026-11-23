@@ -1,314 +1,186 @@
 {
-  "license": "GPL-3.0-or-later",
-  "project": "守望 · 永昌",
-  "subtitle": "2026 OSGJ 开源游戏开发大赛参赛作品",
-  "sections": [
-    {
-      "title": "守望 · 永昌",
-      "entries": [
-        {
-          "name": "《守望 · 永昌》",
-          "role": "参赛作品",
-          "license": "代码 GPL-3.0-or-later · 原创美术与文档 CC BY 4.0",
-          "url": "https://2026gamejam.osgame.org",
-          "note": "以永昌堡抗倭史为题材的守城策略游戏"
-        },
-        {
-          "name": "主题「守 · 望」",
-          "role": "官方赛题",
-          "author": "2026 OSGJ 组委会",
-          "url": "https://2026gamejam.osgame.org",
-          "note": "主题解密、赛制与提交要求见赛事官网"
-        },
-        {
-          "name": "游戏设计 · 数值 · 关卡 · 代码 · 文案",
-          "role": "原创",
-          "license": "CC BY 4.0 / GPL-3.0-or-later",
-          "note": "2026 年赛期内从空目录完成，未使用任何赛前既有成品"
-        }
-      ]
-    },
-    {
-      "title": "源代码许可",
-      "entries": [
-        {
-          "name": "GNU General Public License v3.0 or later",
-          "role": "本项目全部源代码",
-          "license": "GPL-3.0-or-later",
-          "url": "https://www.gnu.org/licenses/gpl-3.0.html",
-          "note": "完整文本见仓库根目录 LICENSE"
-        },
-        {
-          "name": "GDScript · 场景 · 着色器",
-          "role": "游戏工程 game/",
-          "license": "GPL-3.0-or-later",
-          "note": "可自由学习、修改、再分发；衍生作品须同样以 GPL-3.0 开源"
-        }
-      ]
-    },
-    {
-      "title": "引擎与工具链",
-      "entries": [
-        {
-          "name": "Godot Engine 4.7.2",
-          "role": "游戏引擎",
-          "author": "Godot Engine contributors",
-          "license": "MIT",
-          "url": "https://godotengine.org",
-          "note": "2D/UI/音频全部由 Godot 驱动"
-        },
-        {
-          "name": "Python 3.13",
-          "role": "素材处理与构建脚本",
-          "author": "Python Software Foundation",
-          "license": "PSF-2.0",
-          "url": "https://www.python.org"
-        },
-        {
-          "name": "Pillow (PIL Fork)",
-          "role": "切图 · 去背 · 缩放 · 联系表",
-          "author": "Jeffrey A. Clark 与贡献者",
-          "license": "MIT-CMU",
-          "url": "https://python-pillow.org"
-        },
-        {
-          "name": "FFmpeg",
-          "role": "音频转码 · 响度归一化 · 抽帧验收",
-          "license": "LGPL-2.1-or-later",
-          "url": "https://ffmpeg.org"
-        },
-        {
-          "name": "Tesseract OCR",
-          "role": "文化图片文字识别",
-          "license": "Apache-2.0",
-          "url": "https://github.com/tesseract-ocr/tesseract"
-        },
-        {
-          "name": "trafilatura",
-          "role": "网页正文抽取",
-          "author": "Adrien Barbaresi",
-          "license": "Apache-2.0",
-          "url": "https://github.com/adbar/trafilatura"
-        },
-        {
-          "name": "gda (Godot Dev Assistant CLI)",
-          "role": "场景校验 · 启动预检 · 自动化断言",
-          "license": "项目自研工具",
-          "note": "项目自研工具：场景校验 / 启动预检 / 自动化断言，run-test.sh 一键调用",
-          "url": "https://github.com/"
-        }
-      ]
-    },
-    {
-      "title": "角色精灵与动画",
-      "entries": [
-        {
-          "name": "Simple animated character",
-          "role": "友军骨架：乡勇 · 弓手 · 龙灯队 · 藤牌兵 · 火铳兵 · 进士；倭寇轻装：斥候 · 火枪倭",
-          "author": "daniloMattos",
-          "license": "CC0 1.0",
-          "url": "https://opengameart.org/content/simple-animated-character",
-          "note": "抽取行走、近战与远程帧；按兵种重着色，并手工绘制短刀、弓、火绳枪、龙头、头巾、藤牌、乌纱幞头与折扇；成品为 64×64 RGBA"
-        },
-        {
-          "name": "Samurai Sprites",
-          "role": "倭寇骨架：浪人 · 藤牌武士 · 倭将",
-          "author": "sebshady",
-          "license": "CC0 1.0",
-          "url": "https://opengameart.org/content/samurai-sprites",
-          "note": "抽取 3/4 视角侧向行走与攻击帧；重着色并手工绘制藤牌、肩甲与盔饰；成品为 64×64 RGBA"
-        }
-      ]
-    },
-    {
-      "title": "地形图块",
-      "entries": [
-        {
-          "name": "Dungeon Crawl Stone Soup Tiles",
-          "role": "地形图块（城墙 · 街巷 · 水渠 · 门 · 植被）",
-          "author": "DCSS contributors（维护：Chris Hamons；原始美术含 DENZI 等多人）",
-          "license": "CC0 1.0（公有领域贡献，无需署名）",
-          "url": "https://opengameart.org/content/dungeon-crawl-32x32-tiles",
-          "note": "本项目选用墙体、地面、水体、门、植被共 106 块 32×32 图块；未改色，仅按语义分组与确定性取块。原作者放弃全部权利，此处署名出于尊重"
-        },
-        {
-          "name": "Dungeon Crawl Stone Soup（项目主页）",
-          "role": "图块来源游戏",
-          "author": "DCSS 开发团队",
-          "license": "GPL-2.0-or-later（游戏代码）· 图块为 CC0",
-          "url": "https://crawl.develz.org/",
-          "note": "本项目仅使用其 CC0 图块，未使用任何游戏代码"
-        }
-      ]
-    },
-    {
-      "title": "字体",
-      "entries": [
-        {
-          "name": "霞鹜文楷 LXGW WenKai",
-          "role": "全局中文字体（HUD · 菜单 · 滚幕）",
-          "author": "LXGW（落霞孤鹜）",
-          "license": "SIL Open Font License 1.1",
-          "url": "https://github.com/lxgw/LxgwWenKai",
-          "note": "许可全文随包：game/assets/fonts/OFL.txt"
-        }
-      ]
-    },
-    {
-      "title": "音乐",
-      "entries": [
-        {
-          "name": "Samurai Nights (Demo)",
-          "role": "主界面与战斗背景音乐",
-          "author": "Maik Hoffmann (majadroid)",
-          "license": "CC-BY 3.0",
-          "url": "https://opengameart.org/content/samurai-nights",
-          "note": "mp3 → Ogg Vorbis 重编码，其余未修改"
-        }
-      ]
-    },
-    {
-      "title": "音效",
-      "entries": [
-        {
-          "name": "Battle Sound Effects: Bow",
-          "role": "弓箭发射",
-          "author": "ogrebane",
-          "license": "CC0 1.0",
-          "url": "https://opengameart.org/content/battle-sound-effects"
-        },
-        {
-          "name": "3 Melee Sounds",
-          "role": "近战命中",
-          "author": "remaxim",
-          "license": "CC0 1.0",
-          "url": "https://opengameart.org/content/3-melee-sounds"
-        },
-        {
-          "name": "RPG Audio: Chop",
-          "role": "建造完成",
-          "author": "Kenney",
-          "license": "CC0 1.0",
-          "url": "https://opengameart.org/content/50-rpg-sound-effects"
-        },
-        {
-          "name": "RPG Sound Pack",
-          "role": "出兵 · 升级",
-          "author": "artisticdude",
-          "license": "CC0 1.0",
-          "url": "https://opengameart.org/content/rpg-sound-pack"
-        },
-        {
-          "name": "Sound Pack 01",
-          "role": "波次警报 · 胜利 · 失败",
-          "author": "wobbleboxx",
-          "license": "CC0 1.0",
-          "url": "https://opengameart.org/content/level-up-power-up-coin-get-13-sounds"
-        }
-      ]
-    },
-    {
-      "title": "界面装饰",
-      "entries": [
-        {
-          "name": "golden-ui",
-          "role": "九宫格金框面板",
-          "author": "buch",
-          "license": "CC0 1.0",
-          "url": "https://opengameart.org/content/golden-ui"
-        },
-        {
-          "name": "Free UI Asset Pack 1",
-          "role": "按钮符号图标（播放 · 设置 · 信息 · 关闭 · 暂停 · 音量 · 静音 · 确认 · 奖章）",
-          "author": "ctatz",
-          "license": "CC0 1.0",
-          "url": "https://opengameart.org/content/free-ui-asset-pack-1",
-          "note": "白色符号按项目金色重着色"
-        }
-      ]
-    },
-    {
-      "title": "AI 生成内容",
-      "entries": [
-        {
-          "name": "WorkBuddy ImageGen",
-          "role": "建筑动画 · UI 图标与面板",
-          "license": "本项目原创非代码资产 CC BY 4.0",
-          "note": "提示词与风格基线由人工设定；生成后经人工去背、切帧、缩放与逐张验收"
-        },
-        {
-          "name": "WorkBuddy 会话助手（大语言模型）",
-          "role": "资料归纳 · 设计文档 · 数值表 · 代码辅助",
-          "note": "设计方向与文化考据由人工确认；全部 AI 用法见《AI使用与素材声明.md》",
-          "license": "本项目原创内容 CC BY 4.0",
-          "url": "https://www.workbuddy.cn"
-        }
-      ]
-    },
-    {
-      "title": "文化资料",
-      "entries": [
-        {
-          "name": "《永昌堡十三进士与抗倭纪略》",
-          "role": "城池形制 · 抗倭史实考据",
-          "author": "王靖岳 · 王身康 编著 · 温州市龙湾区永昌堡文化研究会",
-          "url": "https://2026gamejam.osgame.org/downloads/yongchang-fort.pdf",
-          "note": "组委会公开参考资料，仅作考据，不直接嵌入成品"
-        },
-        {
-          "name": "汤和信俗素材包",
-          "role": "拼字龙灯 · 巡游民俗图像参考",
-          "license": "组委会提供，仅限赛事使用",
-          "url": "https://2026gamejam.osgame.org/downloads/tanghe-customs.zip",
-          "note": "用于文化元素提炼，不直接嵌入成品"
-        }
-      ]
-    },
-    {
-      "title": "设计参考（未复制代码）",
-      "entries": [
-        {
-          "name": "OpenHV",
-          "role": "侧栏 / 小地图 / 选择与建造链路的交互参考",
-          "author": "OpenHV contributors",
-          "license": "GPL-3.0",
-          "url": "https://github.com/OpenHV/OpenHV",
-          "note": "仅阅读其规则与界面定义并重写实现，未复制代码"
-        },
-        {
-          "name": "OpenRA",
-          "role": "生产队列 · 侧栏逻辑 · 雷达组件结构参考",
-          "author": "OpenRA contributors",
-          "license": "GPL-3.0",
-          "url": "https://github.com/OpenRA/OpenRA",
-          "note": "仅阅读引擎源码理解链路，未复制代码"
-        },
-        {
-          "name": "Mindustry",
-          "role": "定时出兵（waveInterval / waveSpacing）节奏参考",
-          "author": "Anuken 与贡献者",
-          "license": "GPL-3.0",
-          "url": "https://github.com/Anuken/Mindustry",
-          "note": "借鉴设计思路，代码为独立实现"
-        }
-      ]
-    },
-    {
-      "title": "致谢",
-      "entries": [
-        {
-          "name": "2026 OSGJ 开源游戏开发大赛组委会",
-          "role": "赛事主办",
-          "url": "https://2026gamejam.osgame.org"
-        },
-        {
-          "name": "所有开源素材作者",
-          "role": "Dungeon Crawl Stone Soup · daniloMattos · sebshady · OpenGameArt 社区 · 霞鹜文楷",
-          "note": "没有这些开放许可的作品，独立开发者无法完成一款完整的游戏",
-          "license": "见上述各章节",
-          "url": "https://opengameart.org"
-        }
-      ]
-    }
-  ]
+	"title": "守望·永昌",
+	"subtitle": {
+		"zh": "2026 OSGJ 开源游戏开发大赛参赛作品",
+		"en": "A 2026 OSGJ open-source game development entry"
+	},
+	"about": {
+		"sections": [
+			{
+				"title_zh": "作品",
+				"title_en": "The Game",
+				"lines_zh": [
+					"《守望 · 永昌》",
+					"Vampire Survivors-like 割草生存 Roguelite",
+					"主题：守 · 望 / 永昌堡与明代抗倭记忆",
+					"16 分钟单局 · 自动攻击 · 升级三选一",
+					"Godot 4.7.2-stable · GDScript",
+					"策划、程序、像素美术与整合：xingwangzhe",
+					"2026 OSGJ 开源游戏开发大赛"
+				],
+				"lines_en": [
+					"WATCH · YONGCHANG",
+					"A Vampire Survivors-like survival roguelite",
+					"Theme: Guard · Gaze / Yongchang Fort and coastal defense",
+					"16-minute runs · auto-attack · pick one of three upgrades",
+					"Godot 4.7.2-stable · GDScript",
+					"Design, code, pixel art, and integration: xingwangzhe",
+					"2026 OSGJ Open Source Game Development entry"
+				]
+			},
+			{
+				"title_zh": "致谢",
+				"title_en": "Thanks",
+				"lines_zh": [
+					"感谢所有公开资料、非遗记录与开源工具的作者。",
+					"感谢所有试玩、反馈与守望这场比赛的人。"
+				],
+				"lines_en": [
+					"Thanks to everyone who published the records, heritage notes, and open-source tools used here.",
+					"Thanks to everyone who playtested, gave feedback, or kept watch with us."
+				],
+				"entries": [
+					{
+						"title_zh": "2026 OSGJ 开源游戏开发大赛官网",
+						"title_en": "2026 OSGJ Open Source Game Development site",
+						"note_zh": "赛事主题「守 · 望」、题解与六个创作方向。",
+						"note_en": "The Guard · Gaze theme, event brief, and six creative directions.",
+						"url": "https://2026gamejam.osgame.org/"
+					},
+					{
+						"title_zh": "永昌堡资料与汤和信俗素材包",
+						"title_en": "Yongchang Fort records and the Tang He tradition package",
+						"note_zh": "官网题解入口；本地整理见 docs/02-主题资料 与 docs/06-资料文本化。",
+						"note_en": "Linked from the official theme brief; local notes live in docs/02-主题资料 and docs/06-资料文本化.",
+						"url": "https://2026gamejam.osgame.org/"
+					},
+					{
+						"title_zh": "OpenGameArt 音乐作者 majadroid 与 Hitctrl",
+						"title_en": "OpenGameArt musicians majadroid and Hitctrl",
+						"note_zh": "CC-BY 3.0；具体曲目、许可与来源见下方“关于页音乐”。",
+						"note_en": "CC-BY 3.0; track-specific licenses and sources appear under About Music below.",
+						"url": "https://opengameart.org/"
+					},
+					{
+						"title_zh": "霞鹜文楷 LXGW / Klee Project",
+						"title_en": "LXGW WenKai by LXGW / Klee Project",
+						"note_zh": "OFL 1.1；版权与保留字体名见下方“字体”。",
+						"note_en": "OFL 1.1; copyright and reserved font names appear under Fonts below.",
+						"url": "https://github.com/lxgw/LxgwWenKai"
+					}
+				]
+			},
+			{
+				"title_zh": "文化参考",
+				"title_en": "Cultural References",
+				"lines_zh": [
+					"文化不是贴图：阵法、灯火、龙灯拼字与百家宴士气进入玩法。",
+					"赛事创作方向取自官网题解：抗倭叙事、城堡防御、家族传承、节庆巡游、水乡生活、未来想象。",
+					"资料索引：docs/06-资料文本化/AI资料索引与知识图谱.md。",
+					"设计取舍：design/游戏设计文档-GDD.md。"
+				],
+				"lines_en": [
+					"Culture is not wallpaper: formations, lantern light, dragon-lantern characters, and feast morale shape the rules.",
+					"The event brief's creative directions: coastal resistance, castle defense, family heritage, festival processions, water-town life, and future imaginings.",
+					"Index: docs/06-资料文本化/AI资料索引与知识图谱.md.",
+					"Design decisions: design/游戏设计文档-GDD.md."
+				],
+				"entries": [
+					{
+						"title_zh": "永昌堡城防与抗倭地方史",
+						"title_en": "Yongchang Fort defenses and coastal resistance",
+						"note_zh": "docs/02-主题资料、docs/06-资料文本化。",
+						"note_en": "docs/02-主题资料 and docs/06-资料文本化.",
+						"url": "https://2026gamejam.osgame.org/"
+					},
+					{
+						"title_zh": "汤和信俗巡游与拼字龙灯",
+						"title_en": "Tang He procession and character-forming dragon lantern",
+						"note_zh": "官网题解入口；原始素材仅用于文化考据，未直接嵌入成品。",
+						"note_en": "Linked from the official theme brief; source material was used for research only and not embedded in the build.",
+						"url": "https://2026gamejam.osgame.org/"
+					},
+					{
+						"title_zh": "2025 OSGJ 历届赛事",
+						"title_en": "2025 OSGJ event archive",
+						"note_zh": "往届赛事与作品索引。",
+						"note_en": "Past event and project index.",
+						"url": "https://2025gamejam.osgame.org/"
+					}
+				]
+			},
+			{
+				"title_zh": "版权与许可",
+				"title_en": "Copyright & Licenses",
+				"lines_zh": [
+					"© 2026 xingwangzhe。保留署名权。",
+					"代码：GPL-3.0-or-later。",
+					"原创非代码资产：CC BY 4.0。",
+					"第三方音乐、字体、音效保留原许可；署名与来源见上方条目。",
+					"霞鹜文楷：OFL 1.1，版权归 LXGW 与 Klee Project Authors，全文见 game/assets/fonts/OFL.txt。",
+					"本作与永昌堡、汤和信俗相关机构无隶属关系；历史资料仅用于文化考据与创作。"
+				],
+				"lines_en": [
+					"© 2026 xingwangzhe. Attribution rights reserved.",
+					"Code: GPL-3.0-or-later.",
+					"Original non-code assets: CC BY 4.0.",
+					"Third-party music, fonts, and sound effects keep their original licenses; see the entries above.",
+					"LXGW WenKai: OFL 1.1, copyright LXGW and the Klee Project Authors; full text in game/assets/fonts/OFL.txt.",
+					"This work is not affiliated with Yongchang Fort or Tang He tradition institutions; historical material is used for cultural research and creative work."
+				]
+			}
+		]
+	},
+	"music": [
+		{
+			"title": "Samurai Nights",
+			"artist": "Maik Hoffmann (majadroid)",
+			"license": "CC-BY 3.0",
+			"url": "https://opengameart.org/content/samurai-nights",
+			"file": "res://assets/audio/bgm_watch.ogg",
+			"usage_zh": "主菜单、战斗与守夜场景",
+			"usage_en": "Main menu, combat, and night-watch scenes",
+			"changes_zh": "MP3 转码为 Ogg Vorbis；循环播放",
+			"changes_en": "MP3 re-encoded to Ogg Vorbis; looped"
+		},
+		{
+			"title": "Views From Atop the Jade Kings Throne",
+			"artist": "Hitctrl",
+			"license": "CC-BY 3.0",
+			"url": "https://opengameart.org/content/views-from-atop-the-jade-kings-throne",
+			"file": "res://assets/audio/bgm_about.ogg",
+			"usage_zh": "关于页专属滚幕音乐",
+			"usage_en": "About-page credits music",
+			"changes_zh": "原始 OGG 文件；循环播放",
+			"changes_en": "Original OGG file; looped"
+		}
+	],
+	"fonts": [
+		{
+			"title": "LXGW WenKai / 霞鹜文楷",
+			"artist": "LXGW",
+			"license": "SIL Open Font License 1.1",
+			"url": "https://github.com/lxgw/LxgwWenKai",
+			"file": "res://assets/fonts/LXGWWenKai-Regular.ttf",
+			"notice_zh": "Copyright 2021-2026 LXGW；Copyright 2020 The Klee Project Authors。保留字体名称：霞鹜、霞鶩、落霞孤鹜、落霞孤鶩、LXGW。许可全文：game/assets/fonts/OFL.txt。",
+			"notice_en": "Copyright 2021-2026 LXGW; Copyright 2020 The Klee Project Authors. Reserved font names: 霞鹜, 霞鶩, 落霞孤鹜, 落霞孤鶩, LXGW. Full license: game/assets/fonts/OFL.txt."
+		}
+	],
+	"tools": [
+		{
+			"title": "Godot Engine 4.7.2",
+			"license": "MIT",
+			"url": "https://godotengine.org"
+		},
+		{
+			"title": "GUT 9.7.1",
+			"license": "MIT",
+			"url": "https://github.com/bitwes/Gut"
+		},
+		{
+			"title": "Bun",
+			"license": "MIT",
+			"url": "https://bun.sh"
+		}
+	]
 }

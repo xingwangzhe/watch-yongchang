@@ -1,13 +1,20 @@
 # 《守望·永昌》AI 使用与素材声明
 
+> **2026-11-23 重建状态**：旧守城玩法的代码、测试、`tools/` 流水线与设计文档已全部移除。
+> 游戏按 `design/游戏设计文档-GDD.md` 重建为 Vampire Survivors-like Roguelite。
+> 基础 UI 骨架（主菜单、设置、双语、自动存档、占位开局）已重建；M0 玩法仍待补。
+> 下文第 5–8 节中的旧代码与工具条目为历史记录，当前 UI 代码见
+> `game/scripts/autoload/`、`game/scripts/ui/` 与 `game/tests/unit/`；
+> 保留的 `game/assets/` 美术、音频、字体仍按原条目授权使用。
+
 | 项目 | 内容 |
 |---|---|
-| 文档版本 | v1.9 |
-| 更新日期 | 2026-11-22 |
-| 适用阶段 | 资料收集、设计、Godot 可玩原型、美术重构、UI/HUD、音频与装饰、**永昌堡地形重构 / 定时出兵重构 / 侧栏与滚幕** 阶段 |
+| 文档版本 | v1.14 |
+| 更新日期 | 2026-11-23 |
+| 适用阶段 | 资料收集、设计、Godot 可玩原型、美术重构、UI/HUD、音频与装饰、永昌堡地形重构 / 定时出兵重构 / 侧栏与滚幕、**明代兵种精灵重绘** 阶段 |
 | 对应赛事要求 | 2026 开源游戏开发大赛 第五节「内容要求」、第六节「提交材料」、第八节「Dora 开源社区奖」 |
-| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（118 条：含建筑与 UI 素材、11 组 CC0 角色序列帧、第三方音频 1 BGM + 9 音效、第三方 UI 装饰 10 张成品、DCSS 地形具名图块 106 张及索引/文档/脚本条目） |
-| 署名呈现 | 游戏内电影式片尾滚幕 `game/scenes/credits.tscn`，数据源 `game/data/credits.json`，逐项含可点击来源链接 |
+| 逐项清单 | [素材授权清单.csv](素材授权清单.csv)（含建筑与 UI 素材、11 组原创角色序列帧、第三方音频 1 BGM + 9 音效、第三方 UI 装饰 10 张成品、DCSS 地形具名图块 106 张及索引/文档/脚本条目） |
+| 署名呈现 | 游戏内关于页电影滚幕 `game/scenes/about.tscn` 与片尾滚幕 `game/scenes/credits.tscn`，数据源 `game/data/credits.json`，逐项含可点击来源链接 |
 
 > 本声明按赛事规则「须申报赛前已有的代码、工具与素材；作品原创，素材来源与授权清晰」「鼓励 AI 辅助创作；使用时须如实说明工具、用途、生成内容与人工修改情况」编制。
 > 最终提交前须更新版本号、产出清单与锁定提交哈希，并补齐开发者日志。
@@ -18,8 +25,8 @@
 
 1. **赛前已有的代码、工具与素材**：无。本项目于 2026-11-22 从空目录初始化，所有设计文档、数据表与素材均在本届开发期内产生。
 2. **作品原创性**：游戏概念《守望·永昌》、四阶兵种体系、文化机制转译、关卡结构与数值框架为本项目原创，未使用任何已基本完成的旧项目或换皮内容。
-3. **第三方素材进入成品比例**：地形使用 **Dungeon Crawl Stone Soup（DCSS）CC0 图块 106 张**（墙 12 / 地面 54 / 水 26 / 门 5 / 树 9，32×32），按语义分区铺设、未重新着色；角色序列帧使用 **daniloMattos「Simple animated character」与 sebshady「Samurai Sprites」两套 CC0 原帧**，人工重着色并绘制明代乡兵与倭寇道具（详见第五节 5.4）。组委会提供的素材包与官网图片仍仅用于文化考据，未直接嵌入成品。**原 v2 采用的 RWX 派生切图与旧 Hard Vacuum 图块均已全部移除**。
-4. **AI 生成素材进入成品比例**：当前成品中的 AI 生成部分为建筑动画、UI 图标与面板；早期批次 42 张 PNG 保留在 `assets/` 作溯源，不再作为当前兵种成品。角色序列帧为第三方 CC0 原帧加人工改绘，地形、BGM、音效、字体与 UI 装饰均为第三方开放许可素材。
+3. **第三方素材进入成品比例**：地形使用 **Dungeon Crawl Stone Soup（DCSS）CC0 图块 106 张**（墙 12 / 地面 54 / 水 26 / 门 5 / 树 9，32×32），按语义分区铺设、未重新着色。角色序列帧为**项目原创 64×64 像素兵种**，不依赖第三方角色骨架；造型按明代短褐、交领袍、罩甲、毡帽、头巾、铁盔、藤盔、乌纱帽、藤牌、腰刀、手铳、令旗与倭寇头巾、阵笠、铁兜、胴丸、袴、打刀、种子岛火绳枪重绘。组委会提供的素材包与官网图片仍仅用于文化考据，未直接嵌入成品。**原 v2 采用的 RWX 派生切图与旧 Hard Vacuum 图块均已全部移除**。
+4. **AI 生成素材进入成品比例**：当前成品中的 AI 生成部分为建筑动画、UI 图标与面板；早期批次 42 张 PNG 保留在 `assets/` 作溯源，不再作为当前兵种成品。角色序列帧为**程序化像素绘制**（非扩散模型生图、无第三方角色骨架），地形、BGM、音效、字体与 UI 装饰均为第三方开放许可素材。
 5. **许可策略**：项目代码采用 **GPL-3.0-or-later**（许可证全文见仓库根目录 `LICENSE`），原创非代码资产采用 **CC BY 4.0**，第三方内容保留原许可（CC0 / CC-BY 3.0 / OFL 1.1）并逐项署名；全部署名以电影式片尾滚幕呈现，条目可点击溯源。
 
 ---
@@ -36,6 +43,8 @@
 | **tesseract（chi_sim+eng）** | 参考资料 OCR | 44 张文化图片的 OCR 文本（约 9.4 万字符） | 人工抽样核对识别结果，写入图片视觉标注与知识图谱 |
 | **trafilatura / pdftotext / ZIP+XML 解析** | 文本抽取 | 页面 Markdown、552 页永昌堡 PDF 全文、DOCX/DOC 文本 | 人工按目录归类、建立索引与实体谱 |
 | **PIL / Pillow** | 图片后处理 | 缩略图、4 张联系表、透明背景素材 | 人工编写后处理脚本：边缘 flood fill 去米色背景、去右下角水印、裁切留白、nearest 缩放至 512×512 RGBA、统一命名 |
+| **Bun / TypeScript / Sharp** | 原创像素兵种生成 | 11 组 64×64 RGBA 行走/攻击/静态帧；按明代与倭寇服饰、甲胄、武器参数绘制 | 人工确定兵种轮廓、帽式、甲片、武器位置、帧数与配色；逐帧联系表和主视口截图验收 |
+| **Pixel Art Studio**（MIT，`skills/pixel-art-studio/`） | 新像素素材生成 | 程序化绘制角色、兵器、图块与动画帧；重建期起使用 | 人工定画布尺寸、调色板、轮廓规则与帧数；每轮渲染后看图自检并修改 `build.py` |
 | **ffmpeg** | 素材检查与音频转换 | 抽帧验收板；第三方音频响度归一化、截短、OGG 转码 | 人工查看并判断帧间一致性；人工审校音频转换参数 |
 | **OpenGameArt.org 素材采集** | 第三方音频素材获取 | BGM「Samurai Nights」及 9 个 CC0 音效原始文件（curl 直链下载） | 人工/助手逐项核查页面许可标注、作者与来源 URL；仅采用 CC0 或 CC-BY（可商用）素材 |
 
@@ -48,6 +57,20 @@
 > **补充（2026-11-22 晚，v1.5 第三方 UI 装饰）**：按「装饰素材可商用 + 通用化 + 契合深底金描边风」要求，引入 OpenGameArt 两套 **CC0** 素材：**golden-ui by buch**（裁切琥珀金像素面板 `panel_gold.png` 作九宫格面板）与 **Free UI Asset Pack 1 by ctatz**（9 枚白色符号染金色 → 通用图标：播放/设置/信息/关闭/暂停/音量/静音/勾选/奖杯）。经 `tools/process_thirdparty_ui.py` 处理，`game/scripts/ui/ui_kit.gd` 作统一出口接入主菜单按钮、关于/设置/HUD 暂停与结算/事件横幅面板。TASL 逐项登记见 `generated/ui_thirdparty/LICENSES.md`。
 >
 > **补充（2026-11-22 晚，v1.4 音频来源调整）**：应素材策略要求（**长音乐/短音效优先采用 CC0 或免费可商用现成素材，脚本合成仅作兜底**），工程 `game/assets/audio/` 全部音频已更换为第三方素材：BGM 采用 OpenGameArt 的 **「Samurai Nights」by majadroid（CC-BY 3.0，二胡/笛/古琴中式器乐）**，9 个事件音效取自 OpenGameArt 的 CC0 音效包（Kenney / artisticdude / remaxim / ogrebane / wobbleboxx），经 `tools/process_thirdparty_audio.py` 响度归一化、截短与 OGG 转码后嵌入。TASL 逐项登记见 `generated/audio_thirdparty/LICENSES.md`；原合成工具 `tools/generate_audio.py` 保留为**短音效兜底方案**（当前无成品使用）。中文 UI 字体统一采用 **lxwk（霞鹜文楷 / LXGW WenKai）**，已设为 Godot 工程全局默认字体；字体许可 **SIL OFL 1.1**，完整协议文本随字体存放于 `assets/fonts/OFL.txt` 与 `game/assets/fonts/OFL.txt`。
+>
+> **补充（2026-11-23，基础 UI 骨架）**：重建的主菜单仅复用已登记资源，未新增第三方素材。
+> BGM 继续使用 **「Samurai Nights」by Maik Hoffmann（majadroid）· CC-BY 3.0**，
+> 2026-11-23 复核 OpenGameArt 页面仍标注 CC-BY 3.0，曲目为二胡等中式器乐的紧张战斗音乐；
+> 当前用于主菜单与占位开局场景循环播放，署名同步写入 `game/data/credits.json`。
+> UI 背景、印章、城楼、灯笼与月夜均由 GDScript 绘制，面板复用 `game/assets/ui/panel_dark.png`，
+> 字体继续使用霞鹜文楷（OFL 1.1）。新增代码由 Codex 生成，结构与交互由人工确认。
+>
+> **补充（2026-11-23，关于页与滚幕音乐）**：新增关于页 `game/scenes/about.tscn`，
+> 以电影滚幕自动上滚展示项目信息、致谢、参考、版权与第三方素材；首次鼠标滚轮事件即停止
+> 自动滚动，由玩家接管。关于页使用 OpenGameArt 的
+> **「Views From Atop the Jade Kings Throne」by Hitctrl（CC-BY 3.0）** 作为专属 BGM，
+> 进入关于页时停止全局菜单 BGM，返回时恢复。该曲保留原始 OGG 数据，仅在游戏内循环播放；
+> 来源、署名与修改说明已写入 `game/data/credits.json`、`素材授权清单.csv` 与本声明。
 
 ### 3.1 图像资产（`assets/` 与 `game/assets/`）
 
@@ -64,7 +87,7 @@
 
 **建筑与 UI 批次（`game/assets/`，当前成品实际使用）**
 
-> 2026-11-22 晚按统一规格重做：建筑为**正面+俯视 2.5D**。角色序列帧随后改用 CC0 原帧与人工改绘，不再使用 ImageGen 兵种成品。原始条带图存 `generated/` 供溯源。
+> 2026-11-22 晚按统一规格重做：建筑为**正面+俯视 2.5D**。2026-11-23 角色序列帧改为项目原创程序化像素绘制，不再使用 ImageGen 兵种成品，也不再套用第三方角色骨架。原始条带图存 `generated/` 供溯源。
 
 | 类别 | 数量 | 规格 | 生成方式 |
 |---|---|---|---|
@@ -73,14 +96,14 @@
 
 合计：早期批次 **42 张 PNG + 4 张 JPG**；当前 AI 成品为建筑 **15 张 PNG** 与 UI **11 张 PNG**；7 张原始条带保留溯源。
 
-**CC0 角色精灵批次（`game/assets/units/`，当前成品实际使用）**
+**原创角色精灵批次（`game/assets/units/`，当前成品实际使用）**
 
 | 类别 | 数量 | 规格 | 来源与处理 |
 |---|---|---|---|
-| 友军序列帧 | 6 组 | 64×64 RGBA，4 帧跑 + 4–5 帧攻击 + 静态 | daniloMattos CC0 原帧；重着色、去底影、绘制短刀/弓/龙头/藤牌/火铳/乌纱幞头 |
-| 倭寇序列帧 | 5 组 | 64×64 RGBA，4 帧跑 + 4–5 帧攻击 + 静态 | daniloMattos / sebshady CC0 原帧；重着色、绘制头巾/火绳枪/藤牌/盔饰 |
+| 友军序列帧 | 6 组 | 64×64 RGBA，4 帧跑 + 4–5 帧攻击 + 静态 | 项目原创像素绘制；短褐/交领袍/罩甲/毡帽/头巾/铁盔/藤盔/乌纱帽、腰刀/弓/龙灯/藤牌/手铳/令旗 |
+| 倭寇序列帧 | 5 组 | 64×64 RGBA，4 帧跑 + 4–5 帧攻击 + 静态 | 项目原创像素绘制；头巾/月代头/阵笠/铁兜、胴丸/袴、打刀/种子岛火绳枪/藤牌/太刀 |
 
-流水线：`tools/process_cc0_sprites.ts`。原始条带保存在 `generated/sprites_thirdparty/raw/`，许可登记见 `generated/sprites_thirdparty/LICENSES.md`。
+流水线：原 `tools/generate_ming_sprites.ts` 已在清库重建时移除；现有 11 组 64×64 RGBA 帧保留为素材，联系表在 `docs/screenshots/units_2026-11-23/`。后续新素材改用 `skills/pixel-art-studio/` 重绘。
 
 **UI 素材批次（2026-11-22 晚，`game/assets/ui/`，当前 HUD 实际使用）**
 
@@ -107,6 +130,13 @@
 
 ### 3.3 代码
 
+> **当前 UI 骨架（2026-11-23）**：`game/scripts/autoload/game_settings.gd`（设置持久化）、
+> `locale.gd`（中英双语）、`save_system.gd`（自动存档）、`audio_bus.gd`（BGM 循环）、
+> `game/scripts/ui/main_menu.gd`（主菜单/设置层）、`menu_backdrop.gd`（月夜城堡绘制）、
+> `about_roll.gd`（关于页电影滚幕/滚轮接管/专属 BGM）、`run_placeholder.gd`（占位开局），
+> 以及 `game/tests/unit/test_ui_foundation.gd`。
+> 下列旧守城代码条目保留为历史记录，实际文件已移除。
+
 Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编写，人工确认架构、接口契约与逐项验收。主要文件：
 
 | 文件 | AI 参与方式 | 人工介入 |
@@ -126,7 +156,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | `game/scripts/autoload/game_flow.gd` | 场景导航：主菜单/战斗/设置切换 | 人工定界面流转与设置返回栈 |
 | `game/scripts/ui/*.gd` / `scenes/main_menu.tscn` / `scenes/settings.tscn` | 主菜单、设置、暂停面板、国风背景绘制、`ui_kit.gd` 通用装饰套件（金框面板九宫格 + CC0 图标接入） | 人工定 UI 结构、lxwk 字体统一、国风配色与交互；修复隐藏面板抢焦点 bug |
 | `tools/process_new_sprites.py` / `tools/process_ui_sprites.py` | 切帧与切图抠图脚本 | 人工调参（chroma、白底阈值、缩放尺寸） |
-| `tools/process_cc0_sprites.ts` | CC0 角色原帧抽帧、重着色与道具绘制流水线 | 人工定兵种轮廓、配色、武器位置与帧数；逐帧联系表验收 |
+| `tools/generate_ming_sprites.ts` | 原创 64×64 像素兵种行走/攻击帧生成流水线（明代友军 6 组、倭寇 5 组） | 人工定兵种轮廓、帽式、甲片、配色、武器位置与帧数；逐帧联系表与主视口截图验收 |
 | `tools/process_thirdparty_audio.py` | 第三方音频转换流水线（响度归一化、Alarm 截短、OGG 转码） | 人工定响度目标与截短时长；人工选曲与逐项映射音效 |
 | `tools/generate_audio.py` | 短音效合成兜底工具（五声音阶加法合成，当前无成品使用） | 人工定「第三方素材优先、合成兜底」策略 |
 | `tools/process_thirdparty_ui.py` | 第三方 UI 装饰流水线（golden-ui 面板裁切、ctatz 符号染金色） | 人工选源、定裁切框与金色基线；联系表人工验收 |
@@ -146,6 +176,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 5. **验收与取舍**：生成联系表逐张检查，保留可用帧；发现烽火台静态图噪点后改用帧图作为正式资源。
 6. **设计审校**：兵种数量与阶位结构参考《米拉奇战记》公开资料，人工确认口径差异（49 种分类清单 / 57 种含替换兵种）并如实记录，不做唯一化断言。
 7. **数据一致性**：设计文档中的 60 行兵种表由脚本从 CSV 生成，避免手写与数据表不一致；校验字段数、ID 唯一性与四阶各 15 种。
+8. **兵种精灵重绘**：人工否决「套用不相干角色骨架」的做法，按明代乡兵与倭寇的服饰、帽式、甲胄与武器重新设定轮廓；用 `tools/generate_ming_sprites.ts` 生成固定 64×64 帧，逐帧检查帽形、朝向、武器侧向与行走连续性，并在主视口截图中修正 `PathFollow2D` 初始 90° 旋转。
 
 ---
 
@@ -157,14 +188,25 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 - 授权：作为本项目原创非代码资产，采用 **CC BY 4.0** 许可（若申请 Dora 开源社区奖，按赛事要求执行）。
 - 权利说明：AI 生成内容的著作权认定在不同法域存在差异。本项目不主张对纯 AI 原始输出享有排他著作权；对人工提示词设计、筛选、编排、后处理所形成的汇编与衍生结果，在适用法律允许范围内主张相应权益。赛事申报中如实披露 AI 参与情况。
 
+**项目原创像素兵种（非 AI 生图）**
+
+- 范围：`game/assets/units/{xiangyong,gongshou,longdeng,tengpai,huochong,jinshi,wokou_scout,wokou_ronin,wokou_shield,wokou_gun,wokou_chief}/`。
+- 授权：原创非代码资产 **CC BY 4.0**；不依赖第三方角色骨架或第三方序列帧。
+- 生成方式：原 `tools/generate_ming_sprites.ts`（Bun + TypeScript + Sharp）程序化绘制 64×64 RGBA 像素帧；该脚本已在清库时移除，帧文件保留。
+- 造型依据：明代短褐、交领袍、罩甲、毡帽、头巾、铁盔、藤盔、乌纱帽、藤牌、腰刀、手铳、令旗；倭寇头巾、月代头、阵笠、铁兜、胴丸、袴、打刀、种子岛火绳枪。历史与民俗参考集中于 `docs/06-资料文本化/`：`AI资料索引与知识图谱.md` 的兵种文化映射、`文档文本/永昌堡-十三进士与抗倭纪略-全文.txt` 的城池与乡兵记载、`文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt` 的抗倭与龙灯背景；未直接复制参考图入成品。
+
 ### 5.2 第三方参考资料（均未进入成品）
 
 | 来源 | 内容 | 授权状态 | 使用方式 |
 |---|---|---|---|
-| 2026 OSGJ 官网下载区 | 汤和信俗素材包（`汤和信俗(11.18).zip`，含 42 JPG / 2 PNG / 3 DOCX / 1 DOC / 1 PDF） | 未见明确开放许可声明 | 解压、OCR、文本化，仅用于文化考据；原始包已从 Git 库排除 |
-| 2026 OSGJ 官网下载区 | 《永昌堡十三进士与抗倭纪略内文9.14.pdf》（552 页） | 未见明确开放许可声明 | 抽取全文用于史实考据；未复制原文入游戏 |
-| 2026 OSGJ 官网 | 站点图片、合作伙伴标识 | 原权利归各权利人 | 仅存档与界面风格参考 |
-| 2026 OSGJ 官网 | 主题加密载荷、密钥、榜单 API 数据 | 赛事官方公开信息 | 主题解读与资料归档 |
+| 2026 OSGJ 官网（https://2026gamejam.osgame.org/）下载区 | 汤和信俗素材包（`汤和信俗(11.18).zip`，含 42 JPG / 2 PNG / 3 DOCX / 1 DOC / 1 PDF） | 未见明确开放许可声明 | 解压、OCR、文本化，仅用于文化考据；原始包已从 Git 库排除 |
+| 2026 OSGJ 官网（https://2026gamejam.osgame.org/）下载区 | 《永昌堡十三进士与抗倭纪略内文9.14.pdf》（552 页） | 未见明确开放许可声明 | 抽取全文用于史实考据；未复制原文入游戏 |
+| 2026 OSGJ 官网（https://2026gamejam.osgame.org/） | 站点图片、合作伙伴标识 | 原权利归各权利人 | 仅存档与界面风格参考 |
+| 2026 OSGJ 官网（https://2026gamejam.osgame.org/） | 主题加密载荷、密钥、榜单 API 数据 | 赛事官方公开信息 | 主题解读与资料归档 |
+
+文化背景、赛事主题「守 · 望」与六个创作方向均来自
+[2026 OSGJ 开源游戏开发大赛官网](https://2026gamejam.osgame.org/)；关于页不再单列
+“参考资料”块，官网、永昌堡、汤和信俗、音乐、字体与工具来源均直接内嵌在对应致谢条目。
 
 **处理原则**：授权不明的第三方内容一律不进入成品、演示视频与封面；如需使用，须先取得权利人许可并在本声明中署名与补充许可条款。
 
@@ -178,9 +220,8 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | 素材（Title） | 作者（Author） | 来源（Source） | 许可（License） | 修改说明 |
 |---|---|---|---|---|
 | Dungeon Crawl Stone Soup **具名图块 106 张** | DCSS contributors（维护：Chris Hamons；原始美术含 DENZI 等多人） | https://opengameart.org/content/dungeon-crawl-32x32-tiles | CC0 1.0（公有领域贡献） | 原始包逐块导出为 32×32 PNG，保留 light/dark 等原始文件名；**未改色**，仅建立语义分组与确定性取块。索引 `game/assets/tiles/dcss/manifest.csv` |
-| Simple animated character | daniloMattos | https://opengameart.org/content/simple-animated-character | CC0 1.0 | 抽取 64×64 行走/近战/远程帧；按兵种重着色；手工绘制短刀、弓、火绳枪、龙头、头巾、藤牌、乌纱幞头与折扇；清底影；输出 64×64 RGBA |
-| Samurai Sprites | sebshady | https://opengameart.org/content/samurai-sprites | CC0 1.0 | 抽取 48×48 侧向行走/攻击帧；重着色；手工绘制藤牌、肩甲与盔饰；输出 64×64 RGBA |
-| Samurai Nights（Demo） | Maik Hoffmann（majadroid） | https://opengameart.org/content/samurai-nights | CC BY 3.0（亦提供 CC-BY 4.0 / OGA-BY 3.0） | MP3 → OGG Vorbis 重编码（游戏内 BGM） |
+| Samurai Nights（Demo） | Maik Hoffmann（majadroid） | https://opengameart.org/content/samurai-nights | CC BY 3.0（亦提供 CC-BY 4.0 / OGA-BY 3.0） | MP3 → OGG Vorbis 重编码（主菜单/战斗 BGM） |
+| Views From Atop the Jade Kings Throne | Hitctrl | https://opengameart.org/content/views-from-atop-the-jade-kings-throne | CC BY 3.0 | 原始 OGG；未改音频数据；关于页滚幕 BGM 循环播放 |
 | Battle Sound Effects: Bow / RPG Sound Pack / 3 Melee Sounds / RPG Audio / Sound Pack 01 | ogrebane / artisticdude / remaxim / Kenney / wobbleboxx | https://opengameart.org/content/battle-sound-effects 等（逐项见 `generated/audio_thirdparty/LICENSES.md`） | CC0（多许可包选用 CC0） | 响度归一化、Alarm 截短 2.2s、OGG 转码（游戏内 9 个事件音效） |
 | golden-ui / Free UI Asset Pack 1 | buch / ctatz | https://opengameart.org/content/golden-ui ；https://opengameart.org/content/free-ui-asset-pack-1 | CC0 | 面板精灵裁切（九宫格）；白色符号染金色缩放 64×64（游戏内 UI 装饰与图标，详见 `generated/ui_thirdparty/LICENSES.md`） |
 | 霞鹜文楷 LXGW WenKai | LXGW（落霞孤鹜） | https://github.com/lxgw/LxgwWenKai | SIL Open Font License 1.1 | 未修改字体文件；随包 `game/assets/fonts/OFL.txt` |
@@ -191,6 +232,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 - 署名（片尾滚幕 `game/data/credits.json` 中为可点击条目）：
   > Terrain tiles from "Dungeon Crawl Stone Soup" by DCSS contributors, dedicated to the public domain under CC0 1.0. Source: https://opengameart.org/content/dungeon-crawl-32x32-tiles. Changes: exported as 32x32 PNG tiles and grouped semantically; colours unmodified.
   > Music: "Samurai Nights" by Maik Hoffmann (majadroid), licensed CC-BY 3.0. Source: https://opengameart.org/content/samurai-nights. Changes: re-encoded to Ogg Vorbis.
+  > Music: "Views From Atop the Jade Kings Throne" by Hitctrl, licensed CC-BY 3.0. Source: https://opengameart.org/content/views-from-atop-the-jade-kings-throne. Changes: none; looped in-game.
   > Sound effects from OpenGameArt.org, CC0: Bow (ogrebane), Melee Sound (remaxim), Chop (Kenney), Sword Unsheath / Metal Ringing (artisticdude), Rise01 / Alarm / Upper01 / Downer01 (wobbleboxx).
   > Font: LXGW WenKai by LXGW, licensed SIL OFL 1.1. Source: https://github.com/lxgw/LxgwWenKai.
   > UI: golden-ui (buch, CC0), Free UI Asset Pack 1 (ctatz, CC0).
@@ -212,8 +254,8 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 
 1. **项目代码**：原创代码采用 **GPL-3.0-or-later**，许可证全文见仓库根目录 `LICENSE`。任何分发或衍生作品须以同一许可开源并提供对应源码。
 2. **原创非代码资产**：设计文档、数值表、AI 生成并后处理的图片采用 **CC BY 4.0**。转载须署名并注明许可。
-3. **第三方内容**：成品地形使用 CC0 素材 DCSS 的 106 张具名图块（DCSS contributors）；角色序列帧基于 daniloMattos 与 sebshady 的 CC0 原帧并经人工改绘；成品音频引入 CC-BY 3.0 BGM「Samurai Nights」（majadroid）与 CC0 音效（OpenGameArt 多作者）；字体为 OFL 1.1 霞鹜文楷；UI 装饰为 CC0。均保留原许可并按 TASL 署名，详见 5.4、5.5 与各第三方目录下的 `LICENSES.md`。
-4. **署名呈现**：全部署名以电影式片尾滚幕（自然滚动、可手动上下滚动、来源链接可点击）在游戏内呈现，数据源 `game/data/credits.json`，与 `素材授权清单.csv` 一一对应。
+3. **第三方内容**：成品地形使用 CC0 素材 DCSS 的 106 张具名图块（DCSS contributors）；角色序列帧为项目原创像素资产（CC BY 4.0），不含第三方角色骨架；成品音频引入 CC-BY 3.0 BGM「Samurai Nights」（majadroid）、「Views From Atop the Jade Kings Throne」（Hitctrl）与 CC0 音效（OpenGameArt 多作者）；字体为 OFL 1.1 霞鹜文楷；UI 装饰为 CC0。均保留原许可并按 TASL 署名，详见 5.4、5.5 与各第三方目录下的 `LICENSES.md`。
+4. **署名呈现**：全部署名以关于页/片尾电影滚幕（自然滚动、滚轮接管、来源链接可点击）在游戏内呈现，数据源 `game/data/credits.json`，与 `素材授权清单.csv` 一一对应。
 5. **赛事资料**：主题、规则、文化素材的权利归组委会及相关权利人；本项目引用仅限本届参赛用途。
 6. **商标与标识**：官网合作伙伴标识未用于成品，不构成任何授权或背书表示。
 
@@ -240,5 +282,5 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 1. 将本声明版本号升至 v2.0，在提交锁定版本时更新最终素材清单与 Git 哈希。
 2. 记录锁定提交的 Git 哈希与提交时间。
 3. 补齐至少 3 篇内容不重复的开发者日志（赛事强制要求）。
-4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：字体/DCSS 具名图块/建筑与 UI 素材/CC0 角色序列帧/第三方音频（BGM+音效）/第三方 UI 装饰均已登记（清单共 118 条）。
+4. ~~若引入音效、音乐、字体或第三方素材，逐项补入清单~~ 已完成：字体/DCSS 具名图块/建筑与 UI 素材/原创角色序列帧/第三方音频（BGM+音效）/第三方 UI 装饰均已登记（具体条数以 `素材授权清单.csv` 为准）。
 5. 若以私有项目提交，重新核对第六节许可声明与实际情况的一致性。
