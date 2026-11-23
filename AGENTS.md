@@ -54,6 +54,26 @@
 5. 同步更新 `素材授权清单.csv`、`AI使用与素材声明.md` 与 `credits.json`。
 6. 跑完整 GUT；战斗、选择页、序章至少各留一张验收截图。
 
+### 随机组合统计（2026-11-23，以当前图集与配方为准）
+
+当前部件池：`skin 4 × outfit 16 × headgear 14 × backgear 5 × loadout 59`。
+其中 `loadout` 指“每把主武器单体姿态 + 单手武器可用的合法副手组合”，
+不是武器与任意副手的无条件相乘。
+
+- 原始笛卡尔积：`4 × 16 × 14 × 5 × 59 = 264,320`。
+  该数包含明军/倭寇混装与不合规副手，不能当作可运行组合数。
+- 正式战斗合法组合（`character_templates.json` 的 `combination_count`，
+  仅统计明军与倭寇）：
+  - 明军：`4 × 8 × 8 × 4 × 58 = 59,392`
+  - 倭寇：`4 × 10 × 8 × 2 × 24 = 15,360`
+  - 合计：`59,392 + 15,360 = 74,752`
+- `CharacterForge.random_recipe()` 还接受 `neutral` 通用阵营：
+  `4 × 2 × 2 × 1 × 23 = 368`。若把三条运行时阵营分支全部计入，
+  可抽取组合总数为 `74,752 + 368 = 75,120`。
+- 抽取不是对全部组合等概率：外层部件分别均匀抽取；主武器均匀抽取；
+  单手武器有 `0.62` 概率再抽取合法副手。修改掉率或部件池后，必须同步
+  重算 `combination_count`、`raw_combination_count` 与两阵营计数。
+
 ### 提交前资产自检（必须为空）
 
 ```bash
@@ -282,7 +302,7 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
 - GUT 9.7.1 验证通过：`game/tests/unit/` 覆盖工程基线、双语、存档、设置、BGM、
   主菜单/关于页、王陆阵位、3 地图、16 分钟波次、空间哈希、双堡图鉴、叙事来源
   与结算解锁、三平台导出预设；当前 Linux 基线
-  **72 tests / 72 passed / 21446 asserts**；运行命令见
+  **82 tests / 82 passed / 26120 asserts**；运行命令见
   「Godot / gda CLI 约定」。
 - GUT 的 `test_engine_version_matches_pinned_version` 校验实际引擎补丁版本与
   `game/.godot-version` 一致；升级引擎必须先改该文件并跑 Linux + Windows 测试。
@@ -296,7 +316,8 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
 - 主菜单、关于页、序章、选择页、正篇与图鉴已通过 `gda scene preflight`；
   截图验收图在 `docs/screenshots/ui_2026-11-23/` 与
   `docs/screenshots/game_2026-11-23/`；角色外观清理后的验收帧在
-  `docs/screenshots/forge_fix_2026-11-23/`。
+  `docs/screenshots/forge_fix_2026-11-23/`；三阵位重绘验收帧在
+  `docs/screenshots/forge_trio_2026-11-23/`。
 - 460 敌人压力场景已把 draw calls 从 930 降到 14；当前桌面会话只有约 1 实际帧/秒，
   空场景也如此，故绝对 FPS 必须在正常唤醒的原生桌面/Windows 复测。记录见
   `docs/perf_2026-11-23.md`，暂不写 C++ GDExtension。
