@@ -1,0 +1,1030 @@
+{
+  "version": 2,
+  "license": "CC BY 4.0",
+  "author": "xingwangzhe",
+  "source": "pixel-art/character_forge/build.py",
+  "cell": 128,
+  "frame_count": 32,
+  "columns": 32,
+  "clips": {
+    "idle": {
+      "start": 0,
+      "count": 4,
+      "fps": 6
+    },
+    "walk": {
+      "start": 4,
+      "count": 8,
+      "fps": 10
+    },
+    "attack_1": {
+      "start": 12,
+      "count": 6,
+      "fps": 13
+    },
+    "attack_2": {
+      "start": 18,
+      "count": 6,
+      "fps": 13
+    },
+    "attack_3": {
+      "start": 24,
+      "count": 6,
+      "fps": 11
+    },
+    "hit": {
+      "start": 30,
+      "count": 2,
+      "fps": 10
+    }
+  },
+  "grips": [
+    "one_hand",
+    "two_hand",
+    "ranged",
+    "offhand"
+  ],
+  "arm_layer_rules": {
+    "two_hand": "both_front",
+    "ranged": "both_front",
+    "one_hand": "far_back_near_front",
+    "offhand": "far_back_near_front"
+  },
+  "layer_order": [
+    "backgear",
+    "body",
+    "outfit",
+    "headgear",
+    "offhand",
+    "weapon"
+  ],
+  "combination_count": 69696,
+  "loadout_count": 33,
+  "skins": [
+    {
+      "id": "light",
+      "name_zh": "浅肤",
+      "name_en": "Light"
+    },
+    {
+      "id": "tan",
+      "name_zh": "麦色",
+      "name_en": "Tan"
+    },
+    {
+      "id": "deep",
+      "name_zh": "深肤",
+      "name_en": "Deep"
+    },
+    {
+      "id": "pale",
+      "name_zh": "冷白",
+      "name_en": "Pale"
+    }
+  ],
+  "outfits": [
+    {
+      "id": "ming_lamellar_red",
+      "name_zh": "明军朱红札甲",
+      "name_en": "Ming Red Lamellar",
+      "tags": [
+        "ming",
+        "army"
+      ]
+    },
+    {
+      "id": "ming_brigandine_blue",
+      "name_zh": "明军青布罩甲",
+      "name_en": "Ming Blue Brigandine",
+      "tags": [
+        "ming",
+        "army"
+      ]
+    },
+    {
+      "id": "ming_robe_ochre",
+      "name_zh": "明军赭褐短打",
+      "name_en": "Ming Ochre Short Robe",
+      "tags": [
+        "ming",
+        "militia"
+      ]
+    },
+    {
+      "id": "ming_guard_iron",
+      "name_zh": "明军铁灰札甲",
+      "name_en": "Ming Iron Guard",
+      "tags": [
+        "ming",
+        "army"
+      ]
+    },
+    {
+      "id": "ming_navy_green",
+      "name_zh": "明军水营绿袄",
+      "name_en": "Ming Navy Green Coat",
+      "tags": [
+        "ming",
+        "navy"
+      ]
+    },
+    {
+      "id": "wokou_ragged_brown",
+      "name_zh": "倭寇褐布破衣",
+      "name_en": "Wokou Ragged Brown",
+      "tags": [
+        "wokou"
+      ]
+    },
+    {
+      "id": "wokou_dark_navy",
+      "name_zh": "倭寇深蓝短甲",
+      "name_en": "Wokou Dark Navy",
+      "tags": [
+        "wokou"
+      ]
+    },
+    {
+      "id": "pirate_teal",
+      "name_zh": "海盗青皮甲",
+      "name_en": "Pirate Teal",
+      "tags": [
+        "wokou",
+        "pirate"
+      ]
+    },
+    {
+      "id": "monk_grey",
+      "name_zh": "僧兵灰褐法衣",
+      "name_en": "Sohei Grey Robe",
+      "tags": [
+        "wokou",
+        "monk"
+      ]
+    },
+    {
+      "id": "general_purple",
+      "name_zh": "将官紫金重甲",
+      "name_en": "Purple Gold General",
+      "tags": [
+        "wokou",
+        "elite"
+      ]
+    },
+    {
+      "id": "oni_red",
+      "name_zh": "鬼面赤甲",
+      "name_en": "Oni Red Armour",
+      "tags": [
+        "wokou",
+        "oni"
+      ]
+    },
+    {
+      "id": "villager_linen",
+      "name_zh": "乡勇本色麻衣",
+      "name_en": "Villager Linen",
+      "tags": [
+        "ming",
+        "militia",
+        "neutral"
+      ]
+    }
+  ],
+  "headgear": [
+    {
+      "id": "none",
+      "name_zh": "无冠",
+      "name_en": "Bare Head",
+      "tags": [
+        "neutral"
+      ]
+    },
+    {
+      "id": "ming_helmet_red",
+      "name_zh": "明军红缨铁盔",
+      "name_en": "Ming Red-Plume Helmet",
+      "tags": [
+        "ming"
+      ]
+    },
+    {
+      "id": "ming_helmet_iron",
+      "name_zh": "明军素铁盔",
+      "name_en": "Ming Iron Helmet",
+      "tags": [
+        "ming"
+      ]
+    },
+    {
+      "id": "ming_hat",
+      "name_zh": "明军毡帽",
+      "name_en": "Ming Felt Hat",
+      "tags": [
+        "ming"
+      ]
+    },
+    {
+      "id": "ming_officer",
+      "name_zh": "明军乌纱帽",
+      "name_en": "Ming Officer Cap",
+      "tags": [
+        "ming"
+      ]
+    },
+    {
+      "id": "wokou_headband",
+      "name_zh": "倭寇头巾",
+      "name_en": "Wokou Headband",
+      "tags": [
+        "wokou"
+      ]
+    },
+    {
+      "id": "wokou_kasa",
+      "name_zh": "倭寇阵笠",
+      "name_en": "Wokou War Hat",
+      "tags": [
+        "wokou"
+      ]
+    },
+    {
+      "id": "wokou_helmet",
+      "name_zh": "倭寇铁兜",
+      "name_en": "Wokou Iron Helmet",
+      "tags": [
+        "wokou"
+      ]
+    },
+    {
+      "id": "monk_hood",
+      "name_zh": "僧兵头巾",
+      "name_en": "Sohei Hood",
+      "tags": [
+        "wokou"
+      ]
+    },
+    {
+      "id": "oni_mask",
+      "name_zh": "鬼面",
+      "name_en": "Oni Mask",
+      "tags": [
+        "wokou"
+      ]
+    },
+    {
+      "id": "pirate_bandana",
+      "name_zh": "海盗红巾",
+      "name_en": "Pirate Bandana",
+      "tags": [
+        "wokou"
+      ]
+    }
+  ],
+  "backgear": [
+    {
+      "id": "none",
+      "name_zh": "无披挂",
+      "name_en": "No Backgear",
+      "tags": [
+        "neutral"
+      ]
+    },
+    {
+      "id": "ming_cape_red",
+      "name_zh": "明军红披风",
+      "name_en": "Ming Red Cape",
+      "tags": [
+        "ming"
+      ]
+    },
+    {
+      "id": "wokou_cloak_dark",
+      "name_zh": "倭寇黑披风",
+      "name_en": "Wokou Dark Cloak",
+      "tags": [
+        "wokou"
+      ]
+    },
+    {
+      "id": "ming_banner",
+      "name_zh": "明军令旗",
+      "name_en": "Ming Signal Banner",
+      "tags": [
+        "ming"
+      ]
+    }
+  ],
+  "weapons": [
+    {
+      "id": "dao",
+      "name_zh": "腰刀",
+      "name_en": "Dao Saber",
+      "grip": "one_hand",
+      "slot": "main",
+      "arm_layer": "far_back_near_front",
+      "attack_profile": "saber_diagonal",
+      "offhand": true,
+      "required": true
+    },
+    {
+      "id": "jian",
+      "name_zh": "长剑",
+      "name_en": "Jian Sword",
+      "grip": "one_hand",
+      "slot": "main",
+      "arm_layer": "far_back_near_front",
+      "attack_profile": "sword_thrust",
+      "offhand": true,
+      "required": true
+    },
+    {
+      "id": "qiang",
+      "name_zh": "长枪",
+      "name_en": "Qiang Spear",
+      "grip": "two_hand",
+      "slot": "main",
+      "arm_layer": "both_front",
+      "attack_profile": "spear_lunge",
+      "offhand": false,
+      "required": true
+    },
+    {
+      "id": "ji",
+      "name_zh": "画戟",
+      "name_en": "Ji Halberd",
+      "grip": "two_hand",
+      "slot": "main",
+      "arm_layer": "both_front",
+      "attack_profile": "halberd_sweep",
+      "offhand": false,
+      "required": true
+    },
+    {
+      "id": "fu",
+      "name_zh": "战斧",
+      "name_en": "Fu Axe",
+      "grip": "two_hand",
+      "slot": "main",
+      "arm_layer": "both_front",
+      "attack_profile": "axe_chop",
+      "offhand": false,
+      "required": true
+    },
+    {
+      "id": "yue",
+      "name_zh": "大钺",
+      "name_en": "Yue Battle-Axe",
+      "grip": "two_hand",
+      "slot": "main",
+      "arm_layer": "both_front",
+      "attack_profile": "yue_wide_sweep",
+      "offhand": false,
+      "required": true
+    },
+    {
+      "id": "gou",
+      "name_zh": "钩",
+      "name_en": "Gou Hook",
+      "grip": "one_hand",
+      "slot": "main",
+      "arm_layer": "far_back_near_front",
+      "attack_profile": "hook_cross",
+      "offhand": true,
+      "required": true
+    },
+    {
+      "id": "cha",
+      "name_zh": "三股叉",
+      "name_en": "Cha Trident",
+      "grip": "two_hand",
+      "slot": "main",
+      "arm_layer": "both_front",
+      "attack_profile": "trident_triple",
+      "offhand": false,
+      "required": true
+    },
+    {
+      "id": "gong",
+      "name_zh": "弓",
+      "name_en": "Bow",
+      "grip": "ranged",
+      "slot": "main",
+      "arm_layer": "both_front",
+      "attack_profile": "bow_draw",
+      "offhand": false,
+      "required": true
+    },
+    {
+      "id": "nu",
+      "name_zh": "弩",
+      "name_en": "Crossbow",
+      "grip": "ranged",
+      "slot": "main",
+      "arm_layer": "both_front",
+      "attack_profile": "crossbow_volley",
+      "offhand": false,
+      "required": true
+    },
+    {
+      "id": "niaochong",
+      "name_zh": "手铳",
+      "name_en": "Hand Cannon",
+      "grip": "ranged",
+      "slot": "main",
+      "arm_layer": "both_front",
+      "attack_profile": "hand_cannon",
+      "offhand": false,
+      "required": false
+    },
+    {
+      "id": "longdeng",
+      "name_zh": "龙灯",
+      "name_en": "Dragon Lantern",
+      "grip": "one_hand",
+      "slot": "main",
+      "arm_layer": "far_back_near_front",
+      "attack_profile": "lantern_sweep",
+      "offhand": false,
+      "required": false
+    },
+    {
+      "id": "lingqi",
+      "name_zh": "令旗",
+      "name_en": "Signal Flag",
+      "grip": "one_hand",
+      "slot": "main",
+      "arm_layer": "far_back_near_front",
+      "attack_profile": "signal_command",
+      "offhand": false,
+      "required": false
+    },
+    {
+      "id": "dun",
+      "name_zh": "盾",
+      "name_en": "Shield",
+      "grip": "offhand",
+      "slot": "offhand",
+      "arm_layer": "far_back_near_front",
+      "attack_profile": "shield_bash",
+      "offhand": true,
+      "required": true
+    }
+  ],
+  "offhand_allowed": [
+    "dao",
+    "jian",
+    "gou",
+    "dun"
+  ],
+  "atlases": {
+    "body": {
+      "path": "res://assets/character_forge/body_base.png",
+      "rows": {
+        "light|dao": 0,
+        "light|jian": 1,
+        "light|qiang": 2,
+        "light|ji": 3,
+        "light|fu": 4,
+        "light|yue": 5,
+        "light|gou": 6,
+        "light|cha": 7,
+        "light|gong": 8,
+        "light|nu": 9,
+        "light|niaochong": 10,
+        "light|longdeng": 11,
+        "light|lingqi": 12,
+        "light|dun": 13,
+        "tan|dao": 14,
+        "tan|jian": 15,
+        "tan|qiang": 16,
+        "tan|ji": 17,
+        "tan|fu": 18,
+        "tan|yue": 19,
+        "tan|gou": 20,
+        "tan|cha": 21,
+        "tan|gong": 22,
+        "tan|nu": 23,
+        "tan|niaochong": 24,
+        "tan|longdeng": 25,
+        "tan|lingqi": 26,
+        "tan|dun": 27,
+        "deep|dao": 28,
+        "deep|jian": 29,
+        "deep|qiang": 30,
+        "deep|ji": 31,
+        "deep|fu": 32,
+        "deep|yue": 33,
+        "deep|gou": 34,
+        "deep|cha": 35,
+        "deep|gong": 36,
+        "deep|nu": 37,
+        "deep|niaochong": 38,
+        "deep|longdeng": 39,
+        "deep|lingqi": 40,
+        "deep|dun": 41,
+        "pale|dao": 42,
+        "pale|jian": 43,
+        "pale|qiang": 44,
+        "pale|ji": 45,
+        "pale|fu": 46,
+        "pale|yue": 47,
+        "pale|gou": 48,
+        "pale|cha": 49,
+        "pale|gong": 50,
+        "pale|nu": 51,
+        "pale|niaochong": 52,
+        "pale|longdeng": 53,
+        "pale|lingqi": 54,
+        "pale|dun": 55
+      }
+    },
+    "outfit": {
+      "path": "res://assets/character_forge/outfits.png",
+      "rows": {
+        "ming_lamellar_red|dao": 0,
+        "ming_lamellar_red|jian": 1,
+        "ming_lamellar_red|qiang": 2,
+        "ming_lamellar_red|ji": 3,
+        "ming_lamellar_red|fu": 4,
+        "ming_lamellar_red|yue": 5,
+        "ming_lamellar_red|gou": 6,
+        "ming_lamellar_red|cha": 7,
+        "ming_lamellar_red|gong": 8,
+        "ming_lamellar_red|nu": 9,
+        "ming_lamellar_red|niaochong": 10,
+        "ming_lamellar_red|longdeng": 11,
+        "ming_lamellar_red|lingqi": 12,
+        "ming_lamellar_red|dun": 13,
+        "ming_brigandine_blue|dao": 14,
+        "ming_brigandine_blue|jian": 15,
+        "ming_brigandine_blue|qiang": 16,
+        "ming_brigandine_blue|ji": 17,
+        "ming_brigandine_blue|fu": 18,
+        "ming_brigandine_blue|yue": 19,
+        "ming_brigandine_blue|gou": 20,
+        "ming_brigandine_blue|cha": 21,
+        "ming_brigandine_blue|gong": 22,
+        "ming_brigandine_blue|nu": 23,
+        "ming_brigandine_blue|niaochong": 24,
+        "ming_brigandine_blue|longdeng": 25,
+        "ming_brigandine_blue|lingqi": 26,
+        "ming_brigandine_blue|dun": 27,
+        "ming_robe_ochre|dao": 28,
+        "ming_robe_ochre|jian": 29,
+        "ming_robe_ochre|qiang": 30,
+        "ming_robe_ochre|ji": 31,
+        "ming_robe_ochre|fu": 32,
+        "ming_robe_ochre|yue": 33,
+        "ming_robe_ochre|gou": 34,
+        "ming_robe_ochre|cha": 35,
+        "ming_robe_ochre|gong": 36,
+        "ming_robe_ochre|nu": 37,
+        "ming_robe_ochre|niaochong": 38,
+        "ming_robe_ochre|longdeng": 39,
+        "ming_robe_ochre|lingqi": 40,
+        "ming_robe_ochre|dun": 41,
+        "ming_guard_iron|dao": 42,
+        "ming_guard_iron|jian": 43,
+        "ming_guard_iron|qiang": 44,
+        "ming_guard_iron|ji": 45,
+        "ming_guard_iron|fu": 46,
+        "ming_guard_iron|yue": 47,
+        "ming_guard_iron|gou": 48,
+        "ming_guard_iron|cha": 49,
+        "ming_guard_iron|gong": 50,
+        "ming_guard_iron|nu": 51,
+        "ming_guard_iron|niaochong": 52,
+        "ming_guard_iron|longdeng": 53,
+        "ming_guard_iron|lingqi": 54,
+        "ming_guard_iron|dun": 55,
+        "ming_navy_green|dao": 56,
+        "ming_navy_green|jian": 57,
+        "ming_navy_green|qiang": 58,
+        "ming_navy_green|ji": 59,
+        "ming_navy_green|fu": 60,
+        "ming_navy_green|yue": 61,
+        "ming_navy_green|gou": 62,
+        "ming_navy_green|cha": 63,
+        "ming_navy_green|gong": 64,
+        "ming_navy_green|nu": 65,
+        "ming_navy_green|niaochong": 66,
+        "ming_navy_green|longdeng": 67,
+        "ming_navy_green|lingqi": 68,
+        "ming_navy_green|dun": 69,
+        "wokou_ragged_brown|dao": 70,
+        "wokou_ragged_brown|jian": 71,
+        "wokou_ragged_brown|qiang": 72,
+        "wokou_ragged_brown|ji": 73,
+        "wokou_ragged_brown|fu": 74,
+        "wokou_ragged_brown|yue": 75,
+        "wokou_ragged_brown|gou": 76,
+        "wokou_ragged_brown|cha": 77,
+        "wokou_ragged_brown|gong": 78,
+        "wokou_ragged_brown|nu": 79,
+        "wokou_ragged_brown|niaochong": 80,
+        "wokou_ragged_brown|longdeng": 81,
+        "wokou_ragged_brown|lingqi": 82,
+        "wokou_ragged_brown|dun": 83,
+        "wokou_dark_navy|dao": 84,
+        "wokou_dark_navy|jian": 85,
+        "wokou_dark_navy|qiang": 86,
+        "wokou_dark_navy|ji": 87,
+        "wokou_dark_navy|fu": 88,
+        "wokou_dark_navy|yue": 89,
+        "wokou_dark_navy|gou": 90,
+        "wokou_dark_navy|cha": 91,
+        "wokou_dark_navy|gong": 92,
+        "wokou_dark_navy|nu": 93,
+        "wokou_dark_navy|niaochong": 94,
+        "wokou_dark_navy|longdeng": 95,
+        "wokou_dark_navy|lingqi": 96,
+        "wokou_dark_navy|dun": 97,
+        "pirate_teal|dao": 98,
+        "pirate_teal|jian": 99,
+        "pirate_teal|qiang": 100,
+        "pirate_teal|ji": 101,
+        "pirate_teal|fu": 102,
+        "pirate_teal|yue": 103,
+        "pirate_teal|gou": 104,
+        "pirate_teal|cha": 105,
+        "pirate_teal|gong": 106,
+        "pirate_teal|nu": 107,
+        "pirate_teal|niaochong": 108,
+        "pirate_teal|longdeng": 109,
+        "pirate_teal|lingqi": 110,
+        "pirate_teal|dun": 111,
+        "monk_grey|dao": 112,
+        "monk_grey|jian": 113,
+        "monk_grey|qiang": 114,
+        "monk_grey|ji": 115,
+        "monk_grey|fu": 116,
+        "monk_grey|yue": 117,
+        "monk_grey|gou": 118,
+        "monk_grey|cha": 119,
+        "monk_grey|gong": 120,
+        "monk_grey|nu": 121,
+        "monk_grey|niaochong": 122,
+        "monk_grey|longdeng": 123,
+        "monk_grey|lingqi": 124,
+        "monk_grey|dun": 125,
+        "general_purple|dao": 126,
+        "general_purple|jian": 127,
+        "general_purple|qiang": 128,
+        "general_purple|ji": 129,
+        "general_purple|fu": 130,
+        "general_purple|yue": 131,
+        "general_purple|gou": 132,
+        "general_purple|cha": 133,
+        "general_purple|gong": 134,
+        "general_purple|nu": 135,
+        "general_purple|niaochong": 136,
+        "general_purple|longdeng": 137,
+        "general_purple|lingqi": 138,
+        "general_purple|dun": 139,
+        "oni_red|dao": 140,
+        "oni_red|jian": 141,
+        "oni_red|qiang": 142,
+        "oni_red|ji": 143,
+        "oni_red|fu": 144,
+        "oni_red|yue": 145,
+        "oni_red|gou": 146,
+        "oni_red|cha": 147,
+        "oni_red|gong": 148,
+        "oni_red|nu": 149,
+        "oni_red|niaochong": 150,
+        "oni_red|longdeng": 151,
+        "oni_red|lingqi": 152,
+        "oni_red|dun": 153,
+        "villager_linen|dao": 154,
+        "villager_linen|jian": 155,
+        "villager_linen|qiang": 156,
+        "villager_linen|ji": 157,
+        "villager_linen|fu": 158,
+        "villager_linen|yue": 159,
+        "villager_linen|gou": 160,
+        "villager_linen|cha": 161,
+        "villager_linen|gong": 162,
+        "villager_linen|nu": 163,
+        "villager_linen|niaochong": 164,
+        "villager_linen|longdeng": 165,
+        "villager_linen|lingqi": 166,
+        "villager_linen|dun": 167
+      }
+    },
+    "headgear": {
+      "path": "res://assets/character_forge/headgear.png",
+      "rows": {
+        "none|dao": 0,
+        "none|jian": 1,
+        "none|qiang": 2,
+        "none|ji": 3,
+        "none|fu": 4,
+        "none|yue": 5,
+        "none|gou": 6,
+        "none|cha": 7,
+        "none|gong": 8,
+        "none|nu": 9,
+        "none|niaochong": 10,
+        "none|longdeng": 11,
+        "none|lingqi": 12,
+        "none|dun": 13,
+        "ming_helmet_red|dao": 14,
+        "ming_helmet_red|jian": 15,
+        "ming_helmet_red|qiang": 16,
+        "ming_helmet_red|ji": 17,
+        "ming_helmet_red|fu": 18,
+        "ming_helmet_red|yue": 19,
+        "ming_helmet_red|gou": 20,
+        "ming_helmet_red|cha": 21,
+        "ming_helmet_red|gong": 22,
+        "ming_helmet_red|nu": 23,
+        "ming_helmet_red|niaochong": 24,
+        "ming_helmet_red|longdeng": 25,
+        "ming_helmet_red|lingqi": 26,
+        "ming_helmet_red|dun": 27,
+        "ming_helmet_iron|dao": 28,
+        "ming_helmet_iron|jian": 29,
+        "ming_helmet_iron|qiang": 30,
+        "ming_helmet_iron|ji": 31,
+        "ming_helmet_iron|fu": 32,
+        "ming_helmet_iron|yue": 33,
+        "ming_helmet_iron|gou": 34,
+        "ming_helmet_iron|cha": 35,
+        "ming_helmet_iron|gong": 36,
+        "ming_helmet_iron|nu": 37,
+        "ming_helmet_iron|niaochong": 38,
+        "ming_helmet_iron|longdeng": 39,
+        "ming_helmet_iron|lingqi": 40,
+        "ming_helmet_iron|dun": 41,
+        "ming_hat|dao": 42,
+        "ming_hat|jian": 43,
+        "ming_hat|qiang": 44,
+        "ming_hat|ji": 45,
+        "ming_hat|fu": 46,
+        "ming_hat|yue": 47,
+        "ming_hat|gou": 48,
+        "ming_hat|cha": 49,
+        "ming_hat|gong": 50,
+        "ming_hat|nu": 51,
+        "ming_hat|niaochong": 52,
+        "ming_hat|longdeng": 53,
+        "ming_hat|lingqi": 54,
+        "ming_hat|dun": 55,
+        "ming_officer|dao": 56,
+        "ming_officer|jian": 57,
+        "ming_officer|qiang": 58,
+        "ming_officer|ji": 59,
+        "ming_officer|fu": 60,
+        "ming_officer|yue": 61,
+        "ming_officer|gou": 62,
+        "ming_officer|cha": 63,
+        "ming_officer|gong": 64,
+        "ming_officer|nu": 65,
+        "ming_officer|niaochong": 66,
+        "ming_officer|longdeng": 67,
+        "ming_officer|lingqi": 68,
+        "ming_officer|dun": 69,
+        "wokou_headband|dao": 70,
+        "wokou_headband|jian": 71,
+        "wokou_headband|qiang": 72,
+        "wokou_headband|ji": 73,
+        "wokou_headband|fu": 74,
+        "wokou_headband|yue": 75,
+        "wokou_headband|gou": 76,
+        "wokou_headband|cha": 77,
+        "wokou_headband|gong": 78,
+        "wokou_headband|nu": 79,
+        "wokou_headband|niaochong": 80,
+        "wokou_headband|longdeng": 81,
+        "wokou_headband|lingqi": 82,
+        "wokou_headband|dun": 83,
+        "wokou_kasa|dao": 84,
+        "wokou_kasa|jian": 85,
+        "wokou_kasa|qiang": 86,
+        "wokou_kasa|ji": 87,
+        "wokou_kasa|fu": 88,
+        "wokou_kasa|yue": 89,
+        "wokou_kasa|gou": 90,
+        "wokou_kasa|cha": 91,
+        "wokou_kasa|gong": 92,
+        "wokou_kasa|nu": 93,
+        "wokou_kasa|niaochong": 94,
+        "wokou_kasa|longdeng": 95,
+        "wokou_kasa|lingqi": 96,
+        "wokou_kasa|dun": 97,
+        "wokou_helmet|dao": 98,
+        "wokou_helmet|jian": 99,
+        "wokou_helmet|qiang": 100,
+        "wokou_helmet|ji": 101,
+        "wokou_helmet|fu": 102,
+        "wokou_helmet|yue": 103,
+        "wokou_helmet|gou": 104,
+        "wokou_helmet|cha": 105,
+        "wokou_helmet|gong": 106,
+        "wokou_helmet|nu": 107,
+        "wokou_helmet|niaochong": 108,
+        "wokou_helmet|longdeng": 109,
+        "wokou_helmet|lingqi": 110,
+        "wokou_helmet|dun": 111,
+        "monk_hood|dao": 112,
+        "monk_hood|jian": 113,
+        "monk_hood|qiang": 114,
+        "monk_hood|ji": 115,
+        "monk_hood|fu": 116,
+        "monk_hood|yue": 117,
+        "monk_hood|gou": 118,
+        "monk_hood|cha": 119,
+        "monk_hood|gong": 120,
+        "monk_hood|nu": 121,
+        "monk_hood|niaochong": 122,
+        "monk_hood|longdeng": 123,
+        "monk_hood|lingqi": 124,
+        "monk_hood|dun": 125,
+        "oni_mask|dao": 126,
+        "oni_mask|jian": 127,
+        "oni_mask|qiang": 128,
+        "oni_mask|ji": 129,
+        "oni_mask|fu": 130,
+        "oni_mask|yue": 131,
+        "oni_mask|gou": 132,
+        "oni_mask|cha": 133,
+        "oni_mask|gong": 134,
+        "oni_mask|nu": 135,
+        "oni_mask|niaochong": 136,
+        "oni_mask|longdeng": 137,
+        "oni_mask|lingqi": 138,
+        "oni_mask|dun": 139,
+        "pirate_bandana|dao": 140,
+        "pirate_bandana|jian": 141,
+        "pirate_bandana|qiang": 142,
+        "pirate_bandana|ji": 143,
+        "pirate_bandana|fu": 144,
+        "pirate_bandana|yue": 145,
+        "pirate_bandana|gou": 146,
+        "pirate_bandana|cha": 147,
+        "pirate_bandana|gong": 148,
+        "pirate_bandana|nu": 149,
+        "pirate_bandana|niaochong": 150,
+        "pirate_bandana|longdeng": 151,
+        "pirate_bandana|lingqi": 152,
+        "pirate_bandana|dun": 153
+      }
+    },
+    "backgear": {
+      "path": "res://assets/character_forge/backgear.png",
+      "rows": {
+        "none|dao": 0,
+        "none|jian": 1,
+        "none|qiang": 2,
+        "none|ji": 3,
+        "none|fu": 4,
+        "none|yue": 5,
+        "none|gou": 6,
+        "none|cha": 7,
+        "none|gong": 8,
+        "none|nu": 9,
+        "none|niaochong": 10,
+        "none|longdeng": 11,
+        "none|lingqi": 12,
+        "none|dun": 13,
+        "ming_cape_red|dao": 14,
+        "ming_cape_red|jian": 15,
+        "ming_cape_red|qiang": 16,
+        "ming_cape_red|ji": 17,
+        "ming_cape_red|fu": 18,
+        "ming_cape_red|yue": 19,
+        "ming_cape_red|gou": 20,
+        "ming_cape_red|cha": 21,
+        "ming_cape_red|gong": 22,
+        "ming_cape_red|nu": 23,
+        "ming_cape_red|niaochong": 24,
+        "ming_cape_red|longdeng": 25,
+        "ming_cape_red|lingqi": 26,
+        "ming_cape_red|dun": 27,
+        "wokou_cloak_dark|dao": 28,
+        "wokou_cloak_dark|jian": 29,
+        "wokou_cloak_dark|qiang": 30,
+        "wokou_cloak_dark|ji": 31,
+        "wokou_cloak_dark|fu": 32,
+        "wokou_cloak_dark|yue": 33,
+        "wokou_cloak_dark|gou": 34,
+        "wokou_cloak_dark|cha": 35,
+        "wokou_cloak_dark|gong": 36,
+        "wokou_cloak_dark|nu": 37,
+        "wokou_cloak_dark|niaochong": 38,
+        "wokou_cloak_dark|longdeng": 39,
+        "wokou_cloak_dark|lingqi": 40,
+        "wokou_cloak_dark|dun": 41,
+        "ming_banner|dao": 42,
+        "ming_banner|jian": 43,
+        "ming_banner|qiang": 44,
+        "ming_banner|ji": 45,
+        "ming_banner|fu": 46,
+        "ming_banner|yue": 47,
+        "ming_banner|gou": 48,
+        "ming_banner|cha": 49,
+        "ming_banner|gong": 50,
+        "ming_banner|nu": 51,
+        "ming_banner|niaochong": 52,
+        "ming_banner|longdeng": 53,
+        "ming_banner|lingqi": 54,
+        "ming_banner|dun": 55
+      }
+    },
+    "weapon": {
+      "path": "res://assets/character_forge/weapons.png",
+      "rows": {
+        "dao": 0,
+        "jian": 1,
+        "qiang": 2,
+        "ji": 3,
+        "fu": 4,
+        "yue": 5,
+        "gou": 6,
+        "cha": 7,
+        "gong": 8,
+        "nu": 9,
+        "niaochong": 10,
+        "longdeng": 11,
+        "lingqi": 12,
+        "dun": 13
+      }
+    },
+    "offhand": {
+      "path": "res://assets/character_forge/offhands.png",
+      "rows": {
+        "dao|dao": 0,
+        "dao|jian": 1,
+        "dao|gou": 2,
+        "dao|dun": 3,
+        "jian|dao": 4,
+        "jian|jian": 5,
+        "jian|gou": 6,
+        "jian|dun": 7,
+        "gou|dao": 8,
+        "gou|jian": 9,
+        "gou|gou": 10,
+        "gou|dun": 11,
+        "longdeng|dao": 12,
+        "longdeng|jian": 13,
+        "longdeng|gou": 14,
+        "longdeng|dun": 15,
+        "lingqi|dao": 16,
+        "lingqi|jian": 17,
+        "lingqi|gou": 18,
+        "lingqi|dun": 19
+      }
+    }
+  },
+  "recipes": {
+    "hero": {
+      "skin": "tan",
+      "outfit": "ming_lamellar_red",
+      "headgear": "ming_helmet_red",
+      "backgear": "ming_cape_red",
+      "weapon": "dao",
+      "offhand": "dun"
+    },
+    "ming_guard": {
+      "skin": "light",
+      "outfit": "ming_guard_iron",
+      "headgear": "ming_helmet_iron",
+      "backgear": "ming_banner",
+      "weapon": "qiang",
+      "offhand": "none"
+    },
+    "wokou_raider": {
+      "skin": "deep",
+      "outfit": "wokou_ragged_brown",
+      "headgear": "wokou_headband",
+      "backgear": "none",
+      "weapon": "dao",
+      "offhand": "none"
+    },
+    "wokou_gunner": {
+      "skin": "tan",
+      "outfit": "wokou_dark_navy",
+      "headgear": "wokou_kasa",
+      "backgear": "none",
+      "weapon": "niaochong",
+      "offhand": "none"
+    },
+    "wokou_general": {
+      "skin": "deep",
+      "outfit": "general_purple",
+      "headgear": "wokou_helmet",
+      "backgear": "wokou_cloak_dark",
+      "weapon": "ji",
+      "offhand": "none"
+    },
+    "oni_duelist": {
+      "skin": "deep",
+      "outfit": "oni_red",
+      "headgear": "oni_mask",
+      "backgear": "none",
+      "weapon": "gou",
+      "offhand": "gou"
+    }
+  }
+}

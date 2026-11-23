@@ -67,6 +67,27 @@
 						"note_zh": "OFL 1.1；版权与保留字体名见下方“字体”。",
 						"note_en": "OFL 1.1; copyright and reserved font names appear under Fonts below.",
 						"url": "https://github.com/lxgw/LxgwWenKai"
+					},
+					{
+						"title_zh": "LPC Character Bases（仅动作与关节研究）",
+						"title_en": "LPC Character Bases (motion and joint study only)",
+						"note_zh": "CC-BY-SA 3.0 / GPL 3.0；仅观察比例、关节和动作节奏，未复制或打包其素材。",
+						"note_en": "CC-BY-SA 3.0 / GPL 3.0; used only to study proportions, joints, and timing. No source art is copied or packaged.",
+						"url": "https://opengameart.org/content/lpc-character-bases"
+					},
+					{
+						"title_zh": "RGS_Dev 模块角色（仅分层结构研究）",
+						"title_en": "RGS_Dev modular characters (layering study only)",
+						"note_zh": "CC0 1.0；仅参考身体部件分层与固定握点，未复制或打包其 PNG。",
+						"note_en": "CC0 1.0; used only to study body-part layering and fixed grip anchors. No PNG is copied or packaged.",
+						"url": "https://rgsdev.itch.io/free-cc0-modular-animated-vector-characters-2d"
+					},
+					{
+						"title_zh": "Kenney Modular Characters（仅结构比较）",
+						"title_en": "Kenney Modular Characters (structure comparison only)",
+						"note_zh": "CC0 1.0；形体偏扁平，仅作模块化结构比较，未采用。",
+						"note_en": "CC0 1.0; compared for modular structure only and not adopted because the forms are too flat.",
+						"url": "https://kenney.nl/assets/modular-characters"
 					}
 				]
 			},

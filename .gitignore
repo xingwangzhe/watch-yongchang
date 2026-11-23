@@ -35,6 +35,9 @@ generated/game_icons/
 # 地图瓦片候选包（仅下载审视，未采用的包与文件不入库）
 generated/tileset_candidates/
 
+# 角色模板候选包（仅下载审视，未采用的包与文件不入库）
+generated/character_candidates/
+
 # CI 工具与构建产物
 .tools/
 artifacts/
