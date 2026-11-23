@@ -1,6 +1,0 @@
-[gd_resource type="Theme" format=3]
-
-[ext_resource type="FontFile" path="res://assets/fonts/LXGWWenKai-Regular.ttf" id="1_re2hg"]
-
-[resource]
-default_font = ExtResource("1_re2hg")

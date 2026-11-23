@@ -1,9 +1,0 @@
-[gd_scene format=3]
-
-[ext_resource type="Script" path="res://scripts/unit.gd" id="1_xo1kd"]
-
-[node name="unit" type="PathFollow2D" unique_id=1227808017]
-script = ExtResource("1_xo1kd")
-
-[node name="Sprite" type="AnimatedSprite2D" parent="." unique_id=1796291411]
-scale = Vector2(0.55, 0.55)

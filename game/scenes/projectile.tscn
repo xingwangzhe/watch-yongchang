@@ -1,8 +1,0 @@
-[gd_scene format=3]
-
-[ext_resource type="Script" path="res://scripts/projectile.gd" id="1_2le0l"]
-
-[node name="projectile" type="Area2D" unique_id=1159936078]
-script = ExtResource("1_2le0l")
-
-[node name="Sprite" type="Sprite2D" parent="." unique_id=1282948209]
