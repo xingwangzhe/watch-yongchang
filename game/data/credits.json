@@ -7,25 +7,93 @@
 	"about": {
 		"sections": [
 			{
-				"title_zh": "作品",
-				"title_en": "The Game",
+				"title_zh": "作品与当前进度",
+				"title_en": "The Game · Current Build",
 				"lines_zh": [
 					"《守望 · 永昌》",
 					"Vampire Survivors-like 割草生存 Roguelite",
 					"主题：守 · 望 / 永昌堡与明代抗倭记忆",
-					"16 分钟单局 · 自动攻击 · 升级三选一",
-					"Godot 4.7.2-stable · GDScript",
-					"策划、程序、像素美术与整合：xingwangzhe",
-					"2026 OSGJ 开源游戏开发大赛"
+					"2026 OSGJ 开源游戏开发大赛参赛作品",
+					"当前版本：v0.1 · M0 基础 UI",
+					"已完成：动态像素夜景主菜单、设置、双语、自动存档、关于滚幕、Vulkan/OpenGL 渲染切换",
+					"进行中：玩家移动、自动攻击、敌人波次、升级三选一、灯火风险收益与龙灯清屏",
+					"开局页当前为占位场景；M0 战斗内容按 GDD 逐项接入",
+					"策划、程序、像素美术与整合：xingwangzhe"
 				],
 				"lines_en": [
 					"WATCH · YONGCHANG",
 					"A Vampire Survivors-like survival roguelite",
-					"Theme: Guard · Gaze / Yongchang Fort and coastal defense",
-					"16-minute runs · auto-attack · pick one of three upgrades",
-					"Godot 4.7.2-stable · GDScript",
-					"Design, code, pixel art, and integration: xingwangzhe",
-					"2026 OSGJ Open Source Game Development entry"
+					"Theme: Guard · Gaze / Yongchang Fort and Ming-era coastal defense",
+					"A 2026 OSGJ open-source game development entry",
+					"Current build: v0.1 · M0 foundation UI",
+					"Done: animated pixel nightscape menu, settings, bilingual UI, autosave, credits roll, and Vulkan/OpenGL renderer switching",
+					"In progress: player movement, auto-attack, enemy waves, one-of-three upgrades, lantern risk/reward, and dragon-lantern clears",
+					"The run screen is currently a placeholder; M0 combat is being added from the GDD",
+					"Design, code, pixel art, and integration: xingwangzhe"
+				]
+			},
+			{
+				"title_zh": "操作与系统",
+				"title_en": "Controls & System",
+				"lines_zh": [
+					"主菜单：↑↓ 选择，Enter 确认，Esc 关闭设置面板。",
+					"设置项：BGM/音效、全屏、帧率上限、垂直同步、语言与渲染后端；变更即时写入配置。",
+					"自动存档：菜单、设置变化、开局、退出与每 20 秒写入 user://savegame.json。",
+					"渲染后端切换后不能热生效；设置页会提示“重启游戏以应用渲染变更”，并提供“立即重启”。",
+					"默认渲染模式为自动：支持 Vulkan 时优先 Vulkan，检测不到时回退 OpenGL。",
+					"Linux/macOS 使用 game/launch.sh，Windows 使用 game/launch.bat；启动器读取 ASCII 渲染镜像并选择正确的 Godot 启动参数。"
+				],
+				"lines_en": [
+					"Menu: ↑↓ to select, Enter to confirm, Esc to close the settings panel.",
+					"Settings: music/SFX, fullscreen, frame limit, VSync, language, and renderer; changes are saved immediately.",
+					"Autosave: menu, settings changes, run start, quit, and every 20 seconds to user://savegame.json.",
+					"Renderer changes are not hot-swapped; the settings panel says 'Restart the game to apply the renderer change' and offers 'Restart now'.",
+					"The default renderer mode is Auto: Vulkan when supported, otherwise OpenGL.",
+					"Launch with game/launch.sh on Linux/macOS or game/launch.bat on Windows; the launcher reads the ASCII renderer mirror and passes the matching Godot flags."
+				]
+			},
+			{
+				"title_zh": "渲染与性能",
+				"title_en": "Rendering & Performance",
+				"lines_zh": [
+					"验收基线：1280×720、可缩放窗口、默认 60 FPS、VSync 开启。",
+					"Vulkan 启动参数：--rendering-method forward_plus --rendering-driver vulkan。",
+					"OpenGL 启动参数：--rendering-method gl_compatibility --rendering-driver opengl3。",
+					"自动检测：Linux 读取 vulkaninfo --summary；Windows 检查 System32/SysWOW64 的 vulkan-1.dll；发现 Vulkan 时默认 Vulkan。",
+					"安全回退：检测不到 Vulkan 时默认 OpenGL；project.godot 仍保留 GL Compatibility 作为兜底。",
+					"渲染镜像：Windows 写入 %APPDATA%\\WatchYongchang\\renderer.cfg；Linux/macOS 写入对应的用户配置目录，避免中文项目名影响批处理。",
+					"渲染后端只能在进程启动时选择；设置变更写入 user://settings.cfg，重启后由启动参数应用。",
+					"主菜单夜景的分层绘制、粒子与纹理滚动会同时受 GPU 后端与帧率设置影响。"
+				],
+				"lines_en": [
+					"Acceptance baseline: 1280×720, resizable window, 60 FPS by default, VSync on.",
+					"Vulkan flags: --rendering-method forward_plus --rendering-driver vulkan.",
+					"OpenGL flags: --rendering-method gl_compatibility --rendering-driver opengl3.",
+					"Detection: Linux reads vulkaninfo --summary; Windows checks vulkan-1.dll in System32/SysWOW64; Vulkan is the default when found.",
+					"Safe fallback: OpenGL when Vulkan is unavailable; project.godot keeps GL Compatibility as the final fallback.",
+					"Renderer mirror: Windows writes %APPDATA%\\WatchYongchang\\renderer.cfg; Linux/macOS use their user config directories so the Chinese project name cannot break batch parsing.",
+					"Renderers are selected at process start; the setting is written to user://settings.cfg and applied by the next launch.",
+					"Layered drawing, particles, and texture scrolling in the menu nightscape all depend on the GPU backend and frame limit."
+				]
+			},
+			{
+				"title_zh": "主菜单夜景",
+				"title_en": "Menu Nightscape",
+				"lines_zh": [
+					"主菜单背景为项目原创动态像素夜景，不再使用简单几何剪影。",
+					"母版 640×360、32 色，2× 最近邻导出为 1280×720，保持硬像素边缘。",
+					"分层：远景城防与月、循环云层、海浪、渔船、烽火、星点、月光碎影、灯火呼吸与火星。",
+					"动画：云层慢速漂移，海浪快速横移并上下起伏，渔船浮动，烽火 9 fps 循环。",
+					"生成：skills/pixel-art-studio/ 与 pixel-art/menu_backdrop/build.py；修改后重跑脚本，不手改导出 PNG。",
+					"运行时：game/scripts/ui/menu_backdrop.gd；主菜单、关于页与占位开局页共用。"
+				],
+				"lines_en": [
+					"The menu background is an original animated pixel nightscape, not a simple geometric silhouette.",
+					"A 640×360, 32-color master is exported at 2× nearest-neighbor to 1280×720 for crisp pixel edges.",
+					"Layers: distant fort and moon, looping clouds, waves, fishing boats, beacon fire, stars, moon shimmer, breathing lanterns, and embers.",
+					"Motion: clouds drift slowly, waves scroll and bob, boats float, and the beacon cycles at 9 fps.",
+					"Generated with skills/pixel-art-studio/ and pixel-art/menu_backdrop/build.py; rerun the script instead of editing exported PNGs.",
+					"Runtime composition lives in game/scripts/ui/menu_backdrop.gd and is shared by the menu, about page, and placeholder run screen."
 				]
 			},
 			{
@@ -33,10 +101,12 @@
 				"title_en": "Thanks",
 				"lines_zh": [
 					"感谢所有公开资料、非遗记录与开源工具的作者。",
+					"感谢 Godot、GUT、Pixel Art Studio、Pillow、Bun 与 ffmpeg 让原型可以持续迭代。",
 					"感谢所有试玩、反馈与守望这场比赛的人。"
 				],
 				"lines_en": [
 					"Thanks to everyone who published the records, heritage notes, and open-source tools used here.",
+					"Thanks to Godot, GUT, Pixel Art Studio, Pillow, Bun, and ffmpeg for keeping the prototype iterating.",
 					"Thanks to everyone who playtested, gave feedback, or kept watch with us."
 				],
 				"entries": [
@@ -137,9 +207,16 @@
 					"© 2026 xingwangzhe。保留署名权。",
 					"代码：GPL-3.0-or-later。",
 					"原创非代码资产：CC BY 4.0。",
-					"角色锻造模板图集：4 肤色 × 12 服装 × 11 头饰 × 4 背挂 × 43 套主副手组合，共 90,816 种；128×128×48 帧；14 类武器各 5 段具名动作，并区分单手、双手、远程与副手；17 套人体骨架含 3 类双持组合；肩肘髋膝踝共享骨架端点，所有握法双臂固定在躯干前层；双持主手按真实配对行生成，盾与副手为独立层；源文件 pixel-art/character_forge/build.py，按 CC BY 4.0 发布。参考包仅研究动作结构，未打包。",
+					"动态像素夜景、主菜单 UI 与关于页版式：项目原创；像素夜景生成脚本与导出资产按 CC BY 4.0 发布。",
+					"明式抗倭瓦片图集（地形 32 格、建筑与城防 32 格、道具 16 格）：项目原创程序化像素绘制，32×32，源文件 pixel-art/yongchang_tiles/build.py，按 CC BY 4.0 发布。",
+					"地图环境动效图集：红灯笼、渔舟、明军旗与烽火四组 4 帧循环，32×32×4×4，源文件 pixel-art/yongchang_tiles/build.py，按 CC BY 4.0 发布。",
+					"瓦片文化取向：明代浙南沿海抗倭堡垒；青灰石墙、黛瓦、白灰墙、红漆门、马头墙、水关、烽火、拒马、渔舟、芦苇滩与石敢当；未使用日式瓦片或日式识别物。",
+					"原创角色精灵：主角戚继光 128×128×16 帧；倭寇 16 类各 128×128×16 帧；按肩肘髋膝踝关节逐帧重绘，含待机 2、行走 8、攻击 6 帧；源文件 pixel-art/actors/build.py，按 CC BY 4.0 发布。主角为原创像素形象，非历史肖像。",
+					"角色锻造模板图集：4 肤色 × 16 服装 × 12 头饰 × 4 背挂 × 59 套主副手组合，共 181,248 条原始行；按阵营隔离后为明军 33,408 种、倭寇 15,360 种，合计 48,768 种；128×128×48 帧；19 类武器（含 2 件副手盾）各 5 段具名动作，并区分单手、双手、远程与副手；22 套人体骨架含 3 类双持组合与 42 个合法配对；明军专属为狼筅、戚家刀、藤牌、镋钯、戚家军甲，倭寇专属为倭刀、胴丸、腹卷、阵笠；通用装备可供双方搭配，明倭装备禁止混装；肩肘髋膝踝共享骨架端点，所有握法双臂固定在躯干前层；双持主手按真实配对行生成，盾与副手为独立层；源文件 pixel-art/character_forge/build.py，按 CC BY 4.0 发布。参考包仅研究动作结构，未打包。",
+					"倭寇类型按明代抗倭史料与 GDD 设计为反派；日式阵笠、胴丸、铁炮等仅用于敌方识别，不用于明军与主角。",
 					"UI 面板与控件素材：WorkBuddy ImageGen 生成面板底板，tools/build_ui_controls.py 派生按钮、下拉、滑条、开关、滚动条与提示框；原创非代码资产 CC BY 4.0，详见《AI 使用与素材声明》。",
 					"第三方音乐、字体、音效保留原许可；署名与来源见上方条目。",
+					"Godot、GUT、Pixel Art Studio、Pillow、Bun 与 ffmpeg 的使用许可见下方工具条目。",
 					"霞鹜文楷：OFL 1.1，版权归 LXGW 与 Klee Project Authors，全文见 game/assets/fonts/OFL.txt。",
 					"本作与永昌堡、汤和信俗相关机构无隶属关系；历史资料仅用于文化考据与创作。"
 				],
@@ -147,9 +224,16 @@
 					"© 2026 xingwangzhe. Attribution rights reserved.",
 					"Code: GPL-3.0-or-later.",
 					"Original non-code assets: CC BY 4.0.",
-					"Character-forge template atlases: 4 skins × 12 outfits × 11 headgear × 4 backgear × 43 main/offhand loadouts, 90,816 combinations; 128×128 across 48 frames; 14 weapon classes each with five named actions, separated into one-handed, two-handed, ranged, and offhand grips; 17 body skeletons including three dual-wield combo families; shared shoulder/elbow/hip/knee/ankle endpoints and both arms locked to the front of the torso for every grip; dual-wield main hands use pair-specific weapon rows, with shield/offhand on a separate layer; generated by pixel-art/character_forge/build.py, released under CC BY 4.0. Reference packs informed motion structure only and are not packaged.",
+					"Animated pixel nightscape, menu UI, and about-page layout: project originals; the nightscape generator and exported assets are released under CC BY 4.0.",
+					"Ming-era coastal-defense tile atlases (32 terrain, 32 architecture, 16 props): original procedural pixel art at 32×32, generated by pixel-art/yongchang_tiles/build.py, released under CC BY 4.0.",
+					"Animated map props: four 4-frame loops for red lanterns, fishing boats, Ming banners, and beacon fire at 32×32 per frame, generated by pixel-art/yongchang_tiles/build.py, released under CC BY 4.0.",
+					"Tile art direction: a Ming-era coastal fort in southern Zhejiang; grey stone walls, dark roof tiles, whitewashed walls, red-lacquer gates, stepped gables, water gates, beacon fires, chevaux-de-frise, fishing boats, reed flats, and stone guardians. No Japanese tiles or Japanese identity markers are used.",
+					"Original actor sprites: hero Qi Jiguang at 128×128 across 16 frames; 16 wokou types at 128×128 across 16 frames each. Shoulder, elbow, hip, knee, and ankle joints are rebuilt per frame, with 2 idle, 8 walk, and 6 attack frames; generated by pixel-art/actors/build.py, released under CC BY 4.0. The hero is an original pixel depiction, not a historical portrait.",
+					"Character-forge template atlases: 4 skins × 16 outfits × 12 headgear × 4 backgear × 59 main/offhand loadouts, yielding 181,248 raw rows; faction isolation leaves 33,408 Ming and 15,360 Wokou combinations, 48,768 legal combinations total; 128×128 across 48 frames; 19 weapon classes (including two offhand shields) each with five named actions, separated into one-handed, two-handed, ranged, and offhand grips; 22 body skeletons including three dual-wield combo families and 42 legal pairs; Ming-exclusive gear is the wolf brush, Qi family saber, rattan shield, tangpa, and Qi Jia armour; Wokou-exclusive gear is the wokou saber, do-maru, haramaki, and jingasa; common gear can be used by either side, while Ming and Wokou gear are never mixed; shared shoulder/elbow/hip/knee/ankle endpoints and both arms locked to the front of the torso for every grip; dual-wield main hands use pair-specific weapon rows, with shield/offhand on a separate layer; generated by pixel-art/character_forge/build.py, released under CC BY 4.0. Reference packs informed motion structure only and are not packaged.",
+					"Wokou types follow Ming-era coastal-defense records and the GDD as antagonists; Japanese-style hats, armour, and matchlocks identify the enemy only and are not used for the Ming hero or allies.",
 					"UI panels and controls: panel base generated with WorkBuddy ImageGen; buttons, dropdowns, sliders, toggles, scrollbars, and tooltips derived by tools/build_ui_controls.py; original non-code assets under CC BY 4.0. See the AI Use & Asset Statement.",
 					"Third-party music, fonts, and sound effects keep their original licenses; see the entries above.",
+					"Godot, GUT, Pixel Art Studio, Pillow, Bun, and ffmpeg keep their own licenses; see the tool entries below.",
 					"LXGW WenKai: OFL 1.1, copyright LXGW and the Klee Project Authors; full text in game/assets/fonts/OFL.txt.",
 					"This work is not affiliated with Yongchang Fort or Tang He tradition institutions; historical material is used for cultural research and creative work."
 				]
@@ -327,7 +411,7 @@
 	],
 	"tools": [
 		{
-			"title": "Godot Engine 4.7.2",
+			"title": "Godot Engine 4.7.2-stable",
 			"license": "MIT",
 			"url": "https://godotengine.org"
 		},
@@ -337,14 +421,29 @@
 			"url": "https://github.com/bitwes/Gut"
 		},
 		{
+			"title": "Pixel Art Studio",
+			"license": "MIT",
+			"url": "https://github.com/Gamezxz/pixel-art-studio"
+		},
+		{
+			"title": "Pillow",
+			"license": "MIT-CMU",
+			"url": "https://python-pillow.org"
+		},
+		{
 			"title": "Bun",
 			"license": "MIT",
 			"url": "https://bun.sh"
-			},
-			{
-				"title": "Pillow",
-				"license": "MIT-CMU",
-				"url": "https://python-pillow.org"
+		},
+		{
+			"title": "ffmpeg",
+			"license": "LGPL-2.1-or-later",
+			"url": "https://ffmpeg.org"
+		},
+		{
+			"title": "WorkBuddy ImageGen",
+			"license": "AI-generated panel assets; see AI statement",
+			"url": ""
 		}
 	]
 }
