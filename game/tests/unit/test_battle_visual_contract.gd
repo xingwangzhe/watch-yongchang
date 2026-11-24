@@ -78,13 +78,22 @@ func test_tower_and_arrow_drawing_uses_real_sprites_and_shapes() -> void:
 	var tower_start := text.find("func _draw_towers()")
 	var shots_start := text.find("func _draw_tower_shots()")
 	var effects_start := text.find("func _draw_effects()")
+	var health_start := text.find("func _draw_health_bars()")
 	assert_gt(tower_start, 0)
 	assert_gt(shots_start, tower_start)
 	assert_gt(effects_start, shots_start)
+	assert_gt(health_start, 0, "non-player units need a dedicated health-bar pass")
 	var tower_section := text.substr(tower_start, shots_start - tower_start)
 	var shot_section := text.substr(shots_start, effects_start - shots_start)
+	var health_end := text.find("func _", health_start + 1)
+	if health_end < 0:
+		health_end = text.length()
+	var health_section := text.substr(health_start, health_end - health_start)
 	assert_true(tower_section.contains("draw_texture_rect"), "towers must render their large sprite texture")
-	assert_true(tower_section.contains("hp_ratio"), "damaged towers must show a health bar")
+	assert_true(health_section.contains("_draw_unit_bar"), "units must draw a compact health bar")
+	assert_true(health_section.contains("for enemy in enemies"), "enemies must show health bars")
+	assert_true(health_section.contains("for tower in towers"), "towers must show health bars")
+	assert_true(health_section.contains("for ally in allies"), "mercenaries must show health bars")
 	assert_true(shot_section.contains("draw_colored_polygon"), "tower arrows need a real arrowhead, not a debug line")
 
 

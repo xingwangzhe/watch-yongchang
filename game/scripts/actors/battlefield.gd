@@ -1560,6 +1560,7 @@ func _draw() -> void:
 	_draw_enemies()
 	_draw_allies()
 	_draw_player()
+	_draw_health_bars()
 	_draw_projectiles()
 	_draw_tower_shots()
 	_draw_jeff_fx()
@@ -1610,18 +1611,7 @@ func _draw_towers() -> void:
 				Rect2(position - Vector2(size * 0.5, size * 0.9), Vector2(size, size)),
 				Color("#6d5a42")
 			)
-		# 血条：仅在受损时显示，避免常驻 HUD 噪点
-		var hp_ratio := clampf(float(tower["hp"]) / maxf(1.0, float(tower["max_hp"])), 0.0, 1.0)
-		if hp_ratio < 0.999:
-			var bar_w := size * 0.62
-			var bar_pos := position + Vector2(-bar_w * 0.5, -size * 0.92)
-			draw_rect(Rect2(bar_pos, Vector2(bar_w, 5)), Color(0.04, 0.04, 0.05, 0.82))
-			var bar_color := Color("#8fbf6e")
-			if hp_ratio < 0.32:
-				bar_color = Color("#c4573d")
-			elif hp_ratio < 0.66:
-				bar_color = Color("#d8b45f")
-			draw_rect(Rect2(bar_pos, Vector2(bar_w * hp_ratio, 5)), bar_color)
+		# 血条统一在 _draw_health_bars() 中绘制，避免与敌兵/佣兵血条层叠错位。
 
 
 func _draw_tower_shots() -> void:
@@ -1683,7 +1673,6 @@ func _draw_enemies() -> void:
 	if not bool(get_meta("draw_enemies", true)):
 		return
 	var groups: Dictionary = {}
-	var decorations: Array[Dictionary] = []
 	for enemy in enemies:
 		if not bool(enemy.get("alive", false)):
 			continue
@@ -1696,19 +1685,10 @@ func _draw_enemies() -> void:
 		if not groups.has(batch_id):
 			groups[batch_id] = []
 		(groups[batch_id] as Array).append(enemy)
-		if bool(enemy.get("elite", false)) or bool(enemy.get("boss", false)):
-			decorations.append(enemy)
 	for batch_id in groups.keys():
 		_draw_enemy_batch(str(batch_id), groups[batch_id] as Array, true)
 	for batch_id in groups.keys():
 		_draw_enemy_batch(str(batch_id), groups[batch_id] as Array, false)
-	for enemy in decorations:
-		var position := enemy["pos"] as Vector2
-		if float(enemy["hp"]) < float(enemy["max_hp"]) and bool(enemy.get("boss", false)):
-			var width := 96.0
-			var ratio := clampf(float(enemy["hp"]) / float(enemy["max_hp"]), 0.0, 1.0)
-			draw_rect(Rect2(position + Vector2(-width * 0.5, -64), Vector2(width, 5)), Color(0.03, 0.03, 0.03, 0.8))
-			draw_rect(Rect2(position + Vector2(-width * 0.5, -64), Vector2(width * ratio, 5)), Color("#c4573d"))
 
 
 func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
@@ -1803,6 +1783,62 @@ func _draw_player() -> void:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		draw_circle(player_pos, 22.0, Color("#d8b45a"))
+
+
+func _draw_health_bars() -> void:
+	# 除玩家外的所有单位都带血条：敌兵、箭塔、佣兵。
+	# 血条只画薄薄一条，不铺底板，保持画面干净。
+	for enemy in enemies:
+		if not bool(enemy.get("alive", false)):
+			continue
+		var position := enemy["pos"] as Vector2
+		if absf(position.x - player_pos.x) > VIEW_HALF.x + 80.0:
+			continue
+		if absf(position.y - player_pos.y) > VIEW_HALF.y + 80.0:
+			continue
+		var is_boss := bool(enemy.get("boss", false))
+		var is_elite := bool(enemy.get("elite", false))
+		var size := ENEMY_SPRITE_BASE_SIZE * float(enemy.get("scale", 1.0))
+		var width := 96.0 if is_boss else (46.0 if is_elite else maxf(20.0, float(enemy["radius"]) * 0.92))
+		var height := 6.0 if is_boss else (4.0 if is_elite else 3.0)
+		var top := position + Vector2(-width * 0.5, -size * 0.92)
+		_draw_unit_bar(top, width, height, float(enemy["hp"]), float(enemy["max_hp"]))
+	for tower in towers:
+		if not bool(tower.get("alive", false)):
+			continue
+		var position := tower["pos"] as Vector2
+		var size := TOWER_SPRITE_BASE * float(tower.get("sprite_scale", 1.0))
+		var width := size * 0.62
+		_draw_unit_bar(
+			position + Vector2(-width * 0.5, -size * 0.94),
+			width,
+			5.0,
+			float(tower["hp"]),
+			float(tower["max_hp"])
+		)
+	for ally in allies:
+		var position := ally["pos"] as Vector2
+		var size := PLAYER_SPRITE_SIZE * float(ally.get("scale", 0.62))
+		var width := maxf(22.0, size * 0.52)
+		_draw_unit_bar(
+			position + Vector2(-width * 0.5, -size * 0.86),
+			width,
+			3.0,
+			float(ally["hp"]),
+			float(ally["max_hp"])
+		)
+
+
+func _draw_unit_bar(top_left: Vector2, width: float, height: float, hp: float, max_hp: float) -> void:
+	var ratio := clampf(hp / maxf(1.0, max_hp), 0.0, 1.0)
+	draw_rect(Rect2(top_left, Vector2(width, height)), Color(0.02, 0.025, 0.025, 0.72))
+	var color := Color("#8fbf6e")
+	if ratio < 0.30:
+		color = Color("#c4573d")
+	elif ratio < 0.64:
+		color = Color("#d8b45f")
+	draw_rect(Rect2(top_left, Vector2(maxf(1.0, width * ratio), height)), color)
+	draw_rect(Rect2(top_left, Vector2(width, height)), Color(0.0, 0.0, 0.0, 0.35), false, 1.0)
 
 
 func _draw_allies() -> void:

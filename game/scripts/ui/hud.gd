@@ -132,105 +132,118 @@ func _build() -> void:
 	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_root)
 
-	# 上下遮罩：水平拉伸铺满，仅固定高度（相对定位）。
-	var top_shade := ColorRect.new()
-	top_shade.color = Color(0.01, 0.02, 0.022, 0.62)
-	top_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	top_shade.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	top_shade.offset_bottom = 76.0
-	_root.add_child(top_shade)
-	var bottom_shade := ColorRect.new()
-	bottom_shade.color = Color(0.01, 0.02, 0.022, 0.68)
-	bottom_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bottom_shade.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	bottom_shade.offset_top = -104.0
-	_root.add_child(bottom_shade)
-
-	# 左上：血量 / 等级 / 经验
-	_hp_bar = _make_progress("HpBar", Vector2(34, 16), Vector2(300, 14), Color("#a64535"))
-	_root.add_child(_hp_bar)
-	_hp_label = _label("HpLabel", "", 14, PAPER)
-	UILayout.place(_hp_label, 342, 14, 120, 20, 0.0, 0.0)
-	_root.add_child(_hp_label)
-	_shield_label = _label("ShieldLabel", "", 11, Color("#d8b45f"))
-	UILayout.place(_shield_label, 342, 32, 150, 18, 0.0, 0.0)
+	# 紧凑小组件：不再使用铺满屏幕的上下遮罩，只给每组信息一块半透明小底板，
+	# 让战场尽量完整露出。所有坐标仍按 1280×720 设计基准。
+	var top_left := _chip("TopLeftChip", 14, 10, 292, 54, 0, 0)
+	var hp_box := VBoxContainer.new()
+	hp_box.add_theme_constant_override("separation", 4)
+	top_left.add_child(hp_box)
+	var hp_row := HBoxContainer.new()
+	hp_row.add_theme_constant_override("separation", 8)
+	hp_box.add_child(hp_row)
+	_hp_bar = _make_progress("HpBar", Vector2.ZERO, Vector2(196, 12), Color("#a64535"))
+	_hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hp_row.add_child(_hp_bar)
+	_hp_label = _label("HpLabel", "", 13, PAPER)
+	_hp_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_hp_label.custom_minimum_size = Vector2(66, 16)
+	hp_row.add_child(_hp_label)
+	var xp_row := HBoxContainer.new()
+	xp_row.add_theme_constant_override("separation", 6)
+	hp_box.add_child(xp_row)
+	_level_label = _label("LevelLabel", "", 12, GOLD)
+	_level_label.custom_minimum_size = Vector2(58, 15)
+	xp_row.add_child(_level_label)
+	_xp_bar = _make_progress("XpBar", Vector2.ZERO, Vector2(120, 5), Color("#d8a548"))
+	_xp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	xp_row.add_child(_xp_bar)
+	_shield_label = _label("ShieldLabel", "", 10, Color("#d8b45f"))
+	_shield_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_shield_label.custom_minimum_size = Vector2(58, 14)
 	_shield_label.visible = false
-	_root.add_child(_shield_label)
-
-	_level_label = _label("LevelLabel", "", 15, GOLD)
-	UILayout.place(_level_label, 34, 36, 200, 20, 0.0, 0.0)
-	_root.add_child(_level_label)
-	_xp_bar = _make_progress("XpBar", Vector2(34, 60), Vector2(390, 6), Color("#d8a548"))
-	_root.add_child(_xp_bar)
+	xp_row.add_child(_shield_label)
 
 	# 顶部居中：倒计时
-	_timer_label = _label("TimerLabel", "", 29, PAPER)
+	var timer_chip := _chip("TimerChip", 520, 10, 240, 50, 0.5, 0)
+	var timer_box := VBoxContainer.new()
+	timer_box.add_theme_constant_override("separation", 0)
+	timer_chip.add_child(timer_box)
+	_timer_label = _label("TimerLabel", "", 26, PAPER)
 	_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UILayout.place(_timer_label, 500, 8, 280, 32, 0.5, 0.0)
-	_root.add_child(_timer_label)
-	_clock_label = _label("ClockLabel", "", 12, Color(MUTED, 0.82))
+	timer_box.add_child(_timer_label)
+	_clock_label = _label("ClockLabel", "", 10, Color(MUTED, 0.82))
 	_clock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UILayout.place(_clock_label, 500, 42, 280, 20, 0.5, 0.0)
-	_root.add_child(_clock_label)
+	timer_box.add_child(_clock_label)
 
-	# 右上：战绩 / 小地图
-	_kill_label = _label("KillLabel", "", 15, PAPER)
+	# 右上：战绩小条 + 小地图；二者不重叠，也不压住战场中心。
+	var score_chip := _chip("ScoreChip", 846, 10, 198, 52, 0, 0)
+	var score_box := VBoxContainer.new()
+	score_box.add_theme_constant_override("separation", 0)
+	score_chip.add_child(score_box)
+	_kill_label = _label("KillLabel", "", 12, PAPER)
 	_kill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	UILayout.place(_kill_label, 782, 12, 212, 20, 1.0, 0.0)
-	_root.add_child(_kill_label)
-	_merit_label = _label("MeritLabel", "", 13, GOLD)
+	score_box.add_child(_kill_label)
+	_merit_label = _label("MeritLabel", "", 11, GOLD)
 	_merit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	UILayout.place(_merit_label, 782, 34, 212, 20, 1.0, 0.0)
-	_root.add_child(_merit_label)
-	_coin_label = _label("CoinLabel", "", 11, Color("#d8b45f"))
+	score_box.add_child(_merit_label)
+	_coin_label = _label("CoinLabel", "", 10, Color("#d8b45f"))
 	_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	UILayout.place(_coin_label, 782, 56, 212, 18, 1.0, 0.0)
-	_root.add_child(_coin_label)
+	score_box.add_child(_coin_label)
 
 	_minimap = MINIMAP.new()
 	_minimap.name = "Minimap"
-	UILayout.place(_minimap, 1030, 10, 216, 140, 1.0, 0.0)
+	_minimap.custom_minimum_size = Vector2(200, 128)
+	UILayout.place(_minimap, 1066, 10, 200, 128, 1.0, 0.0)
 	_root.add_child(_minimap)
 
-	# 左下：灯火 / 阵法 / 操作提示
-	_oil_label = _label("OilLabel", "", 13, Color(MUTED, 0.9))
-	UILayout.place(_oil_label, 34, 618, 180, 20, 0.0, 1.0)
-	_root.add_child(_oil_label)
+	# 左下：灯火 / 阵法小条
+	var oil_chip := _chip("OilChip", 14, 662, 186, 44, 0, 1)
+	var oil_box := VBoxContainer.new()
+	oil_box.add_theme_constant_override("separation", 2)
+	oil_chip.add_child(oil_box)
+	_oil_label = _label("OilLabel", "", 10, Color(MUTED, 0.9))
+	oil_box.add_child(_oil_label)
 	_oil_meter = OIL_METER.new()
 	_oil_meter.name = "OilMeter"
-	UILayout.place(_oil_meter, 34, 638, 178, 30, 0.0, 1.0)
-	_root.add_child(_oil_meter)
+	_oil_meter.custom_minimum_size = Vector2(168, 18)
+	oil_box.add_child(_oil_meter)
 
-	_scale_label = _label("ScaleLabel", "", 13, Color(MUTED, 0.9))
-	UILayout.place(_scale_label, 236, 618, 160, 20, 0.0, 1.0)
-	_root.add_child(_scale_label)
+	var scale_chip := _chip("ScaleChip", 208, 662, 168, 44, 0, 1)
+	var scale_box := VBoxContainer.new()
+	scale_box.add_theme_constant_override("separation", 2)
+	scale_chip.add_child(scale_box)
+	_scale_label = _label("ScaleLabel", "", 10, Color(MUTED, 0.9))
+	scale_box.add_child(_scale_label)
 	_scale_meter = SCALE_METER.new()
 	_scale_meter.name = "ScaleMeter"
-	UILayout.place(_scale_meter, 236, 638, 150, 30, 0.0, 1.0)
-	_root.add_child(_scale_meter)
-
-	_move_hint = _label("MoveHint", "", 10, Color(MUTED, 0.58))
-	UILayout.place(_move_hint, 34, 690, 410, 18, 0.0, 1.0)
-	_root.add_child(_move_hint)
+	_scale_meter.custom_minimum_size = Vector2(150, 18)
+	scale_box.add_child(_scale_meter)
 
 	# 底部居中：兵器槽 / 被动
 	var weapon_row := HBoxContainer.new()
 	weapon_row.name = "WeaponRow"
-	UILayout.place(weapon_row, 430, 618, 644, 56, 0.5, 1.0)
-	weapon_row.add_theme_constant_override("separation", 6)
+	UILayout.place(weapon_row, 640, 662, 541, 44, 0.5, 1.0)
+	weapon_row.add_theme_constant_override("separation", 5)
 	_root.add_child(weapon_row)
 	for i in range(6):
 		var slot := _build_weapon_slot(i)
 		weapon_row.add_child(slot["root"] as Control)
 		_weapon_slots.append(slot)
 
-	_passive_label = _label("PassiveLabel", "", 12, Color(MUTED, 0.70))
-	UILayout.place(_passive_label, 430, 681, 610, 22, 0.5, 1.0)
+	_passive_label = _label("PassiveLabel", "", 10, Color(MUTED, 0.72))
+	_passive_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UILayout.place(_passive_label, 640, 708, 620, 14, 0.5, 1.0)
 	_root.add_child(_passive_label)
-	_build_label = _label("BuildLabel", "", 11, Color(MUTED, 0.48))
+
+	var build_chip := _chip("BuildChip", 1048, 670, 218, 38, 1, 1)
+	_build_label = _label("BuildLabel", "", 9, Color(MUTED, 0.62))
 	_build_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	UILayout.place(_build_label, 1060, 684, 184, 20, 1.0, 1.0)
-	_root.add_child(_build_label)
+	build_chip.add_child(_build_label)
+
+	_move_hint = _label("MoveHint", "", 9, Color(MUTED, 0.52))
+	_move_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	UILayout.place(_move_hint, 14, 708, 320, 14, 0.0, 1.0)
+	_root.add_child(_move_hint)
 
 	# 顶部居中弹窗：横幅 / Boss 条
 	_banner_panel = PanelContainer.new()
@@ -269,27 +282,56 @@ func _build() -> void:
 	boss_box.add_child(_boss_bar)
 
 
+func _chip(node_name: String, x: float, y: float, w: float, h: float, ax: float, ay: float) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.name = node_name
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_theme_stylebox_override("panel", _chip_style())
+	UILayout.place(panel, x, y, w, h, ax, ay)
+	_root.add_child(panel)
+	return panel
+
+
+func _chip_style() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.012, 0.022, 0.024, 0.50)
+	box.border_color = Color(GOLD, 0.16)
+	box.border_width_left = 1
+	box.border_width_top = 1
+	box.border_width_right = 1
+	box.border_width_bottom = 1
+	box.corner_radius_top_left = 5
+	box.corner_radius_top_right = 5
+	box.corner_radius_bottom_left = 5
+	box.corner_radius_bottom_right = 5
+	box.content_margin_left = 8.0
+	box.content_margin_right = 8.0
+	box.content_margin_top = 5.0
+	box.content_margin_bottom = 5.0
+	return box
+
+
 func _build_weapon_slot(index: int) -> Dictionary:
 	var panel := PanelContainer.new()
 	panel.name = "WeaponSlot%d" % (index + 1)
-	panel.custom_minimum_size = Vector2(104, 50)
+	panel.custom_minimum_size = Vector2(86, 44)
 	panel.add_theme_stylebox_override("panel", _slot_style(false))
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 5)
+	row.add_theme_constant_override("separation", 4)
 	panel.add_child(row)
 	var icon := TextureRect.new()
 	icon.name = "Icon"
-	icon.custom_minimum_size = Vector2(30, 30)
+	icon.custom_minimum_size = Vector2(24, 24)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	row.add_child(icon)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", -2)
+	column.add_theme_constant_override("separation", -3)
 	row.add_child(column)
-	var name_label := _label("Name", "", 12, Color(PAPER, 0.90))
+	var name_label := _label("Name", "", 10, Color(PAPER, 0.90))
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	column.add_child(name_label)
-	var level_label := _label("Level", "", 11, Color(GOLD, 0.82))
+	var level_label := _label("Level", "", 9, Color(GOLD, 0.82))
 	column.add_child(level_label)
 	panel.visible = false
 	return {
@@ -345,8 +387,8 @@ func _make_progress(node_name: String, position: Vector2, size_value: Vector2, f
 	bar.max_value = 100.0
 	bar.value = 100.0
 	var background := StyleBoxFlat.new()
-	background.bg_color = Color(0.08, 0.08, 0.07, 0.86)
-	background.border_color = Color(0.82, 0.69, 0.42, 0.25)
+	background.bg_color = Color(0.05, 0.05, 0.045, 0.62)
+	background.border_color = Color(0.82, 0.69, 0.42, 0.20)
 	background.border_width_left = 1
 	background.border_width_top = 1
 	background.border_width_right = 1
@@ -361,20 +403,20 @@ func _make_progress(node_name: String, position: Vector2, size_value: Vector2, f
 
 func _slot_style(evolved: bool) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
-	box.bg_color = Color(0.055, 0.068, 0.064, 0.92)
-	box.border_color = Color(GOLD, 0.68 if evolved else 0.25)
+	box.bg_color = Color(0.035, 0.048, 0.045, 0.72)
+	box.border_color = Color(GOLD, 0.62 if evolved else 0.20)
 	box.border_width_left = 1
 	box.border_width_top = 1
 	box.border_width_right = 1
 	box.border_width_bottom = 1
-	box.corner_radius_top_left = 2
-	box.corner_radius_top_right = 2
-	box.corner_radius_bottom_left = 2
-	box.corner_radius_bottom_right = 2
-	box.content_margin_left = 7.0
-	box.content_margin_right = 5.0
-	box.content_margin_top = 5.0
-	box.content_margin_bottom = 5.0
+	box.corner_radius_top_left = 3
+	box.corner_radius_top_right = 3
+	box.corner_radius_bottom_left = 3
+	box.corner_radius_bottom_right = 3
+	box.content_margin_left = 5.0
+	box.content_margin_right = 4.0
+	box.content_margin_top = 3.0
+	box.content_margin_bottom = 3.0
 	return box
 
 
