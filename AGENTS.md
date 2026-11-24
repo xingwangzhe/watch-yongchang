@@ -80,7 +80,7 @@
 rtk rg -n 'static\.png' game/scripts game/data game/scenes
 rtk rg -n 'assets/units/(xiangyong|gongshou|longdeng|tengpai|huochong|jinshi|wokou_scout|wokou_gun|wokou_ronin|wokou_shield|wokou_chief)' game/scripts game/data game/scenes
 rtk rg -n '"texture"' game/data/characters.json
-find game/assets/units -maxdepth 1 -mindepth 1 -type d ! -name forge
+find game/assets/units -maxdepth 1 -mindepth 1 -type d ! -name forge ! -name towers # towers 是箭塔工事，不是旧兵种
 find assets -maxdepth 3 -type f \( -name '*.png' -o -name '预览-*.jpg' \)
 ```
 

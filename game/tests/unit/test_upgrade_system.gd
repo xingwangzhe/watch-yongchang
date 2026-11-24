@@ -8,7 +8,7 @@ func before_each() -> void:
 func test_upgrade_cards_are_bilingual_sourced_and_decorated() -> void:
 	var data := UpgradeCatalog.data()
 	var total := 0
-	for family in ["attributes", "skills", "events"]:
+	for family in ["attributes", "skills", "events", "towers"]:
 		var entries: Dictionary = data.get(family, {}) as Dictionary
 		assert_gt(entries.size(), 0, "%s must not be empty" % family)
 		for card_id in entries.keys():
@@ -17,7 +17,7 @@ func test_upgrade_cards_are_bilingual_sourced_and_decorated() -> void:
 			for field in ["name_zh", "name_en", "desc_zh", "desc_en", "culture_zh", "culture_en"]:
 				assert_gt(str(card.get(field, "")).length(), 0, "%s missing %s" % [card_id, field])
 			assert_true(
-				["史实", "制度", "民俗", "演绎"].has(str(card.get("category", ""))),
+				["史实", "制度", "民俗", "演绎", "工事"].has(str(card.get("category", ""))),
 				"%s has an invalid source category" % card_id
 			)
 			assert_gt(str(card.get("source_ref", "")).length(), 0, "%s needs a source" % card_id)
@@ -26,24 +26,25 @@ func test_upgrade_cards_are_bilingual_sourced_and_decorated() -> void:
 			var icon_path := str(card.get("icon", ""))
 			assert_true(icon_path.begins_with("res://assets/icons/game_icons/"))
 			assert_true(ResourceLoader.exists(icon_path), "%s icon is missing: %s" % [card_id, icon_path])
-	assert_eq(total, 110, "the three-choice catalog must expose 110 authored cards")
+	assert_eq(total, 140, "the three-choice catalog must expose 140 authored cards (110 base + 30 tower)")
 
 
 func test_catalog_offer_count_exceeds_reference_build_scopes() -> void:
-	assert_eq(UpgradeCatalog.total_card_count(), 110)
+	assert_eq(UpgradeCatalog.total_card_count(), 140)
 	assert_gte(
 		UpgradeCatalog.total_offer_count(),
 		149,
 		"card levels must exceed Brotato's 64 upgrades plus the VS passive scope"
 	)
 	var pool := UpgradeCatalog.build_card_pool({}, {}, 0.8)
-	assert_eq(pool.size(), 110, "a fresh run must see every one of the authored cards")
+	assert_eq(pool.size(), 140, "a fresh run must see every one of the authored cards")
 	var families := {}
 	for option in pool:
 		families[str(option.get("family", ""))] = true
 	assert_true(families.has("attribute"))
 	assert_true(families.has("skill"))
 	assert_true(families.has("event"))
+	assert_true(families.has("tower"))
 
 
 func test_three_choice_pick_is_unique_and_uses_seeded_luck() -> void:

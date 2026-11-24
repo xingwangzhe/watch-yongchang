@@ -28,6 +28,7 @@ func default_data() -> Dictionary:
 		"best_kills": 0,
 		"best_time": 0.0,
 		"prologue_seen": false,
+		"intro_seen": false,
 		"last_mode": "menu",
 		"last_saved_unix": 0,
 		"last_saved_local": "",

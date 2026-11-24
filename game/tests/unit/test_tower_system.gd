@@ -1,0 +1,174 @@
+extends GutTest
+
+## 箭塔系统的契约测试：数据定义、运行时实体、可被攻击、增益与重建。
+## 这些用例把「塔会自己打人、也会挨打」这条新玩法锁死，防止后续改动回归。
+
+const TEST_SAVE := "user://test_tower_system_save.json"
+
+
+func before_each() -> void:
+	SaveSystem.save_path = TEST_SAVE
+	SaveSystem.reset_memory()
+	Locale.set_language("zh", false)
+
+
+func after_each() -> void:
+	SaveSystem.save_path = SaveSystem.SAVE_PATH
+	_remove_user_file(TEST_SAVE)
+
+
+func _new_field() -> Battlefield:
+	var field := Battlefield.new()
+	add_child_autofree(field)
+	field.setup(20261124)
+	field.set_player_sprites(GameData.get_characters()["wanglu"] as Dictionary)
+	return field
+
+
+func test_tower_definitions_are_complete_and_bilingual() -> void:
+	var data := GameData.load_json("res://data/towers.json")
+	var defs: Dictionary = data.get("towers", {}) as Dictionary
+	assert_eq(defs.size(), 3)
+	assert_eq(int(data.get("starting_towers", 0)), 2)
+	assert_gte(int(data.get("max_towers", 0)), 3)
+	var order := ["watchtower", "arrow_tower", "dragon_tower"]
+	for index in defs.size():
+		var tower_id := order[index]
+		assert_true(defs.has(tower_id), "%s must be defined" % tower_id)
+		var definition: Dictionary = defs[tower_id] as Dictionary
+		for field in ["name_zh", "name_en", "desc_zh", "desc_en"]:
+			assert_gt(str(definition.get(field, "")).length(), 0, "%s missing %s" % [tower_id, field])
+		assert_true(ResourceLoader.exists(str(definition.get("texture", ""))), "%s texture missing" % tower_id)
+		assert_gt(float(definition.get("hp", 0.0)), 0.0)
+		assert_gt(float(definition.get("range", 0.0)), 0.0)
+		assert_gt(float(definition.get("damage", 0.0)), 0.0)
+		assert_gt(float(definition.get("cooldown", 0.0)), 0.0)
+		assert_gt(float(definition.get("radius", 0.0)), 0.0)
+		if index < order.size() - 1:
+			assert_eq(str(definition.get("upgrade_to", "")), order[index + 1])
+
+	# 三档必须逐级变强，否则升阶卡就是负收益
+	for index in range(1, order.size()):
+		var prev: Dictionary = defs[order[index - 1]] as Dictionary
+		var curr: Dictionary = defs[order[index]] as Dictionary
+		assert_gt(float(curr["hp"]), float(prev["hp"]))
+		assert_gt(float(curr["damage"]), float(prev["damage"]))
+		assert_gt(float(curr["range"]), float(prev["range"]))
+
+
+func test_tower_textures_are_large_and_native_pixel() -> void:
+	# 「贴图要大一些」：单张塔贴图边长必须明显大于 128px 的角色帧
+	var defs: Dictionary = (GameData.load_json("res://data/towers.json") as Dictionary).get("towers", {}) as Dictionary
+	for tower_id in defs.keys():
+		var definition: Dictionary = defs[tower_id] as Dictionary
+		var texture := load(str(definition.get("texture", ""))) as Texture2D
+		assert_not_null(texture, "%s texture failed to load" % tower_id)
+		assert_gte(texture.get_width(), 160, "%s sprite must be large" % tower_id)
+		assert_gte(texture.get_height(), 160, "%s sprite must be large" % tower_id)
+		assert_eq(texture.get_width(), texture.get_height(), "%s sprite must be square" % tower_id)
+
+
+func test_tower_spawns_with_hp_and_can_be_damaged() -> void:
+	var field := _new_field()
+	var index := field.spawn_tower("watchtower", Vector2(300, 0))
+	assert_gte(index, 0)
+	assert_eq(field.live_tower_count(), 1)
+	var tower: Dictionary = field.towers[index]
+	assert_gt(float(tower["hp"]), 0.0)
+	assert_eq(float(tower["hp"]), float(tower["max_hp"]))
+	field.damage_tower(index, 40.0, -1)
+	assert_lt(float(tower["hp"]), float(tower["max_hp"]))
+	field.damage_tower(index, 100000.0, -1)
+	assert_false(bool(tower["alive"]), "lethal damage must destroy a tower")
+	assert_eq(field.live_tower_count(), 0)
+
+
+func test_tower_auto_fires_at_nearest_enemy() -> void:
+	var field := _new_field()
+	var tower_index := field.spawn_tower("watchtower", Vector2.ZERO)
+	field.towers[tower_index]["attack_timer"] = 0.0
+	var enemy_index := field.spawn_enemy_at("scout", Vector2(180, 0))
+	var enemy: Dictionary = field.enemies[enemy_index]
+	enemy["speed"] = 0.0
+	field.update_world(1.0 / 60.0, {"pos": Vector2(1200, 0), "radius": 18.0, "pickup_radius": 0.0})
+	assert_gt(field.tower_shots.size(), 0, "tower must launch an arrow at a nearby enemy")
+	var shot: Dictionary = field.tower_shots[0]
+	assert_gt(float(shot["damage"]), 0.0)
+	assert_gt((shot["vel"] as Vector2).x, 0.0, "arrow must fly toward the enemy")
+	assert_true((shot["origin"] as Vector2).is_equal_approx(Vector2.ZERO))
+
+
+func test_tower_damage_applies_armor_and_heals_ratio() -> void:
+	var field := _new_field()
+	var index := field.spawn_tower("watchtower", Vector2.ZERO)
+	field.apply_tower_stats({"tower_armor": 0.5, "tower_hp_mult": 2.0})
+	var tower: Dictionary = field.towers[index]
+	assert_eq(float(tower["max_hp"]), 680.0, "watchtower base HP is 340")
+	assert_eq(float(tower["armor"]), 0.5)
+	field.damage_tower(index, 100.0, -1)
+	assert_almost_eq(float(tower["max_hp"]) - float(tower["hp"]), 50.0, 0.001, "armor must halve incoming damage")
+
+
+func test_tower_upgrade_promotes_tier() -> void:
+	var field := _new_field()
+	var index := field.spawn_tower("watchtower", Vector2.ZERO)
+	var before_hp := float(field.towers[index]["max_hp"])
+	assert_true(field.upgrade_tower(index, "arrow_tower"))
+	assert_eq(str(field.towers[index]["id"]), "arrow_tower")
+	assert_gt(float(field.towers[index]["max_hp"]), before_hp)
+	assert_false(field.upgrade_tower(index, "nonexistent_tower"))
+
+
+func test_enemies_siege_tower_instead_of_player_when_closer() -> void:
+	var field := _new_field()
+	var tower_index := field.spawn_tower("watchtower", Vector2(120, 0))
+	field.towers[tower_index]["attack_timer"] = 999.0  # 隔离：本测试只看敌人行为
+	var enemy_index := field.spawn_enemy_at("scout", Vector2(160, 0))
+	var enemy: Dictionary = field.enemies[enemy_index]
+	enemy["speed"] = 0.0
+	# 玩家远在 1000 之外，塔近在 40 处；敌人应把塔当目标并造成伤害
+	field.update_world(1.0 / 60.0, {"pos": Vector2(1000, 0), "radius": 18.0, "pickup_radius": 0.0})
+	assert_lt(float(field.towers[tower_index]["hp"]), float(field.towers[tower_index]["max_hp"]), "enemy must attack the nearby tower")
+
+
+func test_enemy_shots_can_destroy_tower() -> void:
+	var field := _new_field()
+	var index := field.spawn_tower("watchtower", Vector2.ZERO)
+	field.enemy_shots.append({
+		"pos": Vector2.ZERO, "vel": Vector2.ZERO, "damage": 100000.0, "ttl": 2.0,
+	})
+	field.update_world(1.0 / 60.0, {"pos": Vector2(1000, 0), "radius": 18.0, "pickup_radius": 0.0})
+	assert_false(bool(field.towers[index]["alive"]), "enemy projectiles must be able to hit towers")
+
+
+func test_tower_cards_drive_every_tower_stat() -> void:
+	var data := GameData.load_json("res://data/upgrades.json")
+	var cards: Dictionary = data.get("towers", {}) as Dictionary
+	assert_eq(cards.size(), 30)
+	var used_stats := {}
+	for card_id in cards.keys():
+		var card: Dictionary = cards[card_id] as Dictionary
+		assert_gt(str(card.get("name_zh", "")).length(), 0)
+		assert_gt(str(card.get("name_en", "")).length(), 0)
+		assert_gt(str(card.get("desc_zh", "")).length(), 0)
+		assert_gt(str(card.get("culture_zh", "")).length(), 0)
+		assert_gt(int(card.get("max_level", 0)), 0)
+		assert_true(ResourceLoader.exists(str(card.get("icon", ""))), "%s icon missing" % card_id)
+		for effect in card.get("effects", []) as Array:
+			var stat := str((effect as Dictionary).get("stat", ""))
+			assert_true(stat.begins_with("tower_"), "%s must use a tower_* stat" % card_id)
+			used_stats[stat] = true
+	assert_gt(used_stats.size(), 20, "tower cards must cover a wide stat surface")
+
+
+func test_tower_aggro_can_be_retargeted_by_card() -> void:
+	var field := _new_field()
+	assert_almost_eq(field.TOWER_AGGRO, 360.0, 0.001)
+	field.apply_tower_stats({"tower_taunt": 2.0})
+	var tower_index := field.spawn_tower("watchtower", Vector2.ZERO)
+	field.towers[tower_index]["attack_timer"] = 999.0
+	var enemy_index := field.spawn_enemy_at("scout", Vector2(700, 0))
+	var enemy: Dictionary = field.enemies[enemy_index]
+	enemy["speed"] = 0.0
+	field.update_world(1.0 / 60.0, {"pos": Vector2(1200, 0), "radius": 18.0, "pickup_radius": 0.0})
+	assert_lt(float(field.towers[tower_index]["hp"]), float(field.towers[tower_index]["max_hp"]), "taunt must extend siege range")

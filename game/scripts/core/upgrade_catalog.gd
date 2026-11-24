@@ -16,6 +16,7 @@ const FAMILY_COLORS := {
 	"attribute": Color("#79a9bf"),
 	"skill": Color("#c05a41"),
 	"event": Color("#9b7fbf"),
+	"tower": Color("#c9a04e"),
 	"supply": Color("#baa98a"),
 }
 const RARITY_WEIGHT := {
@@ -46,6 +47,10 @@ const STAT_FLAT := [
 	"max_hp_flat", "shield_max", "shield_regen", "regen", "revive",
 	"oil_max", "thorns", "lifesteal", "execute_below",
 ]
+const STAT_INT := [
+	"revive", "oil_max", "tower_pierce", "tower_volley", "tower_chain",
+	"tower_count", "tower_tier",
+]
 const EVENT_STATS := [
 	"event_hp_pct", "event_merit", "event_oil", "event_full_heal",
 	"event_spawn_elite", "event_spawn_wave", "event_enemy_speed",
@@ -66,7 +71,7 @@ static func family_data(family: String) -> Dictionary:
 
 static func all_cards() -> Dictionary:
 	var cards: Dictionary = {}
-	for family in ["attributes", "skills", "events"]:
+	for family in ["attributes", "skills", "events", "towers"]:
 		for card_id in family_data(family).keys():
 			var definition: Dictionary = family_data(family)[card_id] as Dictionary
 			var copy := definition.duplicate(true)
@@ -76,12 +81,17 @@ static func all_cards() -> Dictionary:
 
 
 static func total_card_count() -> int:
-	return family_data("attributes").size() + family_data("skills").size() + family_data("events").size()
+	return (
+		family_data("attributes").size()
+		+ family_data("skills").size()
+		+ family_data("events").size()
+		+ family_data("towers").size()
+	)
 
 
 static func total_offer_count() -> int:
 	var total := 0
-	for family in ["attributes", "skills", "events"]:
+	for family in ["attributes", "skills", "events", "towers"]:
 		for definition in family_data(family).values():
 			total += int((definition as Dictionary).get("max_level", 1))
 	return total
@@ -93,7 +103,7 @@ static func build_card_pool(
 	luck: float
 ) -> Array[Dictionary]:
 	var pool: Array[Dictionary] = []
-	for family in ["attributes", "skills", "events"]:
+	for family in ["attributes", "skills", "events", "towers"]:
 		var family_name := str(family)
 		var singular := family_name.trim_suffix("s")
 		for card_id in family_data(family_name).keys():
@@ -212,6 +222,8 @@ static func format_effect(stat: String, amount: float) -> String:
 		return ""
 	if STAT_PERCENT.has(stat):
 		return "%s %+.0f%%" % [label, amount * 100.0]
+	if STAT_INT.has(stat):
+		return "%s %+d" % [label, int(round(amount))]
 	if stat == "regen" or stat == "shield_regen":
 		return "%s %+.2f/s" % [label, amount]
 	return "%s %+.1f" % [label, amount]
@@ -244,9 +256,10 @@ static func pick_three(pool: Array[Dictionary], rng: RandomNumberGenerator) -> A
 	_pick_from_families(remaining, picked, rng, [
 		"weapon_upgrade", "weapon_new", "evolve", "attribute", "skill", "passive_new", "passive_upgrade",
 	])
-	_pick_from_families(remaining, picked, rng, ["attribute", "skill", "passive_new", "passive_upgrade", "event"])
+	_pick_from_families(remaining, picked, rng, ["tower"])
+	_pick_from_families(remaining, picked, rng, ["attribute", "skill", "tower", "passive_new", "passive_upgrade", "event"])
 	_pick_from_families(remaining, picked, rng, [
-		"attribute", "skill", "event", "passive_new", "passive_upgrade", "weapon_upgrade", "supply",
+		"attribute", "skill", "tower", "event", "passive_new", "passive_upgrade", "weapon_upgrade", "supply",
 	])
 	while picked.size() < 3 and not remaining.is_empty():
 		_pick_weighted(remaining, picked, rng)

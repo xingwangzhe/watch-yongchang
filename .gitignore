@@ -39,6 +39,8 @@ pixel-art/**/*_study/
 generated/game_icons/
 generated/tileset_candidates/
 generated/character_candidates/
+generated/battle_redesign/
+generated/forge_hd/
 
 # ----- CI 工具、构建产物与日志 -----
 .tools/
