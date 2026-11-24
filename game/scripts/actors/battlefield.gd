@@ -511,27 +511,33 @@ func damage_enemy(index: int, damage: float, impulse: Vector2, color: Color = GO
 	var armor := clampf(float(enemy.get("armor", 0.0)), 0.0, 0.75)
 	var final_damage := maxf(1.0, damage * (1.0 - armor))
 	enemy["hp"] = float(enemy["hp"]) - final_damage
-	enemy["knockback"] = (enemy["knockback"] as Vector2) + impulse
-	enemy["flash"] = 0.12
+
+	# 分层反馈：闪白 + 击退 + 伤害数字 + 音效 + 火花 + 震动，全部走 FeedbackManager 对象池。
+	# HitData 复用，命中热路径零节点分配。
+	var is_heavy := bool(enemy.get("boss", false)) or bool(enemy.get("elite", false))
+	var hit := FeedbackManager.acquire_hit_data()
+	hit.position = enemy["pos"] as Vector2
+	hit.impulse = impulse
+	hit.damage = final_damage
+	hit.critical = critical
+	hit.weight = 2 if is_heavy else (1 if critical else 0)
+	hit.target = enemy
+	hit.color = color
+	hit.kind = "boss" if bool(enemy.get("boss", false)) else ("kill" if float(enemy["hp"]) <= 0.0 else "normal")
+	hit.suppress_fx = not show_fx
+	FeedbackManager.on_hit(hit)
+
 	if show_fx and (
 		critical
-		or bool(enemy.get("boss", false))
-		or bool(enemy.get("elite", false))
+		or is_heavy
 		or rng.randf() < 0.58
 	):
 		var impact_kind := "critical" if critical else "normal"
-		if bool(enemy.get("boss", false)) or bool(enemy.get("elite", false)):
+		if is_heavy:
 			impact_kind = "heavy"
 		elif float(enemy.get("armor", 0.0)) >= 0.22 and rng.randf() < 0.28:
 			impact_kind = "armored"
 		play_impact_fx(enemy["pos"] as Vector2, impact_kind, clampf(float(enemy["radius"]) / 20.0, 0.75, 1.4))
-	if rng.randf() < 0.30 or critical or float(enemy["hp"]) <= 0.0:
-		_add_floater(
-			enemy["pos"] as Vector2,
-			str(int(round(final_damage))),
-			GOLD if critical else color,
-			critical
-		)
 	if float(enemy["hp"]) <= 0.0:
 		_kill_enemy(index)
 
@@ -1085,17 +1091,10 @@ func _kill_enemy(index: int) -> void:
 		boss_defeated.emit(str(enemy["id"]))
 
 
-func _add_floater(position: Vector2, text: String, color: Color, critical: bool) -> void:
-	if floaters.size() >= 70 and not critical:
-		return
-	floaters.append({
-		"pos": position + Vector2(rng.randf_range(-8.0, 8.0), -20.0),
-		"text": text,
-		"color": color,
-		"ttl": 0.72,
-		"max_ttl": 0.72,
-		"critical": critical,
-	})
+func _add_floater(_position: Vector2, _text: String, _color: Color, _critical: bool) -> void:
+	# 伤害数字已统一由 FeedbackManager 池管理并经 FeedbackManager.draw(self) 绘制。
+	# 保留此签名仅为兼容旧调用，不再产生任何副作用。
+	pass
 
 
 func _scale_color(color_name: String) -> Color:
@@ -1126,7 +1125,7 @@ func _draw() -> void:
 	_draw_projectiles()
 	_draw_jeff_fx()
 	_draw_effects()
-	_draw_floaters()
+	FeedbackManager.draw(self)
 	_draw_dragons()
 
 func _draw_light(center: Vector2) -> void:
@@ -1253,7 +1252,7 @@ func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
 			if bool(enemy.get("boss", false)):
 				color = Color(1.0, 0.72, 0.58, 1.0)
 			if float(enemy["flash"]) > 0.0:
-				color = Color(1.8, 1.8, 1.8, 1.0)
+				color = FeedbackManager.config.flash_color
 		var facing_x := 1.0
 		if not shadow and float(enemy.get("facing_x", -1.0)) < 0.0:
 			facing_x = -1.0
