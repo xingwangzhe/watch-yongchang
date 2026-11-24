@@ -46,6 +46,11 @@ func test_export_presets_cover_linux_windows_and_macos() -> void:
 	assert_string_contains(text, 'platform="Linux"')
 	assert_string_contains(text, 'platform="Windows Desktop"')
 	assert_string_contains(text, 'platform="macOS"')
+	assert_eq(
+		text.count('binary_format/embed_pck=false'),
+		3,
+		'all desktop presets must use an external PCK'
+	)
 	assert_string_contains(text, 'exclude_filter="build/*,export/*,tests/*,addons/gut/*,addons/gda_harness/*"')
 	assert_string_contains(text, 'application/copyright="Code AGPL-3.0-or-later;')
 	assert_false(text.contains("Code GPL-3.0-or-later"), "export metadata must use AGPL")

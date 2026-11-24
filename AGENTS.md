@@ -311,7 +311,7 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
 - GUT 9.7.1 验证通过：`game/tests/unit/` 覆盖工程基线、双语、存档、设置、BGM、
   主菜单/关于页、王陆阵位、3 地图、16 分钟波次、空间哈希、双堡图鉴、叙事来源
   与结算解锁、三平台导出预设；当前 Linux 基线
-  **164 tests / 164 passed / 41202 asserts**；运行命令见
+  **164 tests / 164 passed / 41203 asserts**；运行命令见
   「Godot / gda CLI 约定」。
 - GUT 的 `test_engine_version_matches_pinned_version` 校验实际引擎补丁版本与
   `game/.godot-version` 一致；升级引擎必须先改该文件并跑 Linux + Windows 测试。
