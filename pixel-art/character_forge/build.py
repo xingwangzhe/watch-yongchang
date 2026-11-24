@@ -915,26 +915,33 @@ def leg_joint_controlled(
     ankle: tuple[float, float],
     far: bool,
 ) -> tuple[float, float]:
-    """Knee on the hip-ankle line with a small, controllable outward bulge.
+    """Knee bends toward the facing axis (+x), identical for both legs.
 
-    Full two-bone IK with 21+21px bones against a ~36.5px upright leg forces a
-    ~10px knee bulge, which reads as bow legs in a front-facing pixel sprite.
-    LPC front-facing walk keeps knees nearly aligned with the hip-ankle line,
-    so the bulge here scales with foot lift: ~2px while planted, ~6px when the
-    foot swings. The perpendicular is always chosen on this leg's outside,
-    keeping knee and ankle on the same side of the hip (no crossed legs).
+    This forge actor is RIGHT-FACING: draw_foot() puts the toe at +x, and the
+    renderer mirrors the whole sprite with scale.x=-1 to face left. A person
+    seen from the side walks with BOTH knees bending toward the travel
+    direction, one leg leading and one trailing half a cycle apart.
+
+    The old rule pushed the far knee toward -x and the near knee toward +x
+    using a far/near-dependent perpendicular. That splays the two knees AWAY
+    from each other -> bow legs (O-shaped) from the front; because the splay
+    was symmetric it survived the scale.x mirror and looked wrong both ways.
+    Here the bulge is always along +x (the facing axis), so the mirror flips it
+    correctly. Bend scales with foot lift: ~2px planted, ~7px in mid-swing.
     """
     axis = sub(ankle, hip)
-    d = length(axis)
-    if d < 1.0:
+    a_len = length(axis)
+    if a_len < 1.0:
         return add(hip, mul(axis, 0.5))
-    lift = max(0.0, BODY_Y["ankle"] - float(ankle[1]))
-    bulge = 2.0 + min(lift, 10.0) * 0.45
     mid = add(hip, mul(axis, 0.5))
-    perp = (-axis[1] / d, axis[0] / d)
-    if (far and perp[0] > 0.0) or (not far and perp[0] < 0.0):
-        perp = (-perp[0], -perp[1])
-    return add(mid, mul(perp, bulge))
+    lift = max(0.0, BODY_Y["ankle"] - float(ankle[1]))
+    bend = 2.0 + min(lift, 10.0) * 0.5
+    # Perpendicular to the hip->ankle bone that always points toward +x
+    # (the facing/travel axis). axis=(dx,dy), dy>0 downward, so (dy,-dx)/len
+    # has a positive x component. Both legs bend to the SAME side of their
+    # own bone -> identical knee direction; scale.x=-1 flips it correctly.
+    perp = (axis[1] / a_len, -axis[0] / a_len)
+    return add(mid, mul(perp, bend))
 
 
 def shoulder_points(pose: dict, side: str) -> tuple[float, float]:
@@ -1055,27 +1062,26 @@ def walk_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
     phase = 2.0 * math.pi * index / 8.0
     bob = 1 if index in (1, 2, 5, 6) else 0
 
-    def foot(offset: float, outer: float) -> tuple[float, float]:
-        """Front-facing walk: each leg swings only inside its own half.
+    stride = 7.0
+    step_lift = 7.0
 
-        The old +-8px bidirectional swing pushed the ankle across the hip line
-        while the knee hint stayed outward. That produced X-shaped crossed legs
-        on frames 7-10. LPC front-facing walk keeps both feet on their own side,
-        so the stance slides from the outer position toward the hip and the
-        swing lifts the foot back out without ever crossing the midline.
+    def foot(leg_phase: float) -> tuple[float, float]:
+        """Side-facing gait: both feet travel along the facing axis (+x).
+
+        The actor faces +x (draw_foot puts the toe at +x) and the renderer
+        mirrors the whole sprite via scale.x=-1. A side view of walking has
+        BOTH legs swinging fore/aft along the travel direction, half a cycle
+        apart, with both knees bending forward. The old code spread the feet
+        to the sprite's own left/right (outer=+10/-10), a bow-legged stance
+        that stayed bow-legged after the mirror and ignored facing direction.
+        Here cos drives fore(+x)/aft(-x) and -sin lifts only in the swing half.
         """
-        p = (index / 8.0 + offset) % 1.0
-        if p < 0.62:
-            x = lerp(outer, 0.0, p / 0.62)
-            lift = 0.0
-        else:
-            q = (p - 0.62) / 0.38
-            x = lerp(0.0, outer, q)
-            lift = math.sin(math.pi * q) * 8.0
+        x = stride * math.cos(leg_phase)
+        lift = step_lift * max(0.0, -math.sin(leg_phase))
         return x, lift
 
-    near_x, near_lift = foot(0.0, 10.0)
-    far_x, far_lift = foot(0.5, -10.0)
+    near_x, near_lift = foot(phase)
+    far_x, far_lift = foot(phase + math.pi)
     swing = math.cos(phase)
     pose["phase"] = phase
     pose["lean"] = int(round(math.sin(phase) * 1.4))
