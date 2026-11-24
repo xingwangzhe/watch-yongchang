@@ -348,8 +348,8 @@ game/
 
 - `gda script run res://tests/smoke.gd --project game`：启动、生成、升级、结算。
 - 无头跑 16 分钟加速模拟：检查卡死、NaN、对象泄漏。
-- 截图验收：主菜单、战斗、升级、Boss、结算、滚幕；结算见
-  `docs/screenshots/game_2026-11-23/result_victory.png`。
+- 视觉验收：主菜单、战斗、升级、Boss、结算、滚幕逐场景人工核对；
+  截图为本地临时产物，不入仓库，结论以文字记录为准。
 
 ---
 
@@ -391,9 +391,7 @@ game/
   选择页头像取同一套待机首帧，序章汤和与明军改画烘焙帧，让主角装备与
   敌兵共用同一套身体、服装、头饰、背挂与主副手层级；旧 `static.png`
   已从资产目录删除。
-- 选择帧与战斗帧见 `docs/screenshots/upgrades_2026-11-23/`：
-  `choice_frame.png`、`combat_frame.png`、`touch_controls_frame.png`。
-- 旧静态兵种清理后的实际选择页、战斗与序章帧见
-  `docs/screenshots/forge_fix_2026-11-23/`。
+- 选择帧、战斗帧与触屏控制帧已完成视觉验收（本地临时截图不入库）。
+- 旧静态兵种清理后的选择页、战斗与序章帧已完成视觉验收。
 - Linux/Windows/macOS 构建已产出；Linux smoke 与 Windows Wine 预检通过，
   原生 Windows/macOS 启动验收仍待跑。

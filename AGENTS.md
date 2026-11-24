@@ -314,10 +314,8 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
   `--headless --quit-after 3` 下退出码 0；macOS `.app` zip 已产出，待 macOS 实机验收。
   产物清单与哈希见 `docs/build_2026-11-23.md`。
 - 主菜单、关于页、序章、选择页、正篇与图鉴已通过 `gda scene preflight`；
-  截图验收图在 `docs/screenshots/ui_2026-11-23/` 与
-  `docs/screenshots/game_2026-11-23/`；角色外观清理后的验收帧在
-  `docs/screenshots/forge_fix_2026-11-23/`；三阵位重绘验收帧在
-  `docs/screenshots/forge_trio_2026-11-23/`。
+  验收截图与调试日志属于本地临时产物，统一放 `docs/screenshots/`
+  （已被 `.gitignore` 忽略），需要时用 `gda` 现场生成，不入库、不在文档中引用。
 - 460 敌人压力场景已把 draw calls 从 930 降到 14；当前桌面会话只有约 1 实际帧/秒，
   空场景也如此，故绝对 FPS 必须在正常唤醒的原生桌面/Windows 复测。记录见
   `docs/perf_2026-11-23.md`，暂不写 C++ GDExtension。
