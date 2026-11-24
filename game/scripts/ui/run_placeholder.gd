@@ -41,9 +41,8 @@ func _ready() -> void:
 
 	var panel := PanelContainer.new()
 	panel.name = "RunPanel"
-	panel.position = Vector2(230.0, 110.0)
+	UILayout.place(panel, 230.0, 110.0, 820.0, 500.0, 0.5, 0.5)
 	panel.custom_minimum_size = Vector2(820.0, 500.0)
-	panel.size = Vector2(820.0, 500.0)
 	var panel_box := StyleBoxTexture.new()
 	panel_box.texture = PANEL_TEXTURE
 	panel_box.texture_margin_left = 28.0

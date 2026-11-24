@@ -117,14 +117,12 @@ func _build() -> void:
 
 	var lantern_glow := ColorRect.new()
 	lantern_glow.color = Color(0.88, 0.55, 0.20, 0.07)
-	lantern_glow.position = Vector2(68, 0)
-	lantern_glow.size = Vector2(1144, 3)
+	UILayout.place(lantern_glow, 68, 0, 1144, 3, 0.5, 0.0)
 	lantern_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(lantern_glow)
 
 	var panel := PanelContainer.new()
-	panel.position = Vector2(32, 18)
-	panel.size = Vector2(1216, 684)
+	UILayout.place(panel, 32, 18, 1216, 684, 0.5, 0.5)
 	panel.add_theme_stylebox_override("panel", _panel_style())
 	add_child(panel)
 	var column := VBoxContainer.new()
@@ -166,7 +164,6 @@ func _build() -> void:
 		var card := Button.new()
 		card.name = "ShopCard%d" % (i + 1)
 		card.custom_minimum_size = Vector2(354, 466)
-		card.size = Vector2(354, 466)
 		card.clip_contents = true
 		card.add_theme_stylebox_override(
 			"normal",
@@ -201,26 +198,26 @@ func _build() -> void:
 
 
 func _build_card(card: Button, index: int) -> void:
+	var cw := 354.0
+	var ch := 466.0
 	var accent := ColorRect.new()
 	accent.name = "CardAccent"
 	accent.color = Color(GOLD, 0.9)
-	accent.size = Vector2(354, 4)
+	UILayout.place_in(accent, 0, 0, 354, 4, cw, ch)
 	accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(accent)
 	var number := _label(str(index + 1), 12, Color(MUTED, 0.58))
-	number.position = Vector2(14, 10)
+	UILayout.place_in(number, 14, 10, 20, 20, cw, ch)
 	card.add_child(number)
 	var kind := _label("", 11, MUTED)
 	kind.name = "CardKind"
-	kind.position = Vector2(180, 10)
-	kind.size = Vector2(158, 20)
+	UILayout.place_in(kind, 180, 10, 158, 20, cw, ch, 1.0, 0.0)
 	kind.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	card.add_child(kind)
 
 	var icon_plate := PanelContainer.new()
 	icon_plate.name = "CardIconPlate"
-	icon_plate.position = Vector2(124, 34)
-	icon_plate.size = Vector2(106, 106)
+	UILayout.place_in(icon_plate, 124, 34, 106, 106, cw, ch, 0.5, 0.0)
 	icon_plate.add_theme_stylebox_override("panel", _icon_style(Color(GOLD, 0.20)))
 	card.add_child(icon_plate)
 	var center := CenterContainer.new()
@@ -234,45 +231,38 @@ func _build_card(card: Button, index: int) -> void:
 
 	var title := _label("", 25, GOLD)
 	title.name = "CardTitle"
-	title.position = Vector2(16, 146)
-	title.size = Vector2(322, 54)
+	UILayout.place_in(title, 16, 146, 322, 54, cw, ch, 0.5, 0.0)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(title)
 	var description := _label("", 13, PAPER)
 	description.name = "CardDescription"
-	description.position = Vector2(22, 205)
-	description.size = Vector2(310, 54)
+	UILayout.place_in(description, 22, 205, 310, 54, cw, ch, 0.5, 0.0)
 	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(description)
 	var effect := _label("", 12, Color("#f0c363"))
 	effect.name = "CardEffect"
-	effect.position = Vector2(22, 262)
-	effect.size = Vector2(310, 40)
+	UILayout.place_in(effect, 22, 262, 310, 40, cw, ch, 0.5, 0.0)
 	effect.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(effect)
 	var culture_title := _label(Locale.t("shop.culture_label"), 10, Color(VERMILION, 0.94))
-	culture_title.position = Vector2(22, 306)
-	culture_title.size = Vector2(310, 16)
+	UILayout.place_in(culture_title, 22, 306, 310, 16, cw, ch, 0.5, 0.0)
 	card.add_child(culture_title)
 	var culture := _label("", 12, Color(PAPER, 0.80))
 	culture.name = "CardCulture"
-	culture.position = Vector2(22, 324)
-	culture.size = Vector2(310, 86)
+	UILayout.place_in(culture, 22, 324, 310, 86, cw, ch, 0.5, 0.0)
 	culture.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(culture)
 	var meta := _label("", 10, Color(MUTED, 0.72))
 	meta.name = "CardMeta"
-	meta.position = Vector2(22, 412)
-	meta.size = Vector2(310, 16)
+	UILayout.place_in(meta, 22, 412, 310, 16, cw, ch, 0.5, 0.0)
 	meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(meta)
 	var price := _label("", 22, GOLD)
 	price.name = "CardPrice"
-	price.position = Vector2(22, 430)
-	price.size = Vector2(310, 30)
+	UILayout.place_in(price, 22, 430, 310, 30, cw, ch, 0.5, 0.0)
 	price.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(price)
 

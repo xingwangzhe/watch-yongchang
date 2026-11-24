@@ -38,9 +38,17 @@ func _layout() -> void:
 	_joystick_center = Vector2(viewport_size.x * 0.12, viewport_size.y * 0.72)
 	_dash_center = Vector2(viewport_size.x * 0.88, viewport_size.y * 0.72)
 	if _patrol_label != null:
-		_patrol_label.position = _joystick_center + Vector2(-72, _joystick_radius + 10)
+		UILayout.place(
+			_patrol_label,
+			_joystick_center.x - 72.0, _joystick_center.y + _joystick_radius + 10.0,
+			144.0, 22.0
+		)
 	if _dash_label != null:
-		_dash_label.position = _dash_center + Vector2(-62, _dash_radius + 10)
+		UILayout.place(
+			_dash_label,
+			_dash_center.x - 62.0, _dash_center.y + _dash_radius + 10.0,
+			124.0, 22.0
+		)
 	queue_redraw()
 
 
@@ -97,11 +105,9 @@ func _update_joystick(position: Vector2) -> void:
 
 func _build_labels() -> void:
 	_patrol_label = _label(Locale.t("touch.patrol"), 13, Color(PAPER, 0.88))
-	_patrol_label.size = Vector2(144, 22)
 	_patrol_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_patrol_label)
 	_dash_label = _label(Locale.t("touch.dash"), 12, Color(GOLD, 0.92))
-	_dash_label.size = Vector2(124, 22)
 	_dash_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_dash_label)
 
