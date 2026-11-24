@@ -18,8 +18,9 @@ var _map_rect := Rect2()
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(232, 174)
-	size = Vector2(232, 174)
+	custom_minimum_size = Vector2(200, 128)
+	if size.x < 2.0 or size.y < 2.0:
+		size = custom_minimum_size
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	set_process(true)
