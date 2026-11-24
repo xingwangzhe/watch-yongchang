@@ -1070,6 +1070,25 @@
 					"amount": 0.02
 				}
 			]
+		},
+		"wade_wraps": {
+			"name_zh": "涉水绑腿",
+			"name_en": "Wading Wraps",
+			"desc_zh": "涉水减速 -8%。",
+			"desc_en": "Wading penalty -8%.",
+			"culture_zh": "永昌堡四座水门、两条南北水渠与十一座桥，守夜人夜里过渠不脱鞋，只把绑腿扎紧。水过膝，脚不能停。",
+			"culture_en": "Four water gates, two north-south canals and eleven bridges: the night watch does not take off its shoes, only tightens the leg wraps. Knee-deep water, but the feet cannot stop.",
+			"icon": "res://assets/icons/game_icons/card_wave.svg",
+			"max_level": 5,
+			"rarity": "uncommon",
+			"category": "民俗",
+			"source_ref": "docs/06-资料文本化/地图空间资料索引.md:23",
+			"effects": [
+				{
+					"stat": "wade_speed",
+					"amount": 0.08
+				}
+			]
 		}
 	},
 	"skills": {

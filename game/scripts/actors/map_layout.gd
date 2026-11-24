@@ -108,9 +108,14 @@ func is_cell_walkable(cell: Vector2i) -> bool:
 		return false
 	if _solid_cells.has(cell):
 		return false
-	if _water_cells.has(cell) and not _bridge_cells.has(cell):
-		return false
+	# 水面可以通行，但会减速并溅起水花；桥面不受涉水影响。
 	return true
+
+
+## 涉水判定：水面且不在桥上。涉水减速对所有单位生效。
+func is_wade_position(position: Vector2) -> bool:
+	var cell := world_to_cell(position)
+	return _water_cells.has(cell) and not _bridge_cells.has(cell)
 
 
 func is_point_walkable(position: Vector2, radius: float = 18.0) -> bool:

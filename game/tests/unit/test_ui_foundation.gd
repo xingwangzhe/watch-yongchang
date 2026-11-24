@@ -517,6 +517,13 @@ func test_xp_curve_matches_the_gdd() -> void:
 	await wait_process_frames(2)
 	assert_almost_eq(float(run._xp_need_for_level(1)), 9.35, 0.001)
 	assert_almost_eq(float(run._xp_need_for_level(30)), 440.0, 0.001)
+	run.level = 30
+	run.xp = 0.0
+	run.xp_need = run._xp_need_for_level(30)
+	run._add_xp(9999.0)
+	assert_eq(run.level, 30, "the GDD caps a run at level 30")
+	assert_eq(run.xp, 0.0, "max-level XP must not accumulate into hidden levels")
+	assert_false(run.level_up_overlay.visible, "max-level XP must not open more upgrade choices")
 
 
 func test_family_letter_revives_once_and_settlement_records_once() -> void:

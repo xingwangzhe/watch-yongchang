@@ -41,7 +41,7 @@ const STAT_PERCENT := [
 	"damage_mult", "speed_mult", "pickup_mult", "area_mult", "xp_mult",
 	"max_hp_mult", "projectile_speed_mult", "gold_mult", "light_mult",
 	"cooldown_mult", "dash_cd_mult", "knockback_mult", "armor", "crit",
-	"dodge", "luck",
+	"dodge", "luck", "wade_speed",
 ]
 const STAT_FLAT := [
 	"max_hp_flat", "shield_max", "shield_regen", "regen", "revive",

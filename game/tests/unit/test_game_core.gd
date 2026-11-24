@@ -174,6 +174,86 @@ func test_battlefield_spatial_hash_damage_and_pickups() -> void:
 	assert_eq(field.orbs.size(), 1, "kills must leave experience pickups")
 
 
+func test_difficulty_curve_eases_in_and_clamps_at_dawn() -> void:
+	var field := Battlefield.new()
+	add_child_autofree(field)
+	var curve := (GameData.load_json("res://data/waves.json").get("difficulty", {}) as Dictionary)
+	assert_false(curve.is_empty())
+	field.set_difficulty(0.5, curve)
+	assert_almost_eq(field.difficulty_hp_mult, 1.1125, 0.0001)
+	assert_almost_eq(field.difficulty_damage_mult, 1.05, 0.0001)
+	assert_almost_eq(field.difficulty_speed_mult, 1.02, 0.0001)
+	field.set_difficulty(2.0, curve)
+	assert_eq(field.difficulty_hp_mult, 1.45)
+	assert_eq(field.difficulty_damage_mult, 1.2)
+	assert_eq(field.difficulty_speed_mult, 1.08)
+	field.set_difficulty(-1.0, curve)
+	assert_eq(field.difficulty_hp_mult, 1.0)
+	assert_eq(field.difficulty_damage_mult, 1.0)
+	assert_eq(field.difficulty_speed_mult, 1.0)
+
+
+func test_high_frequency_battle_objects_reuse_pooled_dictionaries() -> void:
+	var field := Battlefield.new()
+	add_child_autofree(field)
+	field.setup(77)
+	field.set_player_sprites(GameData.get_characters()["wanglu"] as Dictionary)
+
+	var first_shots: Array[Dictionary] = []
+	for index in range(96):
+		field.fire_player_projectile(Vector2(100 + index, 100), Vector2.RIGHT, 400.0, 1.0, 1)
+	for shot in field.player_shots:
+		shot["ttl"] = 0.0
+		first_shots.append(shot)
+	field._update_effects(0.02)
+	assert_eq(field.player_shots.size(), 0)
+	for index in range(96):
+		field.fire_player_projectile(Vector2(100 + index, 100), Vector2.RIGHT, 400.0, 1.0, 1)
+	var reused_shots := 0
+	for shot in field.player_shots:
+		for previous in first_shots:
+			if is_same(shot, previous):
+				reused_shots += 1
+				break
+	assert_gte(reused_shots, 90, "projectiles must be recycled instead of reallocated every shot")
+
+	var first_orbs: Array[Dictionary] = []
+	for index in range(6):
+		var enemy_index := field.spawn_enemy_at("scout", Vector2(600 + index * 8, 600))
+		field.damage_enemy(enemy_index, 99999.0, Vector2.ZERO, Color.WHITE, false, false)
+	for orb in field.orbs:
+		first_orbs.append(orb)
+		orb["taken"] = true
+	field._update_pickups(0.02, {"pos": Vector2(600, 600), "radius": 18.0, "pickup_radius": 30.0})
+	assert_eq(field.orbs.size(), 0)
+	for index in range(6):
+		var enemy_index := field.spawn_enemy_at("scout", Vector2(600 + index * 8, 600))
+		field.damage_enemy(enemy_index, 99999.0, Vector2.ZERO, Color.WHITE, false, false)
+	var reused_orbs := 0
+	for orb in field.orbs:
+		for previous in first_orbs:
+			if is_same(orb, previous):
+				reused_orbs += 1
+				break
+	assert_gte(reused_orbs, 4, "experience orbs must be recycled from the pool")
+
+
+func test_enemy_rendering_is_multimesh_batched() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/actors/battlefield.gd")
+	assert_true(source.contains("MultiMesh.new()"), "enemy rendering must use MultiMesh batching")
+	assert_true(source.contains("ENEMY_BATCH_CAPACITY"), "enemy batches need a fixed capacity")
+	assert_false(source.contains("PackedScene.instantiate"), "enemies must not be node instances")
+
+
+func test_health_bars_keep_all_layers_in_one_multimesh_batch() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/actors/battlefield.gd")
+	var unit_bar := source.get_slice("func _draw_unit_bar", 1).get_slice("func _append_health_bar_rect", 0)
+	assert_true(source.contains("draw_multimesh(_health_bar_batch, _health_bar_texture)"))
+	assert_true(source.contains("_health_bar_batch.visible_instance_count = _health_bar_count"))
+	assert_false(unit_bar.contains("draw_rect"), "unit bars must not issue per-unit canvas draw calls")
+	assert_eq(unit_bar.count("_append_health_bar_rect("), 6, "background, fill and four borders must all stay")
+
+
 func test_narrative_lines_have_categories_and_sources() -> void:
 	var narrative := GameData.load_json("res://data/narrative.json")
 	var count := 0
