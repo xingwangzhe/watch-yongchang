@@ -17,6 +17,11 @@ func after_each() -> void:
 	_remove_user_file(TEST_SAVE)
 
 
+func _remove_user_file(path: String) -> void:
+	if FileAccess.file_exists(path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
 func _new_field() -> Battlefield:
 	var field := Battlefield.new()
 	add_child_autofree(field)
@@ -33,7 +38,7 @@ func test_tower_definitions_are_complete_and_bilingual() -> void:
 	assert_gte(int(data.get("max_towers", 0)), 3)
 	var order := ["watchtower", "arrow_tower", "dragon_tower"]
 	for index in defs.size():
-		var tower_id := order[index]
+		var tower_id: String = order[index]
 		assert_true(defs.has(tower_id), "%s must be defined" % tower_id)
 		var definition: Dictionary = defs[tower_id] as Dictionary
 		for field in ["name_zh", "name_en", "desc_zh", "desc_en"]:
@@ -44,6 +49,7 @@ func test_tower_definitions_are_complete_and_bilingual() -> void:
 		assert_gt(float(definition.get("damage", 0.0)), 0.0)
 		assert_gt(float(definition.get("cooldown", 0.0)), 0.0)
 		assert_gt(float(definition.get("radius", 0.0)), 0.0)
+		assert_gt(float(definition.get("regen", 0.0)), 0.0, "%s must auto-repair by default" % tower_id)
 		if index < order.size() - 1:
 			assert_eq(str(definition.get("upgrade_to", "")), order[index + 1])
 
@@ -85,25 +91,64 @@ func test_tower_spawns_with_hp_and_can_be_damaged() -> void:
 
 func test_tower_auto_fires_at_nearest_enemy() -> void:
 	var field := _new_field()
-	var tower_index := field.spawn_tower("watchtower", Vector2.ZERO)
+	var tower_pos := Vector2(1952, 1536)
+	var tower_index := field.spawn_tower("watchtower", tower_pos)
 	field.towers[tower_index]["attack_timer"] = 0.0
-	var enemy_index := field.spawn_enemy_at("scout", Vector2(180, 0))
+	var enemy_index := field.spawn_enemy_at("scout", tower_pos + Vector2(180, 0))
 	var enemy: Dictionary = field.enemies[enemy_index]
 	enemy["speed"] = 0.0
-	field.update_world(1.0 / 60.0, {"pos": Vector2(1200, 0), "radius": 18.0, "pickup_radius": 0.0})
+	field.update_world(1.0 / 60.0, {"pos": Vector2(2500, 1536), "radius": 18.0, "pickup_radius": 0.0})
 	assert_gt(field.tower_shots.size(), 0, "tower must launch an arrow at a nearby enemy")
 	var shot: Dictionary = field.tower_shots[0]
 	assert_gt(float(shot["damage"]), 0.0)
 	assert_gt((shot["vel"] as Vector2).x, 0.0, "arrow must fly toward the enemy")
-	assert_true((shot["origin"] as Vector2).is_equal_approx(Vector2.ZERO))
+	assert_true((shot["origin"] as Vector2).is_equal_approx(field.towers[tower_index]["pos"] as Vector2))
+
+
+func test_tower_arrow_actually_damages_enemy() -> void:
+	var field := _new_field()
+	var tower_pos := Vector2(1952, 1536)
+	var tower_index := field.spawn_tower("watchtower", tower_pos)
+	field.towers[tower_index]["attack_timer"] = 0.0
+	var enemy_index := field.spawn_enemy_at("scout", tower_pos + Vector2(150, 0))
+	var enemy: Dictionary = field.enemies[enemy_index]
+	enemy["speed"] = 0.0
+	var before_hp := float(enemy["hp"])
+	var player := {"pos": Vector2(2500, 1536), "radius": 18.0, "pickup_radius": 0.0}
+	for _frame in range(45):
+		field.update_world(1.0 / 60.0, player)
+		if float(enemy["hp"]) < before_hp:
+			break
+	assert_lt(float(enemy["hp"]), before_hp, "arrow must really hit and damage the enemy")
+
+
+func test_tower_body_blocks_enemies_and_stops_facing_jitter() -> void:
+	var field := _new_field()
+	var tower_pos := Vector2(1952, 1536)
+	var tower_index := field.spawn_tower("watchtower", tower_pos)
+	field.towers[tower_index]["attack_timer"] = 999.0
+	var enemy_index := field.spawn_enemy_at("scout", tower_pos + Vector2(150, 0))
+	field.enemies[enemy_index]["speed"] = 90.0
+	var player := {"pos": Vector2(2500, 1536), "radius": 18.0, "pickup_radius": 0.0}
+	var flips := 0
+	var last_facing := float(field.enemies[enemy_index]["facing_x"])
+	for _frame in range(150):
+		field.update_world(1.0 / 60.0, player)
+		var facing := float(field.enemies[enemy_index]["facing_x"])
+		if not is_equal_approx(facing, last_facing):
+			flips += 1
+			last_facing = facing
+	var enemy_pos := field.enemies[enemy_index]["pos"] as Vector2
+	assert_gte(enemy_pos.distance_to(tower_pos), 75.0, "enemy must be pushed outside the tower body")
+	assert_lte(flips, 2, "enemy facing must not oscillate against the tower")
 
 
 func test_tower_damage_applies_armor_and_heals_ratio() -> void:
 	var field := _new_field()
-	var index := field.spawn_tower("watchtower", Vector2.ZERO)
+	var index := field.spawn_tower("watchtower", Vector2(1952, 1536))
 	field.apply_tower_stats({"tower_armor": 0.5, "tower_hp_mult": 2.0})
 	var tower: Dictionary = field.towers[index]
-	assert_eq(float(tower["max_hp"]), 680.0, "watchtower base HP is 340")
+	assert_eq(float(tower["max_hp"]), 6800.0, "watchtower base HP is 3400 after the x10 tower-only pass")
 	assert_eq(float(tower["armor"]), 0.5)
 	field.damage_tower(index, 100.0, -1)
 	assert_almost_eq(float(tower["max_hp"]) - float(tower["hp"]), 50.0, 0.001, "armor must halve incoming damage")
@@ -111,7 +156,7 @@ func test_tower_damage_applies_armor_and_heals_ratio() -> void:
 
 func test_tower_upgrade_promotes_tier() -> void:
 	var field := _new_field()
-	var index := field.spawn_tower("watchtower", Vector2.ZERO)
+	var index := field.spawn_tower("watchtower", Vector2(1952, 1536))
 	var before_hp := float(field.towers[index]["max_hp"])
 	assert_true(field.upgrade_tower(index, "arrow_tower"))
 	assert_eq(str(field.towers[index]["id"]), "arrow_tower")
@@ -121,23 +166,26 @@ func test_tower_upgrade_promotes_tier() -> void:
 
 func test_enemies_siege_tower_instead_of_player_when_closer() -> void:
 	var field := _new_field()
-	var tower_index := field.spawn_tower("watchtower", Vector2(120, 0))
+	var tower_pos := Vector2(1952, 1536)
+	var tower_index := field.spawn_tower("watchtower", tower_pos)
 	field.towers[tower_index]["attack_timer"] = 999.0  # 隔离：本测试只看敌人行为
-	var enemy_index := field.spawn_enemy_at("scout", Vector2(160, 0))
+	var enemy_index := field.spawn_enemy_at("scout", tower_pos + Vector2(60, 0))
 	var enemy: Dictionary = field.enemies[enemy_index]
 	enemy["speed"] = 0.0
-	# 玩家远在 1000 之外，塔近在 40 处；敌人应把塔当目标并造成伤害
-	field.update_world(1.0 / 60.0, {"pos": Vector2(1000, 0), "radius": 18.0, "pickup_radius": 0.0})
+	# 玩家远在 1200 之外，塔近在 60 处；敌人应把塔当目标并造成伤害
+	field.update_world(1.0 / 60.0, {"pos": Vector2(2500, 1536), "radius": 18.0, "pickup_radius": 0.0})
 	assert_lt(float(field.towers[tower_index]["hp"]), float(field.towers[tower_index]["max_hp"]), "enemy must attack the nearby tower")
 
 
 func test_enemy_shots_can_destroy_tower() -> void:
 	var field := _new_field()
-	var index := field.spawn_tower("watchtower", Vector2.ZERO)
+	var tower_pos := Vector2(1952, 1536)
+	var index := field.spawn_tower("watchtower", tower_pos)
+	var actual_pos := field.towers[index]["pos"] as Vector2
 	field.enemy_shots.append({
-		"pos": Vector2.ZERO, "vel": Vector2.ZERO, "damage": 100000.0, "ttl": 2.0,
+		"pos": actual_pos, "vel": Vector2.ZERO, "damage": 100000.0, "ttl": 2.0,
 	})
-	field.update_world(1.0 / 60.0, {"pos": Vector2(1000, 0), "radius": 18.0, "pickup_radius": 0.0})
+	field.update_world(1.0 / 60.0, {"pos": Vector2(2500, 1536), "radius": 18.0, "pickup_radius": 0.0})
 	assert_false(bool(field.towers[index]["alive"]), "enemy projectiles must be able to hit towers")
 
 
@@ -164,11 +212,9 @@ func test_tower_cards_drive_every_tower_stat() -> void:
 func test_tower_aggro_can_be_retargeted_by_card() -> void:
 	var field := _new_field()
 	assert_almost_eq(field.TOWER_AGGRO, 360.0, 0.001)
+	var tower_pos := Vector2(1952, 1536)
+	var tower_index := field.spawn_tower("watchtower", tower_pos)
+	var probe := tower_pos + Vector2(400, 0)
+	assert_eq(field._nearest_tower_index(probe, field.TOWER_AGGRO), -1, "default aggro must not reach 400px")
 	field.apply_tower_stats({"tower_taunt": 2.0})
-	var tower_index := field.spawn_tower("watchtower", Vector2.ZERO)
-	field.towers[tower_index]["attack_timer"] = 999.0
-	var enemy_index := field.spawn_enemy_at("scout", Vector2(700, 0))
-	var enemy: Dictionary = field.enemies[enemy_index]
-	enemy["speed"] = 0.0
-	field.update_world(1.0 / 60.0, {"pos": Vector2(1200, 0), "radius": 18.0, "pickup_radius": 0.0})
-	assert_lt(float(field.towers[tower_index]["hp"]), float(field.towers[tower_index]["max_hp"]), "taunt must extend siege range")
+	assert_eq(field._nearest_tower_index(probe, field.TOWER_AGGRO * 2.0), tower_index, "taunt card must extend siege aggro")
