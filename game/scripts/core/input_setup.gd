@@ -11,10 +11,11 @@ const BINDABLE := {
 	"interact": {"keys": [KEY_E, KEY_ENTER], "mouse": []},
 	"attack": {"keys": [], "mouse": [MOUSE_BUTTON_LEFT]},
 	"toggle_codex": {"keys": [KEY_C], "mouse": []},
+	"toggle_auto_attack": {"keys": [KEY_X], "mouse": []},
 }
 const ORDER := [
 	"move_left", "move_right", "move_up", "move_down",
-	"dash", "interact", "attack", "toggle_codex",
+	"dash", "interact", "attack", "toggle_codex", "toggle_auto_attack",
 ]
 
 

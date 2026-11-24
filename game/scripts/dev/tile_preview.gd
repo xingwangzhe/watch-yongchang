@@ -9,7 +9,7 @@ const AmbientProps = preload("res://scripts/dev/ambient_props.gd")
 
 
 func _ready() -> void:
-	var terrain := _make_layer(TERRAIN_PATH, Vector2i(8, 4), -10)
+	var terrain := _make_layer(TERRAIN_PATH, Vector2i(8, 5), -10)
 	var architecture := _make_layer(ARCHITECTURE_PATH, Vector2i(8, 4), 0)
 	var props := _make_layer(PROPS_PATH, Vector2i(8, 2), 10)
 	_paint_terrain(terrain)
@@ -48,7 +48,13 @@ func _paint_terrain(layer: TileMapLayer) -> void:
 	for ty in 11:
 		for tx in 20:
 			var index := 0
-			if ty >= 8:
+			if ty >= 10:
+				index = 6
+				if (tx + ty) % 8 == 0:
+					index = 7
+			elif ty == 9:
+				index = 2 if tx < 12 else 6
+			elif ty >= 8:
 				index = 6
 				if (tx + ty) % 8 == 0:
 					index = 7
@@ -63,14 +69,15 @@ func _paint_terrain(layer: TileMapLayer) -> void:
 			else:
 				index = 24 if (tx + ty) % 9 == 0 else 8 if (tx * 2 + ty) % 7 == 0 else 0
 			_place(layer, source_id, tx, ty, index)
-	for tx in range(2, 7):
-		_place(layer, source_id, tx, 6, 14)
-		if tx % 2 == 0:
-			_place(layer, source_id, tx, 7, 15)
+	for tx in range(1, 8):
+		for ty in range(6, 9):
+			_place(layer, source_id, tx, ty, 15)
+	for ty in range(8, 11):
+		for tx in range(13, 19):
+			_place(layer, source_id, tx, ty, 32 + ((tx * 3 + ty * 5) % 8))
 	for tx in range(1, 6):
 		_place(layer, source_id, tx, 2, 9)
-	for tx in range(0, 4):
-		_place(layer, source_id, tx, 7, 26)
+	_place(layer, source_id, 0, 7, 26)
 
 
 func _paint_architecture(layer: TileMapLayer) -> void:
@@ -97,6 +104,9 @@ func _paint_architecture(layer: TileMapLayer) -> void:
 	_place(layer, source_id, 20, 5, 30)
 	_place(layer, source_id, 12, 6, 25)
 	_place(layer, source_id, 16, 4, 24)
+	for tx in range(1, 8):
+		_place(layer, source_id, tx, 6, 24)
+		_place(layer, source_id, tx, 8, 24)
 
 
 func _paint_props(layer: TileMapLayer) -> void:

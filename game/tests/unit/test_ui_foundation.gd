@@ -8,10 +8,11 @@ const TEST_RENDERER_MIRROR := "user://test_ui_foundation_renderer.cfg"
 func before_each() -> void:
 	SaveSystem.save_path = TEST_SAVE
 	SaveSystem.reset_memory()
+	SaveSystem.data["tutorial_seen"] = true
 	GameSettings.config_path = TEST_SETTINGS
 	GameSettings.renderer_mirror_override = TEST_RENDERER_MIRROR
 	GameSettings.language = "zh"
-	GameSettings.bgm_volume = 0.62
+	GameSettings.bgm_volume = GameSettings.DEFAULT_BGM_VOLUME
 	GameSettings.sfx_volume = 0.78
 	GameSettings.fps_limit = GameSettings.DEFAULT_FPS_LIMIT
 	GameSettings.vsync = true
@@ -174,6 +175,10 @@ func test_main_menu_moves_codex_to_menu_and_opens_controls() -> void:
 	assert_not_null(controls_overlay)
 	assert_false(controls_overlay.visible, "the controls panel must start closed")
 	assert_not_null(menu.find_child("ControlsButton", true, false), "settings must expose a controls button")
+	var music_title := menu.find_child("MusicTitle", true, false) as Label
+	assert_not_null(music_title)
+	assert_string_contains(str(music_title.text), "Yongchang Watch")
+	assert_false(str(music_title.text).contains("Samurai Nights"), "retired BGM must not be advertised")
 	menu.open_settings()
 	menu.open_controls()
 	await wait_process_frames(1)
@@ -244,11 +249,12 @@ func test_renderer_mirror_is_loaded_without_settings_file() -> void:
 
 
 func test_audio_bus_loads_looping_bgm() -> void:
+	assert_almost_eq(GameSettings.DEFAULT_BGM_VOLUME, 0.42, 0.001, "default BGM must be lowered")
 	AudioBus._sync_volume()
 	assert_not_null(AudioBus.player)
 	assert_true(AudioBus.stream is AudioStreamOggVorbis, "BGM must be an Ogg Vorbis stream")
 	assert_true((AudioBus.stream as AudioStreamOggVorbis).loop, "BGM must loop")
-	assert_almost_eq(AudioBus.player.volume_db, linear_to_db(0.62), 0.02)
+	assert_almost_eq(AudioBus.player.volume_db, linear_to_db(GameSettings.DEFAULT_BGM_VOLUME), 0.02)
 	assert_true(AudioBus.battle_stream is AudioStreamOggVorbis, "battle BGM must load")
 	assert_true((AudioBus.battle_stream as AudioStreamOggVorbis).loop, "battle BGM must loop")
 	assert_true(AudioBus.UI_CLICK_STREAM is AudioStreamOggVorbis, "UI click must load")
@@ -296,28 +302,61 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	assert_true(about.about_stream() is AudioStreamOggVorbis)
 	assert_true((about.about_stream() as AudioStreamOggVorbis).loop)
 	assert_not_null(about.about_player())
+	assert_ne(about.about_stream().resource_path, AudioBus.menu_stream.resource_path, "about music must be distinct")
 
 	var credits: Dictionary = about.credits_data()
-	assert_eq((credits.get("music", []) as Array).size(), 3)
-	for entry in credits.get("music", []):
-		var license := str(entry.get("license", ""))
-		assert_true(license.begins_with("CC-BY") or license.begins_with("CC0"))
-		assert_true((entry.get("url", "") as String).begins_with("https://"))
+	var music_entries: Array = credits.get("music", [])
+	assert_eq(music_entries.size(), 3)
+	var music_files: Array[String] = []
+	for entry in music_entries:
+		var license_id := str(entry.get("license", ""))
+		assert_true(license_id == "CC0 1.0" or license_id == "CC0 1.0 or CC BY 4.0", "every shipped BGM must retain CC0")
+		assert_eq(str(entry.get("license_url", "")), "https://creativecommons.org/publicdomain/zero/1.0/")
+		if str(entry.get("artist", "")) == "xingwangzhe":
+			assert_eq(license_id, "CC0 1.0 or CC BY 4.0", "original BGM must also offer CC BY 4.0")
+			assert_eq(str(entry.get("license_alt_url", "")), "https://creativecommons.org/licenses/by/4.0/")
+		assert_true(str(entry.get("url", "")).begins_with("https://"))
+		var file := str(entry.get("file", ""))
+		assert_true(ResourceLoader.exists(file), "missing BGM: %s" % file)
+		assert_false(music_files.has(file), "BGM credits must not duplicate a runtime file")
+		music_files.append(file)
 	var sfx_entries: Array = credits.get("sfx", [])
-	assert_eq(sfx_entries.size(), 2, "Kenney UI and impact packs must be credited")
+	assert_eq(sfx_entries.size(), 7, "both Kenney packs and all five OpenGameArt sources must be credited")
+	var sfx_files: Array[String] = []
 	for entry in sfx_entries:
 		assert_eq(str(entry.get("license", "")), "CC0 1.0")
-		assert_true(str(entry.get("url", "")).begins_with("https://kenney.nl/"))
-		assert_true(ResourceLoader.exists(str(entry.get("file", ""))))
+		assert_eq(str(entry.get("license_url", "")), "https://creativecommons.org/publicdomain/zero/1.0/")
+		assert_true(str(entry.get("url", "")).begins_with("https://"))
+		var files: Array = entry.get("files", [entry.get("file", "")]) as Array
+		assert_gt(files.size(), 0)
+		for path in files:
+			var file := str(path)
+			assert_true(ResourceLoader.exists(file), "missing SFX: %s" % file)
+			assert_false(sfx_files.has(file), "SFX credits must not duplicate a runtime file")
+			sfx_files.append(file)
+	assert_eq(sfx_files.size(), 20, "every shipped SFX must be covered exactly once")
 	var font_entry: Dictionary = (credits.get("fonts", []) as Array)[0]
 	assert_string_contains(font_entry.get("notice_zh", ""), "OFL")
+	assert_true(str(font_entry.get("license_url", "")).begins_with("https://"))
 	var icon_entries: Array = credits.get("icons", [])
-	assert_eq(icon_entries.size(), 101, "every used game-icons asset must be credited")
+	assert_eq(icon_entries.size(), 102, "101 third-party icons plus the original cursor must be credited")
+	var third_party_icons := 0
+	var cursor_credited := false
 	for entry in icon_entries:
 		assert_true(entry is Dictionary)
-		assert_eq(str(entry.get("license", "")), "CC BY 3.0")
-		assert_true(str(entry.get("url", "")).begins_with("https://game-icons.net/"))
 		assert_true(ResourceLoader.exists(str(entry.get("file", ""))))
+		if str(entry.get("file", "")) == "res://assets/ui/watch_cursor.png":
+			cursor_credited = true
+			assert_eq(str(entry.get("license", "")), "CC BY 4.0")
+			assert_eq(str(entry.get("license_url", "")), "https://creativecommons.org/licenses/by/4.0/")
+			assert_eq(str(entry.get("artist", "")), "xingwangzhe")
+			continue
+		third_party_icons += 1
+		assert_eq(str(entry.get("license", "")), "CC BY 3.0")
+		assert_eq(str(entry.get("license_url", "")), "https://creativecommons.org/licenses/by/3.0/")
+		assert_true(str(entry.get("url", "")).begins_with("https://game-icons.net/"))
+	assert_eq(third_party_icons, 101)
+	assert_true(cursor_credited, "the gameplay cursor needs its own original-asset credit")
 	var about_sections: Array = (credits.get("about", {}) as Dictionary).get("sections", [])
 	var linked_sections: Array[Dictionary] = []
 	for section in about_sections:
@@ -482,6 +521,8 @@ func test_run_scene_builds_survivor_loop() -> void:
 	await wait_process_frames(2)
 	assert_true(run.level_up_overlay.visible, "enough XP must open three-card level-up")
 	assert_eq(run._current_upgrade_options.size(), 3)
+	run.level_up_overlay._unlock_at_msec = Time.get_ticks_msec() - 1
+	run.level_up_overlay._process(0.0)
 	run._on_upgrade_chosen(0)
 	await wait_process_frames(2)
 	assert_false(run.level_up_overlay.visible, "choosing a card must close the overlay")

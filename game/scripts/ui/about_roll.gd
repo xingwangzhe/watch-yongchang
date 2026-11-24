@@ -195,6 +195,7 @@ func _build_roll() -> void:
 			var entry_note := _bi(entry, "note")
 			if not entry_note.is_empty():
 				_add_line(entry_note, 14, Color(MUTED, 0.78), 0)
+			_add_credit_links(entry)
 			_add_spacer(10)
 
 	_add_heading(Locale.t("about.music"))
@@ -210,6 +211,7 @@ func _build_roll() -> void:
 		)
 		_add_line(_bi(entry, "usage"), 15, Color(PAPER, 0.82), 0)
 		_add_line(_bi(entry, "changes"), 14, Color(MUTED, 0.72), 0)
+		_add_credit_links(entry)
 		_add_spacer(10)
 
 	_add_heading(Locale.t("about.sfx"))
@@ -225,6 +227,7 @@ func _build_roll() -> void:
 		)
 		_add_line(_bi(entry, "usage"), 15, Color(PAPER, 0.82), 0)
 		_add_line(_bi(entry, "changes"), 14, Color(MUTED, 0.72), 0)
+		_add_credit_links(entry)
 		_add_spacer(10)
 
 	_add_heading(Locale.t("about.fonts"))
@@ -239,6 +242,7 @@ func _build_roll() -> void:
 			0
 		)
 		_add_line(_bi(entry, "notice"), 14, Color(MUTED, 0.72), 0)
+		_add_credit_links(entry)
 		_add_spacer(10)
 
 	_add_heading(Locale.t("about.icons"))
@@ -254,6 +258,7 @@ func _build_roll() -> void:
 		)
 		_add_line(_bi(entry, "usage"), 14, Color(PAPER, 0.82), 0)
 		_add_line(_bi(entry, "changes"), 13, Color(MUTED, 0.72), 0)
+		_add_credit_links(entry)
 		_add_spacer(7)
 
 	_add_heading(Locale.t("about.tools"))
@@ -269,6 +274,7 @@ func _build_roll() -> void:
 			_add_line(tool_label, 17, Color(PAPER, 0.86), 0)
 		else:
 			_add_link(tool_label, tool_url, 17)
+		_add_credit_links(entry)
 
 	_add_spacer(50)
 	_add_line(Locale.t("about.thanks_end"), 34, GOLD, 0)
@@ -517,6 +523,21 @@ func _add_link(text: String, url: String, font_size: int = 14) -> void:
 	link.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	link.pressed.connect(_open_url.bind(url))
 	_content.add_child(link)
+
+
+func _add_credit_links(entry: Dictionary) -> void:
+	var source_url := str(entry.get("url", ""))
+	var license_url := str(entry.get("license_url", ""))
+	if not source_url.is_empty():
+		_add_link("来源 / Source", source_url, 12)
+	if not license_url.is_empty():
+		_add_link("许可 / License", license_url, 12)
+	var alternate_license_url := str(entry.get("license_alt_url", ""))
+	if not alternate_license_url.is_empty() and alternate_license_url != license_url:
+		_add_link("备选许可 / Alternate License", alternate_license_url, 12)
+	var art_license_url := str(entry.get("art_license_url", ""))
+	if not art_license_url.is_empty():
+		_add_link("素材许可 / Asset License", art_license_url, 12)
 
 
 func _add_rule() -> void:

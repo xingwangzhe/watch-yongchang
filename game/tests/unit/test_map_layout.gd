@@ -103,6 +103,224 @@ func test_tideland_creeks_are_crossed_by_bridges() -> void:
 	assert_eq(layout.minimap_texture.get_height(), 84)
 
 
+func test_all_maps_keep_water_walkable_and_minimap_synced() -> void:
+	for map_id in ["tideland", "watergate", "crossstreet"]:
+		var built := _build_map(map_id)
+		var layout: MapLayout = built["layout"] as MapLayout
+		var renderer: MapRenderer = built["renderer"] as MapRenderer
+		var minimap := layout.minimap_texture.get_image()
+		var water_count := 0
+		var wading_count := 0
+		var bridge_water_count := 0
+		var blocked_water_count := 0
+		var walkability_mismatches := 0
+		var visual_mismatches := 0
+		var minimap_mismatches := 0
+		var invisible_blockers := 0
+		for y in layout.world_tiles.y:
+			for x in layout.world_tiles.x:
+				var cell := Vector2i(x, y)
+				if not layout.is_water_cell(cell):
+					continue
+				water_count += 1
+				if layout.is_solid_cell(cell):
+					blocked_water_count += 1
+					if renderer.architecture_tile_name(cell).is_empty() and renderer.prop_tile_name(cell).is_empty():
+						invisible_blockers += 1
+					continue
+				if not layout.is_cell_walkable(cell):
+					walkability_mismatches += 1
+				var tile_name := renderer.terrain_tile_name(cell)
+				var center := (Vector2(cell) + Vector2.ONE * 0.5) * MapLayout.TILE_SIZE
+				var expected_color: Color
+				if layout.is_bridge_cell(cell):
+					bridge_water_count += 1
+					if layout.is_wade_position(center) or (tile_name != "dock_horizontal" and tile_name != "dock_vertical"):
+						visual_mismatches += 1
+					expected_color = MapLayout.MINIMAP_BRIDGE
+				else:
+					wading_count += 1
+					if not layout.is_wade_position(center) or not tile_name.begins_with("water_"):
+						visual_mismatches += 1
+					expected_color = layout.minimap_color_for_tile(tile_name)
+				if not minimap.get_pixel(cell.x, cell.y).is_equal_approx(expected_color):
+					minimap_mismatches += 1
+		assert_gt(water_count, 100, "%s must contain real water" % map_id)
+		assert_gt(wading_count, 100, "%s must keep ordinary water wadeable" % map_id)
+		assert_gt(bridge_water_count, 10, "%s must keep bridge decks dry over water" % map_id)
+		assert_gt(blocked_water_count, 0, "%s railings must still block their water cells" % map_id)
+		assert_eq(walkability_mismatches, 0, "%s unblocked water must remain walkable" % map_id)
+		assert_eq(visual_mismatches, 0, "%s water and bridge visuals must match movement semantics" % map_id)
+		assert_eq(minimap_mismatches, 0, "%s water minimap colors must match rendered tiles" % map_id)
+		assert_eq(invisible_blockers, 0, "%s blocked water must show a railing or solid prop" % map_id)
+
+
+func test_all_maps_have_visible_blockers_for_every_solid_cell() -> void:
+	for map_id in ["tideland", "watergate", "crossstreet"]:
+		var built := _build_map(map_id)
+		var layout: MapLayout = built["layout"] as MapLayout
+		var renderer: MapRenderer = built["renderer"] as MapRenderer
+		var minimap := layout.minimap_texture.get_image()
+		var solid_count := 0
+		var invisible_blockers := 0
+		var mountain_minimap_mismatches := 0
+		var railing_minimap_mismatches := 0
+		for y in layout.world_tiles.y:
+			for x in layout.world_tiles.x:
+				var cell := Vector2i(x, y)
+				if not layout.is_solid_cell(cell):
+					continue
+				solid_count += 1
+				var terrain_name := renderer.terrain_tile_name(cell)
+				var architecture_name := renderer.architecture_tile_name(cell)
+				var prop_name := renderer.prop_tile_name(cell)
+				if not terrain_name.begins_with("mountain_") and architecture_name.is_empty() and prop_name.is_empty():
+					invisible_blockers += 1
+				if terrain_name.begins_with("mountain_") and not minimap.get_pixel(cell.x, cell.y).is_equal_approx(
+					layout.minimap_color_for_tile(terrain_name)
+				):
+					mountain_minimap_mismatches += 1
+				if architecture_name == "wood_railing" or architecture_name == "wood_railing_vertical":
+					if not minimap.get_pixel(cell.x, cell.y).is_equal_approx(MapLayout.MINIMAP_BRIDGE_RAILING):
+						railing_minimap_mismatches += 1
+		assert_gt(solid_count, 100, "%s must contain real blocked structures" % map_id)
+		assert_eq(invisible_blockers, 0, "%s collision must never exist without visible geometry" % map_id)
+		assert_eq(mountain_minimap_mismatches, 0, "%s mountain minimap must match rock tiles" % map_id)
+		assert_eq(railing_minimap_mismatches, 0, "%s railing minimap must read as blocked wood" % map_id)
+
+
+func test_all_map_bridges_have_continuous_decks_and_water_railings() -> void:
+	for map_id in ["tideland", "watergate", "crossstreet"]:
+		var built := _build_map(map_id)
+		var layout: MapLayout = built["layout"] as MapLayout
+		var renderer: MapRenderer = built["renderer"] as MapRenderer
+		var bridge_count := 0
+		var railing_count := 0
+		var centerline_gaps := 0
+		var blocked_centerlines := 0
+		var blocked_player_clearance := 0
+		var wet_centerlines := 0
+		var deck_mismatches := 0
+		var blocked_landings := 0
+		var railing_mismatches := 0
+		var areas: Array = ((built["definition"] as Dictionary)["layout"] as Dictionary).get("areas", []) as Array
+		for area in areas:
+			if str((area as Dictionary).get("kind", "")) != "bridge":
+				continue
+			bridge_count += 1
+			var rect := _area_rect(area as Dictionary)
+			var horizontal := rect.size.x >= rect.size.y
+			var expected_deck := "dock_horizontal" if horizontal else "dock_vertical"
+			var expected_railing := "wood_railing" if horizontal else "wood_railing_vertical"
+			var center_fixed := rect.position.y + rect.size.y / 2 if horizontal else rect.position.x + rect.size.x / 2
+			var center_length := rect.size.x if horizontal else rect.size.y
+			for index in center_length:
+				var cell := Vector2i(rect.position.x + index, center_fixed) if horizontal else Vector2i(center_fixed, rect.position.y + index)
+				if not layout.is_bridge_cell(cell):
+					centerline_gaps += 1
+				if not layout.is_cell_walkable(cell):
+					blocked_centerlines += 1
+				if layout.is_wade_position((Vector2(cell) + Vector2.ONE * 0.5) * MapLayout.TILE_SIZE):
+					wet_centerlines += 1
+				if index > 0 and index < center_length - 1:
+					var center_position := Vector2(
+						float(rect.position.x + index) + 0.5,
+						float(rect.position.y) + float(rect.size.y) * 0.5
+					) * MapLayout.TILE_SIZE
+					if not horizontal:
+						center_position = Vector2(
+							float(rect.position.x) + float(rect.size.x) * 0.5,
+							float(rect.position.y + index) + 0.5
+						) * MapLayout.TILE_SIZE
+					if not layout.is_point_walkable(center_position, 18.0):
+						blocked_player_clearance += 1
+				var tile_name := renderer.terrain_tile_name(cell)
+				var architecture_name := renderer.architecture_tile_name(cell)
+				var is_gate := architecture_name == "land_gate_arch" or architecture_name == "water_gate_arch"
+				if tile_name != expected_deck and not is_gate:
+					deck_mismatches += 1
+			for y in rect.size.y:
+				for x in rect.size.x:
+					var cell := rect.position + Vector2i(x, y)
+					var is_edge := false
+					if horizontal:
+						is_edge = y == 0 or y == rect.size.y - 1
+					else:
+						is_edge = x == 0 or x == rect.size.x - 1
+					if layout.is_water_cell(cell) and is_edge:
+						railing_count += 1
+						if not layout.is_solid_cell(cell) or renderer.architecture_tile_name(cell) != expected_railing:
+							railing_mismatches += 1
+					elif not layout.is_water_cell(cell) and not layout.is_cell_walkable(cell):
+						blocked_landings += 1
+		assert_gt(bridge_count, 5, "%s must exercise multiple crossings" % map_id)
+		assert_gt(railing_count, 10, "%s must expose water-span railings" % map_id)
+		assert_eq(centerline_gaps, 0, "%s bridge centerlines must be continuous" % map_id)
+		assert_eq(blocked_centerlines, 0, "%s bridge centerlines must stay open" % map_id)
+		assert_eq(blocked_player_clearance, 0, "%s bridge interiors must clear the player collision radius" % map_id)
+		assert_eq(wet_centerlines, 0, "%s bridge centerlines must stay dry" % map_id)
+		assert_eq(deck_mismatches, 0, "%s bridge centerlines must show matching deck tiles" % map_id)
+		assert_eq(blocked_landings, 0, "%s bridge landings must stay open" % map_id)
+		assert_eq(railing_mismatches, 0, "%s water edges must show solid orientation-correct railings" % map_id)
+
+
+func test_synthetic_mountain_building_and_wall_are_visibly_blocked() -> void:
+	var definition := {
+		"layout": {
+			"world_tiles": [24, 16],
+			"base_tile": "mud_a",
+			"start_tile": [2, 8],
+			"highlands": [],
+			"landmarks": [],
+			"spawn_lanes": [[[2, 6], [22, 6]]],
+			"areas": [
+				{"kind": "water", "rect": [8, 4, 4, 8]},
+				{"kind": "bridge", "rect": [8, 7, 4, 3]},
+				{"kind": "mountain", "rect": [18, 2, 3, 3]},
+				{"kind": "building", "rect": [2, 2, 4, 3]},
+				{"kind": "wall", "rect": [6, 12, 8, 2]},
+				{"kind": "props", "prop": "crate", "rect": [10, 5, 1, 1], "density": 1.0, "solid": true}
+			]
+		}
+	}
+	var built := _build_definition("semantic_fixture", definition)
+	var layout: MapLayout = built["layout"] as MapLayout
+	var renderer: MapRenderer = built["renderer"] as MapRenderer
+	assert_eq(layout.last_repair_count, 0, "semantic fixture must remain unrepaired")
+	for y in range(2, 5):
+		for x in range(18, 21):
+			var cell := Vector2i(x, y)
+			assert_true(layout.is_solid_cell(cell), "mountain %s must block movement" % cell)
+			assert_true(renderer.terrain_tile_name(cell).begins_with("mountain_"), "mountain must show opaque rock")
+			assert_true(
+				layout.minimap_texture.get_image().get_pixel(cell.x, cell.y).is_equal_approx(
+					layout.minimap_color_for_tile(renderer.terrain_tile_name(cell))
+				),
+				"mountain minimap must use the rock color"
+			)
+	for y in range(2, 5):
+		for x in range(2, 6):
+			var cell := Vector2i(x, y)
+			assert_true(layout.is_solid_cell(cell), "building %s must block movement" % cell)
+			assert_false(renderer.architecture_tile_name(cell).is_empty(), "building must show walls or roof")
+	for y in range(12, 14):
+		for x in range(6, 14):
+			var cell := Vector2i(x, y)
+			assert_true(layout.is_solid_cell(cell), "wall %s must block movement" % cell)
+			assert_false(renderer.architecture_tile_name(cell).is_empty(), "wall must show masonry")
+	assert_true(layout.is_cell_walkable(Vector2i(9, 5)), "ordinary water must remain wadeable")
+	assert_true(layout.is_wade_position((Vector2(9, 5) + Vector2.ONE * 0.5) * MapLayout.TILE_SIZE))
+	assert_true(layout.is_cell_walkable(Vector2i(9, 8)), "bridge center must remain open")
+	assert_false(layout.is_wade_position((Vector2(9, 8) + Vector2.ONE * 0.5) * MapLayout.TILE_SIZE))
+	assert_true(layout.is_solid_cell(Vector2i(8, 7)), "water-span railing must block movement")
+	assert_eq(renderer.architecture_tile_name(Vector2i(8, 7)), "wood_railing")
+	assert_true(layout.is_cell_walkable(Vector2i(7, 8)), "west bridge landing must remain open")
+	assert_true(layout.is_cell_walkable(Vector2i(12, 8)), "east bridge landing must remain open")
+	assert_true(layout.is_solid_cell(Vector2i(10, 5)), "solid prop in water must block movement")
+	assert_eq(renderer.prop_tile_name(Vector2i(10, 5)), "crate")
+	assert_false(layout.is_wade_position((Vector2(10, 5) + Vector2.ONE * 0.5) * MapLayout.TILE_SIZE), "solid water obstacles must not count as wading")
+
+
 func test_wading_slows_units_and_bridge_stays_dry() -> void:
 	var built := _build_map("watergate")
 	var layout: MapLayout = built["layout"] as MapLayout
@@ -137,13 +355,45 @@ func test_every_map_reports_full_spawn_connectivity_and_needs_no_repair() -> voi
 func test_connectivity_repair_opens_a_blocked_spawn_lane() -> void:
 	var built := _build_map("tideland")
 	var layout: MapLayout = built["layout"] as MapLayout
-	# 人为用实心墙把整张图横向切断，模拟布局/生成把关键路径堵死。
+	var renderer: MapRenderer = built["renderer"] as MapRenderer
+	# 人为用有可见墙体的实心带把整张图横向切断，模拟布局/生成把关键路径堵死。
 	var wall_x := int(layout.world_tiles.x / 2)
-	layout.mark_solid_rect(Rect2i(wall_x, 0, 2, layout.world_tiles.y))
+	var painted_wall_cells: Array[Vector2i] = []
+	for y in layout.world_tiles.y:
+		for x in range(wall_x, wall_x + 2):
+			var cell := Vector2i(x, y)
+			renderer._place_architecture(cell, "stone_wall_a")
+			if y % 5 == 0:
+				renderer._place_prop(cell, "crate")
+			layout.mark_solid_rect(Rect2i(cell, Vector2i.ONE))
+			painted_wall_cells.append(cell)
 	assert_false(bool(layout.connectivity_report()["ok"]), "artificial wall must break connectivity")
 	var repaired := layout.repair_connectivity()
 	assert_gt(repaired, 0, "repair must report the lanes it opened")
 	assert_true(bool(layout.connectivity_report()["ok"]), "repair must restore full connectivity")
+	var repaired_cells := layout.repaired_cell_list()
+	assert_gt(repaired_cells.size(), 0, "repair must expose every carved cell to the renderer")
+	var minimap := layout.minimap_texture.get_image()
+	var erased_wall_cells := 0
+	for cell in repaired_cells:
+		assert_true(layout.is_cell_walkable(cell), "repaired cell %s must be walkable" % cell)
+		assert_eq(renderer.architecture_tile_name(cell), "", "repair must erase stale architecture at %s" % cell)
+		assert_eq(renderer.prop_tile_name(cell), "", "repair must erase stale props at %s" % cell)
+		var tile_name := renderer.terrain_tile_name(cell)
+		if layout.is_water_cell(cell):
+			assert_true(layout.is_bridge_cell(cell), "repaired water must become a dry bridge")
+			assert_false(layout.is_wade_position((Vector2(cell) + Vector2.ONE * 0.5) * MapLayout.TILE_SIZE))
+			assert_eq(tile_name, "dock_horizontal", "repaired water must show bridge planking")
+		else:
+			assert_false(layout.is_bridge_cell(cell), "repaired land must not be marked as bridge")
+			assert_true(tile_name == "earth_road_a" or tile_name == "earth_road_b", "repaired land must show a road")
+		assert_true(
+			minimap.get_pixel(cell.x, cell.y).is_equal_approx(layout.minimap_color_for_tile(tile_name)),
+			"repair minimap must match visible terrain at %s" % cell
+		)
+		if painted_wall_cells.has(cell) and renderer.architecture_tile_name(cell).is_empty():
+			erased_wall_cells += 1
+	assert_gt(erased_wall_cells, 0, "repair must visibly remove the blocking wall where it cuts through")
 
 
 func test_buildings_stay_off_roads_and_water() -> void:
@@ -254,6 +504,10 @@ func test_run_camera_is_bounded_and_minimap_avoids_score_panels() -> void:
 
 func _build_map(map_id: String) -> Dictionary:
 	var definition: Dictionary = (GameData.get_maps()[map_id] as Dictionary).duplicate(true)
+	return _build_definition(map_id, definition)
+
+
+func _build_definition(map_id: String, definition: Dictionary) -> Dictionary:
 	var layout := MapLayout.new()
 	layout.setup(map_id, definition)
 	var renderer := MapRenderer.new()

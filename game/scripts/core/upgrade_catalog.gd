@@ -48,8 +48,8 @@ const STAT_FLAT := [
 	"oil_max", "thorns", "lifesteal", "execute_below",
 ]
 const STAT_INT := [
-	"revive", "oil_max", "tower_pierce", "tower_volley", "tower_chain",
-	"tower_count", "tower_tier",
+	"revive", "oil_max", "tower_pierce", "tower_volley", "tower_burst_shots",
+	"tower_burst_lanes", "tower_chain", "tower_count", "tower_tier",
 ]
 const EVENT_STATS := [
 	"event_hp_pct", "event_merit", "event_oil", "event_full_heal",

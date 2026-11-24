@@ -14,7 +14,6 @@
     "spear": {"new": 60, "upgrade": 50},
     "bow": {"new": 70, "upgrade": 55},
     "musket": {"new": 82, "upgrade": 64},
-    "shield": {"new": 58, "upgrade": 46},
     "dragon_lantern": {"new": 102, "upgrade": 78},
     "cannon": {"new": 112, "upgrade": 84},
     "banner": {"new": 76, "upgrade": 60}

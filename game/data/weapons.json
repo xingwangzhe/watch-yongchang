@@ -89,27 +89,6 @@
       "evolve_description_zh": "六发扇射，弹丸穿透，近距击退成墙。",
       "evolve_description_en": "A six-pellet volley with piercing shot and heavy close-range knockback."
     },
-    "shield": {
-      "name_zh": "藤牌",
-      "name_en": "Rattan Shield",
-      "description_zh": "环绕撞击，挡开近身敌潮。",
-      "description_en": "Orbiting shields batter nearby enemies.",
-      "culture_zh": "藤牌浸桐油，轻而韧。牌手蹲低，替身后的弓手和百姓挡第一刀。",
-      "culture_en": "Rattan soaked in tung oil: light, tough. The shield-bearer crouches and takes the first blade for archers and civilians.",
-      "icon": "res://assets/icons/game_icons/wpn_shield.svg",
-      "type": "orbit",
-      "damage": 10.0,
-      "cooldown": 0.46,
-      "range": 78.0,
-      "count": 1,
-      "knockback": 22.0,
-      "evolve_id": "xuandun",
-      "evolve_passive": "armor",
-      "evolve_name_zh": "旋盾",
-      "evolve_name_en": "Whirling Shields",
-      "evolve_description_zh": "三面藤牌环绕，扩大护身圈并撞开敌潮。",
-      "evolve_description_en": "Three rattan shields orbit wider and batter the tide away."
-    },
     "dragon_lantern": {
       "name_zh": "龙灯",
       "name_en": "Dragon Lantern",

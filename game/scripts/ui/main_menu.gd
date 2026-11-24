@@ -26,6 +26,7 @@ var _settings_button: Button
 var _about_button: Button
 var _language_button: Button
 var _menu_codex_button: Button
+var _tutorial_button: Button
 var _quit_button: Button
 var _autosave_value: Label
 var _last_saved_value: Label
@@ -53,6 +54,7 @@ var _controls_close: Button
 var _controls_title: Label
 var _controls_settings_button: Button
 var _controls_done: Button
+var _tutorial_overlay: TutorialOverlay
 var _binding_labels: Dictionary = {}
 var _capture_action := ""
 
@@ -67,6 +69,7 @@ func _ready() -> void:
 	_build_footer()
 	_build_settings_overlay()
 	_build_controls_overlay()
+	_build_tutorial_overlay()
 	_sync_settings_controls()
 	_connect_signals()
 	_refresh_texts()
@@ -81,7 +84,7 @@ func open_settings() -> void:
 	if _settings_overlay.visible:
 		return
 	_settings_overlay.visible = true
-	for button in [_start_button, _menu_codex_button, _settings_button, _about_button, _language_button, _quit_button]:
+	for button in [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]:
 		button.focus_mode = Control.FOCUS_NONE
 	_sync_settings_controls()
 	_bgm_slider.grab_focus()
@@ -94,7 +97,7 @@ func close_settings() -> void:
 	if _controls_overlay.visible:
 		close_controls()
 	_settings_overlay.visible = false
-	for button in [_start_button, _menu_codex_button, _settings_button, _about_button, _language_button, _quit_button]:
+	for button in [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]:
 		button.focus_mode = Control.FOCUS_ALL
 	_settings_button.grab_focus()
 	SaveSystem.autosave({"last_mode": "menu"})
@@ -102,6 +105,8 @@ func close_settings() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not _capture_action.is_empty():
+		return
+	if is_instance_valid(_tutorial_overlay) and _tutorial_overlay.visible:
 		return
 	if event.is_action_pressed("ui_cancel") and _controls_overlay.visible:
 		close_controls()
@@ -177,35 +182,41 @@ func _build_header() -> void:
 
 
 func _build_menu() -> void:
-	var button_y := 318.0
-	var step := 50.0
+	# 七个入口仍完整落在页脚上方；教程可在首次守夜后随时重播。
+	var button_y := 300.0
+	var step := 46.0
 	_start_button = _make_button("StartButton", "menu.start", true)
-	UILayout.place(_start_button, 180.0, button_y, 320.0, 46.0)
+	UILayout.place(_start_button, 180.0, button_y, 320.0, 44.0)
 	add_child(_start_button)
 	_start_button.pressed.connect(_on_start_pressed)
 
 	_menu_codex_button = _make_button("MenuCodexButton", "menu.codex")
-	UILayout.place(_menu_codex_button, 180.0, button_y + step, 320.0, 46.0)
+	UILayout.place(_menu_codex_button, 180.0, button_y + step, 320.0, 44.0)
 	add_child(_menu_codex_button)
 	_menu_codex_button.pressed.connect(_on_codex_pressed)
 
+	_tutorial_button = _make_button("TutorialButton", "menu.tutorial")
+	UILayout.place(_tutorial_button, 180.0, button_y + step * 2.0, 320.0, 44.0)
+	add_child(_tutorial_button)
+	_tutorial_button.pressed.connect(_on_tutorial_pressed)
+
 	_settings_button = _make_button("SettingsButton", "menu.settings")
-	UILayout.place(_settings_button, 180.0, button_y + step * 2.0, 320.0, 46.0)
+	UILayout.place(_settings_button, 180.0, button_y + step * 3.0, 320.0, 44.0)
 	add_child(_settings_button)
 	_settings_button.pressed.connect(open_settings)
 
 	_about_button = _make_button("AboutButton", "menu.about")
-	UILayout.place(_about_button, 180.0, button_y + step * 3.0, 320.0, 46.0)
+	UILayout.place(_about_button, 180.0, button_y + step * 4.0, 320.0, 44.0)
 	add_child(_about_button)
 	_about_button.pressed.connect(_on_about_pressed)
 
 	_language_button = _make_button("LanguageButton", "menu.language")
-	UILayout.place(_language_button, 180.0, button_y + step * 4.0, 320.0, 46.0)
+	UILayout.place(_language_button, 180.0, button_y + step * 5.0, 320.0, 44.0)
 	add_child(_language_button)
 	_language_button.pressed.connect(_on_language_pressed)
 
 	_quit_button = _make_button("QuitButton", "menu.quit")
-	UILayout.place(_quit_button, 180.0, button_y + step * 5.0, 320.0, 46.0)
+	UILayout.place(_quit_button, 180.0, button_y + step * 6.0, 320.0, 44.0)
 	add_child(_quit_button)
 	_quit_button.pressed.connect(_on_quit_pressed)
 
@@ -252,7 +263,7 @@ func _build_watch_panel() -> void:
 	_register_label(_make_label("MusicHeading", "", 15, MUTED), "panel.music")
 	column.add_child(_i18n_labels[-1]["node"])
 
-	var music_title := _make_label("MusicTitle", "Samurai Nights", 22, PAPER)
+	var music_title := _make_label("MusicTitle", "Yongchang Watch · 永昌守望", 22, PAPER)
 	column.add_child(music_title)
 
 	_build_night_anchors(column)
@@ -566,6 +577,26 @@ func _build_controls_overlay() -> void:
 	_controls_done = done
 
 
+func _build_tutorial_overlay() -> void:
+	_tutorial_overlay = TutorialOverlay.new()
+	_tutorial_overlay.z_index = 40
+	add_child(_tutorial_overlay)
+	_tutorial_overlay.closed.connect(_on_tutorial_closed)
+
+
+func _on_tutorial_pressed() -> void:
+	for button in [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]:
+		button.focus_mode = Control.FOCUS_NONE
+	_tutorial_overlay.open(false)
+
+
+func _on_tutorial_closed(_skipped: bool) -> void:
+	SaveSystem.complete_tutorial()
+	for button in [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]:
+		button.focus_mode = Control.FOCUS_ALL
+	_tutorial_button.grab_focus()
+
+
 func open_controls() -> void:
 	if _controls_overlay.visible:
 		return
@@ -786,6 +817,7 @@ func _refresh_texts() -> void:
 	_about_button.text = Locale.t("menu.about")
 	_language_button.text = Locale.t("menu.language", {"name": Locale.language_name()})
 	_menu_codex_button.text = Locale.t("menu.codex")
+	_tutorial_button.text = Locale.t("menu.tutorial")
 	_quit_button.text = Locale.t("menu.quit")
 	_back_button.text = Locale.t("settings.back")
 	if is_instance_valid(_controls_settings_button):

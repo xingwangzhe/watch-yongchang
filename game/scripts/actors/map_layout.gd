@@ -3,6 +3,10 @@ extends RefCounted
 
 const TILE_SIZE := 32.0
 const CARDINAL_DIRECTIONS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+const MINIMAP_BRIDGE := Color("#c4a06b")
+const MINIMAP_BRIDGE_RAILING := Color("#4e3527")
+
+signal connectivity_repaired(cells: Array)
 
 var map_id := ""
 var world_tiles := Vector2i(120, 84)
@@ -20,6 +24,7 @@ var last_repair_count := 0
 var _solid_cells: Dictionary = {}
 var _water_cells: Dictionary = {}
 var _bridge_cells: Dictionary = {}
+var _repaired_cells: Dictionary = {}
 var _minimap_colors := PackedColorArray()
 var _spawn_samples := PackedVector2Array()
 var _flow_distance := PackedInt32Array()
@@ -28,6 +33,13 @@ var _flow_target_cell := Vector2i(-1, -1)
 
 func setup(map_key: String, definition: Dictionary) -> void:
 	map_id = map_key
+	_solid_cells.clear()
+	_water_cells.clear()
+	_bridge_cells.clear()
+	_repaired_cells.clear()
+	_flow_distance.clear()
+	_flow_target_cell = Vector2i(-1, -1)
+	minimap_texture = null
 	var layout: Dictionary = definition.get("layout", {}) as Dictionary
 	var size_data: Array = layout.get("world_tiles", [120, 84]) as Array
 	world_tiles = Vector2i(int(size_data[0]), int(size_data[1]))
@@ -47,7 +59,7 @@ func finalize() -> void:
 	if not is_point_walkable(start_pos, 18.0):
 		start_pos = find_walkable_position(start_pos, 18.0)
 	# 连通性是硬约束：任何出生带如果到不了玩家出生点，现场开一条可走走廊，
-	# 保证不会因为地图数据或生成顺序把关键路径堵死。正式地图应在报告里为 0。
+	# 并通过 connectivity_repaired 通知渲染器同步重画。正式地图应在报告里为 0。
 	last_repair_count = 0
 	if not connectivity_report().get("ok", true):
 		last_repair_count = repair_connectivity()
@@ -78,6 +90,12 @@ func clear_water_rect(rect: Rect2i) -> void:
 func mark_bridge_rect(rect: Rect2i) -> void:
 	for cell in _cells_in(rect):
 		_bridge_cells[cell] = true
+		set_minimap_color(cell, MINIMAP_BRIDGE)
+
+
+func clear_bridge_rect(rect: Rect2i) -> void:
+	for cell in _cells_in(rect):
+		_bridge_cells.erase(cell)
 
 
 func set_minimap_color_rect(rect: Rect2i, color: Color) -> void:
@@ -112,10 +130,10 @@ func is_cell_walkable(cell: Vector2i) -> bool:
 	return true
 
 
-## 涉水判定：水面且不在桥上。涉水减速对所有单位生效。
+## 涉水判定：水面且不在桥上、不是实心障碍。涉水减速对所有单位生效。
 func is_wade_position(position: Vector2) -> bool:
 	var cell := world_to_cell(position)
-	return _water_cells.has(cell) and not _bridge_cells.has(cell)
+	return _water_cells.has(cell) and not _bridge_cells.has(cell) and not _solid_cells.has(cell)
 
 
 func is_point_walkable(position: Vector2, radius: float = 18.0) -> bool:
@@ -210,10 +228,11 @@ func connectivity_report() -> Dictionary:
 
 
 ## 兜底修复：对不可达的出生带，沿直线向玩家出生点清出一条可走走廊。
-## 只清障碍、把水格架成桥，不改动已画好的地形贴图；正式地图不应触发。
+## 记录每个被开路的格子；渲染器收到信号后必须同步重画，不能留下隐形通路。
 func repair_connectivity() -> int:
 	if not is_point_walkable(start_pos, 18.0):
 		start_pos = find_walkable_position(start_pos, 18.0)
+	_repaired_cells.clear()
 	var start_cell := world_to_cell(start_pos)
 	var repaired := 0
 	for point in _spawn_samples:
@@ -224,6 +243,9 @@ func repair_connectivity() -> int:
 				continue
 		_carve_corridor(cell, start_cell)
 		repaired += 1
+	_build_minimap_texture()
+	if repaired > 0:
+		connectivity_repaired.emit(repaired_cell_list())
 	return repaired
 
 
@@ -245,7 +267,11 @@ func _carve_corridor(from_cell: Vector2i, to_cell: Vector2i) -> void:
 				_solid_cells.erase(cell)
 				if _water_cells.has(cell):
 					_bridge_cells[cell] = true
-				set_minimap_color(cell, Color("#c4a06b"))
+					set_minimap_color(cell, MINIMAP_BRIDGE)
+				else:
+					_bridge_cells.erase(cell)
+					set_minimap_color(cell, minimap_color_for_tile("earth_road_a"))
+				_repaired_cells[cell] = true
 
 
 func ensure_flow_field(target: Vector2) -> void:
@@ -385,6 +411,13 @@ func spawn_sample_points() -> PackedVector2Array:
 	return _spawn_samples.duplicate()
 
 
+func repaired_cell_list() -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	for cell in _repaired_cells.keys():
+		cells.append(cell as Vector2i)
+	return cells
+
+
 func landmark_entries() -> Array[Dictionary]:
 	return landmarks
 
@@ -404,10 +437,14 @@ func minimap_color_for_tile(tile_name: String) -> Color:
 		return Color("#235864")
 	if tile_name.begins_with("shore"):
 		return Color("#9b8c68")
-	if tile_name.begins_with("stone_road") or tile_name.begins_with("wet_stone") or tile_name == "dock_vertical" or tile_name == "dock_horizontal":
+	if tile_name == "dock_vertical" or tile_name == "dock_horizontal":
+		return MINIMAP_BRIDGE
+	if tile_name.begins_with("stone_road") or tile_name.begins_with("wet_stone"):
 		return Color("#9f9275")
 	if tile_name.begins_with("earth_road") or tile_name == "gravel":
 		return Color("#87785b")
+	if tile_name.begins_with("mountain"):
+		return Color("#293331")
 	if tile_name.begins_with("salt_pan") or tile_name.begins_with("sand"):
 		return Color("#b8a77d")
 	if tile_name.begins_with("reed"):

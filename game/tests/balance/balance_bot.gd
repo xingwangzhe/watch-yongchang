@@ -8,10 +8,12 @@ func _initialize() -> void:
 
 
 func _run() -> void:
+	SaveSystem.data["tutorial_seen"] = true
 	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
 	root.add_child(run)
 	await process_frame
 	run.story._skip_all()
+	Input.action_press("attack")
 	if OS.has_environment("WATCH_BALANCE_FLAT"):
 		run._difficulty_curve = {}
 	var steps := int(run.duration / STEP)
@@ -23,6 +25,8 @@ func _run() -> void:
 		_drive(run, t)
 		run._step(STEP)
 		while run.level_up_overlay.visible:
+			run.level_up_overlay._unlock_at_msec = Time.get_ticks_msec() - 1
+			run.level_up_overlay._process(0.0)
 			run._on_upgrade_chosen(_choose_upgrade(run))
 		if run._shop_open:
 			for index in range(run._current_shop_offers.size()):
@@ -62,12 +66,12 @@ func _run() -> void:
 		run.weapons.size(),
 		run.scales.size(),
 	])
+	Input.action_release("attack")
 	quit(0 if victory == "victory" else 1)
 
 
 func _drive(run: Node, t: float) -> void:
 	var pos: Vector2 = run.player["pos"]
-	run._mouse_attack_pressed = true
 	var target: Dictionary = run.battlefield.nearest_enemy(pos, 720.0)
 	if not target.is_empty():
 		run._mouse_screen_pos = run.get_viewport().get_canvas_transform() * (target["pos"] as Vector2)

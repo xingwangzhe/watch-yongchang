@@ -3,6 +3,8 @@ extends Control
 
 signal chosen(index: int)
 
+const INPUT_LOCK_MSEC := 1000
+
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
 const PAPER := Color("#efe1c2")
 const MUTED := Color("#baa98a")
@@ -13,11 +15,15 @@ var _title: Label
 var _subtitle: Label
 var _pool_label: Label
 var _hint: Label
+var _unlock_at_msec := 0
+var _input_locked := false
 var _cards: Array[Button] = []
 var _options: Array[Dictionary] = []
+var _hint_pool := 0
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	name = "LevelUpOverlay"
 	z_index = 50
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -29,26 +35,33 @@ func _ready() -> void:
 func show_options(options: Array[Dictionary], level: int, info: Dictionary = {}) -> void:
 	_options = options
 	visible = true
+	_unlock_at_msec = Time.get_ticks_msec() + INPUT_LOCK_MSEC
+	_input_locked = true
+	_hint_pool = int(info.get("pool", options.size()))
 	_title.text = Locale.t("levelup.title")
 	_subtitle.text = Locale.t("levelup.subtitle", {"level": level})
 	_pool_label.text = Locale.t("levelup.pool", {
-		"pool": int(info.get("pool", options.size())),
+		"pool": _hint_pool,
 		"taken": int(info.get("taken", 0)),
 	})
-	_hint.text = Locale.t("levelup.hint", {"pool": int(info.get("pool", options.size()))})
+	_set_cards_locked(true)
+	_refresh_selection_hint()
 	for i in range(_cards.size()):
 		var card := _cards[i]
 		if i >= options.size():
 			card.visible = false
+			card.disabled = true
 			continue
 		card.visible = true
 		_apply_option(card, options[i], i)
 		_animate_card(card, i)
-	_cards[0].grab_focus()
 
 
 func hide_options() -> void:
 	visible = false
+	_input_locked = false
+	_unlock_at_msec = 0
+	_set_cards_locked(false)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -63,9 +76,55 @@ func _unhandled_input(event: InputEvent) -> void:
 				index = 1
 			KEY_3:
 				index = 2
-		if index >= 0 and index < _options.size():
-			chosen.emit(index)
+		if index >= 0:
+			_choose(index)
 			get_viewport().set_input_as_handled()
+
+
+func _process(_delta: float) -> void:
+	if visible:
+		_refresh_input_lock()
+
+
+func is_locked() -> bool:
+	_refresh_input_lock()
+	return _input_locked
+
+
+func can_choose(index: int = -1) -> bool:
+	if not visible or is_locked():
+		return false
+	return index < 0 or (index >= 0 and index < _options.size())
+
+
+func _refresh_input_lock() -> void:
+	if not _input_locked:
+		return
+	var remaining := _unlock_at_msec - Time.get_ticks_msec()
+	if remaining <= 0:
+		_input_locked = false
+		_set_cards_locked(false)
+		if not _cards.is_empty() and _cards[0].visible:
+			_cards[0].grab_focus()
+	_refresh_selection_hint()
+
+
+func _set_cards_locked(locked: bool) -> void:
+	for i in range(_cards.size()):
+		_cards[i].disabled = locked or i >= _options.size()
+
+
+func _refresh_selection_hint() -> void:
+	if _hint == null:
+		return
+	if _input_locked:
+		var remaining := maxi(1, _unlock_at_msec - Time.get_ticks_msec())
+		var seconds := ceilf(float(remaining) / 100.0) / 10.0
+		_hint.text = Locale.t("levelup.locked", {"seconds": "%0.1f" % seconds})
+		_hint.add_theme_color_override("font_color", VERMILION)
+	else:
+		_hint.text = Locale.t("levelup.hint", {"pool": _hint_pool})
+		_hint.add_theme_color_override("font_color", Color(MUTED, 0.58))
 
 
 func _build() -> void:
@@ -296,7 +355,7 @@ func _level_pips(level: int, max_level: int) -> String:
 
 
 func _choose(index: int) -> void:
-	if visible and index >= 0 and index < _options.size():
+	if can_choose(index):
 		chosen.emit(index)
 
 

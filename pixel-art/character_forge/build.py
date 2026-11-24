@@ -48,6 +48,22 @@ BODY_Y = {
     "foot_origin": 123,
 }
 
+# Per-weapon standing stance: (far_foot_x, near_foot_x, torso_weight_shift).
+# Small differences keep every armament silhouette from looking stamped out of
+# the same mould while staying inside the shared leg-reach envelope.
+STANCE = {
+    "dao": (52.0, 68.0, 0),
+    "jian": (52.0, 68.0, 0),
+    "qijia_dao": (51.0, 68.0, 0),
+    "wokou_dao": (50.0, 70.0, 1),
+    "niaochong": (53.0, 67.0, -1),
+    "gong": (50.0, 69.0, 1),
+    "qiang": (52.0, 70.0, -1),
+    "ji": (50.0, 70.0, 1),
+    "lingqi": (53.0, 67.0, -1),
+    "longdeng": (52.0, 68.0, 0),
+}
+
 GRIPS = ("one_hand", "two_hand", "ranged", "offhand")
 ARM_LAYER_RULES = {
     "two_hand": "both_front",
@@ -272,6 +288,9 @@ BLACK = "#17191a"
 BLACK_L = "#33383a"
 FIRE = "#ff9b38"
 FIRE_L = "#ffd36a"
+GLOVE = "#c99a73"
+GLOVE_D = "#6d4a30"
+GLOVE_L = "#e8c092"
 
 SKINS = [
     {"id": "light", "name_zh": "浅肤", "name_en": "Light",
@@ -493,6 +512,9 @@ BACKGEAR = [
     {"id": "wokou_cloak_dark", "name_zh": "倭寇黑披风", "name_en": "Wokou Dark Cloak",
      "faction": "wokou", "kind": "cape", "cloth": "#28303a", "cloth_d": "#14181e",
      "cloth_l": "#465463", "tags": ["wokou"]},
+    {"id": "wokou_banner", "name_zh": "倭寇阵旗", "name_en": "Wokou War Banner",
+     "faction": "wokou", "kind": "banner", "cloth": RED, "cloth_d": RED_D,
+     "cloth_l": RED_L, "pool": False, "tags": ["wokou"]},
     {"id": "ming_banner", "name_zh": "明军令旗", "name_en": "Ming Signal Banner",
      "faction": "ming", "kind": "banner", "cloth": RED, "cloth_d": RED_D,
      "cloth_l": RED_L, "tags": ["ming"]},
@@ -587,7 +609,10 @@ def item_faction(item: dict | None) -> str:
 
 
 def faction_items(items: list[dict], faction: str) -> list[dict]:
-    return [item for item in items if item_faction(item) in ("neutral", faction)]
+    return [
+        item for item in items
+        if item_faction(item) in ("neutral", faction) and item.get("pool", True)
+    ]
 
 
 def items_faction_compatible(first: dict | None, second: dict | None) -> bool:
@@ -926,6 +951,9 @@ def draw_foot(
         # Sole and heel keep the boot grounded instead of floating.
         line(s, (x - 6, y + 4), (x + 11, y + 4), INK)
         line(s, (x - 6, y + 3), (x - 2, y + 3), dark)
+        # Ankle shadow separates boot from leg and reads the weight shift.
+        line(s, (x - 6, y - 5), (x + 5, y - 5), dark)
+        line(s, (x - 5, y - 4), (x + 4, y - 4), INK)
         # Toe cap catches the light, ankle cuff keeps a readable break.
         polygon(
             s,
@@ -951,13 +979,19 @@ def draw_foot(
     )
     line(s, (x - 4, y + 1), (x + 6, y + 1), light)
     line(s, (x - 4, y + 3), (x + 7, y + 3), INK)
+    line(s, (x - 4, y - 2), (x + 4, y - 2), dark)
     for k in range(3):
         s.px(x + 3 + k, y + 2, dark)
 
 
-def draw_shadow(s: Sprite) -> None:
-    s.ellipse(32, 118, 90, 123, INK, fill=True)
-    s.ellipse(39, 119, 83, 121, "#101416", fill=True)
+def draw_shadow(s: Sprite, offset: float = 0.0) -> None:
+    # A soft three-tone contact shadow that meets the sole (the boot sole line
+    # is y=119) instead of hovering below it, while the layered falloff keeps
+    # the feet from looking pasted onto a hard disc.
+    x0 = int(round(offset))
+    s.ellipse(32 + x0, 118, 90 + x0, 125, "#0c1012", fill=True)
+    s.ellipse(38 + x0, 119, 84 + x0, 124, "#141a1c", fill=True)
+    s.ellipse(45 + x0, 120, 77 + x0, 123, "#1c2427", fill=True)
 
 
 def leg_points(pose: dict, side: str) -> tuple[tuple[float, float], tuple[float, float]]:
@@ -1071,17 +1105,23 @@ def idle_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
     phase = 2.0 * math.pi * index / 4.0
     bob = 1 if index in (1, 2) else 0
     sway = math.sin(phase)
+    stance_far, stance_near, weight = STANCE.get(weapon_id, (52.0, 68.0, 0))
     pose["phase"] = phase
-    pose["lean"] = 0
+    pose["lean"] = weight
     pose["head_dx"] = sway * 0.7
     pose["blink"] = index == 3
-    pose["far_foot"] = (52.0 - sway, BODY_Y["ankle"])
-    pose["near_foot"] = (68.0 - sway * 0.5, BODY_Y["ankle"])
+    pose["far_foot"] = (stance_far - sway, BODY_Y["ankle"])
+    pose["near_foot"] = (stance_near - sway * 0.5, BODY_Y["ankle"])
     if grip == "one_hand":
         if weapon_id == "longdeng":
             pose["far_hand"] = (36.0 - sway * 0.6, 40.0)
             pose["near_hand"] = (88.0 + sway * 0.6, 39.0)
             pose["weapon_angle"] = math.radians(-8 + sway * 2)
+        elif weapon_id in ("dao", "jian", "gou", "qijia_dao"):
+            # Blade held forward off the hip instead of dangling beside it.
+            pose["far_hand"] = (40.0 + sway, 73.0)
+            pose["near_hand"] = (83.0 - sway * 0.5, 66.0)
+            pose["weapon_angle"] = math.radians(24 + sway * 2)
         else:
             pose["far_hand"] = (40.0 + sway, 73.0)
             pose["near_hand"] = (84.0 - sway * 0.5, 75.0)
@@ -1089,8 +1129,12 @@ def idle_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
         pose["offhand_angle"] = math.radians(-82 - sway * 2)
     elif grip == "two_hand":
         if weapon_id == "qiang":
-            pose["far_hand"] = (50.0 - sway * 0.5, 72.0)
-            pose["near_hand"] = (74.0 + sway * 0.5, 55.0)
+            # Long shaft carried across the waist, tip clear of face and pauldron.
+            pose["far_hand"] = (60.0 - sway * 0.4, 75.0)
+            pose["near_hand"] = (74.0 + sway * 0.4, 65.0)
+        elif weapon_id == "wokou_dao":
+            pose["far_hand"] = (62.0, 64.0)
+            pose["near_hand"] = (76.0, 56.0)
         else:
             pose["far_hand"] = (54.0, 68.0)
             pose["near_hand"] = (70.0, 60.0)
@@ -1102,6 +1146,10 @@ def idle_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
             pose["near_hand"] = (95.0 + sway * 0.5, 60.0)
             delta = sub(pose["near_hand"], pose["far_hand"])
             pose["weapon_angle"] = math.atan2(delta[1], delta[0])
+        elif weapon_id == "niaochong":
+            pose["far_hand"] = (40.0, 60.0)
+            pose["near_hand"] = (68.0, 58.0)
+            pose["weapon_angle"] = math.radians(-5 + sway * 1.5)
         else:
             pose["far_hand"] = (36.0, 64.0)
             pose["near_hand"] = (66.0, 66.0)
@@ -1138,17 +1186,22 @@ def walk_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
     near_x, near_lift = foot(phase)
     far_x, far_lift = foot(phase + math.pi)
     swing = math.cos(phase)
+    stance_far, stance_near, weight = STANCE.get(weapon_id, (52.0, 68.0, 0))
     pose["phase"] = phase
-    pose["lean"] = int(round(math.sin(phase) * 1.4))
+    pose["lean"] = int(round(math.sin(phase) * 1.4)) + weight
     pose["head_dx"] = math.sin(phase) * 0.6
     pose["blink"] = False
-    pose["far_foot"] = (54.0 + far_x, BODY_Y["ankle"] - far_lift)
-    pose["near_foot"] = (66.0 + near_x, BODY_Y["ankle"] - near_lift)
+    pose["far_foot"] = (54.0 + far_x + weight * 0.8, BODY_Y["ankle"] - far_lift)
+    pose["near_foot"] = (66.0 + near_x + weight * 0.8, BODY_Y["ankle"] - near_lift)
     if grip == "one_hand":
         if weapon_id == "longdeng":
             pose["far_hand"] = (36.0 - swing * 1.0, 40.0 + math.sin(phase * 2.0) * 0.7)
             pose["near_hand"] = (88.0 + swing * 1.2, 39.0 - math.sin(phase * 2.0) * 0.7)
             pose["weapon_angle"] = math.radians(-8 + math.sin(phase) * 4)
+        elif weapon_id in ("dao", "jian", "gou", "qijia_dao"):
+            pose["far_hand"] = (40.0 + swing * 1.5, 73.0 + math.sin(phase * 2.0) * 0.5)
+            pose["near_hand"] = (83.0 - swing * 1.4, 66.0 - math.sin(phase * 2.0) * 0.5)
+            pose["weapon_angle"] = math.radians(26 + math.sin(phase) * 5)
         else:
             pose["far_hand"] = (40.0 + swing * 1.5, 73.0 + math.sin(phase * 2.0) * 0.5)
             pose["near_hand"] = (84.0 - swing * 2.0, 75.0 - math.sin(phase * 2.0) * 0.5)
@@ -1156,8 +1209,11 @@ def walk_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
         pose["offhand_angle"] = math.radians(-82 - math.sin(phase) * 4)
     elif grip == "two_hand":
         if weapon_id == "qiang":
-            pose["far_hand"] = (50.0 + swing * 1.0, 72.0 + math.sin(phase * 2.0) * 0.8)
-            pose["near_hand"] = (74.0 + swing * 0.8, 55.0 - math.sin(phase * 2.0) * 0.8)
+            pose["far_hand"] = (60.0 + swing * 0.6, 75.0 + math.sin(phase * 2.0) * 0.5)
+            pose["near_hand"] = (74.0 + swing * 0.6, 65.0 - math.sin(phase * 2.0) * 0.5)
+        elif weapon_id == "wokou_dao":
+            pose["far_hand"] = (62.0 + swing * 1.0, 64.0)
+            pose["near_hand"] = (76.0 + swing * 1.0, 56.0)
         else:
             pose["far_hand"] = (54.0 + swing * 1.5, 66.0)
             pose["near_hand"] = (70.0 + swing * 1.5, 62.0)
@@ -1169,6 +1225,10 @@ def walk_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
             pose["near_hand"] = (94.0 + swing * 1.2, 60.0 - math.sin(phase * 2.0) * 0.5)
             delta = sub(pose["near_hand"], pose["far_hand"])
             pose["weapon_angle"] = math.atan2(delta[1], delta[0])
+        elif weapon_id == "niaochong":
+            pose["far_hand"] = (40.0 + swing * 0.8, 60.0 + math.sin(phase * 2.0) * 0.5)
+            pose["near_hand"] = (68.0 + swing * 0.8, 58.0 - math.sin(phase * 2.0) * 0.5)
+            pose["weapon_angle"] = math.radians(-5 + math.sin(phase) * 2)
         else:
             pose["far_hand"] = (36.0 + swing * 1.0, 64.0)
             pose["near_hand"] = (65.0 + swing * 1.5, 65.0)
@@ -2424,7 +2484,7 @@ def draw_body_layer(s: Sprite, pose: dict, skin: dict) -> None:
     shoulder_y = float(pose["shoulder_y"])
     waist_y = float(pose["waist_y"])
     hip_y = float(pose["hip_y"])
-    draw_shadow(s)
+    draw_shadow(s, float(pose["lean"]) * 1.5)
     far_hip, far_ankle = leg_points(pose, "far")
     near_hip, near_ankle = leg_points(pose, "near")
     draw_body_leg(s, far_hip, far_ankle, skin, True)
@@ -3445,38 +3505,45 @@ def draw_backgear_layer(s: Sprite, pose: dict, gear: dict) -> None:
         cloth_l = gear["cloth_l"]
         wave = math.sin(phase * 1.3) * 3.0
         pole_x = upper_x - 28
-        s.rect(pt((pole_x, 20 + bob)), pt((pole_x + 2, 96)), LEATHER_D)
-        line(s, (pole_x + 1, 23 + bob), (pole_x + 1, 92), LEATHER_L)
+        top = 18 + bob
+        bottom = 46 + bob
+        x0 = pole_x - 1
+        x1 = max(3.0, pole_x - 33 + wave)
+        # Flag streams back past the shoulder so the cloth stays readable
+        # instead of hiding behind the torso.
         polygon(
             s,
-            [(pole_x + 2, 21 + bob), (pole_x + 33 + wave, 25 + bob),
-             (pole_x + 31 + wave, 53 + bob), (pole_x + 21, 58 + bob),
-             (pole_x + 12, 53 + bob), (pole_x + 2, 56 + bob)],
+            [(x0, top), (x1, top + 2), (x1 + 5, top + 13),
+             (x1, top + 24), (x0, bottom)],
             cloth_d,
         )
         polygon(
             s,
-            [(pole_x + 4, 24 + bob), (pole_x + 30 + wave, 28 + bob),
-             (pole_x + 28 + wave, 49 + bob), (pole_x + 19, 53 + bob),
-             (pole_x + 11, 49 + bob), (pole_x + 4, 52 + bob)],
+            [(x0 - 1, top + 3), (x1 + 3, top + 5), (x1 + 6, top + 13),
+             (x1 + 3, top + 21), (x0 - 1, bottom - 4)],
             cloth,
         )
-        line(s, (pole_x + 5, 27 + bob), (pole_x + 29 + wave, 31 + bob), cloth_l)
-        for y in (35, 44):
-            s.rect(
-                pt((pole_x + 7, y + bob)),
-                pt((pole_x + 26 + int(wave), y + bob + 1)),
-                GOLD,
-            )
-        s.rect(pt((pole_x + 15, 29 + bob)), pt((pole_x + 20, 45 + bob)), GOLD)
-        s.rect(pt((pole_x + 17, 31 + bob)), pt((pole_x + 18, 43 + bob)), cloth)
+        line(s, (x0 - 2, top + 6), (x1 + 3, top + 8), cloth_l)
+        if gear["id"].startswith("wokou"):
+            for offset in (0, 1, 2):
+                yy = top + 12 + offset * 6
+                line(s, (x0 - 5, yy + 3), (x0 - 13, yy), WHITE)
+                line(s, (x0 - 8, yy + 3), (x0 - 15, yy + 1), WARM_WHITE)
+        else:
+            for y in (top + 12, top + 24):
+                s.rect(pt((x0 - 20, y)), pt((x0 - 6, y + 1)), GOLD)
+            s.rect(pt((x0 - 14, top + 8)), pt((x0 - 12, top + 28)), GOLD)
+        s.rect(pt((pole_x - 1, 18 + bob)), pt((pole_x + 1, 96)), LEATHER_D)
+        line(s, (pole_x, 21 + bob), (pole_x, 92), LEATHER_L)
+        s.rect(pt((pole_x - 2, 15 + bob)), pt((pole_x + 2, 18 + bob)), GOLD)
+        s.px(pole_x, 13 + bob, GOLD_L)
     elif kind == "quiver":
         cloth = gear["cloth"]
         cloth_d = gear["cloth_d"]
         cloth_l = gear["cloth_l"]
         accent = gear.get("accent", GOLD_L)
-        top = (upper_x - 25, 42 + bob)
-        bottom = (upper_x - 15, 86 + bob)
+        top = (upper_x - 21, 43 + bob)
+        bottom = (upper_x - 11, 82 + bob)
         polygon(
             s,
             [add(top, (-5, 0)), add(top, (5, 1)), add(bottom, (6, 2)),
@@ -3490,18 +3557,18 @@ def draw_backgear_layer(s: Sprite, pose: dict, gear: dict) -> None:
             cloth,
         )
         line(s, add(top, (-3, 2)), add(bottom, (-2, 1)), cloth_l)
-        for y in (53, 62, 71, 79):
-            line(s, (upper_x - 22, y + bob), (upper_x - 12, y + 1 + bob), LEATHER_D)
-            s.px(int(upper_x - 17), int(y + 1 + bob), accent)
-        for index, offset in enumerate((-10, -7, -4, -1, 2)):
+        for y in (55, 64, 73):
+            line(s, (upper_x - 18, y + bob), (upper_x - 9, y + 1 + bob), LEATHER_D)
+            s.px(int(upper_x - 14), int(y + 1 + bob), accent)
+        for index, offset in enumerate((-6, -3, 0, 3)):
             root = add(top, (offset + 1, 2))
-            tip = add(root, (-5 + offset * 0.2, -17 - index % 2 * 2))
+            tip = add(root, (-3 + offset * 0.15, -11 - index % 2 * 2))
             line(s, root, tip, WOOD)
             line(s, add(root, (1, 0)), add(tip, (1, 0)), WOOD_L)
             fletch = add(tip, (1, 2))
-            line(s, fletch, add(fletch, (-4, 5)), WARM_WHITE)
-            line(s, fletch, add(fletch, (3, 5)), OCHRE_L)
-            line(s, add(fletch, (0, 2)), add(fletch, (-2, 6)), RED_L)
+            line(s, fletch, add(fletch, (-3, 4)), WARM_WHITE)
+            line(s, fletch, add(fletch, (2, 4)), OCHRE_L)
+            line(s, add(fletch, (0, 2)), add(fletch, (-2, 5)), RED_L)
 
 
 def _blade_polygon(
@@ -3546,11 +3613,12 @@ def draw_weapon_dao(s: Sprite, pose: dict) -> None:
     angle = float(pose["weapon_angle"])
     d = (math.cos(angle), math.sin(angle))
     n = (-d[1], d[0])
-    line(s, add(hand, mul(d, -7)), hand, LEATHER_D)
-    line(s, add(hand, mul(d, -6)), add(hand, mul(d, -2)), LEATHER_L)
+    line(s, add(hand, mul(d, -5)), hand, LEATHER_D)
+    line(s, add(hand, mul(d, -4)), add(hand, mul(d, -2)), LEATHER_L)
+    _draw_grip_fist(s, add(hand, mul(d, -3)), d)
     line(s, add(hand, mul(n, -5)), add(hand, mul(n, 5)), GOLD)
     line(s, add(hand, mul(n, -4)), add(hand, mul(n, 4)), GOLD_L)
-    s.px(*pt(add(hand, mul(d, -8))), RED_L)
+    s.px(*pt(add(hand, mul(d, -7))), RED_L)
     tip, n2 = _blade_polygon(s, hand, angle, 29, 2.6, IRON, IRON_LL, -2.1)
     line(s, add(hand, mul(d, 3)), add(tip, mul(n2, 0.8)), IRON_L)
     _slash_effect(s, pose, hand, 31, WHITE if int(pose["stage"]) == 3 else GOLD_L)
@@ -3857,12 +3925,29 @@ def draw_weapon_wokou_dao(s: Sprite, pose: dict) -> None:
     for offset in (0.0, 0.28, 0.56, 0.84):
         band = add(hilt_start, mul(d, length(sub(near, hilt_start)) * offset))
         line(s, add(band, mul(n, -3)), add(band, mul(n, 3)), WRAP_L)
+    _draw_grip_fist(s, far, d)
+    _draw_grip_fist(s, near, d)
     line(s, add(near, mul(n, -7)), add(near, mul(n, 7)), GOLD_D)
     line(s, add(near, mul(n, -6)), add(near, mul(n, 6)), GOLD_L)
     tip, blade_n = _blade_polygon(s, near, angle, 33, 2.5, IRON, IRON_LL, 2.2)
     line(s, add(near, mul(d, 4)), add(tip, mul(blade_n, 0.8)), IRON_L)
     s.px(*pt(tip), WHITE)
     _slash_effect(s, pose, near, 34, WHITE if int(pose["stage"]) == 3 else WARM_WHITE)
+
+
+def _draw_grip_fist(
+    s: Sprite,
+    center: tuple[float, float],
+    aim: tuple[float, float],
+) -> None:
+    """Small gloved fist that stays readable over a hilt, grip or string."""
+    x, y = pt(center)
+    s.circle(x, y, 3, GLOVE_D, fill=True)
+    s.circle(x, y, 2, GLOVE, fill=True)
+    line(s, (x - 2, y - 1), (x + 2, y - 1), GLOVE_L)
+    s.px(x - 1, y + 1, GLOVE_D)
+    s.px(x + 1, y + 1, GLOVE_D)
+    s.px(x + int(round(aim[0])), y + int(round(aim[1])), GLOVE_D)
 
 
 def draw_weapon_gong(s: Sprite, pose: dict) -> None:
@@ -3893,14 +3978,8 @@ def draw_weapon_gong(s: Sprite, pose: dict) -> None:
     line(s, add(bottom, mul(aim, -1)), add(add(bottom, mul(side, -3)), mul(aim, -3)), IRON_D)
     s.px(*pt(add(top, mul(side, 1))), IRON_L)
     s.px(*pt(add(bottom, mul(side, -1))), IRON_L)
-    line(s, add(bow_hand, mul(side, -4)), add(bow_hand, mul(side, 4)), LEATHER_D)
-    line(s, add(bow_hand, mul(side, -3)), add(bow_hand, mul(side, 3)), GOLD)
-    for offset in (-6, -2, 2, 6):
-        s.px(*pt(add(bow_hand, add(mul(side, offset), mul(aim, -1)))), WRAP_L)
     line(s, top, string_hand, WARM_WHITE)
     line(s, string_hand, bottom, WARM_WHITE)
-    s.circle(*pt(bow_hand), 2, LEATHER_D, fill=True)
-    s.px(*pt(add(bow_hand, add(mul(aim, 1), mul(side, -1)))), GOLD_L)
     stage = int(pose["stage"])
     arrow_tip = add(bow_hand, mul(aim, 18))
     if stage >= 2:
@@ -3936,6 +4015,14 @@ def draw_weapon_gong(s: Sprite, pose: dict) -> None:
             fletch = add(string_hand, mul(aim, 4))
             line(s, fletch, add(fletch, add(mul(aim, 5), mul(side, offset))), RED_L)
         s.px(*pt(nocked_tip), WARM_WHITE)
+    # Both hands sit on top of bow and string so the draw hand is never lost
+    # behind the chest plate.
+    _draw_grip_fist(s, bow_hand, aim)
+    line(s, add(bow_hand, mul(side, -3)), add(bow_hand, mul(side, 3)), GOLD_D)
+    s.px(*pt(add(bow_hand, mul(side, -1))), GOLD)
+    _draw_grip_fist(s, string_hand, aim)
+    for offset in (-2, 0, 2):
+        s.px(*pt(add(string_hand, add(mul(side, offset), mul(aim, -1)))), WARM_WHITE)
 
 
 def draw_weapon_nu(s: Sprite, pose: dict) -> None:
@@ -4007,17 +4094,48 @@ def draw_weapon_niaochong(s: Sprite, pose: dict) -> None:
     angle = float(pose["weapon_angle"])
     d = (math.cos(angle), math.sin(angle))
     n = (-d[1], d[0])
-    stock = add(hand, mul(d, -13))
-    barrel = add(hand, mul(d, 25))
-    line(s, stock, barrel, IRON_D)
-    line(s, add(stock, n), add(barrel, n), IRON_L)
-    line(s, add(stock, mul(d, 3)), add(barrel, mul(d, -1)), IRON)
-    line(s, support, add(hand, mul(d, 9)), LEATHER_D)
-    line(s, add(support, (0, 1)), add(hand, add(mul(d, 9), (0, 1))), LEATHER_L)
-    s.rect(pt(add(hand, mul(d, -1))), pt(add(hand, mul(d, 4))), GOLD)
+    rear = add(support, mul(d, -8))
+    fore = add(hand, mul(d, 7))
+    muzzle = add(hand, mul(d, 30))
     stage = int(pose["stage"])
+
+    # Long wooden stock with a butt plate, so the matchlock reads as a firearm
+    # instead of a thin rod next to a sword.
+    draw_segment(s, rear, fore, 7.5, 6.0, WOOD, LEATHER_D, WOOD_L, rim=False, edge=1.0)
+    line(s, add(rear, mul(n, -4)), add(rear, mul(n, 4)), LEATHER_D)
+    line(s, add(rear, mul(d, 2)), add(rear, add(mul(d, 2), mul(n, 3))), LEATHER_L)
+    # Iron barrel with reinforcing bands and a flared muzzle.
+    draw_segment(s, fore, muzzle, 5.5, 4.0, IRON, IRON_D, IRON_L, rim=False, edge=1.0)
+    for t in (0.18, 0.5, 0.82):
+        band = add(fore, mul(d, 22 * t))
+        line(s, add(band, mul(n, -3)), add(band, mul(n, 3)), IRON_D)
+        line(s, add(band, mul(n, -2)), add(band, mul(n, 2)), IRON_LL)
+    mx, my = pt(muzzle)
+    s.circle(mx, my, 3, IRON_D, fill=True)
+    s.circle(mx, my, 2, IRON, fill=True)
+    s.px(mx, my, INK)
+    # Serpentine lock with a lit match cord hanging below the stock.
+    lock = add(support, mul(d, 10))
+    line(s, add(lock, mul(n, -3)), add(lock, add(mul(d, 4), mul(n, -8))), IRON_D)
+    line(s, add(lock, add(mul(d, 4), mul(n, -8))),
+         add(lock, add(mul(d, 8), mul(n, -5))), IRON_L)
+    cord = add(lock, add(mul(d, 6), mul(n, -5)))
+    line(s, cord, add(cord, add(mul(n, 4), mul(d, 1))), WRAP_L)
+    line(s, add(cord, add(mul(n, 4), mul(d, 1))),
+         add(cord, add(mul(n, 9), mul(d, 2))), WRAP)
+    ember = add(cord, add(mul(n, 10), mul(d, 3)))
+    s.px(*pt(ember), FIRE)
+    s.px(*pt(add(ember, (0, 1))), FIRE_L)
+    s.px(*pt(add(ember, (1, 0))), FIRE_L)
+    # Trigger guard under the rear hand.
+    guard = add(hand, mul(d, -5))
+    line(s, add(guard, mul(n, 3)), add(guard, add(mul(d, 3), mul(n, 5))), IRON_D)
+    line(s, add(guard, add(mul(d, 3), mul(n, 5))),
+         add(guard, add(mul(d, 6), mul(n, 3))), IRON_D)
+    _draw_grip_fist(s, support, d)
+    _draw_grip_fist(s, hand, d)
     if stage >= 2:
-        flash = add(barrel, mul(d, 4))
+        flash = add(muzzle, mul(d, 2))
         s.circle(*pt(flash), 5, GOLD, fill=True)
         s.circle(*pt(flash), 3, FIRE, fill=True)
         s.px(*pt(add(flash, (1, -1))), WHITE)
@@ -5199,7 +5317,11 @@ def data_document() -> dict:
         )
         for item in MAIN_WEAPONS
     )
-    raw_combinations = len(SKINS) * len(OUTFITS) * len(HEADGEAR) * len(BACKGEAR) * loadouts
+    pooled_backgear = [item for item in BACKGEAR if item.get("pool", True)]
+    raw_combinations = (
+        len(SKINS) * len(OUTFITS) * len(HEADGEAR)
+        * len(pooled_backgear) * loadouts
+    )
     faction_loadouts = {
         faction: faction_loadout_count(faction)
         for faction in ("ming", "wokou")
@@ -5277,6 +5399,7 @@ def data_document() -> dict:
              "faction": item_faction(item), "exclusive": bool(item.get("exclusive", False)),
              "tags": item["tags"]}
             for item in BACKGEAR
+            if item.get("pool", True)
         ],
         "weapons": [
             {"id": item["id"], "name_zh": item["name_zh"], "name_en": item["name_en"],

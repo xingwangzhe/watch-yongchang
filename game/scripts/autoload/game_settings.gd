@@ -7,6 +7,7 @@ const DEFAULT_LANGUAGE := "zh"
 const LANGUAGE_CODES := ["zh", "en"]
 const FPS_LIMITS := [30, 60, 90, 120, 144, 240, 0]
 const DEFAULT_FPS_LIMIT := 60
+const DEFAULT_BGM_VOLUME := 0.42
 const RENDERER_AUTO := "auto"
 const RENDERER_VULKAN := "vulkan"
 const RENDERER_OPENGL := "opengl"
@@ -15,7 +16,7 @@ const RENDERER_MIRROR_NAME := "renderer.cfg"
 
 var config_path: String = CONFIG_PATH
 var language: String = DEFAULT_LANGUAGE
-var bgm_volume: float = 0.62
+var bgm_volume: float = DEFAULT_BGM_VOLUME
 var sfx_volume: float = 0.78
 var fullscreen: bool = false
 var fps_limit: int = DEFAULT_FPS_LIMIT

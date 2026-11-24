@@ -17,7 +17,6 @@ run/max_fps=60
 
 [autoload]
 
-GdaHarness="*res://addons/gda_harness/gda_harness.gd"
 GameSettings="*res://scripts/autoload/game_settings.gd"
 Locale="*res://scripts/autoload/locale.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"

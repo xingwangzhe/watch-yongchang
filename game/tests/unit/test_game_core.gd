@@ -19,7 +19,8 @@ func test_gameplay_data_is_complete_and_bilingual() -> void:
 	var weapons := GameData.get_weapons()
 	var passives := GameData.get_passives()
 	var enemies := GameData.get_enemies()
-	assert_eq(weapons.size(), 8)
+	assert_eq(weapons.size(), 7)
+	assert_false(weapons.has("shield"), "shields must be defensive equipment, never a player weapon")
 	assert_gte(passives.size(), 8)
 	assert_gte(enemies.size(), 6)
 	for weapon_id in weapons.keys():
@@ -268,11 +269,41 @@ func test_narrative_lines_have_categories_and_sources() -> void:
 	assert_gte(count, 12)
 	var voice := GameData.load_json("res://data/voice_lines.json")
 	assert_eq(str(voice.get("engine", "")), "MOSS-TTS-Nano")
-	for line_id in (voice.get("lines", {}) as Dictionary).keys():
-		var entry: Dictionary = (voice["lines"] as Dictionary)[line_id]
+	assert_false(bool(voice.get("audio_enabled", true)), "unverified generated voice must stay disabled")
+	assert_eq(str(voice.get("distribution", "")), "subtitles_only")
+	assert_eq(str((voice.get("rights", {}) as Dictionary).get("generated_audio_status", "")), "unverified")
+	var voice_lines: Dictionary = voice.get("lines", {}) as Dictionary
+	assert_eq(voice_lines.size(), 9, "subtitle metadata must retain all nine narrative lines")
+	for line_id in voice_lines.keys():
+		var entry: Dictionary = voice_lines[line_id]
 		assert_true(["Xiaoyu", "Lingyu", "Junhao"].has(str(entry.get("voice", ""))))
-		assert_true(ResourceLoader.exists(str(entry.get("audio", ""))), "missing voice: %s" % line_id)
-		assert_true(ResourceLoader.exists(str(entry.get("audio_en", ""))), "missing English voice: %s" % line_id)
+		assert_eq(str(entry.get("audio", "")), "", "%s must not ship voice audio" % line_id)
+		assert_eq(str(entry.get("audio_en", "")), "", "%s must not ship English voice audio" % line_id)
+		assert_true(["史实", "制度", "民俗", "演绎"].has(str(entry.get("category", ""))))
+		assert_gt(str(entry.get("source_ref", "")).length(), 0)
+	var voice_dir := DirAccess.open("res://assets/audio/voice")
+	if voice_dir != null:
+		for file_name in voice_dir.get_files():
+			assert_false(file_name.get_extension().to_lower() == "ogg", "removed voice asset remains: %s" % file_name)
+
+
+func test_voice_player_falls_back_to_bilingual_subtitle_timing() -> void:
+	var line := {"id": "narr_1559_01", "zh": "灯火不灭，永昌不夜。", "en": "Keep the watchfires burning."}
+	var player := VoiceLinePlayer.new()
+	add_child_autofree(player)
+	Locale.set_language("zh", false)
+	var zh_duration := player.play_line(line)
+	assert_almost_eq(zh_duration, maxf(2.2, float(str(line["zh"]).length()) / 4.35), 0.001)
+	assert_null(player._audio.stream, "disabled voice must not load or play an audio stream")
+	assert_gt(player._timer.time_left, 0.0)
+	Locale.set_language("en", false)
+	var en_duration := player.play_line(line)
+	assert_almost_eq(en_duration, maxf(2.2, float(str(line["en"]).length()) / 4.35), 0.001)
+	assert_null(player._audio.stream)
+	player.stop_line()
+	Locale.set_language("zh", false)
+	var source := FileAccess.get_file_as_string("res://scripts/core/voice_line_player.gd")
+	assert_true(source.contains('bool(_voice_data.get("audio_enabled", false))'), "voice playback must be manifest-gated")
 
 
 func test_codex_separates_tanghe_from_yongchang_claims() -> void:

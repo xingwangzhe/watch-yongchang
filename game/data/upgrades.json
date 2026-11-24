@@ -2655,6 +2655,44 @@
 				}
 			]
 		},
+		"tower_repeating_rack": {
+			"name_zh": "连发箭槽",
+			"name_en": "Repeating Bolt Rack",
+			"desc_zh": "每次齐射追加 3 支连发箭，间隔 0.12 秒，可与旧连发叠加。",
+			"desc_en": "Each volley queues 3 follow-up bolts at 0.12s intervals; queues can overlap.",
+			"culture_zh": "箭槽分层轮流落箭，机括声连成一串；这是守夜工事的演绎设计。",
+			"culture_en": "Layered grooves feed bolts in turn, keeping the trigger song unbroken; a fictional watchwork design.",
+			"icon": "res://assets/icons/game_icons/card_arrow_cluster.svg",
+			"max_level": 3,
+			"rarity": "rare",
+			"category": "工事",
+			"source_ref": "演绎",
+			"effects": [
+				{
+					"stat": "tower_burst_shots",
+					"amount": 3
+				}
+			]
+		},
+		"tower_twin_trigger": {
+			"name_zh": "双机括并射",
+			"name_en": "Twin Trigger",
+			"desc_zh": "增加 1 条独立连发通道，可与齐射和另一条连发同时射击。",
+			"desc_en": "Adds one independent burst channel that can fire alongside volleys and another burst.",
+			"culture_zh": "两具机括分听号令，一具未歇，另一具已扣；这是守夜工事的演绎设计。",
+			"culture_en": "Two triggers answer separate beats: one has not rested before the other fires; a fictional watchwork design.",
+			"icon": "res://assets/icons/game_icons/card_targeting.svg",
+			"max_level": 1,
+			"rarity": "legendary",
+			"category": "工事",
+			"source_ref": "演绎",
+			"effects": [
+				{
+					"stat": "tower_burst_lanes",
+					"amount": 1
+				}
+			]
+		},
 		"tower_loophole": {
 			"name_zh": "射孔瞄准",
 			"name_en": "Loophole Aim",

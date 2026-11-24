@@ -10,6 +10,7 @@ const PAPER := Color("#efe1c2")
 const MUTED := Color("#baa98a")
 const GOLD := Color("#e1b35a")
 const VERMILION := Color("#c05a41")
+const JADE := Color("#7fb7a8")
 const INK := Color(0.018, 0.028, 0.031, 0.88)
 
 var _root: Control
@@ -38,6 +39,8 @@ var _boss_bar: ProgressBar
 var _boss_name: Label
 var _build_label: Label
 var _move_hint: Label
+var _attack_mode_label: Label
+var _attack_toggle_label: Label
 var _minimap: RunMinimap
 
 
@@ -88,6 +91,10 @@ func update_hud(state: Dictionary) -> void:
 		}),
 	]
 	_move_hint.text = str(state.get("move_hint", ""))
+	var auto_attack := bool(state.get("auto_attack", false))
+	_attack_mode_label.text = str(state.get("attack_mode", Locale.t("hud.attack_auto" if auto_attack else "hud.attack_manual")))
+	_attack_mode_label.add_theme_color_override("font_color", JADE if auto_attack else GOLD)
+	_attack_toggle_label.text = str(state.get("attack_toggle", ""))
 	var boss_active := bool(state.get("boss_active", false))
 	_boss_panel.visible = boss_active
 	if boss_active:
@@ -162,6 +169,16 @@ func _build() -> void:
 	_shield_label.custom_minimum_size = Vector2(58, 14)
 	_shield_label.visible = false
 	xp_row.add_child(_shield_label)
+
+	# 左上第二行：明确显示手动／自动攻击状态与可重绑的切换键。
+	var attack_chip := _chip("AttackModeChip", 14, 72, 292, 42, 0, 0)
+	var attack_box := VBoxContainer.new()
+	attack_box.add_theme_constant_override("separation", 0)
+	attack_chip.add_child(attack_box)
+	_attack_mode_label = _label("AttackModeLabel", Locale.t("hud.attack_manual"), 13, GOLD)
+	attack_box.add_child(_attack_mode_label)
+	_attack_toggle_label = _label("AttackToggleLabel", "", 10, Color(MUTED, 0.86))
+	attack_box.add_child(_attack_toggle_label)
 
 	# 顶部居中：倒计时
 	var timer_chip := _chip("TimerChip", 520, 10, 240, 50, 0.5, 0)

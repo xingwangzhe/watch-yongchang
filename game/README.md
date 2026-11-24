@@ -1,9 +1,9 @@
 # game/ — Godot 工程
 
-状态（2026-11-23）：v0.4 · M3 表现基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
-3 张地图、8 兵器/12 被动、16 分钟完整胜利流程、双堡图鉴、结算解锁、灯火风险收益、
-龙鳞清屏、Boss、剧情字幕与 MOSS-TTS-Nano 语音已接入；三选一卡池扩至
-50 属性 / 38 技能 / 22 事件，共 110 张来源可追溯的文化卡，并接入 65 个
+状态（2026-11-24）：v0.4 · M3 表现与音频确权基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
+3 张地图、7 兵器/12 被动、16 分钟完整胜利流程、双堡图鉴、结算解锁、灯火风险收益、
+龙鳞清屏、Boss 与双语定时字幕已接入；未核实输出授权的 MOSS-TTS-Nano 语音已停止分发。
+三选一卡池扩至 51 属性 / 38 技能 / 22 事件 / 32 箭塔，共 143 张来源可追溯的卡牌，并接入 101 个
 game-icons.net SVG。
 
 引擎版本锁定为 **Godot 4.7.2-stable**，唯一来源 `game/.godot-version`。
@@ -16,39 +16,48 @@ game-icons.net SVG。
 
 - `scenes/main_menu.tscn`：夜城望楼主菜单，开始/继续游戏、设置、关于、语言、退出。
 - `scenes/about.tscn`：电影滚幕式关于页；自动上滚，滚轮/方向键接管，
-  专用 BGM；来源链接直接内嵌在致谢、音乐、字体、工具与文化参考条目。
+  专用 CC0 BGM；来源与许可链接直接内嵌在音乐、音效、字体、图标、工具与文化参考条目。
 - 设置层：BGM/音效滑杆、全屏开关、帧率/VSync、中英语言与 Vulkan/OpenGL
   渲染后端选择；渲染变更需重启，菜单内提供“立即重启”提示。渲染模式会额外写入
   ASCII 镜像配置，供 Linux 与 Windows 启动器读取。
 - `scripts/autoload/`：`GameSettings`、`Locale`、`SaveSystem`、`AudioBus`。
 - 自动存档：菜单、设置变化、开局、退出与每 20 秒写入 `user://savegame.json`。
 - 双语：`data/i18n/zh.json` 与 `en.json`，切换后即时刷新界面。
-- BGM：`assets/audio/bgm_watch.ogg`，**Samurai Nights · majadroid · CC-BY 3.0**。
+- BGM：`assets/audio/bgm_watch.ogg`，**Yongchang Watch / 永昌守望 · xingwangzhe · CC0 1.0**。
+  根目录 `../assets/audio/bgm_watch.ogg` 保留字节级原始母版，运行时文件与其 SHA-256 一致；
+  由 `../tools/generate_audio.py --legacy` 可再生成。
 - 战斗 BGM：`assets/audio/bgm_battle.ogg`，**Hard Battle 1 · MintoDog · CC0 1.0**；
   进入正篇时切换，返回菜单恢复 `bgm_watch.ogg`。
 - 音效：全局按钮点击、确认与返回，以及经验/灯油/治疗/龙鳞拾取、事件卡、敌兵受击、
-  普通/精英击杀、升级、冲刺与 Boss 提示；Kenney UI Audio / Impact Sounds · CC0 1.0。
+  普通/精英击杀、升级、冲刺与 Boss 提示；OpenGameArt 多作者与 Kenney UI Audio /
+  Impact Sounds，共 20 个运行时 SFX，全部 **CC0 1.0**。
 - 关于页 BGM：`assets/audio/bgm_about.ogg`，
-  **Views From Atop the Jade Kings Throne · Hitctrl · CC-BY 3.0**。
+  **Watchfires of Credits / 守灯致意 · xingwangzhe · CC0 1.0**；72 秒独立原创程序化合成，
+  无采样、无第三方旋律、无模型输出，由 `python3 ../tools/generate_audio.py` 生成。
+- 默认 BGM 音量：**0.42**（`GameSettings.DEFAULT_BGM_VOLUME`）。已有存档中的用户设置仍被尊重；
+  关于页音量为全局 BGM 的 90%。
 - `scenes/prologue.tscn`：1386 宁村所序章，操作汤和点望海灯、定界桩、立乡兵旗。
 - `scenes/character_select.tscn`：1559 王陆的六种守夜阵位与三张地图；
   阵位用累计军功解锁，选择持久化。
 - `scenes/run.tscn`：1559 永昌堡十六分钟割草生存；单一主角王陆，
-  自动攻击、8 兵器（6 件可进化）、升级三选一、灯火/灯油、五色龙鳞、
+  手动/自动攻击、7 兵器（5 件可进化）、升级三选一、灯火/灯油、五色龙鳞、
   回复/复活、Boss 退兵与天亮结算；结算页显示本局解锁的阵位/地图，
   可直接打开双堡图鉴。升级卡分为属性、技能、事件三族，另有兵器升级/新兵器、
   被动与补给；卡面显示品第、阶数、效果、堡志文化说明、来源分类与出处。
-  运行期展示池实测 546 项，可重复升级条目 452 个，超过 Brotato 的 64 个
-  level-up upgrades 与 VS base game 的被动规模。
+  143 张 authored cards 按 `max_level` 展开后共 580 个卡阶条目；兵器、被动、进化与补给
+  选项另行生成。卡阶规模超过 Brotato 的 64 个 level-up upgrades 与 VS base game 的被动规模。
 - `scenes/codex.tscn`：双堡图鉴；左栏宁村所/汤和，中栏王德移师宁村，
   右栏永昌堡/王叔杲，附时间轴、来源与“不可误写”边界。
-- 剧情：`data/narrative.json`；中英语音 `data/voice_lines.json` 与
-  `assets/audio/voice/*.ogg`；生成脚本 `../scripts/generate_voice.ts`。
+- 剧情：`data/narrative.json` 与 `data/voice_lines.json` 保留完整双语字幕、说话人、
+  叙事分类与 `source_ref`。MOSS 官方 Apache-2.0 代码/模型许可未明确覆盖生成音频输出，
+  因此 18 个 OGG 已删除，`audio_enabled=false`、`distribution=subtitles_only`；
+  `VoiceLinePlayer` 按约 4.35 音节/秒提供定时字幕回退。`../scripts/generate_voice.ts`
+  默认拒绝生成，须先取得可验证输出授权、更新清单并显式设置 `MOSS_OUTPUT_RIGHTS_VERIFIED=1`。
 - 历史边界：1386 汤和只做序章；1559 正篇始终是虚构守灯乡勇王陆，
   六张选择卡是兵器/站法阵位，不是六名独立人物。王沛、王德只作前史。
 - 主菜单与开局页：接入 game-icons.net 的灯火、望楼、藤牌、百家宴、图鉴与
-  八项首夜军备图标；卡池另接入算盘、莲灯、龙首、药囊、纺车、潮月等 53 个
-  SVG。合计 65 个 game-icons.net 图标，全部登记作者、许可与可点击来源；
+  八项首夜军备图标；卡池另接入算盘、莲灯、龙首、药囊、纺车、潮月等 SVG。
+  合计 101 个 game-icons.net 图标，全部登记作者、CC BY 3.0 许可与可点击来源；
   白色 SVG 在运行时按卡族和品第调制。
 - 战斗框架：在自动兵器之外加入齐射、灯火爆发、迟滞、灼烧、震晕、连锁、
   回复、收魂、护盾、反伤、饮血与灯影步等可叠加主动技法；敌人可被减速、
@@ -93,8 +102,10 @@ game\launch.bat
 
 - `W/A/S/D` 或方向键：巡灯步，八向移动；沿堡墙、水门与街巷走位，灯火越亮，
   拾取与暴击越高，但敌人也更早发现你
+- 鼠标左键长按：持续攻击；快速单点也会在 0.18 秒缓冲内攻击一次
+- `X`：开关自动攻击；自动模式优先瞄准最近的存活敌人
 - `Space`：灯影步，短距离冲刺（3 秒冷却，短无敌，带残影）
-- `1/2/3` 或方向键 + `Enter`：升级三选一
+- `1/2/3` 或方向键 + `Enter`：升级三选一（出现后 1 秒内禁止选择）
 - `Esc`：暂停
 - `C`：打开双堡图鉴
 
@@ -109,13 +120,14 @@ game\launch.bat
   `"$GDA_GODOT" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit`
 - 当前覆盖：工程基线、双语表一致性、存档往返、自动存档、设置持久化、
   BGM 循环与音量、菜单构建/设置层、语言热切换、Vulkan/OpenGL 自动选择、渲染镜像与重启参数、
-  关于页自动滚幕/滚轮接管/来源链接、玩法数据完整性、波次到 Boss/黎明、
-  空间哈希伤害与经验掉落、叙事分类与来源、双堡图鉴边界、语音资源存在性、
-  王陆六阵位与解锁、3 地图修正、局内图鉴暂停/返回、经验曲线、
-  角色图集与瓦片图集、110 张卡的双语/来源/图标完整性、149+ 条目规模、
+  关于页自动滚幕/滚轮接管/来源与许可链接、玩法数据完整性、波次到 Boss/黎明、
+  空间哈希伤害与经验掉落、叙事分类与来源、双堡图鉴边界、MOSS 语音关闭与字幕时长回退、
+  3 首 CC0 BGM 与 20 个 CC0 SFX 的完整署名覆盖、王陆六阵位与解锁、3 地图修正、局内图鉴暂停/返回、经验曲线、
+  角色图集与瓦片图集、143 张卡的双语/来源/图标完整性、149+ 条目规模、
   三选一唯一性、减速/灼烧/眩晕/收魂、选项卡渲染、事件结算、
   触屏巡灯语言、敌兵组合配方与批渲染方向、引擎补丁版本与 `.godot-version` 一致性。
-- 当前 Linux 结果：**72 tests / 72 passed / 21446 asserts**。
+- 最近一次 Linux 基线：**164 tests / 164 passed / 41202 asserts**（Godot 4.7.2-stable）。
+  Windows 原生 GUT 与启动器 smoke test 仍由 CI 复验。
 - 敌兵外观由 `game/data/enemies.json` 的 `character_recipe` 驱动，
   `pixel-art/character_forge/bake_battle_sprites.py` 从裸体基底、服装、头饰、
   背挂、主副手图集烘焙 8 帧行走条；战斗仍按 MultiMesh 批次绘制。
@@ -142,17 +154,30 @@ game\launch.bat
   旧 11 组 64×64 兵种序列已删除，不得复用。
 - `assets/tiles/dcss/`：CC0 地形图块 106 张。
 - `assets/ui/`、`assets/audio/`、`assets/fonts/`：已登记素材。
-- `assets/icons/game_icons/`：12 个 game-icons.net SVG，CC BY 3.0；
+- `assets/icons/game_icons/`：101 个 game-icons.net SVG，CC BY 3.0；
   逐项作者与来源见 `ATTRIBUTION.md`，完整许可见 `LICENSE-CC-BY-3.0.txt`。
-- BGM、音效与字体署名数据在 `data/credits.json`；音频逐文件映射见
-  `assets/audio/LICENSES.md`。
+- BGM、音效与字体署名数据在 `data/credits.json`；音频逐文件 TASL（作者、来源、许可链接、
+  用途、修改与 BGM 哈希）见 `assets/audio/LICENSES.md`。3 首运行时 BGM 与 20 个 SFX 全部为 CC0 1.0。
 - 文化背景与赛事创作方向来源：
   [2026 OSGJ 开源游戏开发大赛官网](https://2026gamejam.osgame.org/)。
 - 新像素素材用 `skills/pixel-art-studio/` 生成，源文件放 `../pixel-art/<slug>/build.py`。
 
+## 许可范围
+
+- **项目代码：AGPL-3.0-or-later**。全文见 `LICENSE`；对应源码与网络使用义务、代码/资产边界见 `NOTICE`。
+- **原创非代码资产：CC BY 4.0**。全文见 `LICENSE-CC-BY-4.0.txt`；明确标识的原创菜单/关于页 BGM
+  与根目录开发音效母版可选 CC0 1.0 或 CC BY 4.0，既有 CC0 奉献保留。
+- **第三方资产保留原许可**：音频 CC0、game-icons.net CC BY 3.0、字体 OFL 1.1、Jeff-FX-forge
+  代码 MIT / 原创特效 CC0，其余工具按各自许可。逐项清单见上级仓库 `素材授权清单.csv`，
+  每行包含 `source_url`、`license_url` 与 `rights_status`。
+- 根目录三份法律文件在 `game/` 内有逐字节副本，三平台导出预设显式包含法律文本、音频 TASL、
+  图标署名与字体/特效许可。MOSS 语音输出授权未核实，已从运行时删除，仅保留字幕回退。
+
 ## 导出
 
-三平台预设已写入 `export_presets.cfg`，并已实际导出构建：
+三平台预设已写入 `export_presets.cfg`。2026-11-23 的旧忽略产物早于音频/许可整改，
+在重新导出与复查前不得分发。当前重建与审计结果见 `../docs/build_2026-11-25.md`。
+历史验收记录：
 
 - Linux：`build/linux/watch-yongchang.x86_64` + `.pck`；`gda export smoke`
   `--quit-after 3 --strict` 通过，`exit_status=0`。
@@ -163,7 +188,20 @@ game\launch.bat
 
 导出模板已安装到 `~/.local/share/godot/export_templates/4.7.2.stable/`。
 构建产物在 `game/build/`，已被 `.gitignore` 排除，不入版本库。
-产物清单、哈希与 smoke 记录见 `../docs/build_2026-11-23.md`。
+旧产物清单、哈希与 smoke 记录见 `../docs/build_2026-11-23.md`。
+
+### Dora SSR 源码包
+
+仓库根目录提供最小 `GodotNode` 适配入口与无 Godot 构建器：
+
+```bash
+python3 dora/build.py --check
+python3 dora/build.py
+```
+
+源码 ZIP 输出到 `artifacts/watch-yongchang-dora.zip`。安装依赖、Web IDE / Go Mode /
+CLI 运行方式、可选 PCK 流程、平台运行库与许可范围见 `../DORA.md`。
+当前只做静态和包结构验证，尚未进行真实 Dora 运行时验收。
 
 ## 下一步
 

@@ -101,5 +101,6 @@ func test_combat_vfx_effects_are_still_present() -> void:
 	var text := _source()
 	if text.is_empty():
 		return
-	for effect_type in ["slash", "thrust", "aura", "death", "scale_burst", "orbit", "dragon_sweep"]:
+	for effect_type in ["slash", "thrust", "aura", "death", "scale_burst", "dragon_sweep"]:
 		assert_true(text.contains('"%s"' % effect_type), "%s VFX must be preserved" % effect_type)
+	assert_false(text.contains('"orbit"'), "retired shield orbit VFX must not return")

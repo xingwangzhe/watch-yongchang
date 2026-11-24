@@ -1,0 +1,72 @@
+Watch of Yongchang / 《守望·永昌》
+Copyright © 2026 xingwangzhe
+
+LICENSE SCOPE / 授权范围
+
+1. Project code / 项目代码
+   Original project code is licensed under the GNU Affero General Public License,
+   version 3 or (at your option) any later version (AGPL-3.0-or-later).
+   Full text: LICENSE
+   Official text: https://www.gnu.org/licenses/agpl-3.0.txt
+
+   If you distribute this program, you must provide the corresponding source and
+   retain applicable license and attribution notices. If you modify the program
+   and let users interact with it over a network, AGPL section 13 requires you to
+   offer those users the corresponding source of your modified version.
+   Source repository: https://github.com/xingwangzhe/watch-yongchang
+
+2. Original non-code assets / 原创非代码资产
+   Original non-code assets are licensed under Creative Commons Attribution 4.0
+   International (CC BY 4.0), unless a file or its manifest entry states a more
+   specific dedication. Credit xingwangzhe, link the license, and indicate changes.
+   Full text: LICENSE-CC-BY-4.0.txt
+   License: https://creativecommons.org/licenses/by/4.0/
+
+   Specific original audio: assets/audio/bgm_watch.ogg (the preserved
+   menu-music source), game/assets/audio/bgm_watch.ogg, and
+   game/assets/audio/bgm_about.ogg are dedicated under CC0 1.0 by their creator.
+   To the extent copyright or related rights subsist in these works, they are
+   additionally licensed under CC BY 4.0 at the recipient's option. The prior
+   CC0 dedication remains irrevocable. The repository-only original development
+   SFX under assets/audio/sfx_*.ogg receive the same CC0 / CC BY 4.0 choice; they
+   are not aliases for the shipped third-party SFX.
+   CC0: https://creativecommons.org/publicdomain/zero/1.0/
+   CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
+   Credit: xingwangzhe. Changes: procedural synthesis, normalization and encoding
+   as recorded in game/assets/audio/LICENSES.md.
+   Reproducible synthesis source: tools/generate_audio.py
+
+3. Third-party content / 第三方内容
+   Third-party assets retain their original licenses; this NOTICE does not
+   relicense them. In particular:
+   - Hard Battle 1 by MintoDog: CC0 1.0.
+   - Shipped OpenGameArt and Kenney sound effects: CC0 1.0.
+   - game-icons.net icons: CC BY 3.0, with per-icon authors and sources.
+   - LXGW WenKai / Klee font: SIL Open Font License 1.1.
+   - Jeff-FX-forge exported effects: CC0 1.0 for the original FX art.
+   - Godot, GUT, Pixel Art Studio, Pillow, Bun, and ffmpeg: their own licenses.
+
+   Audio TASL and per-file mappings: game/assets/audio/LICENSES.md
+   Icon TASL: game/assets/icons/game_icons/ATTRIBUTION.md
+   Complete credits: game/data/credits.json
+   Asset inventory: 素材授权清单.csv
+   AI use and post-processing: AI使用与素材声明.md
+   Font license: game/assets/fonts/OFL.txt
+   Icon license: game/assets/icons/game_icons/LICENSE-CC-BY-3.0.txt
+   FX license: game/assets/fx/jeff_fx/LICENSE.txt
+
+4. Narrative voice / 剧情语音
+   MOSS-TTS-Nano repository code and model artifacts are marked Apache-2.0, but
+   the reviewed official materials did not explicitly grant rights in generated
+   voice recordings. The 18 generated OGG files are therefore not shipped.
+   Narrative remains available through subtitles. See game/data/voice_lines.json
+   and AI使用与素材声明.md for the reviewed sources and removal record.
+
+5. No endorsement / 无背书
+   This project is not affiliated with or endorsed by the referenced authors,
+   institutions, historic sites, or event organizers. Historic and cultural names
+   are used for research and creative work, not as affiliation claims.
+
+THE SOFTWARE AND THIRD-PARTY MATERIALS ARE PROVIDED UNDER THEIR APPLICABLE
+LICENSES AND DISCLAIMERS. THIS NOTICE SUPPLEMENTS, AND DOES NOT REPLACE, THE
+LICENSE TEXTS REFERENCED ABOVE.

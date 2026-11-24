@@ -20,6 +20,8 @@ type NarrativeLine = {
 };
 
 type VoiceData = {
+  audio_enabled?: boolean;
+  distribution?: string;
   lines: Record<string, { voice: string }>;
 };
 
@@ -167,6 +169,21 @@ function concatClauses(buffers: Buffer[], clauses: Clause[], language: "zh" | "e
 const voiceData = JSON.parse(
   require("node:fs").readFileSync(VOICE_JSON, "utf8"),
 ) as VoiceData;
+
+// Apache-2.0 covers the MOSS code/model artifacts, not an explicit grant for
+// generated voice recordings. Do not recreate distributable voice until the
+// project has verifiable output-audio terms and opts in deliberately.
+if (
+  voiceData.audio_enabled !== true ||
+  voiceData.distribution !== "rights_verified" ||
+  process.env.MOSS_OUTPUT_RIGHTS_VERIFIED !== "1"
+) {
+  throw new Error(
+    "Voice shipping is disabled: verify generated-audio rights, update voice_lines.json, " +
+      "then set MOSS_OUTPUT_RIGHTS_VERIFIED=1 to opt in.",
+  );
+}
+
 const lines = loadLines();
 mkdirSync(OUTPUT_DIR, { recursive: true });
 

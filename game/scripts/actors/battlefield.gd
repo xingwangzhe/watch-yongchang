@@ -21,12 +21,17 @@ const WADE_SPEED_FACTOR := 0.62
 const WADE_SPLASH_CAPACITY := 90
 const ENEMY_SPRITE_BASE_SIZE := 96.0
 const PLAYER_SPRITE_SIZE := 96.0
+const AIM_INDICATOR_RADIUS := 82.0
+const AIM_INDICATOR_HALF_ANGLE := deg_to_rad(18.0)
+const AIM_INDICATOR_HALF_WIDTH := 5.0
 const TOWER_AGGRO := 360.0
 const TOWER_SPRITE_BASE := 168.0
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
 const PAPER := Color("#efe1c2")
 const GOLD := Color("#e1b35a")
 const TOWER_REBUILD_DELAY := 26.0
+const TOWER_BURST_INTERVAL := 0.12
+const TOWER_MAX_BURST_LANES := 2
 
 var enemies: Array[Dictionary] = []
 var allies: Array[Dictionary] = []
@@ -54,6 +59,7 @@ var _free_wade_splashes: Array[Dictionary] = []
 var spatial: Dictionary = {}
 var player_pos := Vector2.ZERO
 var player_facing := Vector2.RIGHT
+var player_aim := Vector2.RIGHT
 var player_radius := 18.0
 var time := 0.0
 var rng := RandomNumberGenerator.new()
@@ -219,6 +225,7 @@ func apply_tower_stats(stats: Dictionary) -> void:
 		tower["hp"] = clampf(new_max * ratio, 1.0, new_max)
 		tower["radius"] = float(definition.get("radius", 36.0)) * float(stats.get("tower_size_mult", 1.0))
 		tower["armor"] = clampf(float(stats.get("tower_armor", 0.0)), 0.0, 0.70)
+		_ensure_tower_burst_lanes(tower, 1 + int(stats.get("tower_burst_lanes", 0)))
 
 
 func spawn_tower(tower_id: String, position: Vector2) -> int:
@@ -239,6 +246,8 @@ func spawn_tower(tower_id: String, position: Vector2) -> int:
 		"damage": float(definition.get("damage", 20.0)),
 		"cooldown": float(definition.get("cooldown", 1.2)),
 		"attack_timer": rng.randf_range(0.1, 0.7),
+		"burst_lanes": [{"remaining": 0, "timer": 0.0}],
+		"burst_cursor": 0,
 		"pierce": int(definition.get("pierce", 1)),
 		"projectile_speed": float(definition.get("projectile_speed", 640.0)),
 		"arrow_color": Color(str(definition.get("arrow_color", "#efe0b4"))),
@@ -256,6 +265,7 @@ func spawn_tower(tower_id: String, position: Vector2) -> int:
 		"rebuild_timer": 0.0,
 		"tex": tower_textures.get(tower_id, null) as Texture2D,
 	}
+	_ensure_tower_burst_lanes(tower, 1 + int(tower_stats.get("tower_burst_lanes", 0)))
 	towers.append(tower)
 	return towers.size() - 1
 
@@ -317,15 +327,11 @@ func _update_towers(delta: float) -> void:
 	if towers.is_empty():
 		return
 	var range_mult := float(tower_stats.get("tower_range_mult", 1.0))
-	var damage_mult := float(tower_stats.get("tower_damage_mult", 1.0))
 	var rate_mult := clampf(float(tower_stats.get("tower_fire_rate", 1.0)), 0.30, 1.0)
 	var regen := float(tower_stats.get("tower_regen", 0.0))
 	var volley := int(tower_stats.get("tower_volley", 0))
-	var pierce_bonus := int(tower_stats.get("tower_pierce", 0))
-	var crit_chance := clampf(float(tower_stats.get("tower_crit", 0.0)), 0.0, 1.0)
-	var arrow_speed_mult := float(tower_stats.get("tower_arrow_speed", 1.0))
+	var burst_shots := int(tower_stats.get("tower_burst_shots", 0))
 	var overcharge := clampf(float(tower_stats.get("tower_overcharge", 0.0)), 0.0, 0.55)
-	var rebuild_bonus := float(tower_stats.get("tower_rebuild", 0.0))
 	for tower in towers:
 		if not bool(tower.get("alive", false)):
 			continue
@@ -343,54 +349,100 @@ func _update_towers(delta: float) -> void:
 		var pivot := position + Vector2(0.0, -size * 0.30)
 		var effective_range := float(tower["range"]) * range_mult
 		var target := nearest_enemy(position, effective_range)
-		if target.is_empty():
+		if not target.is_empty():
+			var aim_vector := (target["pos"] as Vector2) - pivot
+			var desired_angle := aim_vector.angle()
+			var aim_angle := lerp_angle(float(tower["aim_angle"]), desired_angle, minf(1.0, delta * 12.0))
+			tower["aim_angle"] = aim_angle
+			tower["aim_dir"] = Vector2.from_angle(aim_angle)
+			if float(tower["attack_timer"]) <= 0.0 and absf(angle_difference(aim_angle, desired_angle)) <= 0.32:
+				tower["heat"] = minf(1.0, float(tower["heat"]) + 0.34)
+				var spread := 1.0 + overcharge * float(tower["heat"])
+				if _fire_tower_volley(tower, target, 1 + volley):
+					_queue_tower_burst(tower, burst_shots)
+					tower["attack_timer"] = maxf(0.08, float(tower["cooldown"]) * rate_mult / spread)
+		_update_tower_bursts(tower, delta)
+
+
+func _ensure_tower_burst_lanes(tower: Dictionary, lane_count: int) -> void:
+	var lanes: Array = tower.get("burst_lanes", []) as Array
+	var wanted := clampi(lane_count, 1, TOWER_MAX_BURST_LANES)
+	while lanes.size() < wanted:
+		lanes.append({"remaining": 0, "timer": 0.0})
+	while lanes.size() > wanted:
+		var removed: Dictionary = lanes.pop_back()
+		var lane_index := lanes.size()
+		lanes[lane_index]["remaining"] = int(lanes[lane_index]["remaining"]) + int(removed["remaining"])
+	tower["burst_lanes"] = lanes
+	tower["burst_cursor"] = clampi(int(tower.get("burst_cursor", 0)), 0, wanted - 1)
+
+
+func _queue_tower_burst(tower: Dictionary, shots: int) -> void:
+	if shots <= 0:
+		return
+	var lanes: Array = tower["burst_lanes"] as Array
+	if lanes.is_empty():
+		_ensure_tower_burst_lanes(tower, 1)
+		lanes = tower["burst_lanes"] as Array
+	var cursor := int(tower.get("burst_cursor", 0))
+	for _shot in range(shots):
+		var lane: Dictionary = lanes[cursor]
+		lane["remaining"] = int(lane["remaining"]) + 1
+		lane["timer"] = minf(float(lane["timer"]), TOWER_BURST_INTERVAL) if int(lane["remaining"]) > 1 else TOWER_BURST_INTERVAL
+		cursor = (cursor + 1) % lanes.size()
+	tower["burst_cursor"] = cursor
+
+
+func _update_tower_bursts(tower: Dictionary, delta: float) -> void:
+	var target := nearest_enemy(tower["pos"] as Vector2, float(tower["range"]) * float(tower_stats.get("tower_range_mult", 1.0)))
+	var lanes: Array = tower["burst_lanes"] as Array
+	for lane in lanes:
+		var remaining := int(lane["remaining"])
+		if remaining <= 0:
 			continue
-		# 弓弩持续转向当前目标，先转到位再放箭，避免箭从塔心凭空冒出。
-		var target_pos := target["pos"] as Vector2
-		var aim_vector := target_pos - pivot
-		var desired_angle := aim_vector.angle()
-		var aim_angle := lerp_angle(float(tower["aim_angle"]), desired_angle, minf(1.0, delta * 12.0))
-		tower["aim_angle"] = aim_angle
-		tower["aim_dir"] = Vector2.from_angle(aim_angle)
-		if float(tower["attack_timer"]) > 0.0:
+		lane["timer"] = float(lane["timer"]) - delta
+		if float(lane["timer"]) > 0.0 or target.is_empty():
 			continue
-		if absf(angle_difference(aim_angle, desired_angle)) > 0.32:
-			continue
-		tower["heat"] = minf(1.0, float(tower["heat"]) + 0.34)
-		var spread := 1.0 + overcharge * float(tower["heat"])
-		var shots := 1 + volley
-		var base_damage := float(tower["damage"]) * damage_mult
-		var travel := aim_vector.length() / maxf(1.0, float(tower["projectile_speed"]) * arrow_speed_mult)
-		var enemy_speed := float(target.get("speed", 0.0))
-		var lead := target_pos - aim_vector.normalized() * enemy_speed * travel * 0.85
-		var aim_dir: Vector2 = tower["aim_dir"]
-		var bow_origin: Vector2 = pivot + aim_dir * (size * 0.18)
-		# 塔基挨着墙体时，弩口可能伸进实心格；此时退回塔身再射出，保证箭真的能出手。
-		if map_layout != null and map_layout.is_segment_wall_blocked(pivot, bow_origin, 3.0):
-			bow_origin = position
-		for shot_index in range(shots):
-			var aim: Vector2 = lead - bow_origin
-			if shots > 1:
-				var jitter := (float(shot_index) - float(shots - 1) * 0.5) * 0.09
-				aim = aim.rotated(jitter)
-			var damage := base_damage
-			var critical := false
-			if crit_chance > 0.0 and rng.randf() < crit_chance:
-				damage *= 1.8
-				critical = true
-			_fire_tower_arrow(
-				bow_origin,
-				aim.normalized(),
-				float(tower["projectile_speed"]) * arrow_speed_mult,
-				damage,
-				int(tower["pierce"]) + pierce_bonus,
-				tower["arrow_color"] as Color,
-				critical,
-				position
-			)
-		tower["recoil"] = 1.0
-		tower["muzzle"] = 0.10
-		tower["attack_timer"] = maxf(0.08, float(tower["cooldown"]) * rate_mult / spread)
+		if _fire_tower_volley(tower, target, 1):
+			lane["remaining"] = remaining - 1
+			lane["timer"] = TOWER_BURST_INTERVAL
+
+
+func _fire_tower_volley(tower: Dictionary, target: Dictionary, shots: int) -> bool:
+	var position := tower["pos"] as Vector2
+	var size := TOWER_SPRITE_BASE * float(tower.get("sprite_scale", 1.0))
+	var pivot := position + Vector2(0.0, -size * 0.30)
+	var aim_dir := tower["aim_dir"] as Vector2
+	var bow_origin := pivot + aim_dir * (size * 0.18)
+	if map_layout != null and map_layout.is_segment_wall_blocked(pivot, bow_origin, 3.0):
+		bow_origin = position
+	var target_pos := target["pos"] as Vector2
+	var aim_vector := target_pos - pivot
+	var speed := float(tower["projectile_speed"]) * float(tower_stats.get("tower_arrow_speed", 1.0))
+	var travel := aim_vector.length() / maxf(1.0, speed)
+	var enemy_speed := float(target.get("speed", 0.0))
+	var lead := target_pos - aim_vector.normalized() * enemy_speed * travel * 0.85
+	var damage := float(tower["damage"]) * float(tower_stats.get("tower_damage_mult", 1.0))
+	var pierce := int(tower["pierce"]) + int(tower_stats.get("tower_pierce", 0))
+	var crit_chance := clampf(float(tower_stats.get("tower_crit", 0.0)), 0.0, 1.0)
+	for shot_index in range(shots):
+		var aim := lead - bow_origin
+		if shots > 1:
+			aim = aim.rotated((float(shot_index) - float(shots - 1) * 0.5) * 0.09)
+		var critical := crit_chance > 0.0 and rng.randf() < crit_chance
+		_fire_tower_arrow(
+			bow_origin,
+			aim.normalized(),
+			speed,
+			damage * (1.8 if critical else 1.0),
+			pierce,
+			tower["arrow_color"] as Color,
+			critical,
+			position
+		)
+	tower["recoil"] = 1.0
+	tower["muzzle"] = 0.10
+	return true
 
 
 func _fire_tower_arrow(origin: Vector2, direction: Vector2, speed: float, damage: float, pierce: int, color: Color, critical: bool, tower_origin: Vector2 = Vector2.ZERO) -> void:
@@ -821,6 +873,20 @@ func nearest_enemy(origin: Vector2, max_range: float) -> Dictionary:
 	for index in candidates:
 		if index < 0 or index >= enemies.size():
 			continue
+		var enemy := enemies[index]
+		if not bool(enemy.get("alive", false)):
+			continue
+		var distance := origin.distance_squared_to(enemy["pos"] as Vector2)
+		if distance < best_dist:
+			best_dist = distance
+			best_index = index
+	return enemies[best_index] if best_index >= 0 else {}
+
+
+func nearest_enemy_any(origin: Vector2) -> Dictionary:
+	var best_index := -1
+	var best_dist := INF
+	for index in range(enemies.size()):
 		var enemy := enemies[index]
 		if not bool(enemy.get("alive", false)):
 			continue
@@ -1746,6 +1812,7 @@ func _draw() -> void:
 	_draw_enemies()
 	_draw_allies()
 	_draw_player()
+	_draw_aim_indicator()
 	_draw_health_bars()
 	_draw_wade_splashes()
 	_draw_projectiles()
@@ -2021,6 +2088,69 @@ func _draw_player() -> void:
 		draw_circle(player_pos, 22.0, Color("#d8b45a"))
 
 
+static func aim_indicator_geometry(center: Vector2, direction: Vector2) -> Dictionary:
+	var aim := direction.normalized()
+	if aim.length_squared() <= 0.001:
+		aim = Vector2.RIGHT
+	var heading := aim.angle()
+	var start_angle := heading - AIM_INDICATOR_HALF_ANGLE
+	var tip_angle := heading + AIM_INDICATOR_HALF_ANGLE
+	var start := center + Vector2.from_angle(start_angle) * AIM_INDICATOR_RADIUS
+	var tip := center + Vector2.from_angle(tip_angle) * AIM_INDICATOR_RADIUS
+	var tangent := Vector2(-sin(tip_angle), cos(tip_angle))
+	var base := tip - tangent * 9.0
+	return {
+		"center": center,
+		"radius": AIM_INDICATOR_RADIUS,
+		"start_angle": start_angle,
+		"tip_angle": tip_angle,
+		"start": start,
+		"mid": center + aim * AIM_INDICATOR_RADIUS,
+		"tip": tip,
+		"left": base + tangent.orthogonal() * AIM_INDICATOR_HALF_WIDTH,
+		"right": base - tangent.orthogonal() * AIM_INDICATOR_HALF_WIDTH,
+	}
+
+
+func _draw_aim_indicator() -> void:
+	var geometry := aim_indicator_geometry(player_pos, player_aim)
+	var tip := geometry["tip"] as Vector2
+	var left := geometry["left"] as Vector2
+	var right := geometry["right"] as Vector2
+	var tangent := Vector2(-sin(float(geometry["tip_angle"])), cos(float(geometry["tip_angle"])))
+	draw_arc(
+		player_pos,
+		AIM_INDICATOR_RADIUS,
+		float(geometry["start_angle"]),
+		float(geometry["tip_angle"]),
+		12,
+		Color(0.02, 0.025, 0.02, 0.72),
+		5.0,
+		true
+	)
+	draw_arc(
+		player_pos,
+		AIM_INDICATOR_RADIUS,
+		float(geometry["start_angle"]),
+		float(geometry["tip_angle"]),
+		12,
+		Color(GOLD, 0.92),
+		2.5,
+		true
+	)
+	draw_colored_polygon(
+		PackedVector2Array([tip, left, right]),
+		Color(0.02, 0.025, 0.02, 0.78)
+	)
+	var inner_tip := tip - tangent * 2.0
+	var inner_left := tip.lerp(left, 0.52)
+	var inner_right := tip.lerp(right, 0.52)
+	draw_colored_polygon(
+		PackedVector2Array([inner_tip, inner_left, inner_right]),
+		Color("#f0c363")
+	)
+
+
 func _draw_health_bars() -> void:
 	# 除玩家外的所有单位都带血条；背景、填色和细边框共享一次批量绘制。
 	_health_bar_count = 0
@@ -2247,12 +2377,6 @@ func _draw_effects() -> void:
 			"scale_burst":
 				draw_circle(position, 30.0 * progress, Color(color, 0.35 * (1.0 - progress)))
 				draw_arc(position, 34.0 * progress, 0.0, TAU, 20, Color(color, 0.8 * (1.0 - progress)), 2.0, true)
-			"orbit":
-				var radius := float(effect.get("radius", 75.0))
-				var angle := float(effect.get("angle", 0.0))
-				var orbit_pos := position + Vector2(cos(angle), sin(angle)) * radius
-				draw_circle(orbit_pos, 12.0, Color(color, 0.26))
-				draw_arc(orbit_pos, 15.0, 0.0, TAU, 16, Color(color, 0.86), 3.0, true)
 			"dragon_sweep":
 				var offset := float(effect.get("offset", 0.0))
 				var wave_x := position.x - 900.0 + progress * 1800.0

@@ -57,8 +57,15 @@ jobs:
           grep -q 'watchtower_pixel_art' game/data/credits.json
           grep -q 'watchtower_pixel_art' 素材授权清单.csv
           echo "Tower art registered."
+
+      - name: Check Dora adapter statically
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 dora/build.py --check
+          echo "Dora adapter static checks passed."
   linux-gut:
-    name: Linux GUT (112 tests)
+    name: Linux GUT (164 tests)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -98,6 +105,11 @@ jobs:
       - name: Import project
         run: timeout 180 "$GODOT_BIN" --headless --path game --import
 
+      - name: Build Dora source ZIP without export or upload
+        run: |
+          set -euo pipefail
+          python3 dora/build.py --output "$RUNNER_TEMP/watch-yongchang-dora.zip"
+
       - name: Run GUT
         run: |
           "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
@@ -108,7 +120,7 @@ jobs:
             timeout 60 ./game/launch.sh --headless --quit-after 2
 
   windows-gut:
-    name: Windows GUT (native, 112 tests)
+    name: Windows GUT (native, 164 tests)
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
