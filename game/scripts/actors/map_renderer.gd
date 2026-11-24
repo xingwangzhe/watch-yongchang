@@ -4,16 +4,31 @@ extends Node2D
 const TILE := 32
 const TILE_INDEX_PATH := "res://data/yongchang_tiles.json"
 
+## 阴影/描边层：画在地形之上、建筑与道具之下，用来强化路径、水岸和高低地层次。
+class ShadeLayer extends Node2D:
+	var draw_callback: Callable
+
+	func _draw() -> void:
+		if draw_callback.is_valid():
+			draw_callback.call(self)
+		else:
+			queue_redraw()
+
+
 var layout: MapLayout
 var terrain_layer: TileMapLayer
 var architecture_layer: TileMapLayer
 var props_layer: TileMapLayer
+var shade_layer: ShadeLayer
 
 var _atlas_config: Dictionary = {}
 var _indices: Dictionary = {}
 var _source_ids: Dictionary = {}
 var _water_cells: Dictionary = {}
+var _road_cells: Dictionary = {}
+var _obstacle_cells: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
+var _shading_ready := false
 
 
 func build(map_layout: MapLayout, _map_definition: Dictionary, seed_value: int) -> void:
@@ -29,6 +44,9 @@ func build(map_layout: MapLayout, _map_definition: Dictionary, seed_value: int) 
 			_paint_area(area as Dictionary)
 	_beautify_water_edges()
 	layout.finalize()
+	_shading_ready = true
+	if shade_layer != null:
+		shade_layer.queue_redraw()
 
 
 func _build_tile_index() -> void:
@@ -44,8 +62,13 @@ func _build_tile_index() -> void:
 
 func _make_layers() -> void:
 	terrain_layer = _make_layer("terrain", "TerrainLayer", 0)
-	architecture_layer = _make_layer("architecture", "ArchitectureLayer", 1)
-	props_layer = _make_layer("props", "PropsLayer", 2)
+	shade_layer = ShadeLayer.new()
+	shade_layer.name = "ShadeLayer"
+	shade_layer.z_index = 1
+	shade_layer.draw_callback = _draw_shading
+	add_child(shade_layer)
+	architecture_layer = _make_layer("architecture", "ArchitectureLayer", 2)
+	props_layer = _make_layer("props", "PropsLayer", 3)
 
 
 func _make_layer(atlas_key: String, node_name: String, z: int) -> TileMapLayer:
@@ -136,6 +159,8 @@ func _paint_road_area(area: Dictionary, rect: Rect2i) -> void:
 				continue
 			var tile_name := _pick_name(variants, cell)
 			_place_terrain(cell, tile_name)
+			_road_cells[cell] = true
+			_obstacle_cells.erase(cell)
 			layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
 
 
@@ -151,6 +176,8 @@ func _paint_water_area(area: Dictionary, rect: Rect2i) -> void:
 			_place_terrain(cell, _pick_name(variants, cell))
 			layout.mark_water_rect(Rect2i(cell, Vector2i.ONE))
 			_water_cells[cell] = true
+			_road_cells.erase(cell)
+			_obstacle_cells.erase(cell)
 			layout.set_minimap_color(cell, Color("#163a45"))
 
 
@@ -164,6 +191,8 @@ func _paint_bridge_area(_area: Dictionary, rect: Rect2i) -> void:
 				continue
 			_place_terrain(cell, bridge_tile)
 			layout.mark_bridge_rect(Rect2i(cell, Vector2i.ONE))
+			_road_cells.erase(cell)
+			_obstacle_cells.erase(cell)
 			layout.set_minimap_color(cell, Color("#c4a06b"))
 	if horizontal:
 		for x in range(rect.position.x, rect.position.x + rect.size.x):
@@ -193,6 +222,8 @@ func _paint_wall_area(rect: Rect2i, tower: bool) -> void:
 				tile_name = "merlon" if not tower else "wall_cap"
 			_place_architecture(cell, tile_name)
 			cancel_water(cell)
+			_road_cells.erase(cell)
+			_obstacle_cells[cell] = true
 			layout.mark_solid_rect(Rect2i(cell, Vector2i.ONE))
 			layout.set_minimap_color(cell, Color("#243333") if not tower else Color("#354947"))
 	if tower:
@@ -219,6 +250,8 @@ func _paint_building_area(rect: Rect2i) -> void:
 			if local_x == 0 or local_x == rect.size.x - 1:
 				tile_name = "roof_corner"
 			_place_architecture(cell, tile_name)
+			_road_cells.erase(cell)
+			_obstacle_cells[cell] = true
 			layout.mark_solid_rect(Rect2i(cell, Vector2i.ONE))
 			layout.set_minimap_color(cell, Color("#503d35"))
 	if rect.size.x >= 5 and rect.size.y >= 3:
@@ -241,9 +274,12 @@ func _paint_gate_area(rect: Rect2i, water_gate: bool) -> void:
 				_place_terrain(cell, "wet_stone")
 				layout.mark_bridge_rect(Rect2i(cell, Vector2i.ONE))
 				_place_architecture(cell, "water_gate_arch")
+				_road_cells.erase(cell)
 			else:
 				_place_terrain(cell, "stone_road_a")
 				_place_architecture(cell, "land_gate_arch")
+				_road_cells[cell] = true
+			_obstacle_cells.erase(cell)
 			layout.set_minimap_color(cell, Color("#d8b15e"))
 
 
@@ -275,6 +311,7 @@ func _paint_props_area(area: Dictionary, rect: Rect2i) -> void:
 				continue
 			if solid:
 				layout.mark_solid_rect(Rect2i(cell, Vector2i.ONE))
+				_obstacle_cells[cell] = true
 			if density < 1.0 and _hash_cell(cell, 53) > density:
 				continue
 			_place_prop(cell, prop_name)
@@ -345,3 +382,82 @@ func _pick_name(variants: Array, cell: Vector2i) -> String:
 func _hash_cell(cell: Vector2i, salt: int) -> int:
 	var value := cell.x * 92837111 + cell.y * 689287499 + salt * 283923481
 	return abs(value) % 1000003
+
+
+func _draw_shading(target: CanvasItem) -> void:
+	if not _shading_ready or layout == null:
+		return
+	var tile := float(TILE)
+	# 1) 高地：暖色薄染 + 北/西受光边 + 南侧投影，让台地一眼可辨。
+	for rect in layout.highland_rects:
+		var origin := Vector2(rect.position) * tile
+		var size := Vector2(rect.size) * tile
+		target.draw_rect(Rect2(origin + Vector2(0, size.y), Vector2(size.x, 8)), Color(0.0, 0.0, 0.0, 0.16))
+		target.draw_rect(Rect2(origin, size), Color(1.0, 0.86, 0.55, 0.045))
+		target.draw_line(origin, origin + Vector2(size.x, 0), Color(1.0, 0.94, 0.72, 0.16), 2.0)
+		target.draw_line(origin, origin + Vector2(0, size.y), Color(1.0, 0.94, 0.72, 0.10), 2.0)
+		target.draw_line(
+			origin + Vector2(0, size.y),
+			origin + Vector2(size.x, size.y),
+			Color(0.0, 0.0, 0.0, 0.14),
+			5.0
+		)
+
+	# 2) 道路：只描外轮廓，让路径从地表里跳出来；桥面视为路面，不描边。
+	for cell in _road_cells.keys():
+		var road_cell := cell as Vector2i
+		if _water_cells.has(road_cell) and not layout.is_bridge_cell(road_cell):
+			continue
+		var x0 := float(road_cell.x) * tile
+		var y0 := float(road_cell.y) * tile
+		var edge := Color(0.11, 0.09, 0.06, 0.55)
+		if not _is_road_like(road_cell + Vector2i.UP):
+			target.draw_line(Vector2(x0, y0), Vector2(x0 + tile, y0), edge, 2.0)
+		if not _is_road_like(road_cell + Vector2i.DOWN):
+			target.draw_line(Vector2(x0, y0 + tile), Vector2(x0 + tile, y0 + tile), edge, 2.0)
+		if not _is_road_like(road_cell + Vector2i.LEFT):
+			target.draw_line(Vector2(x0, y0), Vector2(x0, y0 + tile), edge, 2.0)
+		if not _is_road_like(road_cell + Vector2i.RIGHT):
+			target.draw_line(Vector2(x0 + tile, y0), Vector2(x0 + tile, y0 + tile), edge, 2.0)
+
+	# 3) 水岸：深色岸线 + 外侧浅滩高光，明确低地边界。
+	for cell in _water_cells.keys():
+		var water_cell := cell as Vector2i
+		var x0 := float(water_cell.x) * tile
+		var y0 := float(water_cell.y) * tile
+		var x1 := x0 + tile
+		var y1 := y0 + tile
+		if not _water_cells.has(water_cell + Vector2i.UP):
+			target.draw_line(Vector2(x0, y0), Vector2(x1, y0), Color(0.03, 0.11, 0.13, 0.55), 2.0)
+			target.draw_line(Vector2(x0, y0 - 3.0), Vector2(x1, y0 - 3.0), Color(0.74, 0.66, 0.47, 0.16), 2.0)
+		if not _water_cells.has(water_cell + Vector2i.DOWN):
+			target.draw_line(Vector2(x0, y1), Vector2(x1, y1), Color(0.03, 0.11, 0.13, 0.55), 2.0)
+		if not _water_cells.has(water_cell + Vector2i.LEFT):
+			target.draw_line(Vector2(x0, y0), Vector2(x0, y1), Color(0.03, 0.11, 0.13, 0.55), 2.0)
+			target.draw_line(Vector2(x0 - 3.0, y0), Vector2(x0 - 3.0, y1), Color(0.74, 0.66, 0.47, 0.14), 2.0)
+		if not _water_cells.has(water_cell + Vector2i.RIGHT):
+			target.draw_line(Vector2(x1, y0), Vector2(x1, y1), Color(0.03, 0.11, 0.13, 0.55), 2.0)
+
+	# 4) 障碍物：南/东侧落影，北/西侧受光，墙体与屋顶不再与地面糊在一起。
+	for cell in _obstacle_cells.keys():
+		var solid_cell := cell as Vector2i
+		var x0 := float(solid_cell.x) * tile
+		var y0 := float(solid_cell.y) * tile
+		var x1 := x0 + tile
+		var y1 := y0 + tile
+		if not _obstacle_cells.has(solid_cell + Vector2i.DOWN):
+			target.draw_line(Vector2(x0, y1 + 3.0), Vector2(x1, y1 + 3.0), Color(0.0, 0.0, 0.0, 0.22), 4.0)
+		if not _obstacle_cells.has(solid_cell + Vector2i.RIGHT):
+			target.draw_line(Vector2(x1 + 3.0, y0), Vector2(x1 + 3.0, y1), Color(0.0, 0.0, 0.0, 0.18), 4.0)
+		if not _obstacle_cells.has(solid_cell + Vector2i.UP):
+			target.draw_line(Vector2(x0, y0), Vector2(x1, y0), Color(1.0, 0.93, 0.78, 0.16), 1.0)
+		if not _obstacle_cells.has(solid_cell + Vector2i.LEFT):
+			target.draw_line(Vector2(x0, y0), Vector2(x0, y1), Color(1.0, 0.93, 0.78, 0.10), 1.0)
+
+
+func _is_road_like(cell: Vector2i) -> bool:
+	if _road_cells.has(cell):
+		return true
+	if layout != null and layout.is_bridge_cell(cell):
+		return true
+	return false

@@ -18,6 +18,13 @@
         "world_tiles": [120, 84],
         "base_tile": "sand_a",
         "start_tile": [61, 48],
+        "highlands": [
+          [3, 16, 20, 12],
+          [99, 16, 18, 18],
+          [55, 4, 18, 9],
+          [55, 24, 14, 48],
+          [96, 44, 24, 14]
+        ],
         "areas": [
           {"kind": "terrain", "tile": "sand_b", "rect": [0, 0, 120, 12]},
           {"kind": "reeds", "tiles": ["reed_bed", "mud_grass"], "rect": [0, 0, 120, 11], "density": 0.30},
@@ -109,6 +116,12 @@
         "world_tiles": [96, 160],
         "base_tile": "mud_grass",
         "start_tile": [48, 116],
+        "highlands": [
+          [0, 17, 12, 26],
+          [0, 110, 12, 33],
+          [84, 17, 12, 26],
+          [84, 110, 12, 33]
+        ],
         "areas": [
           {"kind": "reeds", "tiles": ["reed_bed", "mud_grass"], "rect": [0, 0, 96, 17], "density": 0.34},
           {"kind": "reeds", "tiles": ["reed_bed", "mud_grass"], "rect": [0, 143, 96, 17], "density": 0.34},
@@ -232,6 +245,12 @@
         "world_tiles": [96, 160],
         "base_tile": "earth_road_a",
         "start_tile": [50, 79],
+        "highlands": [
+          [4, 26, 88, 2],
+          [4, 132, 88, 2],
+          [4, 4, 14, 4],
+          [78, 152, 14, 4]
+        ],
         "areas": [
           {"kind": "terrain", "tiles": ["earth_road_a", "earth_road_b"], "rect": [4, 4, 88, 152]},
           {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [0, 0, 96, 4]},
