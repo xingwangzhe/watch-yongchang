@@ -1,0 +1,1612 @@
+{
+	"version": 1,
+	"source": "Jeff-FX-forge 1.1 (jeffstudio-dev/Jeff-FX-forge)",
+	"source_url": "https://github.com/jeffstudio-dev/Jeff-FX-forge",
+	"license": "Code MIT; original FX art CC0 1.0; project usage CC BY 4.0 attribution retained",
+	"combination_count": 48,
+	"player_combo_count": 24,
+	"enemy_combo_count": 16,
+	"ally_combo_count": 8,
+	"animations": {
+		"slash_basic": {
+			"name": "基础刀光",
+			"texture": "res://assets/fx/jeff_fx/slash_basic.png",
+			"frames": 9,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					31,
+					54
+				],
+				[
+					31,
+					0,
+					31,
+					54
+				],
+				[
+					62,
+					0,
+					31,
+					54
+				],
+				[
+					93,
+					0,
+					31,
+					54
+				],
+				[
+					124,
+					0,
+					31,
+					54
+				],
+				[
+					155,
+					0,
+					31,
+					54
+				],
+				[
+					186,
+					0,
+					31,
+					54
+				],
+				[
+					217,
+					0,
+					31,
+					54
+				],
+				[
+					0,
+					54,
+					31,
+					54
+				]
+			],
+			"pivot": [
+				4,
+				27
+			],
+			"source_recipe": "Jeff FX 1.1 / slash_basic"
+		},
+		"slash_fire": {
+			"name": "火焰斩",
+			"texture": "res://assets/fx/jeff_fx/slash_fire.png",
+			"frames": 10,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					34,
+					59
+				],
+				[
+					34,
+					0,
+					34,
+					59
+				],
+				[
+					68,
+					0,
+					34,
+					59
+				],
+				[
+					102,
+					0,
+					34,
+					59
+				],
+				[
+					136,
+					0,
+					34,
+					59
+				],
+				[
+					170,
+					0,
+					34,
+					59
+				],
+				[
+					204,
+					0,
+					34,
+					59
+				],
+				[
+					238,
+					0,
+					34,
+					59
+				],
+				[
+					0,
+					59,
+					34,
+					59
+				],
+				[
+					34,
+					59,
+					34,
+					59
+				]
+			],
+			"pivot": [
+				6,
+				31
+			],
+			"source_recipe": "Jeff FX 1.1 / slash_fire"
+		},
+		"slash_ice": {
+			"name": "寒冰斩",
+			"texture": "res://assets/fx/jeff_fx/slash_ice.png",
+			"frames": 9,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					27,
+					54
+				],
+				[
+					27,
+					0,
+					27,
+					54
+				],
+				[
+					54,
+					0,
+					27,
+					54
+				],
+				[
+					81,
+					0,
+					27,
+					54
+				],
+				[
+					108,
+					0,
+					27,
+					54
+				],
+				[
+					135,
+					0,
+					27,
+					54
+				],
+				[
+					162,
+					0,
+					27,
+					54
+				],
+				[
+					189,
+					0,
+					27,
+					54
+				],
+				[
+					0,
+					54,
+					27,
+					54
+				]
+			],
+			"pivot": [
+				0,
+				27
+			],
+			"source_recipe": "Jeff FX 1.1 / slash_ice"
+		},
+		"slash_shadow": {
+			"name": "暗影斩",
+			"texture": "res://assets/fx/jeff_fx/slash_shadow.png",
+			"frames": 11,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					40,
+					62
+				],
+				[
+					40,
+					0,
+					40,
+					62
+				],
+				[
+					80,
+					0,
+					40,
+					62
+				],
+				[
+					120,
+					0,
+					40,
+					62
+				],
+				[
+					160,
+					0,
+					40,
+					62
+				],
+				[
+					200,
+					0,
+					40,
+					62
+				],
+				[
+					240,
+					0,
+					40,
+					62
+				],
+				[
+					280,
+					0,
+					40,
+					62
+				],
+				[
+					0,
+					62,
+					40,
+					62
+				],
+				[
+					40,
+					62,
+					40,
+					62
+				],
+				[
+					80,
+					62,
+					40,
+					62
+				]
+			],
+			"pivot": [
+				9,
+				31
+			],
+			"source_recipe": "Jeff FX 1.1 / slash_shadow"
+		},
+		"slash_ink": {
+			"name": "墨刃",
+			"texture": "res://assets/fx/jeff_fx/slash_ink.png",
+			"frames": 9,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					24,
+					44
+				],
+				[
+					24,
+					0,
+					24,
+					44
+				],
+				[
+					48,
+					0,
+					24,
+					44
+				],
+				[
+					72,
+					0,
+					24,
+					44
+				],
+				[
+					96,
+					0,
+					24,
+					44
+				],
+				[
+					120,
+					0,
+					24,
+					44
+				],
+				[
+					144,
+					0,
+					24,
+					44
+				],
+				[
+					168,
+					0,
+					24,
+					44
+				],
+				[
+					0,
+					44,
+					24,
+					44
+				]
+			],
+			"pivot": [
+				-3,
+				21
+			],
+			"source_recipe": "Jeff FX 1.1 / slash_ink"
+		},
+		"slash_spin": {
+			"name": "回旋斩",
+			"texture": "res://assets/fx/jeff_fx/slash_spin.png",
+			"frames": 12,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					70,
+					70
+				],
+				[
+					70,
+					0,
+					70,
+					70
+				],
+				[
+					140,
+					0,
+					70,
+					70
+				],
+				[
+					210,
+					0,
+					70,
+					70
+				],
+				[
+					280,
+					0,
+					70,
+					70
+				],
+				[
+					350,
+					0,
+					70,
+					70
+				],
+				[
+					420,
+					0,
+					70,
+					70
+				],
+				[
+					490,
+					0,
+					70,
+					70
+				],
+				[
+					0,
+					70,
+					70,
+					70
+				],
+				[
+					70,
+					70,
+					70,
+					70
+				],
+				[
+					140,
+					70,
+					70,
+					70
+				],
+				[
+					210,
+					70,
+					70,
+					70
+				]
+			],
+			"pivot": [
+				35,
+				35
+			],
+			"source_recipe": "Jeff FX 1.1 / slash_spin"
+		},
+		"thrust": {
+			"name": "突刺",
+			"texture": "res://assets/fx/jeff_fx/thrust.png",
+			"frames": 8,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					58,
+					15
+				],
+				[
+					58,
+					0,
+					58,
+					15
+				],
+				[
+					116,
+					0,
+					58,
+					15
+				],
+				[
+					174,
+					0,
+					58,
+					15
+				],
+				[
+					232,
+					0,
+					58,
+					15
+				],
+				[
+					290,
+					0,
+					58,
+					15
+				],
+				[
+					348,
+					0,
+					58,
+					15
+				],
+				[
+					406,
+					0,
+					58,
+					15
+				]
+			],
+			"pivot": [
+				11,
+				7
+			],
+			"source_recipe": "Jeff FX 1.1 / thrust"
+		},
+		"hit_basic": {
+			"name": "普通打击",
+			"texture": "res://assets/fx/jeff_fx/hit_basic.png",
+			"frames": 7,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					27,
+					24
+				],
+				[
+					27,
+					0,
+					27,
+					24
+				],
+				[
+					54,
+					0,
+					27,
+					24
+				],
+				[
+					81,
+					0,
+					27,
+					24
+				],
+				[
+					108,
+					0,
+					27,
+					24
+				],
+				[
+					135,
+					0,
+					27,
+					24
+				],
+				[
+					162,
+					0,
+					27,
+					24
+				]
+			],
+			"pivot": [
+				16,
+				11
+			],
+			"source_recipe": "Jeff FX 1.1 / hit_basic"
+		},
+		"hit_heavy": {
+			"name": "重击",
+			"texture": "res://assets/fx/jeff_fx/hit_heavy.png",
+			"frames": 9,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				3,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					70,
+					71
+				],
+				[
+					70,
+					0,
+					70,
+					71
+				],
+				[
+					140,
+					0,
+					70,
+					71
+				],
+				[
+					210,
+					0,
+					70,
+					71
+				],
+				[
+					280,
+					0,
+					70,
+					71
+				],
+				[
+					350,
+					0,
+					70,
+					71
+				],
+				[
+					420,
+					0,
+					70,
+					71
+				],
+				[
+					490,
+					0,
+					70,
+					71
+				],
+				[
+					0,
+					71,
+					70,
+					71
+				]
+			],
+			"pivot": [
+				35,
+				35
+			],
+			"source_recipe": "Jeff FX 1.1 / hit_heavy"
+		},
+		"hit_crit": {
+			"name": "暴击",
+			"texture": "res://assets/fx/jeff_fx/hit_crit.png",
+			"frames": 9,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				3,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					74,
+					74
+				],
+				[
+					74,
+					0,
+					74,
+					74
+				],
+				[
+					148,
+					0,
+					74,
+					74
+				],
+				[
+					222,
+					0,
+					74,
+					74
+				],
+				[
+					296,
+					0,
+					74,
+					74
+				],
+				[
+					370,
+					0,
+					74,
+					74
+				],
+				[
+					444,
+					0,
+					74,
+					74
+				],
+				[
+					518,
+					0,
+					74,
+					74
+				],
+				[
+					0,
+					74,
+					74,
+					74
+				]
+			],
+			"pivot": [
+				37,
+				37
+			],
+			"source_recipe": "Jeff FX 1.1 / hit_crit"
+		},
+		"block_sparks": {
+			"name": "格挡火花",
+			"texture": "res://assets/fx/jeff_fx/block_sparks.png",
+			"frames": 10,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					51,
+					56
+				],
+				[
+					51,
+					0,
+					51,
+					56
+				],
+				[
+					102,
+					0,
+					51,
+					56
+				],
+				[
+					153,
+					0,
+					51,
+					56
+				],
+				[
+					204,
+					0,
+					51,
+					56
+				],
+				[
+					255,
+					0,
+					51,
+					56
+				],
+				[
+					306,
+					0,
+					51,
+					56
+				],
+				[
+					357,
+					0,
+					51,
+					56
+				],
+				[
+					0,
+					56,
+					51,
+					56
+				],
+				[
+					51,
+					56,
+					51,
+					56
+				]
+			],
+			"pivot": [
+				8,
+				14
+			],
+			"source_recipe": "Jeff FX 1.1 / block_sparks"
+		},
+		"ground_shockwave": {
+			"name": "地面冲击波",
+			"texture": "res://assets/fx/jeff_fx/ground_shockwave.png",
+			"frames": 10,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					104,
+					36
+				],
+				[
+					104,
+					0,
+					104,
+					36
+				],
+				[
+					208,
+					0,
+					104,
+					36
+				],
+				[
+					312,
+					0,
+					104,
+					36
+				],
+				[
+					416,
+					0,
+					104,
+					36
+				],
+				[
+					520,
+					0,
+					104,
+					36
+				],
+				[
+					624,
+					0,
+					104,
+					36
+				],
+				[
+					728,
+					0,
+					104,
+					36
+				],
+				[
+					0,
+					36,
+					104,
+					36
+				],
+				[
+					104,
+					36,
+					104,
+					36
+				]
+			],
+			"pivot": [
+				52,
+				18
+			],
+			"source_recipe": "Jeff FX 1.1 / ground_shockwave"
+		},
+		"energy_ring": {
+			"name": "能量冲击环",
+			"texture": "res://assets/fx/jeff_fx/energy_ring.png",
+			"frames": 12,
+			"fps": 20,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					85,
+					78
+				],
+				[
+					85,
+					0,
+					85,
+					78
+				],
+				[
+					170,
+					0,
+					85,
+					78
+				],
+				[
+					255,
+					0,
+					85,
+					78
+				],
+				[
+					340,
+					0,
+					85,
+					78
+				],
+				[
+					425,
+					0,
+					85,
+					78
+				],
+				[
+					510,
+					0,
+					85,
+					78
+				],
+				[
+					595,
+					0,
+					85,
+					78
+				],
+				[
+					0,
+					78,
+					85,
+					78
+				],
+				[
+					85,
+					78,
+					85,
+					78
+				],
+				[
+					170,
+					78,
+					85,
+					78
+				],
+				[
+					255,
+					78,
+					85,
+					78
+				]
+			],
+			"pivot": [
+				41,
+				39
+			],
+			"source_recipe": "Jeff FX 1.1 / energy_ring"
+		},
+		"explosion_small": {
+			"name": "小型爆炸",
+			"texture": "res://assets/fx/jeff_fx/explosion_small.png",
+			"frames": 10,
+			"fps": 15,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					46,
+					45
+				],
+				[
+					46,
+					0,
+					46,
+					45
+				],
+				[
+					92,
+					0,
+					46,
+					45
+				],
+				[
+					138,
+					0,
+					46,
+					45
+				],
+				[
+					184,
+					0,
+					46,
+					45
+				],
+				[
+					230,
+					0,
+					46,
+					45
+				],
+				[
+					276,
+					0,
+					46,
+					45
+				],
+				[
+					322,
+					0,
+					46,
+					45
+				],
+				[
+					0,
+					45,
+					46,
+					45
+				],
+				[
+					46,
+					45,
+					46,
+					45
+				]
+			],
+			"pivot": [
+				23,
+				30
+			],
+			"source_recipe": "Jeff FX 1.1 / explosion_small"
+		},
+		"explosion_big": {
+			"name": "大型爆炸",
+			"texture": "res://assets/fx/jeff_fx/explosion_big.png",
+			"frames": 14,
+			"fps": 15,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					106,
+					108
+				],
+				[
+					106,
+					0,
+					106,
+					108
+				],
+				[
+					212,
+					0,
+					106,
+					108
+				],
+				[
+					318,
+					0,
+					106,
+					108
+				],
+				[
+					424,
+					0,
+					106,
+					108
+				],
+				[
+					530,
+					0,
+					106,
+					108
+				],
+				[
+					636,
+					0,
+					106,
+					108
+				],
+				[
+					742,
+					0,
+					106,
+					108
+				],
+				[
+					0,
+					108,
+					106,
+					108
+				],
+				[
+					106,
+					108,
+					106,
+					108
+				],
+				[
+					212,
+					108,
+					106,
+					108
+				],
+				[
+					318,
+					108,
+					106,
+					108
+				],
+				[
+					424,
+					108,
+					106,
+					108
+				],
+				[
+					530,
+					108,
+					106,
+					108
+				]
+			],
+			"pivot": [
+				52,
+				59
+			],
+			"source_recipe": "Jeff FX 1.1 / explosion_big"
+		},
+		"explosion_poison": {
+			"name": "毒气爆炸",
+			"texture": "res://assets/fx/jeff_fx/explosion_poison.png",
+			"frames": 12,
+			"fps": 12,
+			"loop": false,
+			"durations": [
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1,
+				1
+			],
+			"rects": [
+				[
+					0,
+					0,
+					71,
+					54
+				],
+				[
+					71,
+					0,
+					71,
+					54
+				],
+				[
+					142,
+					0,
+					71,
+					54
+				],
+				[
+					213,
+					0,
+					71,
+					54
+				],
+				[
+					284,
+					0,
+					71,
+					54
+				],
+				[
+					355,
+					0,
+					71,
+					54
+				],
+				[
+					426,
+					0,
+					71,
+					54
+				],
+				[
+					497,
+					0,
+					71,
+					54
+				],
+				[
+					0,
+					54,
+					71,
+					54
+				],
+				[
+					71,
+					54,
+					71,
+					54
+				],
+				[
+					142,
+					54,
+					71,
+					54
+				],
+				[
+					213,
+					54,
+					71,
+					54
+				]
+			],
+			"pivot": [
+				34,
+				31
+			],
+			"source_recipe": "Jeff FX 1.1 / explosion_poison"
+		}
+	},
+	"impacts": {
+		"normal": {
+			"animation": "hit_basic",
+			"scale": 1,
+			"offset": 0
+		},
+		"critical": {
+			"animation": "hit_crit",
+			"scale": 1,
+			"offset": 0
+		},
+		"heavy": {
+			"animation": "hit_heavy",
+			"scale": 1.15,
+			"offset": 0
+		},
+		"armored": {
+			"animation": "block_sparks",
+			"scale": 0.9,
+			"offset": 0
+		}
+	},
+	"player_weapons": {
+		"saber": {
+			"primary": "slash_fire",
+			"evolved": "slash_spin",
+			"scale": 2.15,
+			"evolved_scale": 2.6,
+			"offset": 18,
+			"rotate": true
+		},
+		"spear": {
+			"primary": "thrust",
+			"evolved": "thrust",
+			"scale": 2.6,
+			"evolved_scale": 2.9,
+			"offset": 20,
+			"rotate": true,
+			"evolved_accent": "energy_ring",
+			"accent_scale": 0.55
+		},
+		"bow": {
+			"primary": "thrust",
+			"evolved": "energy_ring",
+			"scale": 1.35,
+			"evolved_scale": 1.5,
+			"offset": 20,
+			"rotate": true
+		},
+		"musket": {
+			"primary": "explosion_small",
+			"evolved": "explosion_big",
+			"scale": 1.45,
+			"evolved_scale": 1.8,
+			"offset": 30,
+			"rotate": false,
+			"evolved_accent": "hit_heavy",
+			"accent_scale": 0.7
+		},
+		"shield": {
+			"primary": "ground_shockwave",
+			"evolved": "energy_ring",
+			"scale": 1.35,
+			"evolved_scale": 1.65,
+			"offset": 0,
+			"rotate": false
+		},
+		"dragon_lantern": {
+			"primary": "energy_ring",
+			"evolved": "slash_spin",
+			"scale": 1.35,
+			"evolved_scale": 2.2,
+			"offset": 0,
+			"rotate": false
+		},
+		"cannon": {
+			"primary": "explosion_big",
+			"evolved": "explosion_big",
+			"scale": 1.55,
+			"evolved_scale": 1.9,
+			"offset": 34,
+			"rotate": false,
+			"evolved_accent": "hit_crit",
+			"accent_scale": 0.8
+		},
+		"banner": {
+			"primary": "ground_shockwave",
+			"evolved": "energy_ring",
+			"scale": 1.75,
+			"evolved_scale": 1.9,
+			"offset": 0,
+			"rotate": false
+		}
+	},
+	"enemy_attacks": {
+		"scout": {
+			"muzzle": "slash_shadow",
+			"impact": "hit_basic",
+			"scale": 1.2,
+			"offset": 14,
+			"rotate": true
+		},
+		"ronin": {
+			"muzzle": "slash_shadow",
+			"impact": "hit_heavy",
+			"scale": 1.45,
+			"offset": 18,
+			"rotate": true
+		},
+		"shield": {
+			"muzzle": "ground_shockwave",
+			"impact": "block_sparks",
+			"scale": 1,
+			"offset": 0,
+			"rotate": false
+		},
+		"gun": {
+			"muzzle": "thrust",
+			"impact": "hit_crit",
+			"scale": 0.9,
+			"offset": 24,
+			"rotate": true
+		},
+		"archer": {
+			"muzzle": "thrust",
+			"impact": "hit_basic",
+			"scale": 0.9,
+			"offset": 24,
+			"rotate": true
+		},
+		"banner": {
+			"muzzle": "energy_ring",
+			"impact": "hit_basic",
+			"scale": 1,
+			"offset": 0,
+			"rotate": false
+		},
+		"general": {
+			"muzzle": "slash_ink",
+			"impact": "hit_heavy",
+			"scale": 1.8,
+			"offset": 20,
+			"rotate": true
+		},
+		"daimyo": {
+			"muzzle": "explosion_poison",
+			"impact": "hit_heavy",
+			"scale": 2.1,
+			"offset": 20,
+			"rotate": false
+		}
+	},
+	"ally_attacks": {
+		"yishi_spear": {
+			"muzzle": "thrust",
+			"scale": 1.5,
+			"offset": 16,
+			"rotate": true,
+			"color": "#dce9dc"
+		},
+		"yishi_archer": {
+			"muzzle": "thrust",
+			"scale": 0.75,
+			"offset": 18,
+			"rotate": true,
+			"color": "#dce9dc"
+		},
+		"tengpai_militia": {
+			"muzzle": "ground_shockwave",
+			"scale": 1.05,
+			"offset": 0,
+			"rotate": false,
+			"color": "#dce9dc"
+		},
+		"bird_gunner": {
+			"muzzle": "explosion_small",
+			"scale": 1.0,
+			"offset": 24,
+			"rotate": false,
+			"color": "#f0d7a2"
+		},
+		"standard_bearer": {
+			"muzzle": "energy_ring",
+			"scale": 1.25,
+			"offset": 0,
+			"rotate": false,
+			"color": "#f0cf82"
+		},
+		"qijia_guest": {
+			"muzzle": "slash_ice",
+			"scale": 1.65,
+			"offset": 16,
+			"rotate": true,
+			"color": "#e4f3ec"
+		},
+		"wangpei_spirit": {
+			"muzzle": "energy_ring",
+			"scale": 1.8,
+			"offset": 0,
+			"rotate": false,
+			"color": "#d8e8e4"
+		},
+		"wangde_spirit": {
+			"muzzle": "slash_spin",
+			"scale": 1.7,
+			"offset": 14,
+			"rotate": true,
+			"color": "#d8e8e4"
+		}
+	},
+	"enemy_impact_by_behavior": {
+		"chase": "normal",
+		"ranged": "normal",
+		"support": "armored",
+		"elite": "heavy",
+		"boss": "heavy"
+	}
+}

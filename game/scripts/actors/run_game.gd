@@ -35,6 +35,7 @@ var touch_controls: TouchControls
 var narrative: NarrativePlayer
 var story: StoryOverlay
 var level_up_overlay: LevelUpOverlay
+var shop_overlay: ShopOverlay
 var overlay_layer: CanvasLayer
 var pause_overlay: Control
 var result_overlay: Control
@@ -47,6 +48,8 @@ var result_unlocks: Label
 var weapon_defs: Dictionary = {}
 var passive_defs: Dictionary = {}
 var enemy_defs: Dictionary = {}
+var mercenary_defs: Dictionary = {}
+var shop_data: Dictionary = {}
 var character_def: Dictionary = {}
 var map_def: Dictionary = {}
 var map_id := "tideland"
@@ -74,6 +77,7 @@ var xp_need := 15.0
 var level := 1
 var kills := 0
 var merit := 0
+var run_coin := 0
 var oil_tick := 30.0
 var _dash_cd := 0.0
 var _dash_timer := 0.0
@@ -81,6 +85,11 @@ var _dash_dir := Vector2.RIGHT
 var _dash_buff := 0.0
 var _invuln := 0.0
 var _last_move := Vector2.RIGHT
+var _aim_direction := Vector2.RIGHT
+var _attack_held := false
+var _mouse_attack_pressed := false
+var _mouse_screen_pos := Vector2.ZERO
+var _has_mouse_screen_pos := false
 var _move_trail_timer := 0.0
 var _event_enemy_speed_mult := 1.0
 var _accum := 0.0
@@ -95,6 +104,10 @@ var _game_over := false
 var _victory_started := false
 var _story_mode := "intro"
 var _pending_levels := 0
+var _next_shop_time := 120.0
+var _shop_open := false
+var _current_shop_offers: Array[Dictionary] = []
+var mercenaries: Array[String] = []
 var _current_upgrade_options: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
 var _narrative_timer: Timer
@@ -132,7 +145,7 @@ func _process(delta: float) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _game_over:
+	if _game_over or _shop_open:
 		return
 	if is_instance_valid(codex_overlay):
 		return
@@ -144,6 +157,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _paused:
 		return
+	if event is InputEventMouseButton:
+		var mouse_button := event as InputEventMouseButton
+		_mouse_screen_pos = mouse_button.position
+		_has_mouse_screen_pos = true
+		if mouse_button.button_index == MOUSE_BUTTON_LEFT:
+			_mouse_attack_pressed = mouse_button.pressed
+	elif event is InputEventMouseMotion:
+		_mouse_screen_pos = (event as InputEventMouseMotion).position
+		_has_mouse_screen_pos = true
 	if event.is_action_pressed("toggle_codex"):
 		_open_codex()
 		get_viewport().set_input_as_handled()
@@ -156,6 +178,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _open_codex() -> void:
 	AudioBus.play_confirm()
 	_paused = true
+	_release_attack()
 	codex_overlay = (load("res://scenes/codex.tscn") as PackedScene).instantiate()
 	codex_overlay.embedded = true
 	codex_overlay.z_index = 80
@@ -172,6 +195,8 @@ func _load_data() -> void:
 	weapon_defs = GameData.get_weapons()
 	passive_defs = GameData.get_passives()
 	enemy_defs = GameData.get_enemies()
+	mercenary_defs = GameData.get_mercenaries()
+	shop_data = GameData.get_shop()
 	var characters := GameData.get_characters()
 	var selected_character := str(SaveSystem.data.get("selected_character", "wanglu"))
 	if not characters.has(selected_character):
@@ -191,6 +216,7 @@ func _load_data() -> void:
 	_phase_list = wave_data.get("phases", []) as Array
 	_scale_events = wave_data.get("scale_events", []) as Array
 	_event_lines = wave_data.get("event_lines", []) as Array
+	_next_shop_time = float(shop_data.get("interval_seconds", 120.0))
 	for section in ["prologue", "main_intro", "epilogue"]:
 		for line in narrative_data.get(section, []) as Array:
 			if line is Dictionary:
@@ -210,6 +236,7 @@ func _build_world() -> void:
 	battlefield.scale_collected.connect(_on_scale_collected)
 	battlefield.boss_spawned.connect(_on_boss_spawned)
 	battlefield.boss_defeated.connect(_on_boss_defeated)
+	battlefield.ally_support.connect(_on_ally_support)
 
 	camera = Camera2D.new()
 	camera.name = "RunCamera"
@@ -244,6 +271,11 @@ func _build_ui() -> void:
 	level_up_overlay = LevelUpOverlay.new()
 	overlay_layer.add_child(level_up_overlay)
 	level_up_overlay.chosen.connect(_on_upgrade_chosen)
+	shop_overlay = ShopOverlay.new()
+	overlay_layer.add_child(shop_overlay)
+	shop_overlay.buy_requested.connect(_on_shop_buy)
+	shop_overlay.reroll_requested.connect(_on_shop_reroll)
+	shop_overlay.closed.connect(_on_shop_closed)
 	_build_pause_overlay()
 	_build_result_overlay()
 	_narrative_timer = Timer.new()
@@ -304,6 +336,7 @@ func _setup_player() -> void:
 	}
 	_add_weapon(start_weapon)
 	passives[start_passive] = 1
+	run_coin = int(shop_data.get("starting_coin", 0))
 	_recompute_stats()
 	battlefield.set_player_sprites(character_def)
 	battlefield.set_meta("player_tint", Color(str(character_def.get("tint", "#ffffff"))))
@@ -319,6 +352,7 @@ func _setup_player() -> void:
 func _schedule_intro() -> void:
 	_story_mode = "intro"
 	_paused = true
+	_release_attack()
 	var intro := narrative_data.get("main_intro", []) as Array
 	story.start(intro, Locale.t("story.main_heading"))
 
@@ -359,6 +393,8 @@ func _step(delta: float) -> void:
 	_update_boss_state()
 	if elapsed >= duration and not _victory_started:
 		_begin_victory()
+	elif not _victory_started:
+		_maybe_open_shop()
 
 
 func _update_player(delta: float) -> void:
@@ -381,6 +417,13 @@ func _update_player(delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if is_instance_valid(touch_controls):
 		input_vector = (input_vector + touch_controls.move_vector).limit_length(1.0)
+	_attack_held = _mouse_attack_pressed or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	var mouse_world := get_global_mouse_position()
+	if _has_mouse_screen_pos:
+		mouse_world = get_viewport().get_canvas_transform().affine_inverse() * _mouse_screen_pos
+	var aim_vector := mouse_world - (player["pos"] as Vector2)
+	if aim_vector.length_squared() > 16.0:
+		_aim_direction = aim_vector.normalized()
 	if input_vector.length_squared() > 0.001:
 		_last_move = input_vector.normalized()
 	if input_vector.length_squared() > 0.001 and _dash_timer <= 0.0:
@@ -403,7 +446,10 @@ func _update_player(delta: float) -> void:
 	else:
 		desired_position += input_vector * float(player["speed"]) * move_boost * delta
 	player["pos"] = battlefield.resolve_player_move(previous_position, desired_position, float(player["radius"]))
-	player["facing"] = _last_move
+	if _attack_held:
+		player["facing"] = _aim_direction
+	elif input_vector.length_squared() > 0.001:
+		player["facing"] = input_vector.normalized()
 	var dark := int(player["oil"]) <= 0
 	player["dark"] = dark
 	var ratio := float(player["oil"]) / maxf(1.0, float(player["oil_max"]))
@@ -442,7 +488,7 @@ func _try_dash() -> void:
 
 
 func _on_touch_dash_requested() -> void:
-	if _paused or _game_over or story.visible or level_up_overlay.visible:
+	if _paused or _game_over or _shop_open or story.visible or level_up_overlay.visible:
 		return
 	_try_dash()
 
@@ -624,6 +670,8 @@ func _cast_skill(behavior: String, level: int) -> void:
 func _update_weapons(delta: float) -> void:
 	for weapon in weapons:
 		weapon["timer"] = float(weapon["timer"]) - delta
+		if not _attack_held:
+			continue
 		if float(weapon["timer"]) > 0.0:
 			continue
 		var fired := _fire_weapon(weapon)
@@ -637,20 +685,19 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 	var radius := float(definition.get("range", 120.0)) * float(player["area_mult"])
 	var base_damage := _weapon_damage(weapon)
 	var target := battlefield.nearest_enemy(origin, maxf(radius, 520.0))
-	if weapon_type in ["projectile", "shotgun"] and target.is_empty():
-		return false
 	var roll := _damage_roll(base_damage)
 	var damage := float(roll[0])
 	var critical := bool(roll[1])
+	var direction := _aim_direction.normalized()
+	if direction.length_squared() <= 0.001:
+		var facing := player.get("facing", Vector2.RIGHT) as Vector2
+		direction = Vector2.RIGHT if facing.x >= 0.0 else Vector2.LEFT
 	if not target.is_empty() and float(player.get("execute_below", 0.0)) > 0.0:
 		var target_max := maxf(1.0, float(target.get("max_hp", 1.0)))
 		if float(target.get("hp", 0.0)) / target_max <= float(player["execute_below"]):
 			damage *= 1.65
 	match weapon_type:
 		"melee_arc":
-			var direction := _last_move
-			if not target.is_empty():
-				direction = ((target["pos"] as Vector2) - origin).normalized()
 			var arc := 360.0 if bool(weapon["evolved"]) else float(definition.get("arc_degrees", 118.0))
 			battlefield.damage_cone(
 				origin,
@@ -671,12 +718,10 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 				"arc": deg_to_rad(arc),
 				"color": Color("#f0c363"),
 			})
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
 			_play_sfx(SFX_ENEMY_HIT, 0.96, 0.68)
 			return true
 		"line_thrust":
-			var direction := _last_move
-			if not target.is_empty():
-				direction = ((target["pos"] as Vector2) - origin).normalized()
 			var directions := [direction]
 			if bool(weapon["evolved"]):
 				directions = [direction.rotated(deg_to_rad(-18.0)), direction, direction.rotated(deg_to_rad(18.0))]
@@ -699,10 +744,10 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					"length": radius,
 					"color": Color("#f0d58d"),
 				})
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
 			_play_sfx(SFX_HIT)
 			return true
 		"projectile":
-			var direction := ((target["pos"] as Vector2) - origin).normalized()
 			var count := int(definition.get("projectiles", 1)) + int((int(weapon["level"]) - 1) / 2)
 			var pierce := int(definition.get("pierce", 1))
 			if bool(weapon["evolved"]):
@@ -721,10 +766,10 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					pierce,
 					Color("#f4dc94")
 				)
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
 			_play_sfx(SFX_FIRE)
 			return true
 		"shotgun":
-			var direction := ((target["pos"] as Vector2) - origin).normalized()
 			var pellets := int(definition.get("pellets", 3)) + int((int(weapon["level"]) - 1) / 3)
 			if bool(weapon["evolved"]):
 				pellets += 3
@@ -747,6 +792,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 				"length": 74.0,
 				"color": Color("#f0a957"),
 			})
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
 			_play_sfx(SFX_FIRE)
 			return true
 		"orbit":
@@ -767,6 +813,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					"angle": angle,
 					"color": Color("#d8b86d"),
 				})
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
 			_play_sfx(SFX_HIT)
 			return true
 		"aura":
@@ -790,6 +837,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					"color": Color("#d65b45"),
 				})
 			weapon["cycle"] = int(weapon.get("cycle", 0)) + 1
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
 			_play_sfx(SFX_FIRE)
 			return true
 	return false
@@ -905,6 +953,11 @@ func _recompute_stats() -> void:
 			_add_stat(stats, stat, float((effect as Dictionary).get("amount", 0.0)) * float(card_level))
 	for stat in event_stat_bonuses.keys():
 		_add_stat(stats, str(stat), float(event_stat_bonuses[stat]))
+	for mercenary_id in mercenaries:
+		var mercenary: Dictionary = mercenary_defs.get(mercenary_id, {}) as Dictionary
+		var bonuses: Dictionary = mercenary.get("party_bonus", {}) as Dictionary
+		for stat in bonuses.keys():
+			_add_stat(stats, str(stat), float(bonuses[stat]))
 	active_skills.clear()
 	for card_id in card_levels.keys():
 		if not cards.has(card_id):
@@ -1064,6 +1117,7 @@ func _on_player_hit(raw_damage: float) -> void:
 		return
 	if _rng.randf() < float(player.get("dodge", 0.0)):
 		_invuln = 0.18
+		battlefield.play_impact_fx(player["pos"] as Vector2, "armored", 0.85)
 		battlefield.add_effect({
 			"type": "aura",
 			"pos": player["pos"],
@@ -1079,6 +1133,7 @@ func _on_player_hit(raw_damage: float) -> void:
 		var absorbed := minf(shield, damage)
 		player["shield"] = shield - absorbed
 		damage -= absorbed
+		battlefield.play_impact_fx(player["pos"] as Vector2, "armored", 1.1)
 		battlefield.add_effect({
 			"type": "aura",
 			"pos": player["pos"],
@@ -1092,6 +1147,11 @@ func _on_player_hit(raw_damage: float) -> void:
 		return
 	player["hp"] = float(player["hp"]) - damage
 	_invuln = 0.65
+	battlefield.play_impact_fx(
+		player["pos"] as Vector2,
+		"heavy" if raw_damage >= 18.0 else "normal",
+		0.9 if raw_damage >= 18.0 else 0.65
+	)
 	_play_sfx(SFX_HIT, 0.82, 0.88)
 	if float(player.get("thorns", 0.0)) > 0.0:
 		battlefield.damage_circle(
@@ -1116,10 +1176,18 @@ func _on_player_hit(raw_damage: float) -> void:
 func _on_enemy_killed(enemy_id: String, _world_position: Vector2, elite: bool) -> void:
 	kills += 1
 	var definition: Dictionary = enemy_defs.get(enemy_id, {}) as Dictionary
+	var xp_value := float(definition.get("xp", 1.0))
 	merit += int(
-		maxf(1.0, float(definition.get("xp", 1.0)) * (3.0 if elite else 1.0))
+		maxf(1.0, xp_value * (3.0 if elite else 1.0))
 		* float(player.get("gold_mult", 1.0))
 	)
+	var coin_gain := maxi(
+		int(shop_data.get("minimum_kill_coin", 1)),
+		int(round(xp_value * float(shop_data.get("coin_per_xp", 0.55))))
+	)
+	if elite:
+		coin_gain = int(round(float(coin_gain) * float(shop_data.get("elite_coin_mult", 2.0))))
+	run_coin += maxi(1, int(round(float(coin_gain) * float(player.get("gold_mult", 1.0)))))
 	if float(player.get("lifesteal", 0.0)) > 0.0:
 		player["hp"] = minf(
 			float(player["max_hp"]),
@@ -1158,6 +1226,7 @@ func _xp_need_for_level(current_level: int) -> float:
 
 func _show_level_up() -> void:
 	_paused = true
+	_release_attack()
 	_play_sfx(SFX_LEVEL_UP, 1.0, 0.86)
 	if is_instance_valid(touch_controls):
 		touch_controls.release_all()
@@ -1357,6 +1426,179 @@ func _on_upgrade_chosen(index: int) -> void:
 		_paused = false
 
 
+func _maybe_open_shop() -> void:
+	if _shop_open or _game_over or _victory_started:
+		return
+	if elapsed < _next_shop_time:
+		return
+	if _pending_levels > 0:
+		return
+	if not is_instance_valid(story) or story.visible:
+		return
+	if is_instance_valid(level_up_overlay) and level_up_overlay.visible:
+		return
+	_open_shop()
+
+
+func _open_shop() -> void:
+	if _shop_open:
+		return
+	_shop_open = true
+	_paused = true
+	_release_attack()
+	if is_instance_valid(touch_controls):
+		touch_controls.release_all()
+	_current_shop_offers = ShopCatalog.build_offers(weapons, passives, mercenaries, _rng)
+	shop_overlay.show_shop(
+		_current_shop_offers,
+		run_coin,
+		int(shop_data.get("reroll_cost", 25)),
+		_shop_mercenary_info()
+	)
+	AudioBus.play_confirm()
+
+
+func _on_shop_buy(index: int) -> void:
+	if not _shop_open or index < 0 or index >= _current_shop_offers.size():
+		return
+	var offer := _current_shop_offers[index]
+	if bool(offer.get("sold", false)):
+		return
+	var price := int(offer.get("price", 0))
+	if run_coin < price:
+		shop_overlay.show_message(Locale.t("shop.not_enough"), true)
+		_play_sfx(SFX_EVENT, 0.72, 0.55)
+		return
+	if not _apply_shop_offer(offer):
+		shop_overlay.show_message(Locale.t("shop.unavailable"), true)
+		return
+	run_coin -= price
+	offer["sold"] = true
+	_current_shop_offers[index] = offer
+	_recompute_stats()
+	shop_overlay.refresh(
+		_current_shop_offers,
+		run_coin,
+		int(shop_data.get("reroll_cost", 25)),
+		_shop_mercenary_info()
+	)
+	shop_overlay.show_message(Locale.t("shop.bought", {"name": str(offer.get("title", ""))}))
+	hud.update_hud(_hud_state())
+	AudioBus.play_confirm()
+
+
+func _apply_shop_offer(offer: Dictionary) -> bool:
+	match str(offer.get("family", "")):
+		"weapon_new":
+			var weapon_id := str(offer.get("weapon_id", ""))
+			if _has_weapon(weapon_id) or weapons.size() >= 6:
+				return false
+			_add_weapon(weapon_id)
+			return _has_weapon(weapon_id)
+		"weapon_upgrade":
+			var weapon_id := str(offer.get("weapon_id", ""))
+			for weapon in weapons:
+				if str(weapon["id"]) != weapon_id:
+					continue
+				if int(weapon["level"]) >= 5:
+					return false
+				weapon["level"] = int(weapon["level"]) + 1
+				return true
+			return false
+		"equipment_new", "equipment_upgrade":
+			var passive_id := str(offer.get("passive_id", ""))
+			if not passive_defs.has(passive_id):
+				return false
+			var definition: Dictionary = passive_defs[passive_id] as Dictionary
+			if int(passives.get(passive_id, 0)) >= int(definition.get("max_level", 5)):
+				return false
+			passives[passive_id] = int(passives.get(passive_id, 0)) + 1
+			return true
+		"mercenary":
+			return _hire_mercenary(str(offer.get("mercenary_id", "")))
+		"supply_heal":
+			player["hp"] = minf(
+				float(player["max_hp"]),
+				float(player["hp"]) + float(player["max_hp"]) * 0.32
+			)
+			return true
+		"supply_oil":
+			player["oil"] = mini(int(player["oil_max"]), int(player["oil"]) + 3)
+			return true
+	return false
+
+
+func _hire_mercenary(mercenary_id: String) -> bool:
+	if mercenary_id.is_empty() or not mercenary_defs.has(mercenary_id):
+		return false
+	if mercenaries.has(mercenary_id):
+		return false
+	if mercenaries.size() >= int(shop_data.get("max_mercenaries", 3)):
+		return false
+	var angle := TAU * float(mercenaries.size()) / float(maxi(1, int(shop_data.get("max_mercenaries", 3))))
+	var spawn_position := (player["pos"] as Vector2) + Vector2(cos(angle), sin(angle)) * 54.0
+	if not battlefield.spawn_ally(mercenary_id, spawn_position):
+		return false
+	mercenaries.append(mercenary_id)
+	_recompute_stats()
+	var definition: Dictionary = mercenary_defs[mercenary_id] as Dictionary
+	hud.show_banner(
+		Locale.t("shop.mercenary_joined", {"name": GameData.loc(definition, "name")}),
+		GameData.loc(definition, "role"),
+		2.6
+	)
+	_play_sfx(SFX_EVENT, 1.10, 0.64)
+	return true
+
+
+func _on_shop_reroll() -> void:
+	if not _shop_open:
+		return
+	var cost := int(shop_data.get("reroll_cost", 25))
+	if run_coin < cost:
+		shop_overlay.show_message(Locale.t("shop.not_enough"), true)
+		return
+	run_coin -= cost
+	_current_shop_offers = ShopCatalog.build_offers(weapons, passives, mercenaries, _rng)
+	shop_overlay.refresh(
+		_current_shop_offers,
+		run_coin,
+		cost,
+		_shop_mercenary_info()
+	)
+	shop_overlay.show_message(Locale.t("shop.rerolled"))
+	hud.update_hud(_hud_state())
+	AudioBus.play_confirm()
+
+
+func _on_shop_closed() -> void:
+	if not _shop_open:
+		return
+	_shop_open = false
+	_next_shop_time = elapsed + float(shop_data.get("interval_seconds", 120.0))
+	shop_overlay.visible = false
+	if not _game_over and not _victory_started:
+		_paused = false
+
+
+func _shop_mercenary_info() -> Dictionary:
+	var names: Array[String] = []
+	for mercenary_id in mercenaries:
+		var definition: Dictionary = mercenary_defs.get(mercenary_id, {}) as Dictionary
+		if not definition.is_empty():
+			names.append(GameData.loc(definition, "name"))
+	return {
+		"count": mercenaries.size(),
+		"max": int(shop_data.get("max_mercenaries", 3)),
+		"names": " · ".join(names),
+	}
+
+
+func _on_ally_support(_source_id: String, kind: String, amount: float) -> void:
+	if kind == "heal":
+		player["hp"] = minf(float(player["max_hp"]), float(player["hp"]) + amount)
+
+
 func _apply_card(option: Dictionary) -> void:
 	var card_id := str(option.get("card_id", ""))
 	if card_id.is_empty():
@@ -1488,6 +1730,7 @@ func _on_boss_defeated(_enemy_id: String) -> void:
 	_boss_defeated = true
 	hud.show_banner(Locale.t("banner.boss_down"), Locale.t("banner.boss_down_sub"), 4.0)
 	merit += 2000
+	run_coin += int(shop_data.get("boss_coin", 120))
 	_add_xp(260.0)
 	_play_sfx(SFX_ELITE_KILL, 0.72, 0.92)
 	_play_sfx(SFX_WIN)
@@ -1498,6 +1741,7 @@ func _begin_victory() -> void:
 		return
 	_victory_started = true
 	_paused = true
+	_release_attack()
 	_story_mode = "epilogue"
 	narrative.clear_line()
 	battlefield.clear_all_effects()
@@ -1510,6 +1754,7 @@ func _begin_defeat() -> void:
 		return
 	_game_over = true
 	_paused = true
+	_release_attack()
 	narrative.clear_line()
 	_play_sfx(SFX_LOSE)
 	_show_result(false)
@@ -1520,6 +1765,7 @@ func _show_result(victory: bool) -> void:
 		return
 	_game_over = true
 	_paused = true
+	_release_attack()
 	result_title.text = Locale.t("result.victory" if victory else "result.defeat")
 	result_body.text = Locale.t("result.victory_body" if victory else "result.defeat_body")
 	result_stats.text = Locale.t("result.stats", {
@@ -1561,6 +1807,8 @@ func _set_pause(paused: bool) -> void:
 	if _game_over:
 		return
 	_paused = paused
+	if paused:
+		_release_attack()
 	pause_overlay.visible = paused
 	if paused:
 		var stats := pause_overlay.find_child("PauseStats", true, false) as Label
@@ -1574,6 +1822,16 @@ func _set_pause(paused: bool) -> void:
 			})
 
 
+func _release_attack() -> void:
+	_attack_held = false
+	_mouse_attack_pressed = false
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_release_attack()
+
+
 func _update_camera(delta: float) -> void:
 	if not is_instance_valid(camera):
 		return
@@ -1583,6 +1841,8 @@ func _update_camera(delta: float) -> void:
 func debug_prepare_capture(mode: String) -> Dictionary:
 	story.visible = false
 	level_up_overlay.hide_options()
+	shop_overlay.visible = false
+	_shop_open = false
 	narrative.clear_line()
 	if is_instance_valid(_narrative_timer):
 		_narrative_timer.stop()
@@ -1592,6 +1852,7 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 	_event_line_index = _event_lines.size()
 	_scale_event_index = _scale_events.size()
 	elapsed = maxf(elapsed, 480.0)
+	_next_shop_time = elapsed + 99999.0
 	var capture_center := battlefield.player_spawn_position()
 	player["pos"] = capture_center
 	player["hp"] = float(player["max_hp"])
@@ -1604,6 +1865,7 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 		_recompute_stats()
 	player["shield_max"] = 45.0
 	player["shield"] = 45.0
+	run_coin = maxi(run_coin, 999)
 	camera.position = capture_center
 	battlefield.player_pos = capture_center
 	battlefield.clear_all_effects()
@@ -1626,7 +1888,25 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 			"arc": 1.3,
 			"color": Color(0.94, 0.74, 0.35, 0.55),
 		})
-	if mode == "choice":
+	if mode == "shop":
+		if mercenaries.is_empty():
+			_hire_mercenary("yishi_spear")
+			_hire_mercenary("wangpei_spirit")
+		_open_shop()
+	elif mode == "mercenary":
+		if mercenaries.is_empty():
+			_hire_mercenary("yishi_spear")
+			_hire_mercenary("qijia_guest")
+			_hire_mercenary("wangpei_spirit")
+		var ally_center := player["pos"] as Vector2
+		for i in range(12):
+			var angle := TAU * float(i) / 12.0
+			battlefield.spawn_enemy_at(
+				["scout", "ronin", "archer", "shield"][i % 4],
+				ally_center + Vector2(cos(angle), sin(angle)) * 150.0
+			)
+		hud.show_banner(Locale.t("capture.mercenary_title"), Locale.t("capture.mercenary_sub"), 8.0)
+	elif mode == "choice":
 		_paused = true
 		var showcase: Array[Dictionary] = []
 		var cards := UpgradeCatalog.build_card_pool(card_levels, used_events, 0.8)
@@ -1642,6 +1922,50 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 			"pool": _upgrade_pool_count(),
 			"taken": card_levels.size() + passives.size() + weapons.size(),
 		})
+	elif mode == "fx":
+		_paused = true
+		var weapon_ids := ["saber", "spear", "bow", "musket", "shield", "dragon_lantern", "cannon", "banner"]
+		for i in range(weapon_ids.size()):
+			var angle := TAU * float(i) / float(weapon_ids.size())
+			var direction := Vector2(cos(angle), sin(angle))
+			battlefield.play_player_attack_fx(
+				str(weapon_ids[i]),
+				capture_center + direction * 76.0,
+				direction,
+				i % 2 == 1
+			)
+		var enemy_ids := ["scout", "ronin", "archer", "shield", "gun", "banner", "general", "daimyo"]
+		for i in range(enemy_ids.size()):
+			var angle := TAU * (float(i) + 0.5) / float(enemy_ids.size())
+			var direction := Vector2(cos(angle), sin(angle))
+			battlefield.play_enemy_attack_fx(
+				str(enemy_ids[i]),
+				capture_center + direction * 142.0,
+				direction
+			)
+		var ally_ids := [
+			"yishi_spear",
+			"yishi_archer",
+			"tengpai_militia",
+			"bird_gunner",
+			"standard_bearer",
+			"qijia_guest",
+			"wangpei_spirit",
+			"wangde_spirit",
+		]
+		for i in range(ally_ids.size()):
+			var angle := TAU * float(i) / float(ally_ids.size())
+			var direction := Vector2(cos(angle), sin(angle))
+			battlefield.play_ally_attack_fx(
+				str(ally_ids[i]),
+				capture_center + direction * 214.0,
+				direction
+			)
+		battlefield.play_impact_fx(capture_center + Vector2(0, -150), "critical", 1.2)
+		battlefield.play_impact_fx(capture_center + Vector2(150, 0), "armored", 1.0)
+		battlefield.play_impact_fx(capture_center + Vector2(-150, 0), "heavy", 1.0)
+		battlefield.update_world(0.0, player, 0.0)
+		battlefield.queue_redraw()
 	else:
 		_cast_skill("slow", 2)
 		_cast_skill("burn", 2)
@@ -1698,6 +2022,7 @@ func _hud_state() -> Dictionary:
 		"level": level,
 		"kills": kills,
 		"merit": merit,
+		"coin": run_coin,
 		"elapsed": elapsed,
 		"duration": duration,
 		"oil": player.get("oil", 0),
@@ -1706,6 +2031,9 @@ func _hud_state() -> Dictionary:
 		"weapons": weapon_views,
 		"passives": passives,
 		"passive_summary": " · ".join(passive_parts),
+		"mercenary_summary": _shop_mercenary_info().get("names", ""),
+		"mercenary_count": mercenaries.size(),
+		"mercenary_max": int(shop_data.get("max_mercenaries", 3)),
 		"skills": active_skills.size(),
 		"cards": card_levels.size(),
 		"move_hint": Locale.t("hud.move_hint"),

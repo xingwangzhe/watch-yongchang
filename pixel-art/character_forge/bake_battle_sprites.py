@@ -27,9 +27,11 @@ import build as forge  # noqa: E402
 ROOT = forge.ROOT
 ENEMY_DATA = ROOT / "game" / "data" / "enemies.json"
 CHARACTER_DATA = ROOT / "game" / "data" / "characters.json"
+MERCENARY_DATA = ROOT / "game" / "data" / "mercenaries.json"
 OUTPUT_ROOT = ROOT / "game" / "assets" / "units" / "forge"
 ENEMY_CONTACT_SHEET = Path(__file__).resolve().parent / "enemy_roster.png"
 PLAYER_CONTACT_SHEET = Path(__file__).resolve().parent / "player_roster.png"
+MERCENARY_CONTACT_SHEET = Path(__file__).resolve().parent / "mercenary_roster.png"
 REFERENCE_TRIO_SHEET = Path(__file__).resolve().parent / "reference_trio_actions.png"
 REFERENCE_TRIO_IDS = ("agong", "amei", "aqi")
 REFERENCE_TRIO_CLIPS = ("idle", "walk", "attack_1")
@@ -178,9 +180,11 @@ def output_path(resource_path: str) -> Path:
 def main() -> None:
     enemies = load_enemies()
     characters = json.loads(CHARACTER_DATA.read_text(encoding="utf-8")).get("characters", {})
+    mercenaries = json.loads(MERCENARY_DATA.read_text(encoding="utf-8")).get("mercenaries", {})
     atlases = forge.load_preview_atlases()
     enemy_rows: list[tuple[str, Image.Image]] = []
     player_rows: list[tuple[str, Image.Image]] = []
+    mercenary_rows: list[tuple[str, Image.Image]] = []
     for enemy_id, definition in enemies.items():
         recipe = definition.get("character_recipe")
         if not isinstance(recipe, dict):
@@ -227,12 +231,38 @@ def main() -> None:
                 f"-> {output.relative_to(ROOT)}"
             )
         player_rows.append((character_id, walk))
+    for mercenary_id, definition in mercenaries.items():
+        recipe = definition.get("character_recipe")
+        if not isinstance(recipe, dict):
+            raise ValueError(f"{mercenary_id} is missing character_recipe")
+        if str(recipe.get("faction", "")) != "ming":
+            raise ValueError(f"{mercenary_id} must be a Ming allied unit")
+        idle = bake_strip(recipe, "idle", atlases)
+        walk = bake_strip(recipe, "walk", atlases)
+        for clip_name, strip, path_key, frames_key in (
+            ("idle", idle, "battle_idle", "battle_idle_frames"),
+            ("walk", walk, "battle_walk", "battle_walk_frames"),
+        ):
+            output = output_path(str(definition[path_key]))
+            output.parent.mkdir(parents=True, exist_ok=True)
+            strip.save(output, optimize=True)
+            if int(definition.get(frames_key, 0)) != len(clip_frames(clip_name)):
+                raise ValueError(
+                    f"{mercenary_id} {clip_name} frame count does not match "
+                    f"{len(clip_frames(clip_name))}"
+                )
+            print(
+                f"baked ally {mercenary_id}/{clip_name}: {strip.width}x{strip.height} "
+                f"-> {output.relative_to(ROOT)}"
+            )
+        mercenary_rows.append((mercenary_id, walk))
     missing_trio = [character_id for character_id in REFERENCE_TRIO_IDS if character_id not in characters]
     if missing_trio:
         raise ValueError(f"reference trio characters missing: {missing_trio}")
     build_reference_trio_sheet(characters, atlases)
     build_contact_sheet(enemy_rows, ENEMY_CONTACT_SHEET)
     build_contact_sheet(player_rows, PLAYER_CONTACT_SHEET)
+    build_contact_sheet(mercenary_rows, MERCENARY_CONTACT_SHEET)
 
 
 if __name__ == "__main__":

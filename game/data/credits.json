@@ -14,9 +14,9 @@
 					"Vampire Survivors-like 割草生存 Roguelite",
 					"主题：守 · 望 / 永昌堡与明代抗倭记忆",
 					"2026 OSGJ 开源游戏开发大赛参赛作品",
-					"当前版本：v0.2 · 可玩原型",
-					"已完成：序章 1386 宁村所、正篇 1559 永昌堡割草生存、双堡图鉴、灯火风险收益、龙鳞清屏、剧情字幕与 MOSS-TTS-Nano 语音",
-					"玩法：16 分钟单局、自动攻击、六兵器进化、升级三选一、五色龙鳞与 Boss；操作 W/A/S/D 移动，Space 冲刺，Esc 暂停",
+					"当前版本：v0.5 · 军市与义师",
+					"已完成：序章 1386 宁村所、正篇 1559 永昌堡割草生存、双堡图鉴、灯火风险收益、龙鳞清屏、剧情字幕与 MOSS-TTS-Nano 语音、局内军市与 CharacterForge 佣兵",
+					"玩法：16 分钟单局、鼠标瞄准、长按左键攻击、六兵器进化、升级三选一、每 120 秒军市、最多 3 名佣兵、五色龙鳞与 Boss；操作 W/A/S/D 移动，Space 冲刺，Esc 暂停",
 					"历史边界：汤和只做 1386 序章主角；1559 正篇主角为虚构守灯乡勇王陆/阿六",
 					"策划、程序、像素美术与整合：xingwangzhe"
 				],
@@ -25,9 +25,9 @@
 					"A Vampire Survivors-like survival roguelite",
 					"Theme: Guard · Gaze / Yongchang Fort and Ming-era coastal defense",
 					"A 2026 OSGJ open-source game development entry",
-					"Current build: v0.2 · playable prototype",
-					"Done: the 1386 Ningcun prologue, the 1559 Yongchang survival run, the two-forts codex, lantern risk/reward, dragon-scale clears, narrative subtitles, and MOSS-TTS-Nano voice",
-					"Gameplay: a 16-minute run, auto-attack, six evolving weapons, one-of-three upgrades, five-colour dragon scales, and a boss; W/A/S/D moves, Space dashes, and Esc pauses",
+					"Current build: v0.5 · Lantern Market and Righteous Company",
+					"Done: the 1386 Ningcun prologue, the 1559 Yongchang survival run, the two-forts codex, lantern risk/reward, dragon-scale clears, narrative subtitles, MOSS-TTS-Nano voice, an in-run market, and CharacterForge retinue",
+					"Gameplay: a 16-minute run with mouse aiming and hold-to-attack, six evolving weapons, one-of-three upgrades, a market every 120 seconds, up to three retinue units, five-colour dragon scales, and a boss; W/A/S/D moves, Space dashes, and Esc pauses",
 					"Historical boundary: Tang He is the prologue protagonist only in 1386; the 1559 protagonist is the fictional lamp-watch militia Wang Lu / A-Liu",
 					"Design, code, pixel art, and integration: xingwangzhe"
 				]
@@ -37,6 +37,9 @@
 				"title_en": "Controls & System",
 				"lines_zh": [
 					"主菜单：↑↓ 选择，Enter 确认，Esc 关闭设置面板。",
+					"战斗：鼠标位置控制攻击方向和角色朝向；按住左键按武器冷却连续攻击，松开即停手。",
+					"军市：每 120 秒在升级之后开市；按 1/2/3 购买兵器、装备或佣兵，R 重掷，Enter 继续。",
+					"精灵朝向：水平移动会镜像左右；攻击时优先面向鼠标，避免反向位移。",
 					"设置项：BGM/音效、全屏、帧率上限、垂直同步、语言与渲染后端；变更即时写入配置。",
 					"自动存档：菜单、设置变化、开局、退出与每 20 秒写入 user://savegame.json。",
 					"渲染后端切换后不能热生效；设置页会提示“重启游戏以应用渲染变更”，并提供“立即重启”。",
@@ -45,6 +48,9 @@
 				],
 				"lines_en": [
 					"Menu: ↑↓ to select, Enter to confirm, Esc to close the settings panel.",
+					"Combat: the mouse sets attack and character direction; hold left-click to fire by weapon cooldown and release to stop.",
+					"The market opens every 120 seconds after upgrades; press 1/2/3 for weapons, gear, or retinue, R to reroll, and Enter to continue.",
+					"Sprite facing: horizontal movement mirrors left/right; attacks face the mouse so reverse movement never shows the wrong side.",
 					"Settings: music/SFX, fullscreen, frame limit, VSync, language, and renderer; changes are saved immediately.",
 					"Autosave: menu, settings changes, run start, quit, and every 20 seconds to user://savegame.json.",
 					"Renderer changes are not hot-swapped; the settings panel says 'Restart the game to apply the renderer change' and offers 'Restart now'.",
@@ -246,7 +252,8 @@
 					"地图环境动效图集：红灯笼、渔舟、明军旗与烽火四组 4 帧循环，32×32×4×4，源文件 pixel-art/yongchang_tiles/build.py，按 CC BY 4.0 发布。",
 					"瓦片文化取向：明代浙南沿海抗倭堡垒；青灰石墙、黛瓦、白灰墙、红漆门、马头墙、水关、烽火、拒马、渔舟、芦苇滩与石敢当；未使用日式瓦片或日式识别物。",
 					"原创角色精灵：主角戚继光 128×128×16 帧；倭寇 16 类各 128×128×16 帧；按肩肘髋膝踝关节逐帧重绘，含待机 2、行走 8、攻击 6 帧；源文件 pixel-art/actors/build.py，按 CC BY 4.0 发布。主角为原创像素形象，非历史肖像。",
-					"角色锻造模板图集：4 肤色 × 16 服装 × 14 头饰 × 5 背挂 × 59 套主副手组合，共 264,320 条原始行；按阵营隔离后为明军 59,392 种、倭寇 15,360 种，合计 74,752 种；128×128×48 帧；19 类武器（含 2 件副手盾）各 5 段具名动作，并区分单手、双手、远程与副手；22 套人体骨架含 3 类双持组合与 42 个合法配对；明军专属为狼筅、戚家刀、藤牌、镋钯、戚家军甲，倭寇专属为倭刀、胴丸、腹卷、阵笠；通用装备可供双方搭配，明倭装备禁止混装；肩肘髋膝踝共享骨架端点，所有握法双臂固定在躯干前层；双持主手按真实配对行生成，盾与副手为独立层；新增明军弓手软帽、龙灯朱金抹额与明军箭囊；远射位、龙灯位与旗令位按用户参考图重绘脸型、体态与装备，验收输出为 pixel-art/character_forge/reference_trio_actions.png 及三张对应 GIF；八类敌兵与七名战斗角色的待机/行走条由 pixel-art/character_forge/bake_battle_sprites.py 按配装烘焙；源文件 pixel-art/character_forge/build.py，按 CC BY 4.0 发布。参考包仅研究动作结构，未打包。",
+					"角色锻造模板图集：4 肤色 × 16 服装 × 14 头饰 × 5 背挂 × 59 套主副手组合，共 264,320 条原始行；按阵营隔离后为明军 59,392 种、倭寇 15,360 种，合计 74,752 种；128×128×48 帧；19 类武器（含 2 件副手盾）各 5 段具名动作，并区分单手、双手、远程与副手；22 套人体骨架含 3 类双持组合与 42 个合法配对；明军专属为狼筅、戚家刀、藤牌、镋钯、戚家军甲，倭寇专属为倭刀、胴丸、腹卷、阵笠；通用装备可供双方搭配，明倭装备禁止混装；肩肘髋膝踝共享骨架端点，所有握法双臂固定在躯干前层；双持主手按真实配对行生成，盾与副手为独立层；新增明军弓手软帽、龙灯朱金抹额与明军箭囊；远射位、龙灯位与旗令位按用户参考图重绘脸型、体态与装备，验收输出为 pixel-art/character_forge/reference_trio_actions.png 及三张对应 GIF；八类敌兵、七名战斗角色与八类佣兵的待机/行走条由 pixel-art/character_forge/bake_battle_sprites.py 按配装烘焙；源文件 pixel-art/character_forge/build.py，按 CC BY 4.0 发布。参考包仅研究动作结构，未打包。",
+					"佣兵外观：义师枪兵、义师弓手、藤牌乡兵、鸟铳手、令旗手、戚家军客兵、王沛英魂、王德英魂共 8 类；每类 4 帧待机 + 8 帧行走，128×128，导出到 game/assets/units/forge/allies/；配装校验限定明军阵营，前史人物只作英魂香火演绎。验收合图为 pixel-art/character_forge/mercenary_roster.png，授权原创非代码资产 CC BY 4.0。",
 					"倭寇类型按明代抗倭史料与 GDD 设计为反派；日式阵笠、胴丸、铁炮等仅用于敌方识别，不用于明军与主角。",
 					"UI 面板与控件素材：WorkBuddy ImageGen 生成面板底板，tools/build_ui_controls.py 派生按钮、下拉、滑条、开关、滚动条与提示框；原创非代码资产 CC BY 4.0，详见《AI 使用与素材声明》。",
 					"第三方音乐、字体、音效保留原许可；署名与来源见上方条目。",
@@ -263,7 +270,8 @@
 					"Animated map props: four 4-frame loops for red lanterns, fishing boats, Ming banners, and beacon fire at 32×32 per frame, generated by pixel-art/yongchang_tiles/build.py, released under CC BY 4.0.",
 					"Tile art direction: a Ming-era coastal fort in southern Zhejiang; grey stone walls, dark roof tiles, whitewashed walls, red-lacquer gates, stepped gables, water gates, beacon fires, chevaux-de-frise, fishing boats, reed flats, and stone guardians. No Japanese tiles or Japanese identity markers are used.",
 					"Original actor sprites: hero Qi Jiguang at 128×128 across 16 frames; 16 wokou types at 128×128 across 16 frames each. Shoulder, elbow, hip, knee, and ankle joints are rebuilt per frame, with 2 idle, 8 walk, and 6 attack frames; generated by pixel-art/actors/build.py, released under CC BY 4.0. The hero is an original pixel depiction, not a historical portrait.",
-					"Character-forge template atlases: 4 skins × 16 outfits × 14 headgear × 5 backgear × 59 main/offhand loadouts, yielding 264,320 raw rows; faction isolation leaves 59,392 Ming and 15,360 Wokou combinations, 74,752 legal combinations total; 128×128 across 48 frames; 19 weapon classes (including two offhand shields) each with five named actions, separated into one-handed, two-handed, ranged, and offhand grips; 22 body skeletons including three dual-wield combo families and 42 legal pairs; Ming-exclusive gear is the wolf brush, Qi family saber, rattan shield, tangpa, and Qi Jia armour; Wokou-exclusive gear is the wokou saber, do-maru, haramaki, and jingasa; common gear can be used by either side, while Ming and Wokou gear are never mixed; shared shoulder/elbow/hip/knee/ankle endpoints and both arms locked to the front of the torso for every grip; dual-wield main hands use pair-specific weapon rows, with shield/offhand on a separate layer; added Ming archer soft cap, dragon-lantern gold band, and Ming arrow quiver; redrew the face, build, and equipment for the ranged, dragon-lantern, and banner posts from user references, with acceptance outputs at pixel-art/character_forge/reference_trio_actions.png and three matching GIFs; idle and walk strips for eight enemy classes and seven battle characters are baked from their loadouts by pixel-art/character_forge/bake_battle_sprites.py; generated by pixel-art/character_forge/build.py, released under CC BY 4.0. Reference packs informed motion structure only and are not packaged.",
+					"Character-forge template atlases: 4 skins × 16 outfits × 14 headgear × 5 backgear × 59 main/offhand loadouts, yielding 264,320 raw rows; faction isolation leaves 59,392 Ming and 15,360 Wokou combinations, 74,752 legal combinations total; 128×128 across 48 frames; 19 weapon classes (including two offhand shields) each with five named actions, separated into one-handed, two-handed, ranged, and offhand grips; 22 body skeletons including three dual-wield combo families and 42 legal pairs; Ming-exclusive gear is the wolf brush, Qi family saber, rattan shield, tangpa, and Qi Jia armour; Wokou-exclusive gear is the wokou saber, do-maru, haramaki, and jingasa; common gear can be used by either side, while Ming and Wokou gear are never mixed; shared shoulder/elbow/hip/knee/ankle endpoints and both arms locked to the front of the torso for every grip; dual-wield main hands use pair-specific weapon rows, with shield/offhand on a separate layer; added Ming archer soft cap, dragon-lantern gold band, and Ming arrow quiver; redrew the face, build, and equipment for the ranged, dragon-lantern, and banner posts from user references, with acceptance outputs at pixel-art/character_forge/reference_trio_actions.png and three matching GIFs; idle and walk strips for eight enemy classes, seven battle characters, and eight retinue classes are baked from their loadouts by pixel-art/character_forge/bake_battle_sprites.py; generated by pixel-art/character_forge/build.py, released under CC BY 4.0. Reference packs informed motion structure only and are not packaged.",
+					"Retinue art: eight classes of Righteous spearmen, archers, rattan-shield militia, bird-gun hands, standard-bearers, Qi-family guest soldiers, and the incense spirits of Wang Pei and Wang De; each has four idle and eight walk frames at 128×128, exported to game/assets/units/forge/allies/. Recipes are Ming-only; earlier historical figures appear only as incense-spirit drama. Acceptance sheet: pixel-art/character_forge/mercenary_roster.png, original non-code assets under CC BY 4.0.",
 					"Wokou types follow Ming-era coastal-defense records and the GDD as antagonists; Japanese-style hats, armour, and matchlocks identify the enemy only and are not used for the Ming hero or allies.",
 					"UI panels and controls: panel base generated with WorkBuddy ImageGen; buttons, dropdowns, sliders, toggles, scrollbars, and tooltips derived by tools/build_ui_controls.py; original non-code assets under CC BY 4.0. See the AI Use & Asset Statement.",
 					"Third-party music, fonts, and sound effects keep their original licenses; see the entries above.",
@@ -1086,6 +1094,11 @@
 			"title": "Bun",
 			"license": "MIT",
 			"url": "https://bun.sh"
+		},
+		{
+			"title": "Jeff-FX-forge 1.1",
+			"license": "Code MIT · original FX art CC0 1.0",
+			"url": "https://github.com/jeffstudio-dev/Jeff-FX-forge"
 		},
 		{
 			"title": "ffmpeg",

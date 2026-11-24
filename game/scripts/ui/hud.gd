@@ -22,6 +22,7 @@ var _timer_label: Label
 var _clock_label: Label
 var _kill_label: Label
 var _merit_label: Label
+var _coin_label: Label
 var _oil_meter: OilMeter
 var _scale_meter: ScaleMeter
 var _oil_label: Label
@@ -63,12 +64,22 @@ func update_hud(state: Dictionary) -> void:
 	_clock_label.text = Locale.t("hud.dawn_in", {"time": _clock_text(maxf(0.0, float(state.get("duration", 960.0)) - float(state.get("elapsed", 0.0))), 960.0)})
 	_kill_label.text = Locale.t("hud.kills", {"count": int(state.get("kills", 0))})
 	_merit_label.text = Locale.t("hud.merit", {"count": int(state.get("merit", 0))})
+	_coin_label.text = Locale.t("hud.coin", {"count": int(state.get("coin", 0))})
 	_oil_meter.set_values(int(state.get("oil", 0)), int(state.get("oil_max", 6)), bool(state.get("dark", false)))
 	_oil_label.text = Locale.t("hud.dark" if bool(state.get("dark", false)) else "hud.oil", {"current": int(state.get("oil", 0)), "max": int(state.get("oil_max", 6))})
 	_scale_meter.set_scales(state.get("scales", []) as Array)
 	_scale_label.text = Locale.t("hud.scales", {"count": (state.get("scales", []) as Array).size()})
 	_update_weapons(state.get("weapons", []) as Array)
-	_passive_label.text = str(state.get("passive_summary", ""))
+	var mercenary_summary := str(state.get("mercenary_summary", ""))
+	var passive_text := str(state.get("passive_summary", ""))
+	if int(state.get("mercenary_count", 0)) > 0:
+		var mercenary_text := Locale.t("hud.mercenary", {
+			"count": int(state.get("mercenary_count", 0)),
+			"max": int(state.get("mercenary_max", 3)),
+			"names": mercenary_summary,
+		})
+		passive_text = "%s · %s" % [passive_text, mercenary_text]
+	_passive_label.text = passive_text
 	_build_label.text = "%s · %s" % [
 		str(state.get("build_label", "")),
 		Locale.t("hud.build_extra", {
@@ -172,6 +183,11 @@ func _build() -> void:
 	_merit_label.position = Vector2(782, 45)
 	_merit_label.size = Vector2(212, 24)
 	_root.add_child(_merit_label)
+	_coin_label = _label("CoinLabel", "", 12, Color("#d8b45f"))
+	_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_coin_label.position = Vector2(782, 69)
+	_coin_label.size = Vector2(212, 20)
+	_root.add_child(_coin_label)
 
 	_minimap = MINIMAP.new()
 	_minimap.name = "Minimap"

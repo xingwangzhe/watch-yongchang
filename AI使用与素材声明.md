@@ -125,6 +125,18 @@
 > 每个角色含待机 4 帧、行走 8 帧、攻击 6 帧；仍属项目原创程序化像素绘制，
 > 授权 **原创非代码资产 CC BY 4.0**，署名 xingwangzhe。
 >
+> **补充（2026-11-24，v1.26 军市佣兵）**：新增 8 类同代佣兵与义师单位：
+> 义师枪兵、义师弓手、藤牌乡兵、鸟铳手、令旗手、戚家军客兵、王沛英魂、王德英魂。
+> 外观仍由 `pixel-art/character_forge/build.py` 的裸体基底、服装、头饰、背挂与主副手
+> 图层程序化合成，`bake_battle_sprites.py` 读取 `game/data/mercenaries.json`，
+> 导出 `game/assets/units/forge/allies/<id>/{idle,walk}.png`；每类 4 帧待机 + 8 帧行走，
+> 128×128，不手改 PNG。配方强制 `faction=ming`；王沛、王德只作乡贤香火英魂，
+> 标 `民俗`，不写复生或亲临 1559。验收合图
+> `pixel-art/character_forge/mercenary_roster.png`。军市与佣兵攻击层复用
+> Jeff-FX-forge 已导出图集，新增 8 条友军攻击 profile；玩家 24 + 敌兵 16 + 友军 8，
+> 共 48 种战斗特效组合。以上均为项目原创程序化像素与原创配置，
+> 授权 **原创非代码资产 CC BY 4.0**，署名 xingwangzhe。
+>
 > **补充（2026-11-23，v1.23 剧情语音）**：新增 18 个剧情语音 OGG，覆盖 9 条核心对白的中英双语。
 > 文本来自 `game/data/narrative.json`，语音清单为 `game/data/voice_lines.json`；生成工具为
 > **OpenMOSS MOSS-TTS-Nano 100M ONNX**，本地 CPU 推理，Rust ONNX 运行时为
@@ -333,6 +345,11 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 - 游戏引擎：Godot 4.7.2-stable（开源，MIT 许可；版本锁定于 `game/.godot-version`）
   ——引擎本身不属于项目资产，按原许可使用。
 - 开发与采集工具：Python 3、PIL、Bun、Sharp、tesseract、trafilatura、pdftotext、Chrome DevTools Protocol、Git——均为通用工具，其输出数据按本节分类处理。
+- 攻击特效工具：Jeff-FX-forge 1.1（Jeff Studio，代码 MIT；原创特效 CC0 1.0）。
+  本作使用其像素工坊预设导出 `slash_*`、`hit_*`、`thrust`、`block_sparks`、
+  `ground_shockwave`、`energy_ring` 与 `explosion_*` 图集，再把帧矩形、锚点和
+  打击停顿接入 `game/data/attack_fx.json`。导出 PNG 未手改；组合、旋转、缩放与
+  命中叠层由项目 GDScript 完成。
 
 ### 5.4 第三方可商用素材（CC0 / CC-BY 3.0 / OFL 1.1）
 
@@ -346,6 +363,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 | Kenney UI Audio | Kenney | https://kenney.nl/assets/ui-audio | CC0 1.0 | 原始 OGG；选取 click2 / switch3 / click4 / switch1 / switch9；全局点击、确认、返回、拾取与事件提示 |
 | Kenney Impact Sounds | Kenney | https://kenney.nl/assets/impact-sounds | CC0 1.0 | 原始 OGG；选取 Soft / Punch / Plate / Generic / Bell / Metal 各一条；敌兵受击、击杀、精英击杀、升级、冲刺与 Boss 提示 |
 | golden-ui / Free UI Asset Pack 1 | buch / ctatz | https://opengameart.org/content/golden-ui ；https://opengameart.org/content/free-ui-asset-pack-1 | CC0 | 面板精灵裁切（九宫格）；白色符号染金色缩放 64×64（游戏内 UI 装饰与图标，详见 `generated/ui_thirdparty/LICENSES.md`） |
+| Jeff-FX-forge 1.1 像素攻击特效 16 组 | Jeff Studio | https://github.com/jeffstudio-dev/Jeff-FX-forge | 工具代码 MIT；原创特效 CC0 1.0 | 使用像素工坊预设导出的精灵图；按武器/命中/敌兵事件旋转、缩放、叠层播放；帧图未手改；许可全文随 `game/assets/fx/jeff_fx/LICENSE.txt` |
 | 霞鹜文楷 LXGW WenKai | LXGW（落霞孤鹜） | https://github.com/lxgw/LxgwWenKai | SIL Open Font License 1.1 | 未修改字体文件；随包 `game/assets/fonts/OFL.txt` |
 
 - **历史说明（v1.17）**：以下 DCSS 用途描述属于重建前旧守城玩法；当前重构场景使用 `game/assets/tiles/yongchang/` 的原创明式抗倭瓦片（CC BY 4.0），DCSS 目录保留作参考但当前场景未引用。
@@ -379,7 +397,7 @@ Godot 工程 `game/` 的运行代码由 WorkBuddy 会话助手（LLM）辅助编
 
 1. **项目代码**：原创代码采用 **GPL-3.0-or-later**，许可证全文见仓库根目录 `LICENSE`。任何分发或衍生作品须以同一许可开源并提供对应源码。
 2. **原创非代码资产**：设计文档、数值表、AI 生成并后处理的图片采用 **CC BY 4.0**。转载须署名并注明许可。
-3. **第三方内容**：当前重构场景的地形为项目原创明式抗倭瓦片 80 格（CC BY 4.0），不含第三方瓦片；历史 DCSS CC0 图块 106 张保留作参考但当前场景未引用。角色序列帧为项目原创像素资产（CC BY 4.0），不含第三方角色骨架；成品音频引入 CC-BY 3.0 BGM「Samurai Nights」（majadroid）、「Views From Atop the Jade Kings Throne」（Hitctrl），CC0 战斗 BGM「Hard Battle 1」（MintoDog），以及 CC0 音效（OpenGameArt 多作者、Kenney UI Audio、Kenney Impact Sounds）；字体为 OFL 1.1 霞鹜文楷；UI 装饰为 CC0。均保留原许可并按 TASL 署名，详见 5.4、5.5 与 `game/assets/audio/LICENSES.md`。
+3. **第三方内容**：当前重构场景的地形为项目原创明式抗倭瓦片 80 格（CC BY 4.0），不含第三方瓦片；历史 DCSS CC0 图块 106 张保留作参考但当前场景未引用。角色序列帧为项目原创像素资产（CC BY 4.0），不含第三方角色骨架；攻击特效来自 Jeff-FX-forge 1.1 的 MIT/CC0 工具与原创预设；成品音频引入 CC-BY 3.0 BGM「Samurai Nights」（majadroid）、「Views From Atop the Jade Kings Throne」（Hitctrl），CC0 战斗 BGM「Hard Battle 1」（MintoDog），以及 CC0 音效（OpenGameArt 多作者、Kenney UI Audio、Kenney Impact Sounds）；字体为 OFL 1.1 霞鹜文楷；UI 装饰为 CC0。均保留原许可并按 TASL 署名，详见 5.4、5.5 与 `game/assets/audio/LICENSES.md`。
 4. **署名呈现**：全部署名以关于页/片尾电影滚幕（自然滚动、滚轮接管、来源链接可点击）在游戏内呈现，数据源 `game/data/credits.json`，与 `素材授权清单.csv` 一一对应。
 5. **赛事资料**：主题、规则、文化素材的权利归组委会及相关权利人；本项目引用仅限本届参赛用途。
 6. **商标与标识**：官网合作伙伴标识未用于成品，不构成任何授权或背书表示。

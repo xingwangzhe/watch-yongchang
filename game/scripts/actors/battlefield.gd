@@ -9,6 +9,7 @@ signal scale_collected(color: String)
 signal oil_collected(amount: int)
 signal heal_collected(amount: float)
 signal xp_collected(amount: float)
+signal ally_support(source_id: String, kind: String, amount: float)
 
 const CELL_SIZE := 64.0
 const VIEW_HALF := Vector2(720.0, 430.0)
@@ -20,6 +21,7 @@ const PAPER := Color("#efe1c2")
 const GOLD := Color("#e1b35a")
 
 var enemies: Array[Dictionary] = []
+var allies: Array[Dictionary] = []
 var orbs: Array[Dictionary] = []
 var oil_drops: Array[Dictionary] = []
 var heal_drops: Array[Dictionary] = []
@@ -27,6 +29,7 @@ var scale_drops: Array[Dictionary] = []
 var player_shots: Array[Dictionary] = []
 var enemy_shots: Array[Dictionary] = []
 var effects: Array[Dictionary] = []
+var jeff_effects: Array[Dictionary] = []
 var floaters: Array[Dictionary] = []
 var spatial: Dictionary = {}
 var player_pos := Vector2.ZERO
@@ -35,6 +38,7 @@ var player_radius := 18.0
 var time := 0.0
 var rng := RandomNumberGenerator.new()
 var enemy_data: Dictionary = {}
+var mercenary_data: Dictionary = {}
 var textures: Dictionary = {}
 var enemy_sprite_frames: Dictionary = {}
 var player_idle_frames: Array[Texture2D] = []
@@ -45,6 +49,8 @@ var enemy_hp_mult := 1.0
 var map_layout: MapLayout
 var map_renderer: MapRenderer
 var map_definition: Dictionary = {}
+var attack_fx_data: Dictionary = {}
+var fx_animations: Dictionary = {}
 var _contact_cd := 0.0
 var _dead_count := 0
 var _screen_clear_timer := 0.0
@@ -73,12 +79,14 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 	map_renderer.name = "MapRenderer"
 	add_child(map_renderer)
 	map_renderer.build(map_layout, map_definition, seed_value)
+	_load_attack_fx()
 	player_pos = map_layout.start_pos
 	_last_player_pos = player_pos
 	map_layout.ensure_flow_field(player_pos)
 	_enemy_quad = QuadMesh.new()
 	_enemy_quad.size = Vector2.ONE
 	enemy_data = GameData.get_enemies()
+	mercenary_data = GameData.get_mercenaries()
 	for enemy_id in enemy_data.keys():
 		var definition: Dictionary = enemy_data[enemy_id]
 		var texture_path := str(definition.get("texture", ""))
@@ -135,6 +143,7 @@ func _load_sprite_frames(path: String, frame_count: int) -> Array[Texture2D]:
 
 func reset(seed_value: int = 20261123) -> void:
 	enemies.clear()
+	allies.clear()
 	orbs.clear()
 	oil_drops.clear()
 	heal_drops.clear()
@@ -142,6 +151,7 @@ func reset(seed_value: int = 20261123) -> void:
 	player_shots.clear()
 	enemy_shots.clear()
 	effects.clear()
+	jeff_effects.clear()
 	floaters.clear()
 	spatial.clear()
 	time = 0.0
@@ -169,6 +179,7 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	_screen_clear_timer = maxf(0.0, _screen_clear_timer - delta)
 	_dragon_phase += delta * 1.7
 	_rebuild_spatial()
+	_update_allies(delta, player)
 	_update_enemies(delta, player, enemy_speed_mult)
 	_update_player_shots(delta)
 	_update_enemy_shots(delta, player)
@@ -238,6 +249,7 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"boss": is_boss,
 		"scale_color": elite_color,
 		"sprite_fps": float(definition.get("sprite_fps", 10.0)),
+		"facing_x": -1.0,
 		"tex": textures.get(enemy_id, null) as Texture2D,
 		"alive": true,
 	}
@@ -249,6 +261,51 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 	if is_boss:
 		boss_spawned.emit(enemy_id, hp)
 	return enemies.size() - 1
+
+
+func spawn_ally(mercenary_id: String, position: Vector2) -> bool:
+	if not mercenary_data.has(mercenary_id):
+		return false
+	var definition: Dictionary = mercenary_data[mercenary_id] as Dictionary
+	var spawn_position := position
+	if map_layout != null:
+		spawn_position = map_layout.find_walkable_position(position, 14.0)
+	var idle_frames := _load_sprite_frames(
+		str(definition.get("battle_idle", "")),
+		maxi(1, int(definition.get("battle_idle_frames", 1)))
+	)
+	var walk_frames := _load_sprite_frames(
+		str(definition.get("battle_walk", "")),
+		maxi(1, int(definition.get("battle_walk_frames", 1)))
+	)
+	allies.append({
+		"id": mercenary_id,
+		"pos": spawn_position,
+		"hp": float(definition.get("hp", 70.0)),
+		"max_hp": float(definition.get("hp", 70.0)),
+		"speed": float(definition.get("speed", 116.0)),
+		"damage": float(definition.get("damage", 10.0)),
+		"radius": float(definition.get("radius", 17.0)),
+		"scale": float(definition.get("scale", 0.62)),
+		"attack_kind": str(definition.get("attack_kind", "cone")),
+		"attack_range": float(definition.get("attack_range", 130.0)),
+		"attack_cooldown": maxf(0.15, float(definition.get("attack_cooldown", 1.0))),
+		"attack_timer": rng.randf_range(0.1, 0.5),
+		"attack_arc": float(definition.get("attack_arc", 60.0)),
+		"projectile_speed": float(definition.get("projectile_speed", 520.0)),
+		"pierce": maxi(1, int(definition.get("pierce", 1))),
+		"knockback": float(definition.get("knockback", 16.0)),
+		"support_heal": float(definition.get("support_heal", 0.0)),
+		"rarity": str(definition.get("rarity", "common")),
+		"idle_frames": idle_frames,
+		"walk_frames": walk_frames,
+		"idle_fps": maxf(1.0, float(definition.get("battle_idle_fps", 6.0))),
+		"walk_fps": maxf(1.0, float(definition.get("battle_walk_fps", 10.0))),
+		"tint": Color(str(definition.get("tint", "#ffffff"))),
+		"facing_x": 1.0,
+		"moving": false,
+	})
+	return true
 
 
 func alive_count() -> int:
@@ -445,7 +502,7 @@ func magnet_all() -> void:
 	})
 
 
-func damage_enemy(index: int, damage: float, impulse: Vector2, color: Color = GOLD, critical: bool = false) -> void:
+func damage_enemy(index: int, damage: float, impulse: Vector2, color: Color = GOLD, critical: bool = false, show_fx: bool = true) -> void:
 	if index < 0 or index >= enemies.size():
 		return
 	var enemy := enemies[index]
@@ -456,6 +513,18 @@ func damage_enemy(index: int, damage: float, impulse: Vector2, color: Color = GO
 	enemy["hp"] = float(enemy["hp"]) - final_damage
 	enemy["knockback"] = (enemy["knockback"] as Vector2) + impulse
 	enemy["flash"] = 0.12
+	if show_fx and (
+		critical
+		or bool(enemy.get("boss", false))
+		or bool(enemy.get("elite", false))
+		or rng.randf() < 0.58
+	):
+		var impact_kind := "critical" if critical else "normal"
+		if bool(enemy.get("boss", false)) or bool(enemy.get("elite", false)):
+			impact_kind = "heavy"
+		elif float(enemy.get("armor", 0.0)) >= 0.22 and rng.randf() < 0.28:
+			impact_kind = "armored"
+		play_impact_fx(enemy["pos"] as Vector2, impact_kind, clampf(float(enemy["radius"]) / 20.0, 0.75, 1.4))
 	if rng.randf() < 0.30 or critical or float(enemy["hp"]) <= 0.0:
 		_add_floater(
 			enemy["pos"] as Vector2,
@@ -476,6 +545,126 @@ func fire_player_projectile(origin: Vector2, direction: Vector2, speed: float, d
 		"ttl": 1.7,
 		"hit": [],
 		"color": color,
+	})
+
+
+func _load_attack_fx() -> void:
+	attack_fx_data = GameData.load_json("res://data/attack_fx.json")
+	fx_animations.clear()
+	for animation_id in (attack_fx_data.get("animations", {}) as Dictionary).keys():
+		var source: Dictionary = attack_fx_data["animations"][animation_id] as Dictionary
+		var texture := GameData.texture(str(source.get("texture", "")))
+		if texture == null:
+			push_warning("Missing Jeff FX texture: %s" % source.get("texture", ""))
+			continue
+		var animation := source.duplicate(true)
+		animation["texture_res"] = texture
+		var durations: Array = animation.get("durations", []) as Array
+		var fps := maxf(1.0, float(animation.get("fps", 20.0)))
+		var starts: Array[float] = []
+		var total := 0.0
+		for duration in durations:
+			starts.append(total)
+			total += maxf(0.0, float(duration)) / fps
+		animation["starts"] = starts
+		animation["duration_seconds"] = total
+		fx_animations[animation_id] = animation
+
+
+func play_player_attack_fx(weapon_id: String, origin: Vector2, direction: Vector2, evolved: bool = false) -> void:
+	var profiles: Dictionary = attack_fx_data.get("player_weapons", {}) as Dictionary
+	if not profiles.has(weapon_id):
+		return
+	var profile: Dictionary = profiles[weapon_id] as Dictionary
+	var animation_id := str(profile.get("evolved" if evolved else "primary", ""))
+	if not fx_animations.has(animation_id):
+		animation_id = str(profile.get("primary", ""))
+	if animation_id.is_empty():
+		return
+	var aim := direction.normalized() if direction.length_squared() > 0.001 else player_facing.normalized()
+	if aim.length_squared() <= 0.001:
+		aim = Vector2.RIGHT
+	var offset := float(profile.get("offset", 0.0))
+	var scale_value := float(profile.get("evolved_scale" if evolved else "scale", 1.0))
+	_play_jeff_fx(animation_id, origin + aim * offset, {
+		"rotation": aim.angle() if bool(profile.get("rotate", true)) else 0.0,
+		"scale": scale_value,
+	})
+	if evolved and profile.has("evolved_accent"):
+		_play_jeff_fx(str(profile["evolved_accent"]), origin, {
+			"scale": float(profile.get("accent_scale", 0.75)),
+		})
+
+
+func play_enemy_attack_fx(enemy_id: String, origin: Vector2, direction: Vector2) -> void:
+	var profiles: Dictionary = attack_fx_data.get("enemy_attacks", {}) as Dictionary
+	if not profiles.has(enemy_id):
+		return
+	var profile: Dictionary = profiles[enemy_id] as Dictionary
+	var animation_id := str(profile.get("muzzle", ""))
+	if not fx_animations.has(animation_id):
+		return
+	var aim := direction.normalized() if direction.length_squared() > 0.001 else Vector2.RIGHT
+	_play_jeff_fx(animation_id, origin + aim * float(profile.get("offset", 0.0)), {
+		"rotation": aim.angle() if bool(profile.get("rotate", true)) else 0.0,
+		"scale": float(profile.get("scale", 1.0)),
+	})
+
+
+func play_ally_attack_fx(mercenary_id: String, origin: Vector2, direction: Vector2) -> void:
+	var profiles: Dictionary = attack_fx_data.get("ally_attacks", {}) as Dictionary
+	if not profiles.has(mercenary_id):
+		return
+	var profile: Dictionary = profiles[mercenary_id] as Dictionary
+	var animation_id := str(profile.get("muzzle", ""))
+	if not fx_animations.has(animation_id):
+		return
+	var aim := direction.normalized() if direction.length_squared() > 0.001 else Vector2.RIGHT
+	_play_jeff_fx(animation_id, origin + aim * float(profile.get("offset", 0.0)), {
+		"rotation": aim.angle() if bool(profile.get("rotate", true)) else 0.0,
+		"scale": float(profile.get("scale", 1.0)),
+		"flip_h": aim.x < 0.0 and not bool(profile.get("rotate", true)),
+		"color": Color(str(profile.get("color", "#ffffff"))),
+	})
+
+
+func play_enemy_impact_fx(enemy_id: String, position: Vector2, critical: bool = false) -> void:
+	var profiles: Dictionary = attack_fx_data.get("enemy_attacks", {}) as Dictionary
+	var profile: Dictionary = profiles.get(enemy_id, {}) as Dictionary
+	var kind := "critical" if critical else str(profile.get("impact", "normal"))
+	play_impact_fx(position, kind)
+
+
+func play_impact_fx(position: Vector2, kind: String = "normal", scale_mult: float = 1.0) -> void:
+	var impacts: Dictionary = attack_fx_data.get("impacts", {}) as Dictionary
+	if not impacts.has(kind):
+		kind = "normal"
+	if not impacts.has(kind):
+		return
+	var profile: Dictionary = impacts[kind] as Dictionary
+	var animation_id := str(profile.get("animation", ""))
+	if not fx_animations.has(animation_id):
+		return
+	_play_jeff_fx(animation_id, position, {
+		"scale": float(profile.get("scale", 1.0)) * scale_mult,
+	})
+
+
+func _play_jeff_fx(animation_id: String, position: Vector2, options: Dictionary = {}) -> void:
+	if not fx_animations.has(animation_id):
+		return
+	var animation: Dictionary = fx_animations[animation_id] as Dictionary
+	if jeff_effects.size() >= 180:
+		jeff_effects.pop_front()
+	jeff_effects.append({
+		"animation_id": animation_id,
+		"pos": position,
+		"age": -float(options.get("delay", 0.0)),
+		"duration": float(animation.get("duration_seconds", 0.5)),
+		"rotation": float(options.get("rotation", 0.0)),
+		"scale": maxf(0.05, float(options.get("scale", 1.0))),
+		"flip_h": bool(options.get("flip_h", false)),
+		"color": options.get("color", Color.WHITE) as Color,
 	})
 
 
@@ -517,6 +706,7 @@ func trigger_five_dragon(center: Vector2) -> void:
 
 func clear_all_effects() -> void:
 	effects.clear()
+	jeff_effects.clear()
 	floaters.clear()
 
 
@@ -530,6 +720,104 @@ func _rebuild_spatial() -> void:
 		if not spatial.has(key):
 			spatial[key] = []
 		(spatial[key] as Array).append(index)
+
+
+func _update_allies(delta: float, player: Dictionary) -> void:
+	var player_pos := player.get("pos", Vector2.ZERO) as Vector2
+	for ally in allies:
+		ally["attack_timer"] = float(ally["attack_timer"]) - delta
+		var position := ally["pos"] as Vector2
+		var target := nearest_enemy(position, 520.0)
+		var movement := Vector2.ZERO
+		var facing := float(ally.get("facing_x", 1.0))
+		if not target.is_empty():
+			var target_pos := target["pos"] as Vector2
+			var to_target := target_pos - position
+			var target_distance := maxf(0.001, to_target.length())
+			var direction := to_target / target_distance
+			facing = signf(direction.x) if absf(direction.x) > 0.01 else facing
+			var can_engage := position.distance_to(player_pos) < 390.0
+			if can_engage and target_distance <= float(ally["attack_range"]) + float(target["radius"]):
+				if float(ally["attack_timer"]) <= 0.0:
+					_ally_attack(ally, target, direction)
+					ally["attack_timer"] = float(ally["attack_cooldown"]) * rng.randf_range(0.92, 1.08)
+			elif can_engage and target_distance > float(ally["attack_range"]) * 0.72:
+				movement = direction
+		var follow := player_pos - position
+		var follow_distance := follow.length()
+		if follow_distance > 236.0:
+			movement = follow.normalized()
+		elif follow_distance < 64.0 and target.is_empty():
+			movement = -follow.normalized() * 0.4 if follow_distance > 0.01 else Vector2.ZERO
+		if movement.length_squared() > 0.001:
+			movement = movement.normalized()
+			var previous := position
+			position += movement * float(ally["speed"]) * delta
+			if map_layout != null:
+				position = map_layout.move_circle(
+					previous,
+					position,
+					clampf(float(ally["radius"]) * 0.68, 8.0, 22.0)
+				)
+			ally["facing_x"] = signf(movement.x) if absf(movement.x) > 0.01 else facing
+		else:
+			ally["facing_x"] = facing
+		ally["pos"] = position
+		ally["moving"] = movement.length_squared() > 0.001
+
+
+func _ally_attack(ally: Dictionary, target: Dictionary, direction: Vector2) -> void:
+	var position := ally["pos"] as Vector2
+	var damage := float(ally["damage"])
+	var kind := str(ally["attack_kind"])
+	var color := Color("#9fd0bd")
+	play_ally_attack_fx(str(ally["id"]), position, direction)
+	match kind:
+		"projectile":
+			fire_player_projectile(
+				position + direction * 16.0,
+				direction,
+				float(ally["projectile_speed"]),
+				damage,
+				int(ally["pierce"]),
+				color
+			)
+		"cone":
+			damage_cone(
+				position,
+				direction,
+				float(ally["attack_range"]),
+				float(ally["attack_arc"]),
+				damage,
+				float(ally["knockback"]),
+				color
+			)
+		"support":
+			damage_circle(
+				position,
+				float(ally["attack_range"]),
+				damage,
+				float(ally["knockback"]),
+				Color("#e0b85f")
+			)
+			if float(ally.get("support_heal", 0.0)) > 0.0:
+				ally_support.emit(str(ally["id"]), "heal", float(ally["support_heal"]))
+			add_effect({
+				"type": "aura",
+				"pos": position,
+				"ttl": 0.56,
+				"max_ttl": 0.56,
+				"radius": float(ally["attack_range"]),
+				"color": Color("#e0b85f"),
+			})
+		_:
+			damage_circle(
+				position,
+				float(ally["attack_range"]),
+				damage,
+				float(ally["knockback"]),
+				color
+			)
 
 
 func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> void:
@@ -551,6 +839,7 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 				float(enemy.get("burn_dps", 0.0)) * delta,
 				Vector2.ZERO,
 				Color("#e07845"),
+				false,
 				false
 			)
 			if not bool(enemy.get("alive", false)):
@@ -568,6 +857,7 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			if distance > float(enemy["attack_range"]) * 0.82:
 				movement = navigation
 			elif float(enemy["attack_timer"]) <= 0.0:
+				play_enemy_attack_fx(str(enemy["id"]), position, direction)
 				_fire_enemy_shot(position, direction, float(enemy["damage"]), float(enemy["projectile_speed"]))
 				enemy["attack_timer"] = float(enemy["attack_cooldown"])
 		elif behavior == "support":
@@ -581,6 +871,7 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 				enemy["dash_time"] = maxf(0.0, float(enemy["dash_time"]) - delta)
 				movement = (enemy["dash_dir"] as Vector2) * (3.4 if behavior == "boss" else 2.8)
 			elif float(enemy["charge_timer"]) <= 0.0 and distance < 520.0:
+				play_enemy_attack_fx(str(enemy["id"]), position, navigation)
 				enemy["dash_time"] = 0.34 if behavior == "boss" else 0.26
 				enemy["dash_dir"] = navigation
 				enemy["charge_timer"] = float(enemy["charge_cooldown"])
@@ -590,6 +881,10 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 		var speed := float(enemy["speed"]) * speed_mult * dark_speed * slow_factor
 		var previous_position := position
 		position += movement * speed * delta
+		if absf(movement.x) > 0.01:
+			enemy["facing_x"] = signf(movement.x)
+		elif absf(direction.x) > 0.01:
+			enemy["facing_x"] = signf(direction.x)
 		var knockback := enemy["knockback"] as Vector2
 		position += knockback * delta
 		enemy["knockback"] = knockback.move_toward(Vector2.ZERO, 520.0 * delta)
@@ -601,6 +896,7 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			)
 		enemy["pos"] = position
 		if distance < player_radius + float(enemy["radius"]) and _contact_cd <= 0.0:
+			play_enemy_attack_fx(str(enemy["id"]), position, direction)
 			player_hit.emit(float(enemy["damage"]))
 			_contact_cd = 0.70
 		if position.distance_squared_to(target) > 2100.0 * 2100.0:
@@ -718,9 +1014,14 @@ func _update_drop_array(drops: Array[Dictionary], target: Vector2, pickup_radius
 func _update_effects(delta: float) -> void:
 	for effect in effects:
 		effect["ttl"] = float(effect["ttl"]) - delta
+	for effect in jeff_effects:
+		effect["age"] = float(effect["age"]) + delta
 	for index in range(effects.size() - 1, -1, -1):
 		if float(effects[index]["ttl"]) <= 0.0:
 			effects.remove_at(index)
+	for index in range(jeff_effects.size() - 1, -1, -1):
+		if float(jeff_effects[index]["age"]) > float(jeff_effects[index]["duration"]):
+			jeff_effects.remove_at(index)
 	for floater in floaters:
 		floater["ttl"] = float(floater["ttl"]) - delta
 		floater["pos"] = (floater["pos"] as Vector2) + Vector2(0.0, -42.0) * delta
@@ -820,8 +1121,10 @@ func _draw() -> void:
 	_draw_light(center)
 	_draw_pickups()
 	_draw_enemies()
+	_draw_allies()
 	_draw_player()
 	_draw_projectiles()
+	_draw_jeff_fx()
 	_draw_effects()
 	_draw_floaters()
 	_draw_dragons()
@@ -951,7 +1254,10 @@ func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
 				color = Color(1.0, 0.72, 0.58, 1.0)
 			if float(enemy["flash"]) > 0.0:
 				color = Color(1.8, 1.8, 1.8, 1.0)
-		var xform := _enemy_instance_transform(position, size, shadow)
+		var facing_x := 1.0
+		if not shadow and float(enemy.get("facing_x", -1.0)) < 0.0:
+			facing_x = -1.0
+		var xform := _enemy_instance_transform(position, size, shadow, facing_x)
 		multimesh.set_instance_transform_2d(i, xform)
 		multimesh.set_instance_color(i, color)
 	for i in range(batch.size(), previous_count):
@@ -960,8 +1266,8 @@ func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
 	draw_multimesh(multimesh, tex)
 
 
-func _enemy_instance_transform(position: Vector2, size: float, _shadow: bool) -> Transform2D:
-	return Transform2D(0.0, Vector2(size, -size), 0.0, position)
+func _enemy_instance_transform(position: Vector2, size: float, _shadow: bool, facing_x: float = 1.0) -> Transform2D:
+	return Transform2D(0.0, Vector2(size * signf(facing_x), -size), 0.0, position)
 
 
 func _draw_player() -> void:
@@ -975,15 +1281,52 @@ func _draw_player() -> void:
 		var frame_index := posmod(int(time * fps), frames.size())
 		var draw_size := Vector2.ONE * PLAYER_SPRITE_SIZE
 		var body_bob := sin(time * 10.0) * 1.2 if _player_moving else sin(time * 2.0) * 0.5
+		var flip_x := -1.0 if player_facing.x < -0.01 else 1.0
+		draw_set_transform(player_pos + Vector2(0, body_bob), 0.0, Vector2(flip_x, 1.0))
 		var rect := Rect2(
-			player_pos - Vector2(PLAYER_SPRITE_SIZE * 0.5, PLAYER_SPRITE_SIZE * 0.79)
-				+ Vector2(0, body_bob),
+			Vector2(-PLAYER_SPRITE_SIZE * 0.5, -PLAYER_SPRITE_SIZE * 0.79),
 			draw_size
 		)
 		draw_texture_rect(frames[frame_index], rect, false, tint)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		draw_circle(player_pos, 22.0, Color("#d8b45a"))
 	draw_circle(player_pos + Vector2(0, -30), 5.0, Color(1.0, 0.78, 0.34, 0.48))
+
+
+func _draw_allies() -> void:
+	for ally in allies:
+		var position := ally["pos"] as Vector2
+		var scale_value := float(ally.get("scale", 0.62))
+		var size := PLAYER_SPRITE_SIZE * scale_value
+		draw_circle(position + Vector2(0, size * 0.16), size * 0.28, Color(0.0, 0.0, 0.0, 0.25))
+		if str(ally.get("rarity", "common")) in ["rare", "legendary"]:
+			var ring_color := Color("#79a9bf") if str(ally["rarity"]) == "rare" else Color("#d9a95f")
+			draw_arc(position + Vector2(0, 2), size * 0.38, 0.0, TAU, 18, Color(ring_color, 0.42), 1.5, true)
+		var frames: Array = (
+			ally["walk_frames"] as Array
+			if bool(ally.get("moving", false))
+			else ally["idle_frames"] as Array
+		)
+		if frames.is_empty():
+			frames = ally["walk_frames"] as Array
+		if frames.is_empty():
+			draw_circle(position, float(ally["radius"]), Color("#6f9f8f"))
+			continue
+		var fps := float(ally["walk_fps"]) if bool(ally.get("moving", false)) else float(ally["idle_fps"])
+		var frame_index := posmod(
+			int(time * fps) + str(ally["id"]).hash(),
+			frames.size()
+		)
+		var flip_x := -1.0 if float(ally.get("facing_x", 1.0)) < 0.0 else 1.0
+		draw_set_transform(position, 0.0, Vector2(flip_x, 1.0))
+		draw_texture_rect(
+			frames[frame_index] as Texture2D,
+			Rect2(Vector2(-size * 0.5, -size * 0.79), Vector2(size, size)),
+			false,
+			ally.get("tint", Color.WHITE) as Color
+		)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_projectiles() -> void:
@@ -996,6 +1339,56 @@ func _draw_projectiles() -> void:
 		var position := shot["pos"] as Vector2
 		draw_circle(position, 4.5, Color("#d65b45"))
 		draw_arc(position, 7.0, 0.0, TAU, 10, Color(0.9, 0.34, 0.24, 0.45), 1.0, true)
+
+
+func _draw_jeff_fx() -> void:
+	for effect in jeff_effects:
+		var age := float(effect["age"])
+		if age < 0.0:
+			continue
+		var animation: Dictionary = fx_animations.get(str(effect["animation_id"]), {}) as Dictionary
+		if animation.is_empty():
+			continue
+		var durations: Array = animation.get("durations", []) as Array
+		var starts: Array = animation.get("starts", []) as Array
+		var frame_index := 0
+		for index in range(starts.size()):
+			if age >= float(starts[index]):
+				frame_index = index
+		var rects: Array = animation.get("rects", []) as Array
+		if rects.is_empty():
+			continue
+		frame_index = mini(frame_index, rects.size() - 1)
+		@warning_ignore("integer_division")
+		var frame_rect: Array = rects[frame_index] as Array
+		var source_rect := Rect2(
+			float(frame_rect[0]),
+			float(frame_rect[1]),
+			float(frame_rect[2]),
+			float(frame_rect[3])
+		)
+		var pivot_data: Array = animation.get("pivot", [0.0, 0.0]) as Array
+		var pivot := Vector2(
+			float(pivot_data[0]) if pivot_data.size() > 0 else 0.0,
+			float(pivot_data[1]) if pivot_data.size() > 1 else 0.0
+		)
+		var scale_value := float(effect["scale"])
+		var flip_x := -1.0 if bool(effect.get("flip_h", false)) else 1.0
+		var color := effect.get("color", Color.WHITE) as Color
+		draw_set_transform(
+			effect["pos"] as Vector2,
+			float(effect["rotation"]),
+			Vector2(scale_value * flip_x, scale_value)
+		)
+		draw_texture_rect_region(
+			animation["texture_res"] as Texture2D,
+			Rect2(-pivot, source_rect.size),
+			source_rect,
+			color
+		)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if durations.is_empty():
+			continue
 
 
 func _draw_effects() -> void:
