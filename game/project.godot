@@ -22,6 +22,7 @@ GameSettings="*res://scripts/autoload/game_settings.gd"
 Locale="*res://scripts/autoload/locale.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"
 AudioBus="*res://scripts/autoload/audio_bus.gd"
+FeedbackManager="*res://scripts/feedback/feedback_manager.gd"
 
 [display]
 

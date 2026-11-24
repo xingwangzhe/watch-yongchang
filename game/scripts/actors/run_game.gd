@@ -248,6 +248,8 @@ func _build_world() -> void:
 	camera.limit_bottom = int(battlefield.map_layout.world_size.y)
 	add_child(camera)
 	camera.make_current()
+	# 反馈系统的 Trauma 震动写入 camera.offset（不干扰平滑跟随与画布坐标）
+	FeedbackManager.bind_camera(camera)
 
 
 func _build_ui() -> void:
