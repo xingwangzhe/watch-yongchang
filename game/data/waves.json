@@ -1,6 +1,14 @@
 {
   "duration_seconds": 960.0,
   "boss_second": 930.0,
+  "difficulty": {
+    "hp_start": 1.0,
+    "hp_end": 1.45,
+    "damage_start": 1.0,
+    "damage_end": 1.2,
+    "speed_start": 1.0,
+    "speed_end": 1.08
+  },
   "phases": [
     {
       "start": 0.0,

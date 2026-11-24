@@ -12,6 +12,8 @@ func _run() -> void:
 	root.add_child(run)
 	await process_frame
 	run.story._skip_all()
+	if OS.has_environment("WATCH_BALANCE_FLAT"):
+		run._difficulty_curve = {}
 	var steps := int(run.duration / STEP)
 	var max_steps := steps + int(120.0 / STEP)
 	var last_report := -1
@@ -22,6 +24,13 @@ func _run() -> void:
 		run._step(STEP)
 		while run.level_up_overlay.visible:
 			run._on_upgrade_chosen(_choose_upgrade(run))
+		if run._shop_open:
+			for index in range(run._current_shop_offers.size()):
+				var offer: Dictionary = run._current_shop_offers[index]
+				if not bool(offer.get("sold", false)) and int(offer.get("price", 0)) <= run.run_coin:
+					run._on_shop_buy(index)
+					break
+			run._on_shop_closed()
 		if run.story.visible:
 			run.story._skip_all()
 		if run.result_overlay.visible or run._game_over:
@@ -58,6 +67,11 @@ func _run() -> void:
 
 func _drive(run: Node, t: float) -> void:
 	var pos: Vector2 = run.player["pos"]
+	run._mouse_attack_pressed = true
+	var target: Dictionary = run.battlefield.nearest_enemy(pos, 720.0)
+	if not target.is_empty():
+		run._mouse_screen_pos = run.get_viewport().get_canvas_transform() * (target["pos"] as Vector2)
+		run._has_mouse_screen_pos = true
 	var away := Vector2.ZERO
 	var crowd := 0
 	for enemy in run.battlefield.enemies:
@@ -70,13 +84,23 @@ func _drive(run: Node, t: float) -> void:
 		away += offset / distance * (1.0 - distance / 260.0)
 		if distance < 105.0:
 			crowd += 1
-	var tangent := Vector2(-pos.y, pos.x)
+	var pickup := Vector2.ZERO
+	var pickup_distance := 280.0
+	for orb in run.battlefield.orbs:
+		var offset := (orb["pos"] as Vector2) - pos
+		var distance := offset.length()
+		if distance > 0.001 and distance < pickup_distance:
+			pickup_distance = distance
+			pickup = offset / distance * 1.8
+	var center: Vector2 = run.battlefield.player_spawn_position()
+	var from_center := pos - center
+	var tangent := Vector2(-from_center.y, from_center.x)
 	if tangent.length_squared() < 1.0:
 		tangent = Vector2(cos(t), sin(t))
 	tangent = tangent.normalized()
-	var desired := tangent * (0.72 + sin(t * 0.31) * 0.16) + away * 1.45
-	if pos.length() > 520.0:
-		desired += -pos.normalized() * 1.8
+	var desired := tangent * (0.72 + sin(t * 0.31) * 0.16) + away * 1.45 + pickup
+	if from_center.length() > 520.0:
+		desired += -from_center.normalized() * 1.8
 	if desired.length_squared() < 0.01:
 		desired = tangent
 	desired = desired.normalized()
@@ -101,7 +125,7 @@ func _choose_upgrade(run: Node) -> int:
 	for index in range(options.size()):
 		var option: Dictionary = options[index] as Dictionary
 		var score := 0
-		match str(option.get("kind", "")):
+		match str(option.get("family", "")):
 			"evolve":
 				score = 100
 			"weapon_upgrade":

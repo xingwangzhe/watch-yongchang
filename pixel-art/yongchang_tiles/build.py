@@ -208,8 +208,11 @@ def stone_road(s: Sprite, index: int, variant: int = 0) -> None:
         spans = ((1, 15), (17, 30)) if row == 0 else ((1, 7), (9, 23), (25, 30))
         for x0, x1 in spans:
             rect(s, ox, oy, x0, y0, x1, y1, STONE)
-            rect(s, ox, oy, x0, y0, min(x1, x0 + 7), y0, STONE_LIGHT)
-            rect(s, ox, oy, x0, y1, x1, y1, STONE_SHADOW)
+            # 上缘受光、下缘落影，让每块石板有清晰的凸起感。
+            rect(s, ox, oy, x0, y0, x1, y0, STONE_HIGHLIGHT)
+            rect(s, ox, oy, x0, y0 + 1, min(x1, x0 + 7), y0 + 1, STONE_LIGHT)
+            rect(s, ox, oy, x0, y1 - 1, x1, y1, STONE_SHADOW)
+            rect(s, ox, oy, x0, y1, x1, y1, INK)
     rng = random.Random(7100 + variant)
     for _ in range(14):
         x = rng.randrange(3, TILE - 3)
@@ -262,6 +265,8 @@ def dock_planks(s: Sprite, index: int, vertical: bool = True) -> None:
             rect(s, ox, oy, 0, y0 + 7, TILE - 1, y0 + 7, WOOD_DARK)
             for x in (8, 24):
                 px(s, ox + x, oy + y0 + 4, STONE_HIGHLIGHT)
+    # 桥面高出水面：只压南侧投影，横向拼接时不会出现一格格黑框。
+    rect(s, ox, oy, 0, TILE - 2, TILE - 1, TILE - 1, EARTH_DARKEST)
 
 
 def shore_side(s: Sprite, index: int, side: str) -> None:
@@ -273,27 +278,31 @@ def shore_side(s: Sprite, index: int, side: str) -> None:
             rect(s, ox, oy, pos, edge, pos, TILE - 1, EARTH)
             px(s, ox + pos, oy + edge, SAND)
             px(s, ox + pos, oy + edge + 1, EARTH_DARK)
-            if pos % 8 in (0, 1, 5):
+            rect(s, ox, oy, pos, edge - 3, pos, edge - 1, WATER_DEEP)
+            if pos % 4 in (0, 1):
                 px(s, ox + pos, oy + edge - 1, WATER_CREST)
         elif side == "s":
             boundary = TILE - 1 - edge
             rect(s, ox, oy, pos, 0, pos, boundary, EARTH)
             px(s, ox + pos, oy + boundary, SAND)
             px(s, ox + pos, oy + boundary - 1, EARTH_DARK)
-            if pos % 8 in (0, 1, 5):
+            rect(s, ox, oy, pos, boundary + 1, pos, boundary + 3, WATER_DEEP)
+            if pos % 4 in (0, 1):
                 px(s, ox + pos, oy + boundary + 1, WATER_CREST)
         elif side == "e":
             boundary = TILE - 1 - edge
             rect(s, ox, oy, 0, pos, boundary, pos, EARTH)
             px(s, ox + boundary, oy + pos, SAND)
             px(s, ox + boundary - 1, oy + pos, EARTH_DARK)
-            if pos % 8 in (0, 1, 5):
+            rect(s, ox, oy, boundary + 1, pos, boundary + 3, pos, WATER_DEEP)
+            if pos % 4 in (0, 1):
                 px(s, ox + boundary + 1, oy + pos, WATER_CREST)
         else:
             rect(s, ox, oy, edge, pos, TILE - 1, pos, EARTH)
             px(s, ox + edge, oy + pos, SAND)
             px(s, ox + edge + 1, oy + pos, EARTH_DARK)
-            if pos % 8 in (0, 1, 5):
+            rect(s, ox, oy, edge - 3, pos, edge - 1, pos, WATER_DEEP)
+            if pos % 4 in (0, 1):
                 px(s, ox + edge - 1, oy + pos, WATER_CREST)
     for _ in range(8):
         x = rng.randrange(2, TILE - 2)

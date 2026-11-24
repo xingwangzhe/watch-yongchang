@@ -16,6 +16,9 @@ signal tower_damaged(tower_id: String, ratio: float)
 const CELL_SIZE := 64.0
 const VIEW_HALF := Vector2(720.0, 430.0)
 const ENEMY_BATCH_CAPACITY := 512
+const HEALTH_BAR_INSTANCE_CAPACITY := 3000
+const WADE_SPEED_FACTOR := 0.62
+const WADE_SPLASH_CAPACITY := 90
 const ENEMY_SPRITE_BASE_SIZE := 96.0
 const PLAYER_SPRITE_SIZE := 96.0
 const TOWER_AGGRO := 360.0
@@ -37,6 +40,7 @@ var player_shots: Array[Dictionary] = []
 var enemy_shots: Array[Dictionary] = []
 var effects: Array[Dictionary] = []
 var jeff_effects: Array[Dictionary] = []
+var wade_splashes: Array[Dictionary] = []
 var floaters: Array[Dictionary] = []
 var _free_player_shots: Array[Dictionary] = []
 var _free_enemy_shots: Array[Dictionary] = []
@@ -46,6 +50,7 @@ var _free_oil_drops: Array[Dictionary] = []
 var _free_heal_drops: Array[Dictionary] = []
 var _free_scale_drops: Array[Dictionary] = []
 var _free_effects: Array[Dictionary] = []
+var _free_wade_splashes: Array[Dictionary] = []
 var spatial: Dictionary = {}
 var player_pos := Vector2.ZERO
 var player_facing := Vector2.RIGHT
@@ -79,6 +84,9 @@ var _dragon_phase := 0.0
 var _enemy_batches: Dictionary = {}
 var _enemy_batch_counts: Dictionary = {}
 var _enemy_quad: QuadMesh
+var _health_bar_batch: MultiMesh
+var _health_bar_texture: Texture2D
+var _health_bar_count := 0
 var _player_moving := false
 var _last_player_pos := Vector2.ZERO
 var _flow_timer := 0.0
@@ -106,6 +114,16 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 	map_layout.ensure_flow_field(player_pos)
 	_enemy_quad = QuadMesh.new()
 	_enemy_quad.size = Vector2.ONE
+	_health_bar_batch = MultiMesh.new()
+	_health_bar_batch.transform_format = MultiMesh.TRANSFORM_2D
+	_health_bar_batch.use_colors = true
+	_health_bar_batch.mesh = _enemy_quad
+	_health_bar_batch.instance_count = HEALTH_BAR_INSTANCE_CAPACITY
+	_health_bar_batch.visible_instance_count = 0
+	_health_bar_batch.custom_aabb = AABB(Vector3(-2400, -1800, 0), Vector3(4800, 3600, 0))
+	var white_pixel := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	white_pixel.fill(Color.WHITE)
+	_health_bar_texture = ImageTexture.create_from_image(white_pixel)
 	enemy_data = GameData.get_enemies()
 	mercenary_data = GameData.get_mercenaries()
 	_load_towers()
@@ -618,8 +636,40 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	_update_enemy_shots(delta, player)
 	_update_pickups(delta, player)
 	_update_effects(delta)
+	_update_wade_splashes(delta)
 	_cleanup_dead()
 	queue_redraw()
+
+
+## 涉水减速：水面且非桥面时生效；wade_bonus 为玩家“涉水”卡牌的减免。
+func wade_speed_factor(position: Vector2, wade_bonus: float = 0.0) -> float:
+	if map_layout == null or not map_layout.is_wade_position(position):
+		return 1.0
+	return lerpf(WADE_SPEED_FACTOR, 1.0, clampf(wade_bonus, 0.0, 1.0))
+
+
+## 涉水水花：每帧最多补少量实例，数据数组复用，不建节点。
+func spawn_wade_splash(position: Vector2, size: float = 1.0) -> void:
+	if wade_splashes.size() >= WADE_SPLASH_CAPACITY:
+		return
+	var splash := _take_pooled(_free_wade_splashes)
+	if splash.is_empty():
+		splash = {}
+	else:
+		splash.clear()
+	splash["pos"] = position + Vector2(rng.randf_range(-7.0, 7.0), rng.randf_range(-2.0, 4.0))
+	splash["ttl"] = 0.42
+	splash["max_ttl"] = 0.42
+	splash["size"] = maxf(0.6, size)
+	wade_splashes.append(splash)
+
+
+func _update_wade_splashes(delta: float) -> void:
+	for splash in wade_splashes:
+		splash["ttl"] = float(splash["ttl"]) - delta
+	for index in range(wade_splashes.size() - 1, -1, -1):
+		if float(wade_splashes[index]["ttl"]) <= 0.0:
+			_return_pooled(_free_wade_splashes, _swap_remove_at(wade_splashes, index))
 
 
 func spawn_enemy(enemy_id: String, center: Vector2, elite_color: String = "") -> int:
@@ -1247,7 +1297,12 @@ func _update_allies(delta: float, player: Dictionary) -> void:
 		if movement.length_squared() > 0.001:
 			movement = movement.normalized()
 			var previous := position
-			position += movement * float(ally["speed"]) * delta
+			var ally_speed := float(ally["speed"])
+			if map_layout != null:
+				ally_speed *= wade_speed_factor(position)
+			position += movement * ally_speed * delta
+			if ally_speed < float(ally["speed"]) * 0.99 and rng.randf() < 0.18:
+				spawn_wade_splash(position, 0.8)
 			if map_layout != null:
 				position = map_layout.move_circle(
 					previous,
@@ -1392,8 +1447,14 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			movement = Vector2.ZERO
 		var slow_factor := float(enemy.get("slow_factor", 1.0)) if float(enemy.get("slow_timer", 0.0)) > 0.0 else 1.0
 		var speed := float(enemy["speed"]) * speed_mult * dark_speed * slow_factor
+		if map_layout != null:
+			speed *= wade_speed_factor(position)
 		var previous_position := position
 		position += movement * speed * delta
+		if speed < float(enemy["speed"]) * speed_mult * dark_speed * slow_factor * 0.99 \
+				and movement.length_squared() > 0.01:
+			if rng.randf() < 0.16:
+				spawn_wade_splash(position, clampf(float(enemy["radius"]) / 18.0, 0.7, 1.8))
 		# 朝向滞回：只有横向分量足够明确时才翻面，避免贴塔/贴人时逐帧左右抖。
 		var horizontal := absf(movement.x) if movement.length_squared() > 0.0001 else absf(direction.x)
 		if horizontal >= 0.30:
@@ -1686,6 +1747,7 @@ func _draw() -> void:
 	_draw_allies()
 	_draw_player()
 	_draw_health_bars()
+	_draw_wade_splashes()
 	_draw_projectiles()
 	_draw_tower_shots()
 	_draw_jeff_fx()
@@ -1960,8 +2022,8 @@ func _draw_player() -> void:
 
 
 func _draw_health_bars() -> void:
-	# 除玩家外的所有单位都带血条：敌兵、箭塔、佣兵。
-	# 血条只画薄薄一条，不铺底板，保持画面干净。
+	# 除玩家外的所有单位都带血条；背景、填色和细边框共享一次批量绘制。
+	_health_bar_count = 0
 	for enemy in enemies:
 		if not bool(enemy.get("alive", false)):
 			continue
@@ -2001,18 +2063,47 @@ func _draw_health_bars() -> void:
 			float(ally["hp"]),
 			float(ally["max_hp"])
 		)
+	_health_bar_batch.visible_instance_count = _health_bar_count
+	if _health_bar_count > 0:
+		draw_multimesh(_health_bar_batch, _health_bar_texture)
 
 
 func _draw_unit_bar(top_left: Vector2, width: float, height: float, hp: float, max_hp: float) -> void:
 	var ratio := clampf(hp / maxf(1.0, max_hp), 0.0, 1.0)
-	draw_rect(Rect2(top_left, Vector2(width, height)), Color(0.02, 0.025, 0.025, 0.72))
+	_append_health_bar_rect(Rect2(top_left, Vector2(width, height)), Color(0.02, 0.025, 0.025, 0.72))
 	var color := Color("#8fbf6e")
 	if ratio < 0.30:
 		color = Color("#c4573d")
 	elif ratio < 0.64:
 		color = Color("#d8b45f")
-	draw_rect(Rect2(top_left, Vector2(maxf(1.0, width * ratio), height)), color)
-	draw_rect(Rect2(top_left, Vector2(width, height)), Color(0.0, 0.0, 0.0, 0.35), false, 1.0)
+	_append_health_bar_rect(Rect2(top_left, Vector2(maxf(1.0, width * ratio), height)), color)
+	var border := Color(0.0, 0.0, 0.0, 0.35)
+	_append_health_bar_rect(Rect2(top_left, Vector2(width, 1.0)), border)
+	_append_health_bar_rect(Rect2(top_left + Vector2(0.0, height - 1.0), Vector2(width, 1.0)), border)
+	_append_health_bar_rect(Rect2(top_left + Vector2(0.0, 1.0), Vector2(1.0, height - 2.0)), border)
+	_append_health_bar_rect(Rect2(top_left + Vector2(width - 1.0, 1.0), Vector2(1.0, height - 2.0)), border)
+
+
+func _append_health_bar_rect(rect: Rect2, color: Color) -> void:
+	var xform := Transform2D(0.0, rect.size, 0.0, rect.get_center())
+	_health_bar_batch.set_instance_transform_2d(_health_bar_count, xform)
+	_health_bar_batch.set_instance_color(_health_bar_count, color)
+	_health_bar_count += 1
+
+
+func _draw_wade_splashes() -> void:
+	if wade_splashes.is_empty():
+		return
+	for splash in wade_splashes:
+		var progress := 1.0 - clampf(float(splash["ttl"]) / maxf(0.001, float(splash["max_ttl"])), 0.0, 1.0)
+		var pos := splash["pos"] as Vector2
+		var radius := (5.0 + progress * 15.0) * float(splash["size"])
+		var alpha := 0.55 * (1.0 - progress)
+		draw_arc(pos, radius, 0.0, TAU, 14, Color(0.78, 0.92, 0.95, alpha), 1.8, true)
+		for index in range(3):
+			var angle := float(index) * TAU / 3.0 + progress * 1.8
+			var droplet := pos + Vector2(cos(angle), sin(angle) * 0.62) * radius * 0.72
+			draw_circle(droplet, 1.6 * float(splash["size"]), Color(0.92, 0.98, 1.0, alpha * 1.2))
 
 
 func _draw_allies() -> void:

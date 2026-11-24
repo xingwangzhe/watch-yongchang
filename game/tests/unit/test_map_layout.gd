@@ -59,14 +59,16 @@ func test_three_maps_have_real_spatial_structure() -> void:
 	assert_gte(_count_kind(crossstreet_layout, "building"), 60)
 
 
-func test_watergate_blocks_water_and_opens_bridges_and_gates() -> void:
+func test_watergate_opens_water_as_wade_and_keeps_bridges_dry() -> void:
 	var built := _build_map("watergate")
 	var layout: MapLayout = built["layout"] as MapLayout
 	assert_true(layout.is_solid_cell(Vector2i(20, 28)), "outer wall must block movement")
 	assert_true(layout.is_water_cell(Vector2i(36, 72)), "upper canal must be water")
-	assert_false(layout.is_cell_walkable(Vector2i(36, 72)), "canal must not be walkable")
+	assert_true(layout.is_cell_walkable(Vector2i(36, 72)), "canal must be wadeable")
+	assert_true(layout.is_wade_position(Vector2(36 * 32.0 + 16.0, 72 * 32.0 + 16.0)), "canal cell must count as wading")
 	assert_true(layout.is_bridge_cell(Vector2i(36, 47)), "bridge must cover the canal")
 	assert_true(layout.is_cell_walkable(Vector2i(36, 47)), "bridge must be walkable")
+	assert_false(layout.is_wade_position(Vector2(36 * 32.0 + 16.0, 47 * 32.0 + 16.0)), "bridge deck must stay dry")
 	assert_true(layout.is_cell_walkable(Vector2i(47, 29)), "south gate passage must be open")
 	assert_true(layout.is_point_walkable(layout.start_pos), "player spawn must be walkable")
 	assert_eq(layout.landmark_entries().size(), 8)
@@ -81,7 +83,7 @@ func test_crossstreet_buildings_avoid_the_cross_and_canals() -> void:
 	var layout: MapLayout = built["layout"] as MapLayout
 	assert_true(layout.is_solid_cell(Vector2i(40, 10)), "street block must be solid")
 	assert_true(layout.is_water_cell(Vector2i(30, 70)), "west canal must be water")
-	assert_false(layout.is_cell_walkable(Vector2i(30, 70)), "canal must not be walkable")
+	assert_true(layout.is_cell_walkable(Vector2i(30, 70)), "west canal must be wadeable")
 	assert_true(layout.is_cell_walkable(Vector2i(30, 79)), "canal bridge must be walkable")
 	assert_true(layout.is_cell_walkable(Vector2i(5, 80)), "west land gate must be open")
 	assert_true(layout.is_point_walkable(layout.start_pos), "crossroads spawn must be walkable")
@@ -93,12 +95,25 @@ func test_tideland_creeks_are_crossed_by_bridges() -> void:
 	var built := _build_map("tideland")
 	var layout: MapLayout = built["layout"] as MapLayout
 	assert_true(layout.is_water_cell(Vector2i(30, 45)), "tide creek must be water")
-	assert_false(layout.is_cell_walkable(Vector2i(30, 45)), "tide creek must not be walkable")
+	assert_true(layout.is_cell_walkable(Vector2i(30, 45)), "tide creek must be wadeable")
 	assert_true(layout.is_cell_walkable(Vector2i(30, 63)), "creek bridge must be walkable")
 	assert_true(layout.is_solid_cell(Vector2i(64, 10)), "salt shed must block movement")
 	assert_true(layout.is_point_walkable(layout.start_pos), "tideland spawn must be walkable")
 	assert_eq(layout.minimap_texture.get_width(), 120)
 	assert_eq(layout.minimap_texture.get_height(), 84)
+
+
+func test_wading_slows_units_and_bridge_stays_dry() -> void:
+	var built := _build_map("watergate")
+	var layout: MapLayout = built["layout"] as MapLayout
+	var field := Battlefield.new()
+	field.map_layout = layout
+	var canal := Vector2(36 * 32.0 + 16.0, 72 * 32.0 + 16.0)
+	var bridge := Vector2(36 * 32.0 + 16.0, 47 * 32.0 + 16.0)
+	assert_almost_eq(field.wade_speed_factor(canal), 0.62, 0.001, "plain water must slow every unit")
+	assert_almost_eq(field.wade_speed_factor(canal, 0.4), 0.772, 0.002, "wade upgrade must restore speed")
+	assert_almost_eq(field.wade_speed_factor(bridge), 1.0, 0.001, "bridge deck must not slow units")
+	field.free()
 
 
 func test_every_map_reports_full_spawn_connectivity_and_needs_no_repair() -> void:

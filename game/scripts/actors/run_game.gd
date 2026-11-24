@@ -1,6 +1,7 @@
 extends Node2D
 
 const FIXED_STEP := 1.0 / 60.0
+const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
@@ -77,6 +78,7 @@ var scales: Array[String] = []
 var elapsed := 0.0
 var duration := 960.0
 var boss_second := 930.0
+var _difficulty_curve: Dictionary = {}
 var xp := 0.0
 var xp_need := 15.0
 var level := 1
@@ -120,6 +122,7 @@ var _narrative_timer: Timer
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_index := 0
 var _kill_sfx_cd := 0.0
+var _wade_sfx_cd := 0.0
 var _pickup_sfx_cd := 0.0
 var _result_recorded := false
 var _run_start_merit := 0
@@ -220,6 +223,7 @@ func _load_data() -> void:
 	duration = float(wave_data.get("duration_seconds", 960.0))
 	boss_second = float(wave_data.get("boss_second", 930.0))
 	_phase_list = wave_data.get("phases", []) as Array
+	_difficulty_curve = wave_data.get("difficulty", {}) as Dictionary
 	_scale_events = wave_data.get("scale_events", []) as Array
 	_event_lines = wave_data.get("event_lines", []) as Array
 	_next_shop_time = float(shop_data.get("interval_seconds", 120.0))
@@ -338,6 +342,7 @@ func _setup_player() -> void:
 		"light_mult": 1.0,
 		"projectile_speed_mult": 1.0,
 		"knockback_mult": 1.0,
+		"wade_bonus": 0.0,
 		"dash_cd_mult": 1.0,
 		"skill_cd_mult": 1.0,
 		"dark": false,
@@ -431,6 +436,7 @@ func _step(delta: float) -> void:
 	_update_weapons(delta)
 	_update_skills(delta)
 	battlefield.set_meta("light_radius", float(player["light_radius"]))
+	battlefield.set_difficulty(elapsed / maxf(1.0, duration), _difficulty_curve)
 	var map_speed := float(map_def.get("enemy_speed_mult", 1.0))
 	battlefield.update_world(
 		delta,
@@ -490,10 +496,16 @@ func _update_player(delta: float) -> void:
 	var move_boost := 1.18 if _dash_buff > 0.0 else 1.0
 	var previous_position := player["pos"] as Vector2
 	var desired_position := previous_position
+	var wade_factor := battlefield.wade_speed_factor(previous_position, float(player.get("wade_bonus", 0.0)))
 	if _dash_timer > 0.0:
 		desired_position += _dash_dir * float(player["speed"]) * 3.5 * delta
 	else:
-		desired_position += input_vector * float(player["speed"]) * move_boost * delta
+		desired_position += input_vector * float(player["speed"]) * move_boost * wade_factor * delta
+		if wade_factor < 1.0 and input_vector.length_squared() > 0.001:
+			_wade_sfx_cd -= delta
+			if _wade_sfx_cd <= 0.0:
+				_wade_sfx_cd = 0.11
+				battlefield.spawn_wade_splash(previous_position, 1.0)
 	player["pos"] = battlefield.resolve_player_move(previous_position, desired_position, float(player["radius"]))
 	if _attack_held:
 		player["facing"] = _aim_direction
@@ -956,6 +968,7 @@ func _recompute_stats() -> void:
 		"light_mult": 1.0,
 		"projectile_speed_mult": 1.0,
 		"knockback_mult": 1.0,
+		"wade_speed": 0.0,
 		# ---- 箭塔增益（tower_* 独立命名空间，整体推给 Battlefield）----
 		"tower_damage_mult": 1.0,
 		"tower_range_mult": 1.0,
@@ -1094,6 +1107,7 @@ func _recompute_stats() -> void:
 	player["light_mult"] = float(stats["light_mult"])
 	player["projectile_speed_mult"] = float(stats["projectile_speed_mult"])
 	player["knockback_mult"] = float(stats["knockback_mult"])
+	player["wade_bonus"] = clampf(float(stats["wade_speed"]), 0.0, 0.55)
 	player["speed"] = float(player["base_speed"]) * float(stats["speed_mult"])
 	player["oil_max"] = int(player["base_oil_max"]) + int(stats["oil_max"])
 	if int(player["oil_max"]) > old_oil_max:
@@ -1120,6 +1134,7 @@ func _add_stat(stats: Dictionary, stat: String, amount: float) -> void:
 			stats[stat] = float(stats.get(stat, 1.0)) * (1.0 + amount)
 		"armor", "crit", "regen", "max_hp_flat", "shield_max", "shield_regen", \
 		"thorns", "lifesteal", "dodge", "execute_below", "luck", "oil_max", "revive", \
+		"wade_speed", \
 		"tower_rebuild_hp", "tower_pierce", "tower_volley", "tower_armor", "tower_regen", \
 		"tower_crit", "tower_chain", "tower_splash", "tower_burn", "tower_slow", \
 		"tower_knockback", "tower_execute", "tower_marksman", "tower_overcharge", \
@@ -1303,12 +1318,17 @@ func _on_xp_collected(amount: float) -> void:
 
 
 func _add_xp(amount: float) -> void:
+	if level >= MAX_LEVEL:
+		xp = 0.0
+		return
 	xp += amount
-	while xp >= xp_need:
+	while xp >= xp_need and level < MAX_LEVEL:
 		xp -= xp_need
 		level += 1
 		_pending_levels += 1
 		xp_need = _xp_need_for_level(level)
+	if level >= MAX_LEVEL:
+		xp = 0.0
 	if _pending_levels > 0 and not _paused and not _game_over:
 		_show_level_up()
 

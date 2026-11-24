@@ -26,18 +26,18 @@ func test_upgrade_cards_are_bilingual_sourced_and_decorated() -> void:
 			var icon_path := str(card.get("icon", ""))
 			assert_true(icon_path.begins_with("res://assets/icons/game_icons/"))
 			assert_true(ResourceLoader.exists(icon_path), "%s icon is missing: %s" % [card_id, icon_path])
-	assert_eq(total, 140, "the three-choice catalog must expose 140 authored cards (110 base + 30 tower)")
+	assert_eq(total, 141, "the three-choice catalog must expose 141 authored cards (110 base + 30 tower + 1 wade)")
 
 
 func test_catalog_offer_count_exceeds_reference_build_scopes() -> void:
-	assert_eq(UpgradeCatalog.total_card_count(), 140)
+	assert_eq(UpgradeCatalog.total_card_count(), 141)
 	assert_gte(
 		UpgradeCatalog.total_offer_count(),
 		149,
 		"card levels must exceed Brotato's 64 upgrades plus the VS passive scope"
 	)
 	var pool := UpgradeCatalog.build_card_pool({}, {}, 0.8)
-	assert_eq(pool.size(), 140, "a fresh run must see every one of the authored cards")
+	assert_eq(pool.size(), 141, "a fresh run must see every one of the authored cards")
 	var families := {}
 	for option in pool:
 		families[str(option.get("family", ""))] = true
