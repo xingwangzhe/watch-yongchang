@@ -34,6 +34,15 @@ func test_three_maps_have_real_spatial_structure() -> void:
 			assert_gte(int(kinds.get(kind, 0)), 1, "%s needs %s structure" % [map_id, kind])
 		assert_gte((layout_data.get("landmarks", []) as Array).size(), 5)
 		assert_gte((layout_data.get("spawn_lanes", []) as Array).size(), 7)
+		var highlands := layout_data.get("highlands", []) as Array
+		assert_gte(highlands.size(), 2, "%s must mark raised ground" % map_id)
+		for entry in highlands:
+			var rect_data := entry as Array
+			assert_eq(rect_data.size(), 4, "%s highland needs [x,y,w,h]" % map_id)
+			assert_gt(int(rect_data[2]), 0)
+			assert_gt(int(rect_data[3]), 0)
+			assert_lte(int(rect_data[0]) + int(rect_data[2]), int(tiles[0]))
+			assert_lte(int(rect_data[1]) + int(rect_data[3]), int(tiles[1]))
 
 	var watergate: Dictionary = maps["watergate"] as Dictionary
 	var watergate_layout: Dictionary = watergate.get("layout", {}) as Dictionary
@@ -90,6 +99,36 @@ func test_tideland_creeks_are_crossed_by_bridges() -> void:
 	assert_true(layout.is_point_walkable(layout.start_pos), "tideland spawn must be walkable")
 	assert_eq(layout.minimap_texture.get_width(), 120)
 	assert_eq(layout.minimap_texture.get_height(), 84)
+
+
+func test_every_map_reports_full_spawn_connectivity_and_needs_no_repair() -> void:
+	for map_id in ["tideland", "watergate", "crossstreet"]:
+		var built := _build_map(map_id)
+		var layout: MapLayout = built["layout"] as MapLayout
+		var report := layout.connectivity_report()
+		assert_true(bool(report["start_walkable"]), "%s start must be walkable" % map_id)
+		assert_eq(int(report["blocked"]), 0, "%s must have no blocked spawn lane" % map_id)
+		assert_true(bool(report["ok"]), "%s connectivity report must pass" % map_id)
+		assert_gt(int(report["samples"]), 20)
+		assert_eq(layout.last_repair_count, 0, "%s must already be connected before repair" % map_id)
+		var reachable := layout.walkable_reachability(layout.start_pos)
+		var walkable := 0
+		for index in range(reachable.size()):
+			if reachable[index] == 1:
+				walkable += 1
+		assert_gt(walkable, 2000, "%s must expose a large connected playable area" % map_id)
+
+
+func test_connectivity_repair_opens_a_blocked_spawn_lane() -> void:
+	var built := _build_map("tideland")
+	var layout: MapLayout = built["layout"] as MapLayout
+	# 人为用实心墙把整张图横向切断，模拟布局/生成把关键路径堵死。
+	var wall_x := int(layout.world_tiles.x / 2)
+	layout.mark_solid_rect(Rect2i(wall_x, 0, 2, layout.world_tiles.y))
+	assert_false(bool(layout.connectivity_report()["ok"]), "artificial wall must break connectivity")
+	var repaired := layout.repair_connectivity()
+	assert_gt(repaired, 0, "repair must report the lanes it opened")
+	assert_true(bool(layout.connectivity_report()["ok"]), "repair must restore full connectivity")
 
 
 func test_buildings_stay_off_roads_and_water() -> void:

@@ -11,9 +11,11 @@ var start_pos := Vector2.ZERO
 var base_tile := "mud_a"
 var areas: Array = []
 var landmarks: Array[Dictionary] = []
+var highland_rects: Array[Rect2i] = []
 var spawn_polylines: Array[PackedVector2Array] = []
 var spawn_points: PackedVector2Array = PackedVector2Array()
 var minimap_texture: ImageTexture
+var last_repair_count := 0
 
 var _solid_cells: Dictionary = {}
 var _water_cells: Dictionary = {}
@@ -35,6 +37,7 @@ func setup(map_key: String, definition: Dictionary) -> void:
 	var start_tile: Array = layout.get("start_tile", [world_tiles.x / 2, world_tiles.y / 2]) as Array
 	start_pos = _tile_center(Vector2i(int(start_tile[0]), int(start_tile[1])))
 	_parse_landmarks(layout.get("landmarks", []) as Array)
+	_parse_highlands(layout.get("highlands", []) as Array)
 	_parse_spawn_lanes(layout.get("spawn_lanes", []) as Array)
 	_minimap_colors.resize(world_tiles.x * world_tiles.y)
 	_minimap_colors.fill(minimap_color_for_tile(base_tile))
@@ -43,6 +46,12 @@ func setup(map_key: String, definition: Dictionary) -> void:
 func finalize() -> void:
 	if not is_point_walkable(start_pos, 18.0):
 		start_pos = find_walkable_position(start_pos, 18.0)
+	# 连通性是硬约束：任何出生带如果到不了玩家出生点，现场开一条可走走廊，
+	# 保证不会因为地图数据或生成顺序把关键路径堵死。正式地图应在报告里为 0。
+	last_repair_count = 0
+	if not connectivity_report().get("ok", true):
+		last_repair_count = repair_connectivity()
+		push_warning("Map %s connectivity repaired on %d lanes" % [map_id, last_repair_count])
 	_build_minimap_texture()
 
 
@@ -174,6 +183,66 @@ func walkable_reachability(origin: Vector2) -> PackedByteArray:
 	return reachable
 
 
+## 连通性报告：玩家出生点必须可走，所有出生带采样点到出生点必须连通。
+## 返回 {ok, samples, blocked, start_walkable}，供测试与运行时自检使用。
+func connectivity_report() -> Dictionary:
+	var start_walkable := is_point_walkable(start_pos, 18.0)
+	var reachable := walkable_reachability(start_pos)
+	var blocked := 0
+	for point in _spawn_samples:
+		var cell := world_to_cell(point)
+		if not cell_in_bounds(cell) or not is_point_walkable(point, 14.0):
+			blocked += 1
+			continue
+		if reachable[cell.y * world_tiles.x + cell.x] != 1:
+			blocked += 1
+	return {
+		"ok": start_walkable and blocked == 0,
+		"samples": _spawn_samples.size(),
+		"blocked": blocked,
+		"start_walkable": start_walkable,
+	}
+
+
+## 兜底修复：对不可达的出生带，沿直线向玩家出生点清出一条可走走廊。
+## 只清障碍、把水格架成桥，不改动已画好的地形贴图；正式地图不应触发。
+func repair_connectivity() -> int:
+	if not is_point_walkable(start_pos, 18.0):
+		start_pos = find_walkable_position(start_pos, 18.0)
+	var start_cell := world_to_cell(start_pos)
+	var repaired := 0
+	for point in _spawn_samples:
+		var cell := world_to_cell(point)
+		if cell_in_bounds(cell) and is_cell_walkable(cell):
+			var reachable := walkable_reachability(start_pos)
+			if reachable[cell.y * world_tiles.x + cell.x] == 1:
+				continue
+		_carve_corridor(cell, start_cell)
+		repaired += 1
+	return repaired
+
+
+func _carve_corridor(from_cell: Vector2i, to_cell: Vector2i) -> void:
+	var steps := maxi(absi(to_cell.x - from_cell.x), absi(to_cell.y - from_cell.y))
+	if steps <= 0:
+		steps = 1
+	for index in range(steps + 1):
+		var t := float(index) / float(steps)
+		var center := Vector2i(
+			roundi(lerpf(float(from_cell.x), float(to_cell.x), t)),
+			roundi(lerpf(float(from_cell.y), float(to_cell.y), t))
+		)
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				var cell := center + Vector2i(dx, dy)
+				if not cell_in_bounds(cell):
+					continue
+				_solid_cells.erase(cell)
+				if _water_cells.has(cell):
+					_bridge_cells[cell] = true
+				set_minimap_color(cell, Color("#c4a06b"))
+
+
 func ensure_flow_field(target: Vector2) -> void:
 	var cell := world_to_cell(target)
 	if not cell_in_bounds(cell):
@@ -233,20 +302,18 @@ func navigation_direction(from: Vector2, to: Vector2, direct_range: float = 190.
 func is_segment_wall_blocked(from: Vector2, to: Vector2, radius: float = 4.0) -> bool:
 	var distance := from.distance_to(to)
 	var steps := maxi(1, ceili(distance / 12.0))
+	var extents := [-radius, 0.0, radius]
 	for index in range(steps + 1):
 		var point := from.lerp(to, float(index) / float(steps))
-		var cell := world_to_cell(point)
-		if not cell_in_bounds(cell):
-			return true
-		if is_solid_cell(cell):
-			return true
-		var cell_rect := Rect2(Vector2(cell) * TILE_SIZE, Vector2.ONE * TILE_SIZE)
-		var closest := Vector2(
-			clampf(point.x, cell_rect.position.x, cell_rect.end.x),
-			clampf(point.y, cell_rect.position.y, cell_rect.end.y)
-		)
-		if closest.distance_squared_to(point) <= radius * radius:
-			return true
+		# 只让实心墙/障碍挡箭，水面与地形不挡。沿半径采样 3×3 点，
+		# 避免箭贴着墙角飞时穿墙，同时不再把空地格线误判成墙。
+		for dx in extents:
+			for dy in extents:
+				var cell := world_to_cell(point + Vector2(dx, dy))
+				if not cell_in_bounds(cell):
+					return true
+				if is_solid_cell(cell):
+					return true
 	return false
 
 
@@ -361,6 +428,19 @@ func _parse_landmarks(entries: Array) -> void:
 			"kind": str(item.get("kind", "place")),
 			"color": Color(str(item.get("color", "#e1b35a"))),
 		})
+
+
+func _parse_highlands(entries: Array) -> void:
+	highland_rects.clear()
+	for entry in entries:
+		if not entry is Array:
+			continue
+		var data := entry as Array
+		if data.size() < 4:
+			continue
+		var rect := Rect2i(int(data[0]), int(data[1]), int(data[2]), int(data[3]))
+		if rect.size.x > 0 and rect.size.y > 0:
+			highland_rects.append(rect)
 
 
 func _parse_spawn_lanes(entries: Array) -> void:
