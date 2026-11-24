@@ -25,6 +25,7 @@ var vulkan_probe_override: int = -1
 var active_renderer_override: String = ""
 var renderer_mirror_override: String = ""
 var restart_enabled: bool = true
+var bindings: Dictionary = {}
 
 var _config := ConfigFile.new()
 var _vulkan_available := -1
@@ -34,6 +35,8 @@ func _ready() -> void:
 	load_settings()
 	_apply_display()
 	_apply_performance()
+	InputSetup.ensure_defaults()
+	InputSetup.apply_bindings(bindings)
 
 
 func load_settings() -> void:
@@ -53,6 +56,7 @@ func load_settings() -> void:
 	if stored_mode.is_empty():
 		stored_mode = _read_renderer_mirror()
 	renderer_mode = _valid_renderer_mode(stored_mode)
+	bindings = _sanitize_bindings(_config.get_value("input", "bindings", {}))
 
 
 func save_settings(notify: bool = true) -> void:
@@ -63,6 +67,7 @@ func save_settings(notify: bool = true) -> void:
 	_config.set_value("display", "fps_limit", fps_limit)
 	_config.set_value("display", "vsync", vsync)
 	_config.set_value("rendering", "renderer_mode", renderer_mode)
+	_config.set_value("input", "bindings", bindings)
 	var error := _config.save(config_path)
 	if error != OK:
 		push_warning("Settings file could not be saved: %s" % config_path)
@@ -77,6 +82,41 @@ func set_language(code: String) -> void:
 		return
 	language = code
 	save_settings()
+
+
+func set_binding(action: String, token: String) -> void:
+	if not InputSetup.BINDABLE.has(action):
+		return
+	if token.is_empty():
+		bindings.erase(action)
+	else:
+		bindings[action] = [token]
+	InputSetup.apply_bindings(bindings)
+	save_settings()
+
+
+func reset_bindings() -> void:
+	bindings.clear()
+	InputSetup.reset_to_defaults()
+	save_settings()
+
+
+func _sanitize_bindings(raw: Variant) -> Dictionary:
+	var clean := {}
+	if not (raw is Dictionary):
+		return clean
+	for action in InputSetup.ORDER:
+		var tokens: Variant = (raw as Dictionary).get(action, [])
+		if not (tokens is Array) or (tokens as Array).is_empty():
+			continue
+		var valid: Array[String] = []
+		for token in tokens as Array:
+			var text := str(token)
+			if text.begins_with("k:") or text.begins_with("m:"):
+				valid.append(text)
+		if not valid.is_empty():
+			clean[action] = valid
+	return clean
 
 
 func set_bgm_volume(value: float, persist: bool = true) -> void:

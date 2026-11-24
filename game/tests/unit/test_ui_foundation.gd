@@ -19,6 +19,8 @@ func before_each() -> void:
 	GameSettings.vulkan_probe_override = 1
 	GameSettings.active_renderer_override = GameSettings.RENDERER_VULKAN
 	GameSettings.restart_enabled = false
+	GameSettings.bindings.clear()
+	InputSetup.reset_to_defaults()
 	GameSettings.reset_vulkan_probe()
 	GameSettings._apply_performance()
 	Locale.set_language("zh", false)
@@ -38,6 +40,8 @@ func after_each() -> void:
 	GameSettings.vulkan_probe_override = -1
 	GameSettings.active_renderer_override = ""
 	GameSettings.restart_enabled = true
+	GameSettings.bindings.clear()
+	InputSetup.reset_to_defaults()
 	GameSettings.reset_vulkan_probe()
 	GameSettings._apply_performance()
 	AudioBus.menu_enabled = true
@@ -130,6 +134,57 @@ func test_settings_file_persists_fps_and_vsync() -> void:
 	assert_eq(int(config.get_value("display", "fps_limit", -1)), 0)
 	assert_false(bool(config.get_value("display", "vsync", true)))
 	assert_eq(Engine.max_fps, 0, "unlimited frame limit must clear the engine cap")
+
+
+func test_settings_file_persists_custom_bindings() -> void:
+	var token := "k:%d" % KEY_SHIFT
+	GameSettings.set_binding("dash", token)
+	var config := ConfigFile.new()
+	assert_eq(config.load(TEST_SETTINGS), OK)
+	var stored: Dictionary = config.get_value("input", "bindings", {}) as Dictionary
+	assert_eq(stored.get("dash", []), [token])
+	assert_true(InputSetup.tokens_for("dash").has(token), "binding must reach the InputMap")
+	assert_eq(InputSetup.conflict_for("dash", "k:%d" % KEY_A), "move_left")
+
+
+func test_reset_bindings_restores_defaults() -> void:
+	GameSettings.set_binding("dash", "k:%d" % KEY_SHIFT)
+	GameSettings.reset_bindings()
+	assert_true(GameSettings.bindings.is_empty())
+	assert_true(InputSetup.tokens_for("dash").has("k:%d" % KEY_SPACE))
+	assert_true(
+		InputSetup.describe("attack").contains(Locale.t("input.mouse_left")),
+		"default attack must describe the left mouse button"
+	)
+
+
+func test_main_menu_moves_codex_to_menu_and_opens_controls() -> void:
+	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
+	add_child_autofree(menu)
+	await wait_process_frames(3)
+	assert_null(
+		menu.find_child("CodexButton", true, false),
+		"the watch panel must no longer host the codex entry"
+	)
+	assert_not_null(
+		menu.find_child("MenuCodexButton", true, false),
+		"the codex entry must live in the menu column"
+	)
+	var controls_overlay: Control = menu.find_child("ControlsOverlay", true, false)
+	assert_not_null(controls_overlay)
+	assert_false(controls_overlay.visible, "the controls panel must start closed")
+	assert_not_null(menu.find_child("ControlsButton", true, false), "settings must expose a controls button")
+	menu.open_settings()
+	menu.open_controls()
+	await wait_process_frames(1)
+	assert_true(controls_overlay.visible, "the controls panel must open from settings")
+	for action in InputSetup.ORDER:
+		assert_not_null(menu.find_child("Row_%s" % action, true, false), "missing rebind row: %s" % action)
+		assert_not_null(menu.find_child("Binding_%s" % action, true, false))
+	menu.close_controls()
+	await wait_process_frames(1)
+	assert_false(controls_overlay.visible, "closing controls must hide the panel")
+	menu.close_settings()
 
 
 func test_auto_renderer_prefers_vulkan_when_supported() -> void:
