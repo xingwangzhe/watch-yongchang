@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "interval_seconds": 120.0,
+  "starting_coin": 35,
+  "reroll_cost": 25,
+  "max_offers": 3,
+  "max_mercenaries": 3,
+  "coin_per_xp": 0.55,
+  "minimum_kill_coin": 1,
+  "elite_coin_mult": 2.0,
+  "boss_coin": 120,
+  "weapon_prices": {
+    "saber": {"new": 55, "upgrade": 45},
+    "spear": {"new": 60, "upgrade": 50},
+    "bow": {"new": 70, "upgrade": 55},
+    "musket": {"new": 82, "upgrade": 64},
+    "shield": {"new": 58, "upgrade": 46},
+    "dragon_lantern": {"new": 102, "upgrade": 78},
+    "cannon": {"new": 112, "upgrade": 84},
+    "banner": {"new": 76, "upgrade": 60}
+  },
+  "equipment_prices": {
+    "whetstone": 50,
+    "gaiters": 45,
+    "quiver": 45,
+    "colored_paper": 55,
+    "armor": 55,
+    "oil": 40,
+    "compass": 45,
+    "powder": 55,
+    "rice": 45,
+    "bronze_bell": 65,
+    "medicine": 55,
+    "family_letter": 150
+  },
+  "category_by_kind": {
+    "weapon": "制度",
+    "equipment": "民俗"
+  },
+  "source_ref": "design/游戏设计文档-GDD.md"
+}

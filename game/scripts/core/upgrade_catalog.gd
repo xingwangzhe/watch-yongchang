@@ -5,6 +5,11 @@ const DATA_PATH := "res://data/upgrades.json"
 const FAMILY_COLORS := {
 	"weapon_upgrade": Color("#d8a548"),
 	"weapon_new": Color("#d8a548"),
+	"equipment_new": Color("#7fb7a8"),
+	"equipment_upgrade": Color("#7fb7a8"),
+	"mercenary": Color("#d9a95f"),
+	"supply_heal": Color("#9bc27e"),
+	"supply_oil": Color("#d8b45f"),
 	"evolve": Color("#f0c363"),
 	"passive_new": Color("#7fb7a8"),
 	"passive_upgrade": Color("#7fb7a8"),
