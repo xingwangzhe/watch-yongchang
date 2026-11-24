@@ -126,7 +126,7 @@ game\launch.bat
   角色图集与瓦片图集、143 张卡的双语/来源/图标完整性、149+ 条目规模、
   三选一唯一性、减速/灼烧/眩晕/收魂、选项卡渲染、事件结算、
   触屏巡灯语言、敌兵组合配方与批渲染方向、引擎补丁版本与 `.godot-version` 一致性。
-- 最近一次 Linux 基线：**164 tests / 164 passed / 41202 asserts**（Godot 4.7.2-stable）。
+- 最近一次 Linux 基线：**164 tests / 164 passed / 41203 asserts**（Godot 4.7.2-stable）。
   Windows 原生 GUT 与启动器 smoke test 仍由 CI 复验。
 - 敌兵外观由 `game/data/enemies.json` 的 `character_recipe` 驱动，
   `pixel-art/character_forge/bake_battle_sprites.py` 从裸体基底、服装、头饰、
