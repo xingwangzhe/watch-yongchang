@@ -94,7 +94,6 @@ var _invuln := 0.0
 var _last_move := Vector2.RIGHT
 var _aim_direction := Vector2.RIGHT
 var _attack_held := false
-var _mouse_attack_pressed := false
 var _mouse_screen_pos := Vector2.ZERO
 var _has_mouse_screen_pos := false
 var _move_trail_timer := 0.0
@@ -170,8 +169,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		var mouse_button := event as InputEventMouseButton
 		_mouse_screen_pos = mouse_button.position
 		_has_mouse_screen_pos = true
-		if mouse_button.button_index == MOUSE_BUTTON_LEFT:
-			_mouse_attack_pressed = mouse_button.pressed
 	elif event is InputEventMouseMotion:
 		_mouse_screen_pos = (event as InputEventMouseMotion).position
 		_has_mouse_screen_pos = true
@@ -472,7 +469,7 @@ func _update_player(delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if is_instance_valid(touch_controls):
 		input_vector = (input_vector + touch_controls.move_vector).limit_length(1.0)
-	_attack_held = _mouse_attack_pressed or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	_attack_held = Input.is_action_pressed("attack")
 	var mouse_world := get_global_mouse_position()
 	if _has_mouse_screen_pos:
 		mouse_world = get_viewport().get_canvas_transform().affine_inverse() * _mouse_screen_pos
@@ -1966,7 +1963,6 @@ func _set_pause(paused: bool) -> void:
 
 func _release_attack() -> void:
 	_attack_held = false
-	_mouse_attack_pressed = false
 
 
 func _notification(what: int) -> void:

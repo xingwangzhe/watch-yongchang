@@ -99,27 +99,33 @@ func test_player_faces_left_movement_and_attacks_only_while_mouse_is_held() -> v
 	assert_almost_eq(absf(float(run.battlefield.jeff_effects[-1]["rotation"])), PI, 0.01)
 
 
-func test_mouse_button_events_drive_hold_attack_and_clear_on_pause() -> void:
+func test_attack_action_holds_fire_and_pause_clears_it() -> void:
+	InputSetup.ensure_defaults()
+	var has_mouse_bind := false
+	for event in InputMap.action_get_events("attack"):
+		if event is InputEventMouseButton and (event as InputEventMouseButton).button_index == MOUSE_BUTTON_LEFT:
+			has_mouse_bind = true
+	assert_true(has_mouse_bind, "default attack action must bind the left mouse button")
+
 	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
 	add_child_autofree(run)
 	await wait_process_frames(3)
 	run.story._skip_all()
 	await wait_process_frames(2)
 
-	run._unhandled_input(_mouse_left_event(true))
+	Input.action_press("attack")
 	run._update_player(1.0 / 60.0)
-	assert_true(run._attack_held, "left mouse press must hold the attack")
-	assert_true(run._mouse_attack_pressed)
+	assert_true(run._attack_held, "held attack action must set the attack flag")
 
-	run._unhandled_input(_mouse_left_event(false))
+	Input.action_release("attack")
 	run._update_player(1.0 / 60.0)
-	assert_false(run._attack_held, "left mouse release must stop the attack")
-	assert_false(run._mouse_attack_pressed)
+	assert_false(run._attack_held, "releasing the attack action must stop the attack")
 
-	run._unhandled_input(_mouse_left_event(true))
+	Input.action_press("attack")
+	run._update_player(1.0 / 60.0)
 	run._set_pause(true)
 	assert_false(run._attack_held, "pause must clear a held attack")
-	assert_false(run._mouse_attack_pressed, "pause must clear the cached mouse state")
+	Input.action_release("attack")
 
 
 func test_mouse_motion_event_sets_aim_direction_from_screen_space() -> void:
@@ -137,13 +143,6 @@ func test_mouse_motion_event_sets_aim_direction_from_screen_space() -> void:
 	run._unhandled_input(_mouse_motion_event(player_screen + Vector2(-120, 0)))
 	run._update_player(1.0 / 60.0)
 	assert_lt(run._aim_direction.x, -0.9, "mouse left of the player must aim left")
-
-
-func _mouse_left_event(pressed: bool) -> InputEventMouseButton:
-	var event := InputEventMouseButton.new()
-	event.button_index = MOUSE_BUTTON_LEFT
-	event.pressed = pressed
-	return event
 
 
 func _mouse_motion_event(position: Vector2) -> InputEventMouseMotion:

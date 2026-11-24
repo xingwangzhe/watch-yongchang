@@ -25,7 +25,7 @@ var _start_button: Button
 var _settings_button: Button
 var _about_button: Button
 var _language_button: Button
-var _codex_button: Button
+var _menu_codex_button: Button
 var _quit_button: Button
 var _autosave_value: Label
 var _last_saved_value: Label
@@ -46,6 +46,15 @@ var _renderer_status: Label
 var _renderer_restart_button: Button
 var _language_option: OptionButton
 var _back_button: Button
+var _controls_overlay: Control
+var _controls_hint: Label
+var _controls_reset: Button
+var _controls_close: Button
+var _controls_title: Label
+var _controls_settings_button: Button
+var _controls_done: Button
+var _binding_labels: Dictionary = {}
+var _capture_action := ""
 
 
 func _ready() -> void:
@@ -57,6 +66,7 @@ func _ready() -> void:
 	_build_watch_panel()
 	_build_footer()
 	_build_settings_overlay()
+	_build_controls_overlay()
 	_sync_settings_controls()
 	_connect_signals()
 	_refresh_texts()
@@ -71,7 +81,7 @@ func open_settings() -> void:
 	if _settings_overlay.visible:
 		return
 	_settings_overlay.visible = true
-	for button in [_start_button, _settings_button, _about_button, _language_button, _quit_button]:
+	for button in [_start_button, _menu_codex_button, _settings_button, _about_button, _language_button, _quit_button]:
 		button.focus_mode = Control.FOCUS_NONE
 	_sync_settings_controls()
 	_bgm_slider.grab_focus()
@@ -81,15 +91,22 @@ func open_settings() -> void:
 func close_settings() -> void:
 	if not _settings_overlay.visible:
 		return
+	if _controls_overlay.visible:
+		close_controls()
 	_settings_overlay.visible = false
-	for button in [_start_button, _settings_button, _about_button, _language_button, _quit_button]:
+	for button in [_start_button, _menu_codex_button, _settings_button, _about_button, _language_button, _quit_button]:
 		button.focus_mode = Control.FOCUS_ALL
 	_settings_button.grab_focus()
 	SaveSystem.autosave({"last_mode": "menu"})
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") and _settings_overlay.visible:
+	if not _capture_action.is_empty():
+		return
+	if event.is_action_pressed("ui_cancel") and _controls_overlay.visible:
+		close_controls()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_cancel") and _settings_overlay.visible:
 		close_settings()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("toggle_codex") and not _settings_overlay.visible:
@@ -161,28 +178,34 @@ func _build_header() -> void:
 
 func _build_menu() -> void:
 	var button_y := 318.0
+	var step := 50.0
 	_start_button = _make_button("StartButton", "menu.start", true)
-	UILayout.place(_start_button, 180.0, button_y, 320.0, 48.0)
+	UILayout.place(_start_button, 180.0, button_y, 320.0, 46.0)
 	add_child(_start_button)
 	_start_button.pressed.connect(_on_start_pressed)
 
+	_menu_codex_button = _make_button("MenuCodexButton", "menu.codex")
+	UILayout.place(_menu_codex_button, 180.0, button_y + step, 320.0, 46.0)
+	add_child(_menu_codex_button)
+	_menu_codex_button.pressed.connect(_on_codex_pressed)
+
 	_settings_button = _make_button("SettingsButton", "menu.settings")
-	UILayout.place(_settings_button, 180.0, button_y + 58.0, 320.0, 48.0)
+	UILayout.place(_settings_button, 180.0, button_y + step * 2.0, 320.0, 46.0)
 	add_child(_settings_button)
 	_settings_button.pressed.connect(open_settings)
 
 	_about_button = _make_button("AboutButton", "menu.about")
-	UILayout.place(_about_button, 180.0, button_y + 116.0, 320.0, 48.0)
+	UILayout.place(_about_button, 180.0, button_y + step * 3.0, 320.0, 46.0)
 	add_child(_about_button)
 	_about_button.pressed.connect(_on_about_pressed)
 
 	_language_button = _make_button("LanguageButton", "menu.language")
-	UILayout.place(_language_button, 180.0, button_y + 174.0, 320.0, 48.0)
+	UILayout.place(_language_button, 180.0, button_y + step * 4.0, 320.0, 46.0)
 	add_child(_language_button)
 	_language_button.pressed.connect(_on_language_pressed)
 
 	_quit_button = _make_button("QuitButton", "menu.quit")
-	UILayout.place(_quit_button, 180.0, button_y + 232.0, 320.0, 48.0)
+	UILayout.place(_quit_button, 180.0, button_y + step * 5.0, 320.0, 46.0)
 	add_child(_quit_button)
 	_quit_button.pressed.connect(_on_quit_pressed)
 
@@ -212,9 +235,6 @@ func _build_watch_panel() -> void:
 	var heading_spacer := Control.new()
 	heading_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.add_child(heading_spacer)
-	_codex_button = _make_text_button("CodexButton", Locale.t("menu.codex"), 13, Vector2(86.0, 30.0))
-	_codex_button.pressed.connect(_on_codex_pressed)
-	heading.add_child(_codex_button)
 	var small_seal := _make_label("PanelSeal", "永昌", 13, Color(VERMILION_LIGHT, 0.95))
 	small_seal.add_theme_constant_override("outline_size", 1)
 	small_seal.add_theme_color_override("font_outline_color", Color(GOLD, 0.45))
@@ -428,7 +448,13 @@ func _build_settings_overlay() -> void:
 	column.add_child(grow)
 
 	var back_row := HBoxContainer.new()
+	back_row.add_theme_constant_override("separation", 12)
 	column.add_child(back_row)
+	var controls_button := _make_button("ControlsButton", "settings.controls")
+	controls_button.custom_minimum_size = Vector2(220.0, 48.0)
+	controls_button.pressed.connect(open_controls)
+	back_row.add_child(controls_button)
+	_controls_settings_button = controls_button
 	var back_spacer := Control.new()
 	back_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	back_row.add_child(back_spacer)
@@ -436,6 +462,208 @@ func _build_settings_overlay() -> void:
 	_back_button.custom_minimum_size = Vector2(236.0, 48.0)
 	_back_button.pressed.connect(close_settings)
 	back_row.add_child(_back_button)
+
+
+func _build_controls_overlay() -> void:
+	_controls_overlay = Control.new()
+	_controls_overlay.name = "ControlsOverlay"
+	_controls_overlay.visible = false
+	_controls_overlay.z_index = 30
+	add_child(_controls_overlay)
+	_controls_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var dim := ColorRect.new()
+	dim.name = "Dim"
+	dim.color = Color(0.015, 0.025, 0.030, 0.90)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	_controls_overlay.add_child(dim)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var panel := PanelContainer.new()
+	panel.name = "ControlsPanel"
+	UILayout.place(panel, 300.0, 46.0, 680.0, 628.0, 0.5, 0.0)
+	panel.custom_minimum_size = Vector2(680.0, 628.0)
+	panel.add_theme_stylebox_override("panel", _panel_texture_box(28))
+	_controls_overlay.add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 16)
+	margin.add_theme_constant_override("margin_right", 16)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	panel.add_child(margin)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 10)
+	margin.add_child(column)
+
+	var header := HBoxContainer.new()
+	column.add_child(header)
+	_controls_title = _make_label("ControlsTitle", "", 30, GOLD)
+	header.add_child(_controls_title)
+	var header_spacer := Control.new()
+	header_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(header_spacer)
+	_controls_close = _make_text_button("ControlsCloseButton", "×", 30, Vector2(42.0, 38.0))
+	_controls_close.pressed.connect(close_controls)
+	header.add_child(_controls_close)
+
+	column.add_child(_rule())
+
+	_controls_hint = _make_label("ControlsHint", "", 14, Color(MUTED, 0.92))
+	_controls_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_controls_hint.custom_minimum_size = Vector2(0.0, 40.0)
+	column.add_child(_controls_hint)
+
+	var scroll := ScrollContainer.new()
+	scroll.name = "ControlsScroll"
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	column.add_child(scroll)
+
+	var rows := VBoxContainer.new()
+	rows.name = "ControlsRows"
+	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	rows.add_theme_constant_override("separation", 6)
+	scroll.add_child(rows)
+
+	for action in InputSetup.ORDER:
+		var row := HBoxContainer.new()
+		row.name = "Row_%s" % action
+		row.add_theme_constant_override("separation", 10)
+		rows.add_child(row)
+		var action_label := _make_label("Label_%s" % action, "", 16, PAPER)
+		action_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		action_label.custom_minimum_size = Vector2(220.0, 30.0)
+		row.add_child(action_label)
+		var binding_label := _make_label("Binding_%s" % action, "—", 16, GOLD)
+		binding_label.custom_minimum_size = Vector2(190.0, 30.0)
+		binding_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		row.add_child(binding_label)
+		_binding_labels[action] = binding_label
+		var rebind := _make_text_button("Rebind_%s" % action, "", 14, Vector2(110.0, 32.0))
+		rebind.name = "Rebind_%s" % action
+		rebind.set_meta("action", action)
+		rebind.pressed.connect(_begin_capture.bind(action))
+		row.add_child(rebind)
+
+	column.add_child(_rule())
+
+	var footer := HBoxContainer.new()
+	footer.add_theme_constant_override("separation", 12)
+	column.add_child(footer)
+	_controls_reset = _make_button("ControlsResetButton", "controls.reset")
+	_controls_reset.custom_minimum_size = Vector2(220.0, 46.0)
+	_controls_reset.pressed.connect(_on_reset_bindings)
+	footer.add_child(_controls_reset)
+	var footer_spacer := Control.new()
+	footer_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	footer.add_child(footer_spacer)
+	var done := _make_button("ControlsDoneButton", "controls.done", true)
+	done.custom_minimum_size = Vector2(236.0, 46.0)
+	done.pressed.connect(close_controls)
+	footer.add_child(done)
+	_controls_done = done
+
+
+func open_controls() -> void:
+	if _controls_overlay.visible:
+		return
+	_end_capture()
+	_controls_overlay.visible = true
+	_refresh_controls_texts()
+	SaveSystem.autosave({"last_mode": "controls"})
+
+
+func close_controls() -> void:
+	if not _controls_overlay.visible:
+		return
+	_end_capture()
+	_controls_overlay.visible = false
+	AudioBus.play_back()
+	if is_instance_valid(_back_button):
+		_back_button.grab_focus()
+
+
+func _begin_capture(action: String) -> void:
+	_capture_action = action
+	_controls_hint.text = Locale.t("controls.press_key", {"action": Locale.t("control.%s" % action)})
+	_controls_hint.add_theme_color_override("font_color", GOLD)
+
+
+func _end_capture() -> void:
+	_capture_action = ""
+	_refresh_controls_texts()
+
+
+func _input(event: InputEvent) -> void:
+	if _capture_action.is_empty():
+		return
+	if event is InputEventKey:
+		var key_event := event as InputEventKey
+		if not key_event.pressed or key_event.echo:
+			return
+		var code := int(key_event.physical_keycode)
+		if code <= 0:
+			code = int(key_event.keycode)
+		if code == KEY_ESCAPE:
+			_end_capture()
+			get_viewport().set_input_as_handled()
+			return
+		_apply_capture(event)
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseButton:
+		var mouse_event := event as InputEventMouseButton
+		if not mouse_event.pressed:
+			return
+		if mouse_event.button_index == MOUSE_BUTTON_RIGHT:
+			_end_capture()
+			get_viewport().set_input_as_handled()
+			return
+		_apply_capture(event)
+		get_viewport().set_input_as_handled()
+
+
+func _apply_capture(event: InputEvent) -> void:
+	var token := InputSetup.token_from_event(event)
+	if token.is_empty():
+		return
+	var conflict := InputSetup.conflict_for(_capture_action, token)
+	if not conflict.is_empty():
+		_controls_hint.text = Locale.t("controls.conflict", {"action": Locale.t("control.%s" % conflict)})
+		_controls_hint.add_theme_color_override("font_color", VERMILION_LIGHT)
+		return
+	GameSettings.set_binding(_capture_action, token)
+	_end_capture()
+
+
+func _on_reset_bindings() -> void:
+	GameSettings.reset_bindings()
+	_end_capture()
+	_controls_hint.text = Locale.t("controls.reset_done")
+	_controls_hint.add_theme_color_override("font_color", GOLD)
+
+
+func _refresh_controls_texts() -> void:
+	if not is_instance_valid(_controls_overlay):
+		return
+	_controls_title.text = Locale.t("controls.title")
+	_controls_close.text = "×"
+	_controls_reset.text = Locale.t("controls.reset")
+	_controls_hint.text = Locale.t("controls.hint")
+	_controls_hint.add_theme_color_override("font_color", Color(MUTED, 0.92))
+	var rows := _controls_overlay.find_child("ControlsRows", true, false) as VBoxContainer
+	if rows != null:
+		for action in InputSetup.ORDER:
+			var label := rows.find_child("Label_%s" % action, true, false) as Label
+			if label != null:
+				label.text = Locale.t("control.%s" % action)
+			var rebind := rows.find_child("Rebind_%s" % action, true, false) as Button
+			if rebind != null:
+				rebind.text = Locale.t("controls.rebind")
+			var binding := _binding_labels.get(action, null) as Label
+			if binding != null:
+				binding.text = InputSetup.describe(action)
 
 
 func _connect_signals() -> void:
@@ -557,9 +785,14 @@ func _refresh_texts() -> void:
 	_settings_button.text = Locale.t("menu.settings")
 	_about_button.text = Locale.t("menu.about")
 	_language_button.text = Locale.t("menu.language", {"name": Locale.language_name()})
-	_codex_button.text = Locale.t("menu.codex")
+	_menu_codex_button.text = Locale.t("menu.codex")
 	_quit_button.text = Locale.t("menu.quit")
 	_back_button.text = Locale.t("settings.back")
+	if is_instance_valid(_controls_settings_button):
+		_controls_settings_button.text = Locale.t("settings.controls")
+	if is_instance_valid(_controls_done):
+		_controls_done.text = Locale.t("controls.done")
+	_refresh_controls_texts()
 	_fullscreen_toggle.text = Locale.t("settings.on" if GameSettings.fullscreen else "settings.off")
 	for index in range(GameSettings.FPS_LIMITS.size()):
 		_fps_option.set_item_text(index, _fps_option_text(int(GameSettings.FPS_LIMITS[index])))
