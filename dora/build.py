@@ -352,7 +352,11 @@ def build(output: Path) -> None:
         temporary.unlink(missing_ok=True)
 
     size_mib = output.stat().st_size / (1024 * 1024)
-    print(f"Built {output.relative_to(ROOT)} ({len(entries)} files, {sidecar_count} import sidecars, {size_mib:.2f} MiB)")
+    try:
+        display_path = output.relative_to(ROOT)
+    except ValueError:
+        display_path = output
+    print(f"Built {display_path} ({len(entries)} files, {sidecar_count} import sidecars, {size_mib:.2f} MiB)")
     print(f"sha256={sha256(output)}")
 
 
