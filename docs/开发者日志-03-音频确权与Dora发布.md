@@ -1,0 +1,26 @@
+# 开发者日志 03：从可玩版本到可审计的开源交付
+
+- 日期：2026-11-25
+- 作者：xingwangzhe
+- 阶段：音频确权、许可分层、Dora 适配与发布审计
+
+## 授权审计
+
+逐项追踪运行时音频、字体、图标、特效和文化素材后，采取了以下处理：
+
+- 三首运行时 BGM 全部使用 CC0：菜单与关于页为项目原创程序化合成，战斗曲为 MintoDog 的《Hard Battle 1》。
+- 20 个运行时 SFX 全部使用 CC0，来源包括 OpenGameArt 与 Kenney。
+- 删除 18 个输出授权未明确核实的 MOSS 生成语音 OGG；剧情保留双语字幕回退，生成脚本默认拒绝重新生成。
+- 代码采用 AGPL-3.0-or-later，原创非代码资产采用 CC BY 4.0；第三方内容保留 CC0、CC BY 3.0、OFL 1.1、MIT 等原许可并逐项署名。
+
+## Dora 适配
+
+新增 `dora/build.py` 与根目录 `init.lua`。构建器只复制当前 `.import` sidecar 实际引用的导入产物，排除测试、GUT、gda harness 和缓存，并检查 ZIP 布局、CRC、法律文件与不安全路径。运行时通过 `GodotNode` 加载工程，等待 `game.running`，同时检查 `game.lastError`，避免把异步创建成功误判为启动成功。
+
+## 发布修复
+
+重新导出时发现开发用 `GdaHarness` 仍登记为 autoload，而导出包又排除了该插件，导致 Linux 发行版启动失败。修复方式是移除开发 autoload、加入回归断言并重新导出。三个平台 PCK 均审计为格式 v4、848 个文件，禁用路径、旧兵种、法律文件缺失和 MD5 错误均为 0。
+
+## 当前结果与边界
+
+Linux 发行版 smoke 通过；Dora 静态检查、源码 ZIP、Linux/Windows/macOS ZIP 与 PCK 审计通过。Windows Wine smoke 因宿主磁盘配额错误未通过，不能替代原生 Windows CI；真实 Dora、macOS 实机和赛事平台操作仍未完成。详细证据见 [构建与验收报告](build_2026-11-25.md) 和 [Dora 运行说明](../DORA.md)。
