@@ -65,7 +65,8 @@
   装备可供双方自由组合，但不会改变配方阵营。
 - 运行时的 `CharacterForge.set_recipe()` 会校验服装、头饰、背挂、主手与副手的
   `faction`；非法混装会被拒绝并保留上一条合法配方。
-- 四肢必须由同一套骨架端点驱动，禁止用互不相连的贴片拼肢体。
+- 四肢必须由同一套骨架端点驱动，禁止用互不相连的贴片拼肢体；
+  肘与膝统一由 `joint_between()` 求解，body 与 outfit 层不得各自用不同的 bend。
 - 双手与远程武器（枪、戟、斧、钺、叉、弓、弩、手铳）双臂固定在躯干前层，保证
   挥动与持握可读；单手武器远臂在非交叠时置于后层，交叠时只把前臂和手叠回前景。
 - 肩、髋根点与躯干共享同一纵向骨骼位置；肘、膝只加 1px 折痕和明暗，不画深色关节球。
@@ -77,6 +78,23 @@
   `random_combo_sheet.png` 和 `dual_combo_sheet.png`；弓姿改动还必须查看
   `bow_combo_sheet.png`，确认持弓手在箭向一侧、拉弦手靠近身体；阵营或专属装备改动
   还必须查看 `faction_combo_sheet.png`，逐行确认明军、倭寇、通用三段没有混装。
+
+## 显式骨架数据层（2026-11-24）
+
+- 骨架不再隐含在绘制函数里。`skeleton_frame()` 为每帧导出肩、肘、手、髋、膝、踝、
+  握点与武器轴线的绝对坐标，写入 `generated/character_candidates/skeleton_frames.json`
+  （该目录已被 `.gitignore` 排除，仅作本地验证产物）。
+- two-bone IK 有两个合法解。旧代码给远侧肢体固定 `bend = 1`、近侧固定 `bend = -1`，
+  但 `solve_ik()` 的 bend 来自绝对 `atan2` 角度；当手或脚跨过根点连线时，固定符号会让
+  关节翻到另一分支。`solve_joint()` 改用解剖提示点 `LIMB_HINTS` 按几何选支，
+  相邻帧因此稳定在同一侧。提示点按正面视角定义：肘与膝都向本侧外下方外展。
+- body 与 outfit 层共用 `joint_between()`，皮肤与服装的肘膝坐标完全重合，
+  不会出现袖口与手臂、裤腿与小腿分离。
+- `validate_joint_projection()` 遍历全部配方组合 × 48 帧，检查肘膝是否落在
+  根点到目标点的可解释线段范围内。`build.py --skeleton-only` 可单独导出骨架并打印异常。
+- 当前实现仍是「显式骨架数据 → 离线像素 bake」，不是 Godot 运行时 `Skeleton2D`。
+  这是有意选择：正式资产须经 `bake_battle_sprites.py` 输出到 `units/forge/`，
+  且敌兵用 MultiMesh 批量绘制，改为逐敌节点会破坏割草性能。
 
 ## 下载与使用边界
 
