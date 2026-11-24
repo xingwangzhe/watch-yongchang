@@ -131,25 +131,10 @@ game\launch.bat
 
 ## 截图
 
-- `../docs/screenshots/ui_2026-11-23/main_menu_zh.png`
-- `../docs/screenshots/ui_2026-11-23/main_menu_v3.png`
-- `../docs/screenshots/ui_2026-11-23/settings_zh.png`
-- `../docs/screenshots/ui_2026-11-23/about_top_zh.png`
-- `../docs/screenshots/ui_2026-11-23/about_sources_zh.png`
-- `../docs/screenshots/ui_2026-11-23/about_music_zh.png`
-- `../docs/screenshots/ui_2026-11-23/about_takeover_zh.png`
-- `../docs/screenshots/ui_2026-11-23/settings_renderer_zh.png`
-- `../docs/screenshots/ui_2026-11-23/about_updated_renderer_zh.png`
-- `../docs/screenshots/ui_2026-11-23/main_menu_en.png`
-- `../docs/screenshots/game_2026-11-23/codex_v4.png`
-- `../docs/screenshots/game_2026-11-23/character_select_v3.png`
-- `../docs/screenshots/game_2026-11-23/prologue_v2.png`
-- `../docs/screenshots/upgrades_2026-11-23/choice_frame.png`：三族三选一选择帧
-- `../docs/screenshots/upgrades_2026-11-23/combat_frame.png`：护盾与多技能战斗帧
-- `../docs/screenshots/upgrades_2026-11-23/touch_controls_frame.png`：巡灯/灯影步触屏帧
-- `../docs/screenshots/game_2026-11-23/run_playing_v4.png`
-- `../docs/screenshots/game_2026-11-23/run_voice.png`
-- `../docs/screenshots/game_2026-11-23/result_victory.png`
+验收截图属于本地临时产物，不随仓库分发。需要时用 `gda` 现场生成，
+统一放到 `docs/screenshots/`（已在 `.gitignore` 中忽略）；文档只保留文字验收结论。
+已完成的视觉验收范围：主菜单（中/英）、设置、关于页滚幕、图鉴、选择页、
+序章、正篇战斗与三选一升级帧、触屏控制、结算画面。
 
 ## 资产
 

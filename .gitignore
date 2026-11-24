@@ -1,13 +1,22 @@
-# 第三方原始素材包（约 1.2GB，来源 URL 与校验值见 docs/source-manifest.json）
+# ============================================================
+# 本项目 .gitignore 约定
+# 分类原则：只忽略「本地生成 / 下载候选 / 运行产物」；
+# game/assets/** 下的正式入库资产一律不在此列。
+# ============================================================
+
+# ----- 第三方原始素材包（来源 URL 与校验值见 docs/source-manifest.json）-----
 docs/01-参考资料包/
+assets/third_party/hardvacuum/
 
-# 编辑器与系统临时文件
-.DS_Store
-Thumbs.db
-*.swp
-*~
+# ----- 开源参考实现与本地 TTS 运行时（仅本地研究，不进入成品）-----
+third_party/reference-games/
+third_party/moss-tts-nano/
 
-# Godot 引擎缓存
+# ----- 验收截图 / 调试日志（本地临时产物，不入库、不写入文档）-----
+# gda / Xvfb / 压力测试产生的截图与日志统一放这里，需要时现场生成。
+docs/screenshots/
+
+# ----- Godot 引擎缓存、工具 harness 与导出产物 -----
 game/.godot/
 game/addons/gda_harness/
 game/export/
@@ -15,40 +24,27 @@ game/build/
 game/android/build/
 game/ios/build/
 
-# CodeGraph 索引库（本地生成，不入库）
+# ----- 索引数据库（本地生成）-----
 .codegraph/
 
-# 开源参考实现（仅本地研究，不进入成品或版本库）
-third_party/reference-games/
-
-# 第三方原始素材包（不入库）
-assets/third_party/hardvacuum/
-
-# Python / Pillow 运行缓存
+# ----- Python / Pillow 运行缓存 -----
 __pycache__/
 *.pyc
 .venv/
 
-# 像素素材临时输出
+# ----- 像素素材临时研究输出（正式导出走 game/assets/）-----
 pixel-art/**/*_study/
 
-# game-icons.net 下载缓存（筛选后再复制到 game/assets，未采用的文件不入库）
+# ----- 生成候选包（筛选后的正式文件才复制到 game/assets/）-----
 generated/game_icons/
-
-# 地图瓦片候选包（仅下载审视，未采用的包与文件不入库）
 generated/tileset_candidates/
-
-# 角色模板候选包（仅下载审视，未采用的包与文件不入库）
 generated/character_candidates/
 
-# CI 工具与构建产物
+# ----- CI 工具、构建产物与日志 -----
 .tools/
 artifacts/
 *.log
 
-# 本地密钥与环境变量
+# ----- 本地密钥与环境变量 -----
 .env
 .env.*
-
-# Local TTS reference/runtime and downloadable model weights
-third_party/moss-tts-nano/
