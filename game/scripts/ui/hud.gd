@@ -132,91 +132,91 @@ func _build() -> void:
 	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_root)
 
+	# 上下遮罩：水平拉伸铺满，仅固定高度（相对定位）。
 	var top_shade := ColorRect.new()
 	top_shade.color = Color(0.01, 0.02, 0.022, 0.62)
-	top_shade.position = Vector2(0, 0)
-	top_shade.size = Vector2(1280, 76)
 	top_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top_shade.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	top_shade.offset_bottom = 76.0
 	_root.add_child(top_shade)
 	var bottom_shade := ColorRect.new()
 	bottom_shade.color = Color(0.01, 0.02, 0.022, 0.68)
-	bottom_shade.position = Vector2(0, 616)
-	bottom_shade.size = Vector2(1280, 104)
 	bottom_shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom_shade.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	bottom_shade.offset_top = -104.0
 	_root.add_child(bottom_shade)
 
+	# 左上：血量 / 等级 / 经验
 	_hp_bar = _make_progress("HpBar", Vector2(34, 16), Vector2(300, 14), Color("#a64535"))
 	_root.add_child(_hp_bar)
 	_hp_label = _label("HpLabel", "", 14, PAPER)
-	_hp_label.position = Vector2(342, 14)
+	UILayout.place(_hp_label, 342, 14, 120, 20, 0.0, 0.0)
 	_root.add_child(_hp_label)
 	_shield_label = _label("ShieldLabel", "", 11, Color("#d8b45f"))
-	_shield_label.position = Vector2(342, 32)
-	_shield_label.size = Vector2(150, 18)
+	UILayout.place(_shield_label, 342, 32, 150, 18, 0.0, 0.0)
 	_shield_label.visible = false
 	_root.add_child(_shield_label)
 
 	_level_label = _label("LevelLabel", "", 15, GOLD)
-	_level_label.position = Vector2(34, 36)
+	UILayout.place(_level_label, 34, 36, 200, 20, 0.0, 0.0)
 	_root.add_child(_level_label)
 	_xp_bar = _make_progress("XpBar", Vector2(34, 60), Vector2(390, 6), Color("#d8a548"))
 	_root.add_child(_xp_bar)
 
+	# 顶部居中：倒计时
 	_timer_label = _label("TimerLabel", "", 29, PAPER)
 	_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_timer_label.position = Vector2(500, 8)
-	_timer_label.size = Vector2(280, 32)
+	UILayout.place(_timer_label, 500, 8, 280, 32, 0.5, 0.0)
 	_root.add_child(_timer_label)
 	_clock_label = _label("ClockLabel", "", 12, Color(MUTED, 0.82))
 	_clock_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_clock_label.position = Vector2(500, 42)
-	_clock_label.size = Vector2(280, 20)
+	UILayout.place(_clock_label, 500, 42, 280, 20, 0.5, 0.0)
 	_root.add_child(_clock_label)
 
+	# 右上：战绩 / 小地图
 	_kill_label = _label("KillLabel", "", 15, PAPER)
 	_kill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_kill_label.position = Vector2(782, 12)
-	_kill_label.size = Vector2(212, 20)
+	UILayout.place(_kill_label, 782, 12, 212, 20, 1.0, 0.0)
 	_root.add_child(_kill_label)
 	_merit_label = _label("MeritLabel", "", 13, GOLD)
 	_merit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_merit_label.position = Vector2(782, 34)
-	_merit_label.size = Vector2(212, 20)
+	UILayout.place(_merit_label, 782, 34, 212, 20, 1.0, 0.0)
 	_root.add_child(_merit_label)
 	_coin_label = _label("CoinLabel", "", 11, Color("#d8b45f"))
 	_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_coin_label.position = Vector2(782, 56)
-	_coin_label.size = Vector2(212, 18)
+	UILayout.place(_coin_label, 782, 56, 212, 18, 1.0, 0.0)
 	_root.add_child(_coin_label)
 
 	_minimap = MINIMAP.new()
 	_minimap.name = "Minimap"
-	_minimap.position = Vector2(1030, 10)
-	_minimap.size = Vector2(216, 140)
+	UILayout.place(_minimap, 1030, 10, 216, 140, 1.0, 0.0)
 	_root.add_child(_minimap)
 
+	# 左下：灯火 / 阵法 / 操作提示
 	_oil_label = _label("OilLabel", "", 13, Color(MUTED, 0.9))
-	_oil_label.position = Vector2(34, 618)
+	UILayout.place(_oil_label, 34, 618, 180, 20, 0.0, 1.0)
 	_root.add_child(_oil_label)
 	_oil_meter = OIL_METER.new()
 	_oil_meter.name = "OilMeter"
-	_oil_meter.position = Vector2(34, 638)
-	_oil_meter.size = Vector2(178, 30)
+	UILayout.place(_oil_meter, 34, 638, 178, 30, 0.0, 1.0)
 	_root.add_child(_oil_meter)
 
 	_scale_label = _label("ScaleLabel", "", 13, Color(MUTED, 0.9))
-	_scale_label.position = Vector2(236, 618)
+	UILayout.place(_scale_label, 236, 618, 160, 20, 0.0, 1.0)
 	_root.add_child(_scale_label)
 	_scale_meter = SCALE_METER.new()
 	_scale_meter.name = "ScaleMeter"
-	_scale_meter.position = Vector2(236, 638)
-	_scale_meter.size = Vector2(150, 30)
+	UILayout.place(_scale_meter, 236, 638, 150, 30, 0.0, 1.0)
 	_root.add_child(_scale_meter)
 
+	_move_hint = _label("MoveHint", "", 10, Color(MUTED, 0.58))
+	UILayout.place(_move_hint, 34, 690, 410, 18, 0.0, 1.0)
+	_root.add_child(_move_hint)
+
+	# 底部居中：兵器槽 / 被动
 	var weapon_row := HBoxContainer.new()
 	weapon_row.name = "WeaponRow"
-	weapon_row.position = Vector2(430, 618)
-	weapon_row.size = Vector2(644, 56)
+	UILayout.place(weapon_row, 430, 618, 644, 56, 0.5, 1.0)
 	weapon_row.add_theme_constant_override("separation", 6)
 	_root.add_child(weapon_row)
 	for i in range(6):
@@ -225,24 +225,18 @@ func _build() -> void:
 		_weapon_slots.append(slot)
 
 	_passive_label = _label("PassiveLabel", "", 12, Color(MUTED, 0.70))
-	_passive_label.position = Vector2(430, 681)
-	_passive_label.size = Vector2(610, 22)
+	UILayout.place(_passive_label, 430, 681, 610, 22, 0.5, 1.0)
 	_root.add_child(_passive_label)
 	_build_label = _label("BuildLabel", "", 11, Color(MUTED, 0.48))
 	_build_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_build_label.position = Vector2(1060, 684)
-	_build_label.size = Vector2(184, 20)
+	UILayout.place(_build_label, 1060, 684, 184, 20, 1.0, 1.0)
 	_root.add_child(_build_label)
-	_move_hint = _label("MoveHint", "", 10, Color(MUTED, 0.58))
-	_move_hint.position = Vector2(34, 690)
-	_move_hint.size = Vector2(410, 18)
-	_root.add_child(_move_hint)
 
+	# 顶部居中弹窗：横幅 / Boss 条
 	_banner_panel = PanelContainer.new()
 	_banner_panel.name = "BannerPanel"
 	_banner_panel.visible = false
-	_banner_panel.position = Vector2(424, 112)
-	_banner_panel.size = Vector2(432, 92)
+	UILayout.place(_banner_panel, 424, 112, 432, 92, 0.5, 0.0)
 	_banner_panel.add_theme_stylebox_override("panel", _banner_style())
 	_root.add_child(_banner_panel)
 	var banner_box := VBoxContainer.new()
@@ -262,8 +256,7 @@ func _build() -> void:
 	_boss_panel = PanelContainer.new()
 	_boss_panel.name = "BossPanel"
 	_boss_panel.visible = false
-	_boss_panel.position = Vector2(390, 96)
-	_boss_panel.size = Vector2(500, 62)
+	UILayout.place(_boss_panel, 390, 96, 500, 62, 0.5, 0.0)
 	_boss_panel.add_theme_stylebox_override("panel", _banner_style())
 	_root.add_child(_boss_panel)
 	var boss_box := VBoxContainer.new()
@@ -280,7 +273,6 @@ func _build_weapon_slot(index: int) -> Dictionary:
 	var panel := PanelContainer.new()
 	panel.name = "WeaponSlot%d" % (index + 1)
 	panel.custom_minimum_size = Vector2(104, 50)
-	panel.size = Vector2(104, 50)
 	panel.add_theme_stylebox_override("panel", _slot_style(false))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 5)
@@ -347,8 +339,7 @@ func _label(node_name: String, text: String, font_size: int, color: Color) -> La
 func _make_progress(node_name: String, position: Vector2, size_value: Vector2, fill: Color) -> ProgressBar:
 	var bar := ProgressBar.new()
 	bar.name = node_name
-	bar.position = position
-	bar.size = size_value
+	UILayout.place(bar, position.x, position.y, size_value.x, size_value.y, 0.0, 0.0)
 	bar.custom_minimum_size = size_value
 	bar.show_percentage = false
 	bar.max_value = 100.0

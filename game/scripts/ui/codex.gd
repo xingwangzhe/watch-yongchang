@@ -58,39 +58,37 @@ func _build_backdrop() -> void:
 	for i in range(9):
 		var line := ColorRect.new()
 		line.color = Color(0.55, 0.45, 0.26, 0.045)
-		line.position = Vector2(0, 80 + i * 72)
-		line.size = Vector2(1280, 1)
+		line.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+		line.offset_top = 80.0 + float(i) * 72.0
+		line.offset_bottom = line.offset_top + 1.0
 		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(line)
 	for i in range(8):
 		var vertical := ColorRect.new()
 		vertical.color = Color(0.55, 0.45, 0.26, 0.025)
-		vertical.position = Vector2(80 + i * 160, 0)
-		vertical.size = Vector2(1, 720)
+		vertical.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+		vertical.offset_left = 80.0 + float(i) * 160.0
+		vertical.offset_right = vertical.offset_left + 1.0
 		vertical.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(vertical)
 
 
 func _build_header() -> void:
 	var title := _label(_loc("title"), 40, GOLD)
-	title.position = Vector2(56, 22)
+	UILayout.place(title, 56, 22, 480, 48)
 	_content.add_child(title)
 	var subtitle := _label(_loc("subtitle"), 18, Color(PAPER, 0.92))
-	subtitle.position = Vector2(58, 70)
-	subtitle.size = Vector2(990, 28)
+	UILayout.place(subtitle, 58, 70, 990, 28)
 	_content.add_child(subtitle)
 	var boundary := _label(" · ".join(_localized_array("facts")), 12, Color(MUTED, 0.72))
-	boundary.position = Vector2(58, 101)
-	boundary.size = Vector2(1060, 26)
+	UILayout.place(boundary, 58, 101, 1060, 26)
 	_content.add_child(boundary)
 	var back := _button(Locale.t("codex.back"), true)
-	back.position = Vector2(1054, 34)
-	back.size = Vector2(170, 44)
+	UILayout.place(back, 1054, 34, 170, 44, 1.0, 0.0)
 	back.pressed.connect(_return_to_menu)
 	_content.add_child(back)
 	var hint := _label(Locale.t("codex.hint"), 11, Color(MUTED, 0.52))
-	hint.position = Vector2(1050, 82)
-	hint.size = Vector2(180, 20)
+	UILayout.place(hint, 1050, 82, 180, 20, 1.0, 0.0)
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_content.add_child(hint)
 
@@ -103,13 +101,11 @@ func _build_columns() -> void:
 		"source": str(_data.get("left", {}).get("source_ref", "")),
 		"accent": Color("#d1ad62"),
 	})
-	left.position = Vector2(48, 138)
-	left.size = Vector2(356, 336)
+	UILayout.place(left, 48, 138, 356, 336)
 	_content.add_child(left)
 
 	var center := _bridge_panel()
-	center.position = Vector2(432, 138)
-	center.size = Vector2(416, 336)
+	UILayout.place(center, 432, 138, 416, 336)
 	_content.add_child(center)
 
 	var right := _panel({
@@ -119,8 +115,7 @@ func _build_columns() -> void:
 		"source": str(_data.get("right", {}).get("source_ref", "")),
 		"accent": Color("#b95a43"),
 	})
-	right.position = Vector2(876, 138)
-	right.size = Vector2(356, 336)
+	UILayout.place(right, 876, 138, 356, 336, 1.0, 0.0)
 	_content.add_child(right)
 
 
@@ -204,11 +199,10 @@ func _bridge_panel() -> PanelContainer:
 
 func _build_timeline() -> void:
 	var heading := _label(Locale.t("codex.timeline"), 17, GOLD)
-	heading.position = Vector2(54, 488)
+	UILayout.place(heading, 54, 488, 300, 24)
 	_content.add_child(heading)
 	var row := HBoxContainer.new()
-	row.position = Vector2(50, 514)
-	row.size = Vector2(1180, 88)
+	UILayout.place(row, 50, 514, 1180, 88, 0.5, 0.0)
 	row.add_theme_constant_override("separation", 8)
 	_content.add_child(row)
 	for entry in _data.get("timeline", []) as Array:
@@ -231,14 +225,13 @@ func _build_timeline() -> void:
 
 func _build_sources() -> void:
 	var heading := _label(Locale.t("codex.sources"), 13, Color(MUTED, 0.82))
-	heading.position = Vector2(54, 630)
+	UILayout.place(heading, 54, 630, 200, 20)
 	_content.add_child(heading)
 	var display_sources: Array[String] = []
 	for source in _localized_array("sources"):
 		display_sources.append(_display_source(str(source)))
 	var sources := _label(" · ".join(display_sources), 9, Color(MUTED, 0.56))
-	sources.position = Vector2(124, 629)
-	sources.size = Vector2(1100, 42)
+	UILayout.place(sources, 124, 629, 1100, 42)
 	sources.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	sources.max_lines_visible = 2
 	sources.clip_text = true

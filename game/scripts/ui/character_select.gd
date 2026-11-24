@@ -88,25 +88,27 @@ func _build_ui() -> void:
 	add_child(shade)
 
 	var title := _label(Locale.t("select.title"), 48, GOLD)
-	title.position = Vector2(72, 34)
+	UILayout.place(title, 72, 34, 640, 56)
 	add_child(title)
 	var subtitle := _label(Locale.t("select.subtitle"), 18, Color(PAPER, 0.88))
-	subtitle.position = Vector2(74, 92)
+	UILayout.place(subtitle, 74, 92, 710, 26)
 	add_child(subtitle)
 	var rule := ColorRect.new()
 	rule.color = Color(GOLD, 0.36)
-	rule.position = Vector2(74, 124)
-	rule.size = Vector2(710, 1)
+	UILayout.place(rule, 74, 124, 710, 1)
 	add_child(rule)
 	_merit_label = _label("", 17, GOLD)
 	_merit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_merit_label.position = Vector2(920, 50)
-	_merit_label.size = Vector2(286, 30)
+	UILayout.place(_merit_label, 920, 50, 286, 30, 1.0, 0.0)
 	add_child(_merit_label)
 
 	var panels := HBoxContainer.new()
 	panels.name = "SelectionPanels"
-	panels.position = Vector2(72, 146)
+	panels.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panels.offset_left = 72.0
+	panels.offset_right = -72.0
+	panels.offset_top = 146.0
+	panels.offset_bottom = -16.0
 	panels.add_theme_constant_override("separation", 24)
 	add_child(panels)
 	_build_character_panel(panels)
@@ -209,7 +211,6 @@ func _build_detail_panel(parent: HBoxContainer) -> void:
 		map_row.add_child(map_button)
 		_map_buttons[map_id] = map_button
 	_map_description = _label("", 14, Color(PAPER, 0.76))
-	_map_description.position = Vector2(0, 0)
 	_map_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_map_description.max_lines_visible = 2
 	_map_description.clip_text = true

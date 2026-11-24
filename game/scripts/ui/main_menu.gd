@@ -125,8 +125,7 @@ func _build_backdrop() -> void:
 func _build_header() -> void:
 	var seal := Panel.new()
 	seal.name = "Seal"
-	seal.position = Vector2(96.0, 110.0)
-	seal.size = Vector2(60.0, 84.0)
+	UILayout.place(seal, 96.0, 110.0, 60.0, 84.0)
 	seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	seal.add_theme_stylebox_override("panel", _flat_box(VERMILION, GOLD, 1, 2))
 	add_child(seal)
@@ -151,40 +150,39 @@ func _build_header() -> void:
 
 	var rule := ColorRect.new()
 	rule.name = "TitleRule"
-	rule.position = Vector2(181.0, 286.0)
-	rule.size = Vector2(402.0, 1.0)
+	UILayout.place(rule, 181.0, 286.0, 402.0, 1.0)
 	rule.color = Color(GOLD, 0.42)
 	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(rule)
 
-	var brand_mark := _label("BrandMark", "2026 · OSGJ", Vector2(182.0, 272.0 + 2.0), 12, Color(MUTED, 0.62))
-	brand_mark.position = Vector2(506.0, 294.0)
+	var brand_mark := _label("BrandMark", "2026 · OSGJ", Vector2(506.0, 294.0), 12, Color(MUTED, 0.62))
+	UILayout.place(brand_mark, 506.0, 294.0, 160.0, 20.0)
 
 
 func _build_menu() -> void:
 	var button_y := 318.0
 	_start_button = _make_button("StartButton", "menu.start", true)
-	_start_button.position = Vector2(180.0, button_y)
+	UILayout.place(_start_button, 180.0, button_y, 320.0, 48.0)
 	add_child(_start_button)
 	_start_button.pressed.connect(_on_start_pressed)
 
 	_settings_button = _make_button("SettingsButton", "menu.settings")
-	_settings_button.position = Vector2(180.0, button_y + 58.0)
+	UILayout.place(_settings_button, 180.0, button_y + 58.0, 320.0, 48.0)
 	add_child(_settings_button)
 	_settings_button.pressed.connect(open_settings)
 
 	_about_button = _make_button("AboutButton", "menu.about")
-	_about_button.position = Vector2(180.0, button_y + 116.0)
+	UILayout.place(_about_button, 180.0, button_y + 116.0, 320.0, 48.0)
 	add_child(_about_button)
 	_about_button.pressed.connect(_on_about_pressed)
 
 	_language_button = _make_button("LanguageButton", "menu.language")
-	_language_button.position = Vector2(180.0, button_y + 174.0)
+	UILayout.place(_language_button, 180.0, button_y + 174.0, 320.0, 48.0)
 	add_child(_language_button)
 	_language_button.pressed.connect(_on_language_pressed)
 
 	_quit_button = _make_button("QuitButton", "menu.quit")
-	_quit_button.position = Vector2(180.0, button_y + 232.0)
+	UILayout.place(_quit_button, 180.0, button_y + 232.0, 320.0, 48.0)
 	add_child(_quit_button)
 	_quit_button.pressed.connect(_on_quit_pressed)
 
@@ -192,8 +190,7 @@ func _build_menu() -> void:
 func _build_watch_panel() -> void:
 	var panel := PanelContainer.new()
 	panel.name = "WatchPanel"
-	panel.position = Vector2(792.0, 128.0)
-	panel.size = Vector2(400.0, 470.0)
+	UILayout.place(panel, 792.0, 128.0, 400.0, 470.0, 1.0, 0.0)
 	panel.add_theme_stylebox_override("panel", _panel_texture_box(30))
 	add_child(panel)
 
@@ -289,10 +286,12 @@ func _build_night_anchors(parent: VBoxContainer) -> void:
 
 
 func _build_footer() -> void:
-	_register_label(_label("Hint", "", Vector2(182.0, 644.0), 14, Color(MUTED, 0.70)), "menu.hint")
+	var hint := _label("Hint", "", Vector2(182.0, 644.0), 14, Color(MUTED, 0.70))
+	UILayout.place(hint, 182.0, 644.0, 600.0, 24.0, 0.0, 1.0)
+	_register_label(hint, "menu.hint")
 	var build := _label("Build", "YONGCHANG · 1558", Vector2(1000.0, 674.0), 12, Color(MUTED, 0.46))
 	build.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	build.size = Vector2(180.0, 20.0)
+	UILayout.place(build, 1000.0, 674.0, 180.0, 20.0, 1.0, 1.0)
 
 
 func _build_settings_overlay() -> void:
@@ -312,9 +311,8 @@ func _build_settings_overlay() -> void:
 
 	_settings_panel = PanelContainer.new()
 	_settings_panel.name = "SettingsPanel"
-	_settings_panel.position = Vector2(340.0, 40.0)
+	UILayout.place(_settings_panel, 340.0, 40.0, 600.0, 640.0, 0.5, 0.0)
 	_settings_panel.custom_minimum_size = Vector2(600.0, 640.0)
-	_settings_panel.size = Vector2(600.0, 640.0)
 	_settings_panel.add_theme_stylebox_override("panel", _panel_texture_box(28))
 	_settings_overlay.add_child(_settings_panel)
 
@@ -442,7 +440,6 @@ func _build_settings_overlay() -> void:
 	back_row.add_child(back_spacer)
 	_back_button = _make_button("BackButton", "settings.back", true)
 	_back_button.custom_minimum_size = Vector2(236.0, 48.0)
-	_back_button.size = Vector2(236.0, 48.0)
 	_back_button.pressed.connect(close_settings)
 	back_row.add_child(_back_button)
 
@@ -648,7 +645,7 @@ func _setting_row(parent: VBoxContainer, key: String, control: Control) -> void:
 
 func _label(node_name: String, text: String, position: Vector2, font_size: int, color: Color) -> Label:
 	var label := _make_label(node_name, text, font_size, color)
-	label.position = position
+	UILayout.place(label, position.x, position.y, 1024.0, 64.0)
 	add_child(label)
 	return label
 
@@ -669,7 +666,6 @@ func _make_button(node_name: String, key: String, primary: bool = false) -> Butt
 	button.name = node_name
 	button.text = Locale.t(key)
 	button.custom_minimum_size = Vector2(320.0, 48.0)
-	button.size = Vector2(320.0, 48.0)
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.add_theme_font_override("font", UI_FONT)
 	button.add_theme_font_size_override("font_size", 20)

@@ -77,20 +77,21 @@ func _build() -> void:
 
 	var left_glow := ColorRect.new()
 	left_glow.color = Color(0.72, 0.48, 0.18, 0.06)
-	left_glow.position = Vector2(32, 0)
-	left_glow.size = Vector2(3, 720)
+	left_glow.set_anchors_and_offsets_preset(Control.PRESET_LEFT_WIDE)
+	left_glow.offset_left = 32.0
+	left_glow.offset_right = 35.0
 	left_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(left_glow)
 	var right_glow := ColorRect.new()
 	right_glow.color = Color(0.72, 0.48, 0.18, 0.06)
-	right_glow.position = Vector2(1245, 0)
-	right_glow.size = Vector2(3, 720)
+	right_glow.set_anchors_and_offsets_preset(Control.PRESET_RIGHT_WIDE)
+	right_glow.offset_left = -35.0
+	right_glow.offset_right = -32.0
 	right_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(right_glow)
 
 	var column := VBoxContainer.new()
-	column.position = Vector2(54.0, 24.0)
-	column.size = Vector2(1172.0, 672.0)
+	UILayout.place(column, 54.0, 24.0, 1172.0, 672.0, 0.5, 0.5)
 	column.add_theme_constant_override("separation", 8)
 	add_child(column)
 
@@ -114,7 +115,6 @@ func _build() -> void:
 		var card := Button.new()
 		card.name = "UpgradeCard%d" % (i + 1)
 		card.custom_minimum_size = Vector2(348.0, 490.0)
-		card.size = Vector2(348.0, 490.0)
 		card.clip_contents = true
 		card.add_theme_stylebox_override("normal", _card_style(Color(0.045, 0.060, 0.062, 0.98), Color(GOLD, 0.28)))
 		card.add_theme_stylebox_override("hover", _card_style(Color(0.070, 0.082, 0.076, 0.99), Color(GOLD, 0.88)))
@@ -130,30 +130,29 @@ func _build() -> void:
 
 
 func _build_card(card: Button, index: int) -> void:
+	var cw := 348.0
+	var ch := 490.0
 	var accent := ColorRect.new()
 	accent.name = "CardAccent"
 	accent.color = Color(GOLD, 0.9)
-	accent.position = Vector2(0, 0)
-	accent.size = Vector2(348, 4)
+	UILayout.place_in(accent, 0, 0, 348, 4, cw, ch)
 	accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(accent)
 
 	var number := _label(str(index + 1), 12, Color(MUTED, 0.58))
 	number.name = "CardNumber"
-	number.position = Vector2(14, 10)
+	UILayout.place_in(number, 14, 10, 20, 20, cw, ch)
 	card.add_child(number)
 
 	var family := _label("", 11, MUTED)
 	family.name = "CardFamily"
-	family.position = Vector2(186, 10)
-	family.size = Vector2(148, 20)
+	UILayout.place_in(family, 186, 10, 148, 20, cw, ch, 1.0, 0.0)
 	family.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	card.add_child(family)
 
 	var icon_plate := PanelContainer.new()
 	icon_plate.name = "CardIconPlate"
-	icon_plate.position = Vector2(115, 34)
-	icon_plate.size = Vector2(118, 118)
+	UILayout.place_in(icon_plate, 115, 34, 118, 118, cw, ch, 0.5, 0.0)
 	icon_plate.add_theme_stylebox_override("panel", _icon_plate_style(Color(GOLD, 0.18)))
 	card.add_child(icon_plate)
 	var icon_center := CenterContainer.new()
@@ -167,78 +166,67 @@ func _build_card(card: Button, index: int) -> void:
 
 	var kind := _label("", 11, Color(MUTED, 0.82))
 	kind.name = "CardKind"
-	kind.position = Vector2(18, 156)
-	kind.size = Vector2(312, 20)
+	UILayout.place_in(kind, 18, 156, 312, 20, cw, ch, 0.5, 0.0)
 	kind.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(kind)
 
 	var title := _label("", 24, GOLD)
 	title.name = "CardTitle"
-	title.position = Vector2(16, 178)
-	title.size = Vector2(316, 54)
+	UILayout.place_in(title, 16, 178, 316, 54, cw, ch, 0.5, 0.0)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(title)
 
 	var rule := ColorRect.new()
 	rule.color = Color(GOLD, 0.24)
-	rule.position = Vector2(40, 238)
-	rule.size = Vector2(268, 1)
+	UILayout.place_in(rule, 40, 238, 268, 1, cw, ch, 0.5, 0.0)
 	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(rule)
 
 	var description := _label("", 14, PAPER)
 	description.name = "CardDescription"
-	description.position = Vector2(22, 248)
-	description.size = Vector2(304, 58)
+	UILayout.place_in(description, 22, 248, 304, 58, cw, ch, 0.5, 0.0)
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(description)
 
 	var effect := _label("", 12, Color("#f0c363"))
 	effect.name = "CardEffect"
-	effect.position = Vector2(22, 306)
-	effect.size = Vector2(304, 30)
+	UILayout.place_in(effect, 22, 306, 304, 30, cw, ch, 0.5, 0.0)
 	effect.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(effect)
 
 	var culture_label := _label(Locale.t("levelup.culture_label"), 10, Color(VERMILION, 0.92))
-	culture_label.position = Vector2(22, 340)
-	culture_label.size = Vector2(304, 16)
+	UILayout.place_in(culture_label, 22, 340, 304, 16, cw, ch, 0.5, 0.0)
 	card.add_child(culture_label)
 
 	var culture := _label("", 12, Color(PAPER, 0.82))
 	culture.name = "CardCulture"
-	culture.position = Vector2(22, 356)
-	culture.size = Vector2(304, 92)
+	UILayout.place_in(culture, 22, 356, 304, 92, cw, ch, 0.5, 0.0)
 	culture.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(culture)
 
 	var meta_rule := ColorRect.new()
 	meta_rule.color = Color(GOLD, 0.14)
-	meta_rule.position = Vector2(22, 450)
-	meta_rule.size = Vector2(304, 1)
+	UILayout.place_in(meta_rule, 22, 450, 304, 1, cw, ch, 0.5, 0.0)
 	meta_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(meta_rule)
 
 	var level := _label("", 10, Color(GOLD, 0.86))
 	level.name = "CardLevel"
-	level.position = Vector2(22, 456)
-	level.size = Vector2(158, 18)
+	UILayout.place_in(level, 22, 456, 158, 18, cw, ch)
 	card.add_child(level)
 
 	var rarity := _label("", 10, Color(MUTED, 0.78))
 	rarity.name = "CardRarity"
-	rarity.position = Vector2(180, 456)
-	rarity.size = Vector2(146, 18)
+	UILayout.place_in(rarity, 180, 456, 146, 18, cw, ch, 1.0, 0.0)
 	rarity.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	card.add_child(rarity)
 
 	var category := _label("", 9, Color(VERMILION, 0.82))
 	category.name = "CardCategory"
-	category.position = Vector2(22, 472)
-	category.size = Vector2(304, 14)
+	UILayout.place_in(category, 22, 472, 304, 14, cw, ch, 0.5, 0.0)
 	category.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(category)
 
