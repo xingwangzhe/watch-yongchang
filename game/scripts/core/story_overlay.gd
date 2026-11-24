@@ -194,7 +194,7 @@ func _refresh() -> void:
 	var line := _lines[_index]
 	_speaker.text = str(line.get("speaker_%s" % Locale.current, line.get("speaker_zh", "")))
 	_body.text = GameData.loc(line, "zh") if Locale.current == "zh" else str(line.get("en", ""))
-	_source.text = str(line.get("source_ref", ""))
+	_source.text = GameData.source_label(line)
 	_category.text = str(line.get("category", "演绎"))
 	_category.add_theme_color_override(
 		"font_color",

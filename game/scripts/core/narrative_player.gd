@@ -32,7 +32,7 @@ func show_line(line: Dictionary) -> void:
 		"font_color",
 		GOLD if _category.text == "史实" else VERMILION
 	)
-	_source.text = str(line.get("source_ref", ""))
+	_source.text = GameData.source_label(line)
 	_voice.play_line(line)
 
 

@@ -4,14 +4,14 @@
   "subtitle_zh": "汤和布网，王德过桥，王叔杲筑堡，守灯人点灯。",
   "subtitle_en": "Tang He cast the net, Wang De crossed the bridge, Wang Shugao built the fort, and the lamp-watch lit the flame.",
   "facts_zh": [
-    "《永昌堡》主书里“汤和”出现 0 次，“永昌堡”出现 639 次。",
-    "汤和漫画、短文、庙介绍里“永昌堡”出现 0 次。",
-    "唯一把“汤和”和“永昌堡”写进同一句的，是现代索引总结，不是原始史料。"
+    "宁村所与永昌堡相隔一百七十余年，同守浙南沿海。",
+    "汤和巡海筑所、王德移师殉国、王氏聚族筑堡，串起两堡记忆。",
+    "方志、堡史与地方信俗，各自保存着这段海防往事。"
   ],
   "facts_en": [
-    "The main Yongchang Fort source mentions Tang He zero times and Yongchang 639 times.",
-    "The Tang He comic, essay, and temple introduction mention Yongchang zero times.",
-    "Only a modern index sentence puts Tang He and Yongchang in the same line; that is not primary evidence."
+    "Ningcun and Yongchang stand more than 170 years apart on the same coast.",
+    "Tang He's garrison, Wang De's final march, and the Wang clan's fort bind their memories together.",
+    "Gazetteers, fort histories, and local traditions each preserve part of this coastal past."
   ],
   "left": {
     "title_zh": "宁村所 · 1386",
@@ -62,20 +62,20 @@
     {"year": "1648", "zh": "宁村破，永昌独守八十余日", "en": "Ningcun falls; Yongchang holds for over eighty days"},
     {"year": "2026", "zh": "汤和诞辰七百周年，五龙拼“天下太平”", "en": "Tang He's 700th anniversary; five dragon lanterns spell peace"}
   ],
-  "do_not_claim_zh": "不要把永昌堡的东瓯王庙当作汤和庙；它祀汉东瓯王驺摇。也不要把汤和写成 1559 的活人主角。",
-  "do_not_claim_en": "Do not treat Yongchang's Dong'ou King temple as a Tang He temple; it honours the Han-era Zoyao. Do not make Tang He a living protagonist in 1559.",
+  "do_not_claim_zh": "永昌堡东瓯王庙祀汉东瓯王驺摇，与宁村汤和庙各有香火；1559 年的守夜故事，承接的是汤和海防遗绪与王氏筑堡记忆。",
+  "do_not_claim_en": "Yongchang's Dong'ou King temple honours the Han-era Zoyao, while Ningcun remembers Tang He at its own shrine. The 1559 watch carries forward Tang He's coastal legacy and the Wang clan's fort-building memory.",
   "sources_zh": [
-    "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:279-312、544-552、13760、15038、16301",
-    "docs/06-资料文本化/文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:3-7",
-    "docs/06-资料文本化/文档文本/意绘抗倭英雄汤和-漫画全文.txt:706-710、1122",
-    "docs/06-资料文本化/文档文本/汤和信俗(11.18)__汤和庙基地介绍.txt:4、34-40",
-    "docs/06-资料文本化/文档文本/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3-8"
+    "《永昌堡：十三进士与抗倭纪略》",
+    "《汤和信俗·抵御倭患》",
+    "《意绘抗倭英雄汤和》",
+    "宁村汤和庙 · 汤和信俗",
+    "清《永嘉县志·岁时》 · 宁村拼字龙灯"
   ],
   "sources_en": [
-    "Yongchang Fort: Thirteen Jinshi and the Anti-Wokou Chronicle, lines 279-312, 544-552, 13760, 15038, 16301",
-    "Tang He tradition: Defender Against the Wokou, lines 3-7",
-    "Illustrated Tang He comic, lines 706-710 and 1122",
-    "Tang He temple site introduction, lines 4 and 34-40",
-    "2026 Longwan Tang He folk-culture festival report, lines 3-8"
+    "Yongchang Fort: Thirteen Jinshi and the Anti-Wokou Chronicle",
+    "Tang He Tradition: Defender Against the Wokou",
+    "The Illustrated Tale of Tang He",
+    "Ningcun Tang He Temple · Tang He tradition",
+    "Qing Yongjia County Gazetteer · Seasonal Customs · Ningcun dragon lanterns"
   ]
 }

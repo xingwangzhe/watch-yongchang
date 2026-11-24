@@ -234,10 +234,6 @@ func _build_watch_panel() -> void:
 
 	var music_title := _make_label("MusicTitle", "Samurai Nights", 22, PAPER)
 	column.add_child(music_title)
-	_register_label(_make_label("MusicCredit", "", 14, Color(MUTED, 0.88)), "panel.music_credit")
-	column.add_child(_i18n_labels[-1]["node"])
-	_register_label(_make_label("MusicLicense", "", 12, Color(MUTED, 0.62)), "panel.license")
-	column.add_child(_i18n_labels[-1]["node"])
 
 	_build_night_anchors(column)
 
@@ -424,8 +420,6 @@ func _build_settings_overlay() -> void:
 	_setting_row(column, "settings.language", _language_option)
 
 	column.add_child(_rule())
-	_register_label(_make_label("SettingsCredit", "", 13, Color(MUTED, 0.74)), "settings.credit")
-	column.add_child(_i18n_labels[-1]["node"])
 	_register_label(_make_label("SettingsNote", "", 12, Color(MUTED, 0.54)), "settings.note")
 	column.add_child(_i18n_labels[-1]["node"])
 

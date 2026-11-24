@@ -98,7 +98,7 @@ func _build_columns() -> void:
 		"title": _loc("left", "title"),
 		"lead": _loc("left", "lead"),
 		"points": _localized_array("left", "points"),
-		"source": str(_data.get("left", {}).get("source_ref", "")),
+		"source": GameData.source_label(_data.get("left", {})),
 		"accent": Color("#d1ad62"),
 	})
 	UILayout.place(left, 48, 138, 356, 336)
@@ -112,7 +112,7 @@ func _build_columns() -> void:
 		"title": _loc("right", "title"),
 		"lead": _loc("right", "lead"),
 		"points": _localized_array("right", "points"),
-		"source": str(_data.get("right", {}).get("source_ref", "")),
+		"source": GameData.source_label(_data.get("right", {})),
 		"accent": Color("#b95a43"),
 	})
 	UILayout.place(right, 876, 138, 356, 336, 1.0, 0.0)
@@ -144,13 +144,13 @@ func _panel(spec: Dictionary) -> PanelContainer:
 	var grow := Control.new()
 	grow.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(grow)
-	var full_source := str(spec.get("source", ""))
-	var source := _label(_display_source(full_source), 10, Color(MUTED, 0.58))
+	var source_text := str(spec.get("source", ""))
+	var source := _label(source_text, 10, Color(MUTED, 0.58))
 	source.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	source.max_lines_visible = 2
 	source.clip_text = true
 	source.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	source.tooltip_text = full_source
+	source.tooltip_text = source_text
 	source.custom_minimum_size = Vector2(0, 26)
 	column.add_child(source)
 	return panel
@@ -185,13 +185,13 @@ func _bridge_panel() -> PanelContainer:
 	var grow := Control.new()
 	grow.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(grow)
-	var full_source := str(_data.get("bridge", {}).get("source_ref", ""))
-	var source := _label(_display_source(full_source), 10, Color(MUTED, 0.58))
+	var source_text := GameData.source_label(_data.get("bridge", {}))
+	var source := _label(source_text, 10, Color(MUTED, 0.58))
 	source.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	source.max_lines_visible = 2
 	source.clip_text = true
 	source.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	source.tooltip_text = full_source
+	source.tooltip_text = source_text
 	source.custom_minimum_size = Vector2(0, 26)
 	column.add_child(source)
 	return panel
@@ -227,27 +227,13 @@ func _build_sources() -> void:
 	var heading := _label(Locale.t("codex.sources"), 13, Color(MUTED, 0.82))
 	UILayout.place(heading, 54, 630, 200, 20)
 	_content.add_child(heading)
-	var display_sources: Array[String] = []
-	for source in _localized_array("sources"):
-		display_sources.append(_display_source(str(source)))
-	var sources := _label(" · ".join(display_sources), 9, Color(MUTED, 0.56))
+	var sources := _label(" · ".join(_localized_array("sources")), 9, Color(MUTED, 0.56))
 	UILayout.place(sources, 124, 629, 1100, 42)
 	sources.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	sources.max_lines_visible = 2
 	sources.clip_text = true
 	sources.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_content.add_child(sources)
-
-
-func _display_source(value: String) -> String:
-	return value \
-		.replace("docs/06-资料文本化/文档文本/", "") \
-		.replace("docs/06-资料文本化/", "") \
-		.replace("永昌堡-十三进士与抗倭纪略-全文.txt", "永昌堡纪略") \
-		.replace("汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt", "汤和信俗·抵御倭患") \
-		.replace("意绘抗倭英雄汤和-漫画全文.txt", "汤和漫画") \
-		.replace("汤和信俗(11.18)__汤和庙基地介绍.txt", "汤和庙介绍") \
-		.replace("汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt", "龙灯节报道")
 
 
 func _loc(section: String, field: String = "") -> String:

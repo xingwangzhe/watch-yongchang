@@ -282,6 +282,7 @@ func _apply_offer(card: Button, offer: Dictionary, index: int, coin: int) -> voi
 	(card.find_child("CardDescription", true, false) as Label).text = str(offer.get("description", ""))
 	(card.find_child("CardEffect", true, false) as Label).text = str(offer.get("effect_summary", ""))
 	(card.find_child("CardCulture", true, false) as Label).text = str(offer.get("culture", ""))
+	card.tooltip_text = "%s\n%s" % [GameData.source_label(offer), offer.get("effect_summary", "")]
 	(card.find_child("CardMeta", true, false) as Label).text = "%s · %s · %s" % [
 		str(offer.get("category", "")),
 		str(offer.get("rarity_label", "")),
