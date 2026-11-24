@@ -36,8 +36,8 @@
       "starting_passive": "gaiters",
       "unlock_merit": 0,
       "selectable": true,
-      "note_zh": "王陆本阵。虚构守灯乡勇，代表嘉靖三十八年守堡民众；不是史料中的实名将领。",
-      "note_en": "Wang Lu's default watch post: a fictional lamp-watch defender representing the people who held Yongchang in 1559."
+      "note_zh": "王陆本阵。腰刀随身、绑腿便于穿行巷陌，在攻守之间守住灯圈。",
+      "note_en": "Wang Lu's own watch post: a saber at his side and gaiters for the lanes, balancing movement and defence around the lamp."
     },
     "amei": {
       "name_zh": "王陆",
@@ -75,8 +75,8 @@
       "starting_passive": "colored_paper",
       "unlock_merit": 350,
       "selectable": true,
-      "note_zh": "王陆换用龙灯匠器械与走灯步。龙灯、五色纸来自地方信俗，不把匠户写成独立可操作人物。",
-      "note_en": "Wang Lu takes up the lantern-maker's gear and footwork. The lantern and five-colour paper draw on local custom without inventing another playable person."
+      "note_zh": "王陆换上龙灯匠的器械与走灯步。五色纸随灯影展开，适合以灯阵照彻宽阔街巷。",
+      "note_en": "Wang Lu takes up the lantern-maker's gear and footwork. Five-colour paper unfurls with the light, filling broad lanes with a lantern array."
     },
     "ashi": {
       "name_zh": "王陆",
@@ -114,8 +114,8 @@
       "starting_passive": "armor",
       "unlock_merit": 700,
       "selectable": true,
-      "note_zh": "王陆换用藤牌手器械。高生命、低移速，适合贴灯守点；不冒充史料人物。",
-      "note_en": "Wang Lu adopts a shield-bearer's kit: more health and less speed, built to hold the lamp."
+      "note_zh": "王陆改用藤牌手的腰刀与护牌。高生命、低移速，适合贴灯守点、替身后乡亲挡下锋芒。",
+      "note_en": "Wang Lu adopts a shield-bearer's saber and guard: more health and less speed, built to hold the lamp and cover neighbours behind him."
     },
     "achong": {
       "name_zh": "王陆",
@@ -270,8 +270,8 @@
       "starting_passive": "whetstone",
       "unlock_merit": 0,
       "selectable": false,
-      "note_zh": "1386 年主持宁村所筑城；序章可操作，但不是 1559 正篇的活人主角。",
-      "note_en": "Built Ningcun garrison in 1386; playable in the prologue, but not alive in the 1559 main story."
+      "note_zh": "洪武年间，汤和主持宁村所筑城；序章从巡海、筑所与整顿乡兵开始。",
+      "note_en": "In the Hongwu era, Tang He directed Ningcun's fortification. The prologue follows his coastal inspection, building work, and militia muster."
     }
   }
 }

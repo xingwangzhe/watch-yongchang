@@ -262,8 +262,9 @@ func _apply_option(card: Button, option: Dictionary, index: int) -> void:
 	var category := str(option.get("category", ""))
 	var category_label := card.find_child("CardCategory", true, false) as Label
 	category_label.text = category if not category.is_empty() else str(option.get("kind_label", ""))
-	category_label.tooltip_text = str(option.get("source_ref", ""))
-	card.tooltip_text = "%s\n%s" % [option.get("source_ref", ""), option.get("effect_summary", "")]
+	var source_text := GameData.source_label(option)
+	category_label.tooltip_text = source_text
+	card.tooltip_text = "%s\n%s" % [source_text, option.get("effect_summary", "")]
 	var icon := card.find_child("CardIcon", true, false) as TextureRect
 	var texture := GameData.texture(str(option.get("icon", "")))
 	icon.texture = texture

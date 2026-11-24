@@ -633,6 +633,144 @@ func test_replay_shortens_intro_to_single_line() -> void:
 	assert_eq(str(run.story._lines[0].get("id", "")), "narr_1559_02")
 
 
+func test_source_labels_hide_internal_references_and_name_county_gazetteer() -> void:
+	for path in [
+		"res://data/narrative.json",
+		"res://data/upgrades.json",
+		"res://data/weapons.json",
+		"res://data/mercenaries.json",
+		"res://data/shop.json",
+		"res://data/codex.json",
+	]:
+		_assert_source_tree(GameData.load_json(path))
+
+	var skills := UpgradeCatalog.family_data("skills")
+	var dragon := UpgradeCatalog.make_option(
+		"skill",
+		"dragon_lantern_nova",
+		skills["dragon_lantern_nova"] as Dictionary,
+		1
+	)
+	assert_string_contains(GameData.source_label(dragon), "清《永嘉县志·岁时》")
+	Locale.set_language("en", false)
+	assert_string_contains(GameData.source_label(dragon), "Qing Yongjia County Gazetteer")
+	Locale.set_language("zh", false)
+
+
+func test_upgrade_and_shop_tooltips_use_player_facing_sources() -> void:
+	var options: Array[Dictionary] = []
+	for option in UpgradeCatalog.build_card_pool({}, {}, 0.0):
+		if str(option.get("card_id", "")) == "dragon_lantern_nova":
+			options.append(option)
+			break
+	assert_eq(options.size(), 1)
+	var level_up := LevelUpOverlay.new()
+	add_child_autofree(level_up)
+	await wait_process_frames(2)
+	level_up.show_options(options, 2)
+	await wait_process_frames(1)
+	var upgrade_card := level_up.find_child("UpgradeCard1", true, false) as Button
+	assert_not_null(upgrade_card)
+	_assert_player_text_clean(upgrade_card.tooltip_text)
+	assert_string_contains(upgrade_card.tooltip_text, "清《永嘉县志·岁时》")
+	assert_false(str(options[0].get("source_ref", "")).is_empty())
+	var category := upgrade_card.find_child("CardCategory", true, false) as Label
+	_assert_player_text_clean(category.tooltip_text)
+
+	var hired: Array[String] = []
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 42
+	var offers := ShopCatalog.build_offers(
+		[{"id": "saber", "level": 1}],
+		{"gaiters": 1},
+		hired,
+		rng
+	)
+	var shop := ShopOverlay.new()
+	add_child_autofree(shop)
+	await wait_process_frames(2)
+	shop.show_shop(offers, 500, 25, {})
+	await wait_process_frames(1)
+	for i in range(offers.size()):
+		var card := shop.find_child("ShopCard%d" % (i + 1), true, false) as Button
+		assert_not_null(card)
+		_assert_player_text_clean(card.tooltip_text)
+		assert_false(str(offers[i].get("source_ref", "")).is_empty())
+
+
+func test_codex_displays_cultural_sources_without_research_notes() -> void:
+	var codex := (load("res://scenes/codex.tscn") as PackedScene).instantiate()
+	add_child_autofree(codex)
+	await wait_process_frames(3)
+	_assert_control_tree_clean(codex)
+	var all_text := ""
+	for label in codex.find_children("*", "Label", true, false):
+		all_text += (label as Label).text + "\n"
+	assert_string_contains(all_text, "清《永嘉县志·岁时》")
+	assert_string_contains(all_text, "《永昌堡：十三进士与抗倭纪略》")
+	assert_false(all_text.contains("语料边界"))
+	assert_false(all_text.contains("不要误写"))
+	assert_false(all_text.contains("出现 0 次"))
+
+
+func test_menu_and_settings_keep_attribution_on_about_page_only() -> void:
+	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
+	add_child_autofree(menu)
+	await wait_process_frames(3)
+	menu.open_settings()
+	await wait_process_frames(1)
+	_assert_control_tree_clean(menu)
+	assert_null(menu.find_child("MusicCredit", true, false))
+	assert_null(menu.find_child("MusicLicense", true, false))
+	assert_null(menu.find_child("SettingsCredit", true, false))
+	var credits := GameData.load_json("res://data/credits.json")
+	assert_gt((credits.get("music", []) as Array).size(), 0)
+	assert_false(str((credits.get("music", []) as Array)[0].get("license", "")).is_empty())
+
+
+func _assert_source_tree(value: Variant) -> void:
+	if value is Dictionary:
+		var dictionary := value as Dictionary
+		if dictionary.has("source_ref"):
+			assert_false(str(dictionary.get("source_ref", "")).is_empty())
+			_assert_player_text_clean(GameData.source_label(dictionary))
+		for child in dictionary.values():
+			_assert_source_tree(child)
+	elif value is Array:
+		for child in value as Array:
+			_assert_source_tree(child)
+
+
+func _assert_control_tree_clean(root: Node) -> void:
+	for control in root.find_children("*", "Control", true, false):
+		var ui := control as Control
+		_assert_player_text_clean(ui.tooltip_text)
+		if ui is Label:
+			_assert_player_text_clean((ui as Label).text)
+		elif ui is Button:
+			_assert_player_text_clean((ui as Button).text)
+
+
+func _assert_player_text_clean(text: String) -> void:
+	for forbidden in [
+		"docs/",
+		"design/",
+		"res://",
+		".txt",
+		".md",
+		"CC-BY",
+		"CC BY",
+		"CC0",
+		"OpenGameArt",
+		"Copyright",
+		"版权",
+		"许可",
+		"license",
+		"License",
+	]:
+		assert_false(text.contains(forbidden), "player text exposes '%s': %s" % [forbidden, text])
+
+
 func _remove_user_file(path: String) -> void:
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
