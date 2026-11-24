@@ -736,6 +736,47 @@ def solve_ik(
     return add(root, (math.cos(joint_angle) * upper, math.sin(joint_angle) * upper))
 
 
+# Two-bone IK has two valid solutions. solve_ik() used to receive a fixed sign
+# (1 for far limbs, -1 for near limbs), but it derives the bend from an absolute
+# atan2() angle. When a hand/foot crosses the root-target line the fixed sign
+# flips the joint to the other branch, producing 36px elbow pops between clips.
+# An anatomical hint selects the branch by geometry instead, so adjacent frames
+# always stay on the same side of the limb.
+LIMB_HINTS: dict[tuple[str, str], tuple[float, float]] = {
+    ("arm", "far"): (-7.0, 9.0),
+    ("arm", "near"): (7.0, 9.0),
+    ("leg", "far"): (-8.0, 11.0),
+    ("leg", "near"): (8.0, 11.0),
+}
+
+
+def solve_joint(
+    root: tuple[float, float],
+    target: tuple[float, float],
+    upper: float,
+    lower: float,
+    hint_offset: tuple[float, float],
+) -> tuple[float, float]:
+    """Return the IK branch closest to the anatomical hint (no bone stretching)."""
+    hint = add(root, hint_offset)
+    primary = solve_ik(root, target, upper, lower, 1)
+    alternate = solve_ik(root, target, upper, lower, -1)
+    if length(sub(alternate, hint)) < length(sub(primary, hint)):
+        return alternate
+    return primary
+
+
+def joint_between(
+    root: tuple[float, float],
+    target: tuple[float, float],
+    limb: str,
+    far: bool,
+) -> tuple[float, float]:
+    """Single joint solver shared by body and outfit layers."""
+    upper, lower = (ARM_UPPER, ARM_LOWER) if limb == "arm" else (LEG_UPPER, LEG_LOWER)
+    return solve_joint(root, target, upper, lower, LIMB_HINTS[(limb, "far" if far else "near")])
+
+
 def polygon(s: Sprite, points: list[tuple[float, float]], color: str) -> None:
     s.polygon([pt(p) for p in points], color)
 
@@ -883,20 +924,6 @@ def far_arm_mode(pose: dict) -> str:
         return "front"
     upper_x = 60.0 + float(pose["lean"])
     return "split" if float(pose["far_hand"][0]) > upper_x - 2.0 else "back"
-
-
-def clamped_ik(
-    root: tuple[float, float],
-    target: tuple[float, float],
-    upper: float,
-    lower: float,
-    bend: int,
-    name: str,
-) -> tuple[float, float]:
-    reach = length(sub(target, root))
-    if reach > (upper + lower) * 1.08:
-        print(f"warning: {name} target unreachable at {target}; root {root}")
-    return solve_ik(root, target, upper, lower, bend)
 
 
 def draw_arc(
@@ -1462,7 +1489,11 @@ EXTRA_ATTACK_SPECS = {
             lunge=2,
         ),
         5: _action(
-            ((72, 60), (68, 46), (82, 38), (82, 48)),
+            # follow hand used to sit at (82, 48), only 3.9px from the near
+            # shoulder while the arm bones total 36.5px. IK degenerated and
+            # the elbow popped 16px past the hand. Lowering it to (84, 64)
+            # keeps the flag-follow pose readable with a valid joint bend.
+            ((72, 60), (68, 46), (82, 38), (84, 64)),
             ((52, 72), (50, 68), (58, 68), (56, 72)),
             (-80, -110, -95, -85),
             lunge=1,
@@ -1832,6 +1863,118 @@ def pose_for(frame: int, pose_id: str, offhand_id: str = "none") -> dict:
     return guard_pose(frame - CLIPS["guard"]["start"], grip, offhand_id, weapon["id"])
 
 
+def clip_name_for_frame(frame: int) -> str:
+    for name, info in CLIPS.items():
+        if info["start"] <= frame < info["start"] + info["count"]:
+            return name
+    return "unknown"
+
+
+def skeleton_frame(pose_id: str, offhand_id: str, frame: int) -> dict:
+    """Explicit 2D skeleton for one frame: roots, joints, endpoints and grips."""
+    pose = pose_for(frame, pose_id, offhand_id)
+    limbs = {}
+    for side in ("far", "near"):
+        far = side == "far"
+        shoulder = shoulder_points(pose, side)
+        hand = tuple(pose[f"{side}_hand"])
+        elbow = joint_between(shoulder, hand, "arm", far)
+        hip, ankle = leg_points(pose, side)
+        knee = joint_between(hip, ankle, "leg", far)
+        limbs[side] = {
+            "shoulder": [round(v, 3) for v in shoulder],
+            "elbow": [round(v, 3) for v in elbow],
+            "hand": [round(v, 3) for v in hand],
+            "hip": [round(v, 3) for v in hip],
+            "knee": [round(v, 3) for v in knee],
+            "ankle": [round(v, 3) for v in ankle],
+        }
+    return {
+        "frame": frame,
+        "clip": clip_name_for_frame(frame),
+        "pose_id": pose_id,
+        "offhand_id": offhand_id,
+        "root": {
+            "upper_x": round(60.0 + float(pose["lean"]), 3),
+            "shoulder_y": round(float(pose["shoulder_y"]), 3),
+            "hip_y": round(float(pose["hip_y"]), 3),
+        },
+        "limbs": limbs,
+        "grip": {
+            "main_hand": [round(v, 3) for v in pose["near_hand"]],
+            "offhand_hand": [round(v, 3) for v in pose["far_hand"]],
+            "weapon_angle_deg": round(math.degrees(float(pose["weapon_angle"])), 3),
+            "offhand_angle_deg": round(math.degrees(float(pose["offhand_angle"])), 3),
+        },
+    }
+
+
+def all_pose_cases() -> list[tuple[str, str]]:
+    return [(pose_id, "none") for pose_id in POSE_SETS] + combo_pairs()
+
+
+def dump_skeleton_frames() -> Path:
+    target = ROOT / "generated" / "character_candidates" / "skeleton_frames.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    frames = [
+        skeleton_frame(pose_id, offhand_id, frame)
+        for pose_id, offhand_id in all_pose_cases()
+        for frame in range(FRAME_COUNT)
+    ]
+    target.write_text(
+        json.dumps(
+            {
+                "cell": CELL,
+                "frame_count": FRAME_COUNT,
+                "clips": CLIPS,
+                "arm_bones": [ARM_UPPER, ARM_LOWER],
+                "leg_bones": [LEG_UPPER, LEG_LOWER],
+                "limb_hints": {f"{key[0]}.{key[1]}": list(value)
+                               for key, value in LIMB_HINTS.items()},
+                "frames": frames,
+            },
+            ensure_ascii=False,
+            indent=1,
+        ),
+        encoding="utf-8",
+    )
+    return target
+
+
+def validate_joint_projection() -> list[str]:
+    """Flag elbows/knees that fall outside the root-target segment.
+
+    A joint slightly outside the segment is legal for a bent limb, but a large
+    excursion means the limb folds back on itself and reads as a twisted joint.
+    """
+    warnings: list[str] = []
+    for pose_id, offhand_id in all_pose_cases():
+        for frame in range(FRAME_COUNT):
+            pose = pose_for(frame, pose_id, offhand_id)
+            for side in ("far", "near"):
+                far = side == "far"
+                shoulder = shoulder_points(pose, side)
+                hand = tuple(pose[f"{side}_hand"])
+                elbow = joint_between(shoulder, hand, "arm", far)
+                hip, ankle = leg_points(pose, side)
+                knee = joint_between(hip, ankle, "leg", far)
+                for limb, root, target, joint in (
+                    ("arm", shoulder, hand, elbow),
+                    ("leg", hip, ankle, knee),
+                ):
+                    axis = sub(target, root)
+                    d2 = length(axis) ** 2
+                    if d2 < 1.0:
+                        continue
+                    offset = sub(joint, root)
+                    t = (offset[0] * axis[0] + offset[1] * axis[1]) / d2
+                    if t < -0.05 or t > 1.05:
+                        warnings.append(
+                            f"{pose_id}+{offhand_id} f={frame} {side} {limb} projection={t:.2f}"
+                        )
+    return warnings
+
+
 def validate_pose_reach() -> None:
     failures = []
     cases = [(pose_id, "none") for pose_id in POSE_SETS] + combo_pairs()
@@ -1889,8 +2032,7 @@ def draw_body_leg(
     far: bool,
 ) -> None:
     base, dark, light = _skin_colors(skin, far)
-    bend = 1 if far else -1
-    knee = clamped_ik(hip, ankle, LEG_UPPER, LEG_LOWER, bend, "leg")
+    knee = joint_between(hip, ankle, "leg", far)
     hx, hy = pt(hip)
     s.circle(hx, hy, 6, base, fill=True)
     shade_dir = (1.0, 0.0) if far else (-1.0, 0.0)
@@ -1921,8 +2063,7 @@ def draw_body_arm(
     lower_only: bool = False,
 ) -> None:
     base, dark, light = _skin_colors(skin, far)
-    bend = 1 if far else -1
-    elbow = clamped_ik(shoulder, hand, ARM_UPPER, ARM_LOWER, bend, "arm")
+    elbow = joint_between(shoulder, hand, "arm", far)
     shade_dir = (1.0, 0.0) if far else (-1.0, 0.0)
     if not lower_only:
         sx, sy = pt(shoulder)
@@ -2218,7 +2359,7 @@ def draw_outfit_leg(
 ) -> None:
     far = side == "far"
     hip, ankle = leg_points(pose, side)
-    knee = clamped_ik(hip, ankle, LEG_UPPER, LEG_LOWER, 1 if far else -1, "outfit leg")
+    knee = joint_between(hip, ankle, "leg", far)
     cloth, cloth_d, cloth_l = _cloth_colors(outfit, far)
     metal, metal_d, metal_l = _metal_colors(outfit, far)
     style = str(outfit.get("style", ""))
@@ -2300,7 +2441,7 @@ def draw_outfit_arm(
     far = side == "far"
     shoulder = shoulder_points(pose, side)
     hand = tuple(pose[f"{side}_hand"])
-    elbow = clamped_ik(shoulder, hand, ARM_UPPER, ARM_LOWER, 1 if far else -1, "outfit arm")
+    elbow = joint_between(shoulder, hand, "arm", far)
     cloth, cloth_d, cloth_l = _cloth_colors(outfit, far)
     metal, metal_d, metal_l = _metal_colors(outfit, far)
     sleeve = outfit["sleeve"]
@@ -5151,6 +5292,13 @@ def main() -> None:
     validate_pose_reach()
     validate_arm_layering()
     validate_bow_bounds()
+    joint_warnings = validate_joint_projection()
+    if "--skeleton-only" in sys.argv:
+        target = dump_skeleton_frames()
+        print(f"skeleton frames: {target} ({len(joint_warnings)} joint warnings)")
+        for line in joint_warnings[:20]:
+            print(f"  warning: {line}")
+        return
     out = Path(__file__).resolve().parent
     runtime = ROOT / "game" / "assets" / "character_forge"
     data_dir = ROOT / "game" / "data"
