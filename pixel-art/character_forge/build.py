@@ -785,6 +785,36 @@ def line(s: Sprite, a: tuple[float, float], b: tuple[float, float], color: str) 
     s.line(*pt(a), *pt(b), color)
 
 
+def _shade_band(
+    s: Sprite,
+    a: tuple[float, float],
+    b: tuple[float, float],
+    axis_n: tuple[float, float],
+    w0: float,
+    w1: float,
+    s0: float,
+    s1: float,
+    color: str,
+) -> None:
+    """Fill a longitudinal band of a limb between two half-width fractions.
+
+    Fractions are measured along ``axis_n`` in units of the local half width, so
+    the band follows the limb taper instead of staying a constant pixel offset.
+    """
+    h0 = w0 / 2.0
+    h1 = w1 / 2.0
+    polygon(
+        s,
+        [
+            add(a, mul(axis_n, h0 * s0)),
+            add(b, mul(axis_n, h1 * s0)),
+            add(b, mul(axis_n, h1 * s1)),
+            add(a, mul(axis_n, h0 * s1)),
+        ],
+        color,
+    )
+
+
 def draw_segment(
     s: Sprite,
     a: tuple[float, float],
@@ -796,6 +826,7 @@ def draw_segment(
     light: str,
     rim: bool = True,
     shade_dir: tuple[float, float] | None = None,
+    edge: float = 0.0,
 ) -> None:
     direction = sub(b, a)
     n = unit((-direction[1], direction[0]))
@@ -803,26 +834,26 @@ def draw_segment(
         add(a, mul(n, w0 / 2.0)), add(b, mul(n, w1 / 2.0)),
         add(b, mul(n, -w1 / 2.0)), add(a, mul(n, -w0 / 2.0)),
     ]
-    polygon(s, outer, dark if rim else base)
     if not rim:
+        if edge > 0.0:
+            # Limbs carry their own dark edge so arms/legs separate from the
+            # torso mass instead of merging into one flat silhouette.
+            polygon(s, outer, dark)
+            w0 = max(1.0, w0 - edge * 2.0)
+            w1 = max(1.0, w1 - edge * 2.0)
+            outer = [
+                add(a, mul(n, w0 / 2.0)), add(b, mul(n, w1 / 2.0)),
+                add(b, mul(n, -w1 / 2.0)), add(a, mul(n, -w0 / 2.0)),
+            ]
+        polygon(s, outer, base)
         if shade_dir is None:
             shadow_n = n if n[0] + n[1] > 0 else mul(n, -1.0)
         else:
             shadow_n = n if n[0] * shade_dir[0] + n[1] * shade_dir[1] >= 0 else mul(n, -1.0)
-        light_n = mul(shadow_n, -1.0)
-        line(
-            s,
-            add(a, mul(shadow_n, max(0.5, w0 / 2.0 - 0.7))),
-            add(b, mul(shadow_n, max(0.5, w1 / 2.0 - 0.7))),
-            dark,
-        )
-        line(
-            s,
-            add(a, mul(light_n, max(0.5, w0 / 2.0 - 1.1))),
-            add(b, mul(light_n, max(0.5, w1 / 2.0 - 1.1))),
-            light,
-        )
+        _shade_band(s, a, b, shadow_n, w0, w1, 0.18, 1.0, dark)
+        _shade_band(s, a, b, shadow_n, w0, w1, -1.0, -0.62, light)
         return
+    polygon(s, outer, dark)
     inner0 = max(1.0, w0 - 2.0)
     inner1 = max(1.0, w1 - 2.0)
     inner = [
@@ -879,25 +910,49 @@ def draw_foot(
     boot: bool,
 ) -> None:
     x, y = pt(ankle)
-    toe = 9 if boot else 7
+    if boot:
+        polygon(
+            s,
+            [(x - 7, y - 4), (x + 6, y - 4), (x + 9, y),
+             (x + 12, y + 4), (x - 7, y + 4)],
+            dark,
+        )
+        polygon(
+            s,
+            [(x - 6, y - 3), (x + 5, y - 3), (x + 8, y),
+             (x + 10, y + 3), (x - 6, y + 3)],
+            base,
+        )
+        # Sole and heel keep the boot grounded instead of floating.
+        line(s, (x - 6, y + 4), (x + 11, y + 4), INK)
+        line(s, (x - 6, y + 3), (x - 2, y + 3), dark)
+        # Toe cap catches the light, ankle cuff keeps a readable break.
+        polygon(
+            s,
+            [(x + 4, y + 1), (x + 8, y + 1), (x + 10, y + 3), (x + 4, y + 3)],
+            base,
+        )
+        line(s, (x + 4, y + 1), (x + 8, y + 1), light)
+        line(s, (x - 5, y - 2), (x + 4, y - 2), light)
+        line(s, (x - 6, y - 1), (x + 3, y - 1), dark)
+        line(s, (x - 5, y + 1), (x - 1, y + 1), base)
+        return
     polygon(
         s,
-        [(x - 5, y - 2), (x + 5, y - 2), (x + toe, y + 1),
-         (x + toe - 1, y + 4), (x - 5, y + 4)],
+        [(x - 5, y - 2), (x + 4, y - 2), (x + 8, y + 1),
+         (x + 8, y + 3), (x - 5, y + 3)],
         dark,
     )
     polygon(
         s,
-        [(x - 4, y - 1), (x + 5, y - 1), (x + toe - 2, y + 2),
-         (x + toe - 2, y + 3), (x - 4, y + 3)],
+        [(x - 4, y - 1), (x + 4, y - 1), (x + 7, y + 1),
+         (x + 6, y + 2), (x - 4, y + 2)],
         base,
     )
-    line(s, (x - 4, y + 1), (x + toe - 3, y + 1), light)
-    if boot:
-        line(s, (x - 4, y + 3), (x + toe - 2, y + 3), dark)
-    else:
-        for k in range(3):
-            s.px(x + 3 + k, y + 3, dark)
+    line(s, (x - 4, y + 1), (x + 6, y + 1), light)
+    line(s, (x - 4, y + 3), (x + 7, y + 3), INK)
+    for k in range(3):
+        s.px(x + 3 + k, y + 2, dark)
 
 
 def draw_shadow(s: Sprite) -> None:
@@ -2077,8 +2132,8 @@ def draw_body_leg(
     hx, hy = pt(hip)
     s.circle(hx, hy, 6, base, fill=True)
     shade_dir = (1.0, 0.0) if far else (-1.0, 0.0)
-    draw_segment(s, hip, knee, 14.0, 11.0, base, dark, light, rim=False, shade_dir=shade_dir)
-    draw_segment(s, knee, ankle, 11.0, 8.0, base, dark, light, rim=False, shade_dir=shade_dir)
+    draw_segment(s, hip, knee, 14.5, 11.5, base, dark, light, rim=False, shade_dir=shade_dir, edge=1.0)
+    draw_segment(s, knee, ankle, 11.5, 9.0, base, dark, light, rim=False, shade_dir=shade_dir, edge=1.0)
     chord_mid = add(hip, mul(sub(ankle, hip), 0.5))
     draw_joint(s, knee, 4, base, dark, light, sub(chord_mid, knee))
     ax, ay = pt(ankle)
@@ -2109,8 +2164,8 @@ def draw_body_arm(
     if not lower_only:
         sx, sy = pt(shoulder)
         s.circle(sx, sy, 6, base, fill=True)
-        draw_segment(s, shoulder, elbow, 11.5, 10.0, base, dark, light, rim=False, shade_dir=shade_dir)
-    draw_segment(s, elbow, hand, 9.0, 7.0, base, dark, light, rim=False, shade_dir=shade_dir)
+        draw_segment(s, shoulder, elbow, 11.5, 10.0, base, dark, light, rim=False, shade_dir=shade_dir, edge=1.0)
+    draw_segment(s, elbow, hand, 9.0, 7.0, base, dark, light, rim=False, shade_dir=shade_dir, edge=1.0)
     chord_mid = add(shoulder, mul(sub(hand, shoulder), 0.5))
     draw_joint(s, elbow, 3, base, dark, light, sub(chord_mid, elbow))
     ex, ey = pt(elbow)
@@ -2330,21 +2385,33 @@ def draw_body_head(
     line(s, (x - 6, y - 3), (x - 2, y - 4), HAIR_D)
     line(s, (x + 2, y - 4), (x + 6, y - 3), HAIR_D)
     if blink:
-        line(s, (x - 6, y + 1), (x - 3, y + 2), deep)
-        line(s, (x + 2, y + 2), (x + 5, y + 1), deep)
+        line(s, (x - 7, y + 1), (x - 3, y + 1), deep)
+        line(s, (x + 2, y + 1), (x + 6, y + 1), deep)
     else:
         s.rect((x - 6, y), (x - 4, y + 1), WARM_WHITE)
         s.rect((x + 2, y), (x + 4, y + 1), WARM_WHITE)
-        s.rect((x - 5, y), (x - 5, y + 1), HAIR_D)
-        s.rect((x + 3, y), (x + 3, y + 1), HAIR_D)
-        line(s, (x - 6, y - 1), (x - 3, y - 1), dark)
-        line(s, (x + 2, y - 1), (x + 5, y - 1), dark)
+        s.rect((x - 5, y), (x - 4, y + 1), HAIR_D)
+        s.rect((x + 3, y), (x + 4, y + 1), HAIR_D)
+        s.px(x - 6, y, dark)
+        s.px(x + 2, y, dark)
+    # Heavy brows read as expression even at 96px on screen.
+    line(s, (x - 7, y - 2), (x - 3, y - 2), HAIR_D)
+    line(s, (x + 2, y - 2), (x + 6, y - 2), HAIR_D)
+    s.px(x - 7, y - 3, dark)
+    s.px(x + 6, y - 3, dark)
+    # Nose: lit bridge on the left, shadow and nostril on the right.
     line(s, (x, y + 1), (x + 1, y + 3), dark)
+    s.px(x + 2, y + 3, deep)
+    s.px(x - 1, y + 2, light)
     s.px(x - 1, y + 3, light)
-    s.px(x + 2, y + 4, deep)
+    # Cheek light follows the eye line instead of scattering single pixels.
+    line(s, (x - 7, y + 4), (x - 5, y + 4), light)
+    line(s, (x - 6, y + 5), (x - 5, y + 5), light)
+    # Mouth with a lit lower lip.
     line(s, (x - 2, y + 7), (x + 3, y + 7), deep)
-    s.px(x + 1, y + 8, light)
-    s.px(x + 1, y + 10, light)
+    s.px(x - 1, y + 7, dark)
+    line(s, (x - 1, y + 8), (x + 2, y + 8), light)
+    line(s, (x - 2, y + 10), (x + 2, y + 10), deep)
     line(s, (x - 8, y + 3), (x - 6, y + 6), dark)
     line(s, (x + 7, y + 2), (x + 6, y + 5), dark)
     line(s, (x - 5, y - 12), (x + 4, y - 12), HAIR_L)
@@ -2407,10 +2474,12 @@ def draw_outfit_leg(
     hx, hy = pt(hip)
     s.circle(hx, hy, 5, cloth_d, fill=True)
     s.circle(hx, hy, 4, cloth, fill=True)
-    draw_segment(s, hip, knee, 13.0, 10.5, cloth, cloth_d, cloth_l, rim=False)
+    draw_segment(s, hip, knee, 13.5, 11.0, cloth, cloth_d, cloth_l, rim=False, edge=1.0)
     legs = outfit["legs"]
     if legs == "greaves":
-        draw_segment(s, knee, ankle, 11.0, 8.5, metal, metal_d, metal_l, rim=False)
+        draw_segment(s, knee, ankle, 12.0, 9.5, metal, metal_d, metal_l, rim=False, edge=1.0)
+        chord_mid = add(hip, mul(sub(ankle, hip), 0.5))
+        draw_joint(s, knee, 5, metal, metal_d, metal_l, sub(chord_mid, knee))
         kx, ky = pt(knee)
         polygon(
             s,
@@ -2429,9 +2498,9 @@ def draw_outfit_leg(
         s.px(kx + 2, ky + 1, outfit["accent"])
         draw_foot(s, ankle, LEATHER_D, LEATHER_D, LEATHER_L, boot=True)
     elif legs == "pants":
-        draw_segment(s, knee, ankle, 10.0, 7.5, cloth, cloth_d, cloth_l, rim=False)
+        draw_segment(s, knee, ankle, 11.5, 9.0, cloth, cloth_d, cloth_l, rim=False, edge=1.0)
         chord_mid = add(hip, mul(sub(ankle, hip), 0.5))
-        draw_joint(s, knee, 4, cloth, cloth_d, cloth_l, sub(chord_mid, knee))
+        draw_joint(s, knee, 5, cloth, cloth_d, cloth_l, sub(chord_mid, knee))
         if style == "field":
             kx, ky = pt(knee)
             polygon(
@@ -2472,6 +2541,31 @@ def draw_outfit_leg(
         draw_foot(s, ankle, LEATHER, LEATHER_D, LEATHER_L, boot=True)
 
 
+def _sleeve_cap(
+    s: Sprite,
+    shoulder: tuple[float, float],
+    elbow: tuple[float, float],
+    width: float,
+    cloth: str,
+    cloth_d: str,
+    cloth_l: str,
+) -> None:
+    """Capsule sleeve cap that flows into the upper arm instead of a disc."""
+    d = unit(sub(elbow, shoulder))
+    draw_segment(
+        s,
+        add(shoulder, mul(d, -3.0)),
+        add(shoulder, mul(d, 5.0)),
+        width + 1.0,
+        width,
+        cloth,
+        cloth_d,
+        cloth_l,
+        rim=False,
+        edge=1.0,
+    )
+
+
 def draw_outfit_arm(
     s: Sprite,
     pose: dict,
@@ -2489,31 +2583,27 @@ def draw_outfit_arm(
     style = str(outfit.get("style", ""))
     if sleeve == "none":
         if outfit["armored"]:
-            draw_segment(s, elbow, hand, 9.0, 7.0, metal, metal_d, metal_l, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, metal, metal_d, metal_l, rim=False, edge=1.0)
         else:
-            draw_segment(s, elbow, hand, 9.0, 7.0, LEATHER, LEATHER_D, LEATHER_L, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, LEATHER, LEATHER_D, LEATHER_L, rim=False, edge=1.0)
     elif sleeve == "short":
         if not lower_only:
-            sx, sy = pt(shoulder)
-            s.circle(sx, sy, 7, cloth_d, fill=True)
-            s.circle(sx, sy, 6, cloth, fill=True)
-            draw_segment(s, shoulder, elbow, 12.0, 10.0, cloth, cloth_d, cloth_l, rim=False)
+            _sleeve_cap(s, shoulder, elbow, 12.0, cloth, cloth_d, cloth_l)
+            draw_segment(s, shoulder, elbow, 12.0, 10.0, cloth, cloth_d, cloth_l, rim=False, edge=1.0)
         if outfit["armored"]:
-            draw_segment(s, elbow, hand, 9.0, 7.0, metal, metal_d, metal_l, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, metal, metal_d, metal_l, rim=False, edge=1.0)
         else:
-            draw_segment(s, elbow, hand, 9.0, 7.0, LEATHER, LEATHER_D, LEATHER_L, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, LEATHER, LEATHER_D, LEATHER_L, rim=False, edge=1.0)
     else:
         if not lower_only:
-            sx, sy = pt(shoulder)
-            s.circle(sx, sy, 7, cloth_d, fill=True)
-            s.circle(sx, sy, 6, cloth, fill=True)
-            draw_segment(s, shoulder, elbow, 12.0, 10.0, cloth, cloth_d, cloth_l, rim=False)
+            _sleeve_cap(s, shoulder, elbow, 12.0, cloth, cloth_d, cloth_l)
+            draw_segment(s, shoulder, elbow, 12.0, 10.0, cloth, cloth_d, cloth_l, rim=False, edge=1.0)
         chord_mid = add(shoulder, mul(sub(hand, shoulder), 0.5))
         draw_joint(s, elbow, 4, cloth, cloth_d, cloth_l, sub(chord_mid, elbow))
         if outfit["armored"]:
-            draw_segment(s, elbow, hand, 9.0, 7.0, metal, metal_d, metal_l, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, metal, metal_d, metal_l, rim=False, edge=1.0)
         else:
-            draw_segment(s, elbow, hand, 9.0, 7.0, cloth, cloth_d, cloth_l, rim=False)
+            draw_segment(s, elbow, hand, 9.0, 7.0, cloth, cloth_d, cloth_l, rim=False, edge=1.0)
     forearm_dir = unit(sub(hand, elbow))
     upper_dir = unit(sub(elbow, shoulder))
     upper_n = (-upper_dir[1], upper_dir[0])
@@ -2709,9 +2799,28 @@ def draw_outfit_torso(
             line(s, (upper_x - 9, waist_y - 6), (upper_x + 9, waist_y - 6), RED_L)
             line(s, (upper_x - 8, waist_y - 5), (upper_x + 8, waist_y - 5), RED_D)
     else:
-        line(s, (upper_x - 12, shoulder_y + 4), (upper_x + 2, waist_y - 3), cloth_l)
-        line(s, (upper_x + 11, shoulder_y + 4), (upper_x - 2, waist_y - 3), cloth_d)
+        # Generic cloth: lit left plane, shaded right plane, collar occlusion.
+        polygon(
+            s,
+            [(upper_x - 15, shoulder_y + 6), (upper_x - 4, shoulder_y + 3),
+             (upper_x - 7, waist_y - 2), (upper_x - 12, waist_y - 1)],
+            cloth_l,
+        )
+        polygon(
+            s,
+            [(upper_x + 3, shoulder_y + 3), (upper_x + 16, shoulder_y + 6),
+             (upper_x + 11, waist_y - 1), (upper_x + 5, waist_y - 2)],
+            cloth_d,
+        )
+        polygon(
+            s,
+            [(upper_x - 8, shoulder_y + 3), (upper_x + 8, shoulder_y + 3),
+             (upper_x + 5, shoulder_y + 8), (upper_x - 5, shoulder_y + 8)],
+            cloth_d,
+        )
         line(s, (upper_x - 9, shoulder_y + 9), (upper_x + 11, shoulder_y + 9), outfit["accent"])
+        line(s, (upper_x - 7, shoulder_y + 12), (upper_x - 3, waist_y - 4), cloth_l)
+        line(s, (upper_x + 5, shoulder_y + 13), (upper_x + 8, waist_y - 4), cloth_d)
         s.px(*pt((upper_x + 2, shoulder_y + 10)), outfit["accent_l"])
     belt_y = waist_y + 1
     s.rect(pt((upper_x - 13, belt_y)), pt((upper_x + 13, belt_y + 4)), LEATHER_D)
@@ -2911,10 +3020,8 @@ def draw_shoulder_guard(
     line(s, (cx - 9, cy + 2), (cx + 8, cy + 2), rim)
     if armored:
         for row, y in enumerate((cy + 3, cy + 6)):
-            line(s, (cx - 8 + row, y), (cx + 7 + row, y), rim)
-            line(s, (cx - 8 + row, y + 1), (cx + 7 + row, y + 1), dark)
-            for x in range(cx - 7 + row, cx + 7, 4):
-                s.px(x, y + 1, outfit["accent_l"])
+            line(s, (cx - 8 + row, y), (cx + 7 + row, y), dark)
+            line(s, (cx - 8 + row, y + 1), (cx + 7 + row, y + 1), base)
         if style == "field":
             line(s, (cx - 9, cy + 1), (cx + 8, cy + 1), "#eee0b6")
             line(s, (cx - 8, cy + 4), (cx + 7, cy + 4), "#6d6048")
