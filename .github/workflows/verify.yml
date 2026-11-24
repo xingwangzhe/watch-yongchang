@@ -65,7 +65,7 @@ jobs:
           python3 dora/build.py --check
           echo "Dora adapter static checks passed."
   linux-gut:
-    name: Linux GUT (164 tests)
+    name: Linux GUT (165 tests)
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -120,7 +120,7 @@ jobs:
             timeout 60 ./game/launch.sh --headless --quit-after 2
 
   windows-gut:
-    name: Windows GUT (native, 164 tests)
+    name: Windows GUT (native, 165 tests)
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
