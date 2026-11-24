@@ -910,6 +910,33 @@ def leg_points(pose: dict, side: str) -> tuple[tuple[float, float], tuple[float,
     return (hip_x, float(pose["hip_y"])), tuple(pose[f"{side}_foot"])
 
 
+def leg_joint_controlled(
+    hip: tuple[float, float],
+    ankle: tuple[float, float],
+    far: bool,
+) -> tuple[float, float]:
+    """Knee on the hip-ankle line with a small, controllable outward bulge.
+
+    Full two-bone IK with 21+21px bones against a ~36.5px upright leg forces a
+    ~10px knee bulge, which reads as bow legs in a front-facing pixel sprite.
+    LPC front-facing walk keeps knees nearly aligned with the hip-ankle line,
+    so the bulge here scales with foot lift: ~2px while planted, ~6px when the
+    foot swings. The perpendicular is always chosen on this leg's outside,
+    keeping knee and ankle on the same side of the hip (no crossed legs).
+    """
+    axis = sub(ankle, hip)
+    d = length(axis)
+    if d < 1.0:
+        return add(hip, mul(axis, 0.5))
+    lift = max(0.0, BODY_Y["ankle"] - float(ankle[1]))
+    bulge = 2.0 + min(lift, 10.0) * 0.45
+    mid = add(hip, mul(axis, 0.5))
+    perp = (-axis[1] / d, axis[0] / d)
+    if (far and perp[0] > 0.0) or (not far and perp[0] < 0.0):
+        perp = (-perp[0], -perp[1])
+    return add(mid, mul(perp, bulge))
+
+
 def shoulder_points(pose: dict, side: str) -> tuple[float, float]:
     upper_x = 60.0 + float(pose["lean"])
     if side == "far":
@@ -1028,26 +1055,34 @@ def walk_pose(index: int, grip: str, weapon_id: str = "none") -> dict:
     phase = 2.0 * math.pi * index / 8.0
     bob = 1 if index in (1, 2, 5, 6) else 0
 
-    def foot(offset: float) -> tuple[float, float]:
+    def foot(offset: float, outer: float) -> tuple[float, float]:
+        """Front-facing walk: each leg swings only inside its own half.
+
+        The old +-8px bidirectional swing pushed the ankle across the hip line
+        while the knee hint stayed outward. That produced X-shaped crossed legs
+        on frames 7-10. LPC front-facing walk keeps both feet on their own side,
+        so the stance slides from the outer position toward the hip and the
+        swing lifts the foot back out without ever crossing the midline.
+        """
         p = (index / 8.0 + offset) % 1.0
         if p < 0.62:
-            x = lerp(8.0, -8.0, p / 0.62)
+            x = lerp(outer, 0.0, p / 0.62)
             lift = 0.0
         else:
             q = (p - 0.62) / 0.38
-            x = lerp(-8.0, 8.0, q)
+            x = lerp(0.0, outer, q)
             lift = math.sin(math.pi * q) * 8.0
         return x, lift
 
-    near_x, near_lift = foot(0.0)
-    far_x, far_lift = foot(0.5)
+    near_x, near_lift = foot(0.0, 10.0)
+    far_x, far_lift = foot(0.5, -10.0)
     swing = math.cos(phase)
     pose["phase"] = phase
     pose["lean"] = int(round(math.sin(phase) * 1.4))
     pose["head_dx"] = math.sin(phase) * 0.6
     pose["blink"] = False
-    pose["far_foot"] = (52.0 + far_x, BODY_Y["ankle"] - far_lift)
-    pose["near_foot"] = (68.0 + near_x, BODY_Y["ankle"] - near_lift)
+    pose["far_foot"] = (54.0 + far_x, BODY_Y["ankle"] - far_lift)
+    pose["near_foot"] = (66.0 + near_x, BODY_Y["ankle"] - near_lift)
     if grip == "one_hand":
         if weapon_id == "longdeng":
             pose["far_hand"] = (36.0 - swing * 1.0, 40.0 + math.sin(phase * 2.0) * 0.7)
@@ -1880,7 +1915,7 @@ def skeleton_frame(pose_id: str, offhand_id: str, frame: int) -> dict:
         hand = tuple(pose[f"{side}_hand"])
         elbow = joint_between(shoulder, hand, "arm", far)
         hip, ankle = leg_points(pose, side)
-        knee = joint_between(hip, ankle, "leg", far)
+        knee = leg_joint_controlled(hip, ankle, far)
         limbs[side] = {
             "shoulder": [round(v, 3) for v in shoulder],
             "elbow": [round(v, 3) for v in elbow],
@@ -2032,7 +2067,7 @@ def draw_body_leg(
     far: bool,
 ) -> None:
     base, dark, light = _skin_colors(skin, far)
-    knee = joint_between(hip, ankle, "leg", far)
+    knee = leg_joint_controlled(hip, ankle, far)
     hx, hy = pt(hip)
     s.circle(hx, hy, 6, base, fill=True)
     shade_dir = (1.0, 0.0) if far else (-1.0, 0.0)
@@ -2359,7 +2394,7 @@ def draw_outfit_leg(
 ) -> None:
     far = side == "far"
     hip, ankle = leg_points(pose, side)
-    knee = joint_between(hip, ankle, "leg", far)
+    knee = leg_joint_controlled(hip, ankle, far)
     cloth, cloth_d, cloth_l = _cloth_colors(outfit, far)
     metal, metal_d, metal_l = _metal_colors(outfit, far)
     style = str(outfit.get("style", ""))
