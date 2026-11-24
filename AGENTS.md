@@ -97,16 +97,21 @@ find assets -maxdepth 3 -type f \( -name '*.png' -o -name '预览-*.jpg' \)
 - 玩法：**Vampire Survivors-like 割草生存 Roguelite**。16 分钟单局，自动攻击，
   升级三选一，灯火风险收益，文化阵法与龙灯清屏。
 - 设计大纲：`design/游戏设计文档-GDD.md`（当前唯一设计源；旧守城 GDD 已删除）
-- 状态：M3 表现基线（2026-11-23）。主菜单/设置/双语/自动存档/关于页已完成；
+- 状态：M3 表现基线（2026-11-24）。主菜单/设置/双语/自动存档/关于页已完成；
   1386 汤和序章、1559 王陆 16 分钟守夜、王陆 6 种守夜阵位、3 张地图、
-  8 兵器/12 被动、双堡图鉴、结算解锁、剧情字幕与 MOSS-TTS-Nano 语音已接入。
+  7 兵器/12 被动、双堡图鉴与结算解锁已接入；藤牌只作防具，不作兵器。
+  2026-11-24 因生成音频输出授权无法核实，已移除 18 个 MOSS-TTS-Nano 语音
+  文件并保留双语字幕回退；不得在权利核实前恢复语音分发。
   角色、敌兵、选择页与序章外观已统一到 `units/forge/`，旧兵种目录已删除。
-  Linux/Windows/macOS 构建已产出；Linux smoke 与 Windows Wine 预检通过，
-  原生 Windows CI 复验仍待跑。
+  3 首 BGM 与 20 个运行时 SFX 均为 CC0；默认 BGM 音量为 `0.42`。
+  Linux/Windows/macOS 构建已产出，但 `game/build/` 中 2026-11-23 的旧导出
+  仍可能含已退役 BGM 与 MOSS 语音，重新导出并核验前不得分发。
+  Linux smoke 已通过；历史 Windows Wine 预检通过，但本次发行版 Wine smoke
+  未通过，原生 Windows CI 复验仍待跑。
 - 运行时：Godot **4.7.2-stable**；唯一版本源 `game/.godot-version`；工程根 `game/`；
   主场景 `game/scenes/main_menu.tscn`。
 - 字体：**全局默认字体固定为霞鹜文楷 / LXGW WenKai（OFL 1.1）**，资产在 `game/assets/fonts/`。
-- 许可：**代码 GPL-3.0-or-later**；原创非代码资产 CC BY 4.0；音频 CC0/CC-BY；字体 OFL 1.1。
+- 许可：**代码 AGPL-3.0-or-later**；原创非代码资产 CC BY 4.0（明确标注的原创 BGM 为 CC0）；第三方保留原许可；字体 OFL 1.1。范围见根 `NOTICE`。
 
 ## 目录
 
@@ -223,10 +228,14 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
   `docs/06-资料文本化/堡与汤和关系索引.md`。
 - 每句剧情/语音都必须带 `category`（`史实`/`制度`/`民俗`/`演绎`）和
   `source_ref`。没有出处的台词只能标为“演绎”，不得冒充史料。
-- 中文 TTS 固定 MOSS-TTS-Nano：女声 Xiaoyu/Lingyu，男声 Junhao；
-  普通话自然节奏约 4.35 音节/秒，短句间留自然气口。TTS 失败必须回退字幕，
-  不得静默跳过剧情。新增语音须登记到 `game/data/credits.json`、
-  `AI使用与素材声明.md` 与 `素材授权清单.csv`。
+- 当前默认 `game/data/voice_lines.json` 为 `audio_enabled=false` 的纯字幕模式；
+  普通话字幕按约 4.35 音节/秒估算时长，TTS 不可用或未授权时必须回退字幕，
+  不得静默跳过剧情。`scripts/generate_voice.ts` 默认拒绝生成/输出语音。
+- 只有取得可核实的生成音频输出授权后，才可研究恢复 MOSS-TTS-Nano：
+  女声 Xiaoyu/Lingyu，男声 Junhao；必须同时满足 manifest 权利门控与环境变量
+  `MOSS_OUTPUT_RIGHTS_VERIFIED=1`，并登记到 `game/data/credits.json`、
+  `AI使用与素材声明.md` 与 `素材授权清单.csv`。模型/代码 Apache-2.0 许可
+  本身不得当作生成语音录音的授权。
 
 ## Godot / gda CLI 约定
 
@@ -283,7 +292,7 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
 
 ## 素材与版权
 
-- 原创非代码资产：CC BY 4.0；**代码：GPL-3.0-or-later**；音频 CC0 / CC-BY 3.0；字体 OFL 1.1。
+- 原创非代码资产：CC BY 4.0（明确标注的原创 BGM 为 CC0）；**代码：AGPL-3.0-or-later**；第三方保留原许可；字体 OFL 1.1。代码与资产范围见根 `NOTICE`。
 - 所有新增素材必须在 `素材授权清单.csv` 登记来源、工具、许可、是否入包。
 - 第三方参考资料包（约 1.2GB）不纳入版本库，不进入成品。
 - AI 生成内容须在 `AI使用与素材声明.md` 如实披露工具、用途与人工修改。
@@ -302,7 +311,7 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
 - GUT 9.7.1 验证通过：`game/tests/unit/` 覆盖工程基线、双语、存档、设置、BGM、
   主菜单/关于页、王陆阵位、3 地图、16 分钟波次、空间哈希、双堡图鉴、叙事来源
   与结算解锁、三平台导出预设；当前 Linux 基线
-  **82 tests / 82 passed / 26120 asserts**；运行命令见
+  **164 tests / 164 passed / 41202 asserts**；运行命令见
   「Godot / gda CLI 约定」。
 - GUT 的 `test_engine_version_matches_pinned_version` 校验实际引擎补丁版本与
   `game/.godot-version` 一致；升级引擎必须先改该文件并跑 Linux + Windows 测试。
