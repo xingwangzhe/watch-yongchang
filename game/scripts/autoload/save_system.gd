@@ -29,6 +29,7 @@ func default_data() -> Dictionary:
 		"best_time": 0.0,
 		"prologue_seen": false,
 		"intro_seen": false,
+		"tutorial_seen": false,
 		"last_mode": "menu",
 		"last_saved_unix": 0,
 		"last_saved_local": "",
@@ -91,6 +92,11 @@ func autosave(extra: Dictionary = {}) -> void:
 func begin_run() -> void:
 	var runs := int(data.get("runs", 0)) + 1
 	autosave({"runs": runs, "last_mode": "run"})
+
+
+func complete_tutorial() -> void:
+	data["tutorial_seen"] = true
+	autosave({"tutorial_seen": true})
 
 
 func record_run(merit: int, kills: int, victory: bool, elapsed: float) -> void:

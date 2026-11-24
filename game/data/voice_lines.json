@@ -1,8 +1,18 @@
 {
   "engine": "MOSS-TTS-Nano",
   "model": "OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX",
-  "license": "模型许可与分发条款以 OpenMOSS 官方仓库为准；语音为本地生成",
-  "pacing": "普通话自然对话约 4.35 音节/秒，含句内停顿",
+  "audio_enabled": false,
+  "distribution": "subtitles_only",
+  "removed_on": "2026-11-24",
+  "license": "MOSS code/model artifacts are Apache-2.0; no explicit generated-audio output grant was verified, so voice audio is not distributed",
+  "rights": {
+    "generated_audio_status": "unverified",
+    "decision": "Removed all 18 Chinese/English OGG files; narrative remains available as timed subtitles",
+    "model_license_url": "https://github.com/OpenMOSS/MOSS-TTS-Nano/blob/main/LICENSE",
+    "model_card_url": "https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX",
+    "output_terms_url": "https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX/raw/main/README.md"
+  },
+  "pacing": "普通话自然对话约 4.35 音节/秒，含句内停顿；无语音时按字幕文本时长回退",
   "voices": {
     "narrator": "Lingyu",
     "tanghe": "Junhao",
@@ -13,72 +23,72 @@
     "narr_1386_01": {
       "speaker": "narrator",
       "voice": "Lingyu",
-      "audio": "res://assets/audio/voice/narr_1386_01.ogg",
-      "audio_en": "res://assets/audio/voice/narr_1386_01_en.ogg",
+      "audio": "",
+      "audio_en": "",
       "category": "史实",
       "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:6"
     },
     "narr_1386_02": {
       "speaker": "tanghe",
       "voice": "Junhao",
-      "audio": "res://assets/audio/voice/narr_1386_02.ogg",
-      "audio_en": "res://assets/audio/voice/narr_1386_02_en.ogg",
+      "audio": "",
+      "audio_en": "",
       "category": "制度",
       "source_ref": "docs/06-资料文本化/文档文本/意绘抗倭英雄汤和-漫画全文.txt:706"
     },
     "narr_1558_01": {
       "speaker": "narrator",
       "voice": "Lingyu",
-      "audio": "res://assets/audio/voice/narr_1558_01.ogg",
-      "audio_en": "res://assets/audio/voice/narr_1558_01_en.ogg",
+      "audio": "",
+      "audio_en": "",
       "category": "史实",
       "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:13760"
     },
     "narr_1558_02": {
       "speaker": "narrator",
       "voice": "Lingyu",
-      "audio": "res://assets/audio/voice/narr_1558_02.ogg",
-      "audio_en": "res://assets/audio/voice/narr_1558_02_en.ogg",
+      "audio": "",
+      "audio_en": "",
       "category": "史实",
       "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:16301"
     },
     "narr_1559_01": {
       "speaker": "narrator",
       "voice": "Lingyu",
-      "audio": "res://assets/audio/voice/narr_1559_01.ogg",
-      "audio_en": "res://assets/audio/voice/narr_1559_01_en.ogg",
+      "audio": "",
+      "audio_en": "",
       "category": "史实",
       "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283"
     },
     "narr_1559_02": {
       "speaker": "wanglu",
       "voice": "Junhao",
-      "audio": "res://assets/audio/voice/narr_1559_02.ogg",
-      "audio_en": "res://assets/audio/voice/narr_1559_02_en.ogg",
+      "audio": "",
+      "audio_en": "",
       "category": "演绎",
       "source_ref": "虚构守灯乡勇，代表嘉靖三十八年守堡民众；堡史见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283-306"
     },
     "narr_main_04": {
       "speaker": "wanglu",
       "voice": "Junhao",
-      "audio": "res://assets/audio/voice/narr_main_04.ogg",
-      "audio_en": "res://assets/audio/voice/narr_main_04_en.ogg",
+      "audio": "",
+      "audio_en": "",
       "category": "民俗",
       "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3"
     },
     "epilogue_02": {
       "speaker": "narrator",
       "voice": "Lingyu",
-      "audio": "res://assets/audio/voice/epilogue_02.ogg",
-      "audio_en": "res://assets/audio/voice/epilogue_02_en.ogg",
+      "audio": "",
+      "audio_en": "",
       "category": "史实",
       "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3"
     },
     "epilogue_03": {
       "speaker": "narrator",
       "voice": "Lingyu",
-      "audio": "res://assets/audio/voice/epilogue_03.ogg",
-      "audio_en": "res://assets/audio/voice/epilogue_03_en.ogg",
+      "audio": "",
+      "audio_en": "",
       "category": "演绎",
       "source_ref": "堡与汤和关系索引.md:1"
     }

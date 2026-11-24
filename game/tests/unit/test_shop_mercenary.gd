@@ -2,6 +2,17 @@ extends GutTest
 
 const ForgeScript = preload("res://scripts/character/character_forge.gd")
 
+var _tutorial_seen_before := false
+
+
+func before_each() -> void:
+	_tutorial_seen_before = bool(SaveSystem.data.get("tutorial_seen", false))
+	SaveSystem.data["tutorial_seen"] = true
+
+
+func after_each() -> void:
+	SaveSystem.data["tutorial_seen"] = _tutorial_seen_before
+
 
 func test_mercenary_data_is_ming_valid_and_forge_baked() -> void:
 	var mercenaries := GameData.get_mercenaries()

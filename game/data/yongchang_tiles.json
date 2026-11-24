@@ -7,7 +7,7 @@
     "terrain": {
       "path": "res://assets/tiles/yongchang/terrain_atlas.png",
       "columns": 8,
-      "rows": 4,
+      "rows": 5,
       "tiles": [
         "mud_a", "mud_b", "sand_a", "sand_b",
         "water_shallow_a", "water_shallow_b", "water_deep_a", "water_deep_b",
@@ -16,7 +16,9 @@
         "shore_n", "shore_s", "shore_e", "shore_w",
         "shore_nw", "shore_ne", "shore_sw", "shore_se",
         "puddle", "salt_pan", "gravel", "driftwood",
-        "cracked_mud", "sand_c", "wet_stone", "mud_grass_b"
+        "cracked_mud", "sand_c", "wet_stone", "mud_grass_b",
+        "mountain_a", "mountain_b", "mountain_c", "mountain_d",
+        "mountain_e", "mountain_f", "mountain_g", "mountain_h"
       ]
     },
     "architecture": {
@@ -32,7 +34,7 @@
         "water_gate_left", "water_gate_arch", "water_gate_right",
         "wall_cap_damaged", "merlon_b", "wood_railing", "stone_steps",
         "plaster_door_b", "red_lantern", "storefront",
-        "gable_left", "gable_right", "wall_water_base_b"
+        "gable_left", "gable_right", "wood_railing_vertical"
       ]
     },
     "props": {

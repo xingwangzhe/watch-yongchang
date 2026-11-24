@@ -26,6 +26,8 @@ var _indices: Dictionary = {}
 var _source_ids: Dictionary = {}
 var _water_cells: Dictionary = {}
 var _road_cells: Dictionary = {}
+var _bridge_cells: Dictionary = {}
+var _bridge_orientations: Dictionary = {}
 var _obstacle_cells: Dictionary = {}
 var _rng := RandomNumberGenerator.new()
 var _shading_ready := false
@@ -33,7 +35,15 @@ var _shading_ready := false
 
 func build(map_layout: MapLayout, _map_definition: Dictionary, seed_value: int) -> void:
 	layout = map_layout
+	if not layout.connectivity_repaired.is_connected(_on_connectivity_repaired):
+		layout.connectivity_repaired.connect(_on_connectivity_repaired)
 	_rng.seed = seed_value
+	_water_cells.clear()
+	_road_cells.clear()
+	_bridge_cells.clear()
+	_bridge_orientations.clear()
+	_obstacle_cells.clear()
+	_shading_ready = false
 	z_index = -50
 	_atlas_config = GameData.load_json(TILE_INDEX_PATH).get("atlases", {}) as Dictionary
 	_build_tile_index()
@@ -44,6 +54,7 @@ func build(map_layout: MapLayout, _map_definition: Dictionary, seed_value: int) 
 			_paint_area(area as Dictionary)
 	_beautify_water_edges()
 	layout.finalize()
+	_paint_repair_cells(layout.repaired_cell_list())
 	_shading_ready = true
 	if shade_layer != null:
 		shade_layer.queue_redraw()
@@ -126,6 +137,8 @@ func _paint_area(area: Dictionary) -> void:
 			_paint_wall_area(rect, true)
 		"building":
 			_paint_building_area(rect)
+		"mountain":
+			_paint_mountain_area(area, rect)
 		"gate":
 			_paint_gate_area(rect, false)
 		"water_gate":
@@ -143,9 +156,11 @@ func _paint_terrain_area(area: Dictionary, rect: Rect2i) -> void:
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
+			if layout.is_water_cell(cell) or layout.is_bridge_cell(cell) or layout.is_solid_cell(cell):
+				continue
 			var tile_name := _pick_name(variants, cell)
-			_place_terrain(cell, tile_name)
-			layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
+			if _place_terrain(cell, tile_name):
+				layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
 
 
 func _paint_road_area(area: Dictionary, rect: Rect2i) -> void:
@@ -157,8 +172,11 @@ func _paint_road_area(area: Dictionary, rect: Rect2i) -> void:
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
+			if layout.is_water_cell(cell) or layout.is_bridge_cell(cell) or layout.is_solid_cell(cell):
+				continue
 			var tile_name := _pick_name(variants, cell)
-			_place_terrain(cell, tile_name)
+			if not _place_terrain(cell, tile_name):
+				continue
 			_road_cells[cell] = true
 			_obstacle_cells.erase(cell)
 			layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
@@ -173,35 +191,54 @@ func _paint_water_area(area: Dictionary, rect: Rect2i) -> void:
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
-			_place_terrain(cell, _pick_name(variants, cell))
+			var tile_name := _pick_name(variants, cell)
+			if not _place_terrain(cell, tile_name):
+				continue
 			layout.mark_water_rect(Rect2i(cell, Vector2i.ONE))
 			_water_cells[cell] = true
 			_road_cells.erase(cell)
-			_obstacle_cells.erase(cell)
-			layout.set_minimap_color(cell, Color("#163a45"))
+			layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
 
 
 func _paint_bridge_area(_area: Dictionary, rect: Rect2i) -> void:
 	var horizontal := rect.size.x >= rect.size.y
 	var bridge_tile := "dock_horizontal" if horizontal else "dock_vertical"
+	var railing_tile := "wood_railing" if horizontal else "wood_railing_vertical"
+	var crossing_width := rect.size.y if horizontal else rect.size.x
 	for y in range(rect.position.y, rect.position.y + rect.size.y):
 		for x in range(rect.position.x, rect.position.x + rect.size.x):
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
-			_place_terrain(cell, bridge_tile)
+			if not _place_terrain(cell, bridge_tile):
+				continue
 			layout.mark_bridge_rect(Rect2i(cell, Vector2i.ONE))
+			_bridge_cells[cell] = true
+			_bridge_orientations[cell] = horizontal
 			_road_cells.erase(cell)
-			_obstacle_cells.erase(cell)
-			layout.set_minimap_color(cell, Color("#c4a06b"))
-	if horizontal:
+			if not layout.is_solid_cell(cell):
+				_obstacle_cells.erase(cell)
+				layout.set_minimap_color(cell, MapLayout.MINIMAP_BRIDGE)
+	# 栏杆只挡真正跨水的边缘；陆上的桥头保持开放，避免封住相接的街道。
+	if crossing_width < 3:
+		return
+	for y in range(rect.position.y, rect.position.y + rect.size.y):
 		for x in range(rect.position.x, rect.position.x + rect.size.x):
-			_place_architecture(Vector2i(x, rect.position.y), "wood_railing")
-			_place_architecture(Vector2i(x, rect.position.y + rect.size.y - 1), "wood_railing")
-	else:
-		for y in range(rect.position.y, rect.position.y + rect.size.y):
-			_place_architecture(Vector2i(rect.position.x, y), "wood_railing")
-			_place_architecture(Vector2i(rect.position.x + rect.size.x - 1, y), "wood_railing")
+			var cell := Vector2i(x, y)
+			if not layout.cell_in_bounds(cell) or not layout.is_water_cell(cell):
+				continue
+			var is_railing := false
+			if horizontal:
+				is_railing = y == rect.position.y or y == rect.position.y + rect.size.y - 1
+			else:
+				is_railing = x == rect.position.x or x == rect.position.x + rect.size.x - 1
+			if not is_railing or not _bridge_cells.has(cell):
+				continue
+			if not _place_architecture(cell, railing_tile):
+				continue
+			layout.mark_solid_rect(Rect2i(cell, Vector2i.ONE))
+			_obstacle_cells[cell] = true
+			layout.set_minimap_color(cell, MapLayout.MINIMAP_BRIDGE_RAILING)
 
 
 func _paint_wall_area(rect: Rect2i, tower: bool) -> void:
@@ -210,7 +247,6 @@ func _paint_wall_area(rect: Rect2i, tower: bool) -> void:
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
-			_place_terrain(cell, "gravel")
 			var tile_name := "stone_wall_a"
 			if (x + y * 3) % 7 == 0:
 				tile_name = "stone_wall_b"
@@ -220,7 +256,9 @@ func _paint_wall_area(rect: Rect2i, tower: bool) -> void:
 				tile_name = "wall_cap"
 			if y == rect.position.y:
 				tile_name = "merlon" if not tower else "wall_cap"
-			_place_architecture(cell, tile_name)
+			if not _place_architecture(cell, tile_name):
+				continue
+			_place_terrain(cell, "gravel")
 			cancel_water(cell)
 			_road_cells.erase(cell)
 			_obstacle_cells[cell] = true
@@ -239,7 +277,6 @@ func _paint_building_area(rect: Rect2i) -> void:
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
-			_place_terrain(cell, "wet_stone")
 			var local_x := x - rect.position.x
 			var local_y := y - rect.position.y
 			var tile_name := "roof_slope"
@@ -249,7 +286,10 @@ func _paint_building_area(rect: Rect2i) -> void:
 				tile_name = "roof_eave"
 			if local_x == 0 or local_x == rect.size.x - 1:
 				tile_name = "roof_corner"
-			_place_architecture(cell, tile_name)
+			if not _place_architecture(cell, tile_name):
+				continue
+			cancel_water(cell)
+			_place_terrain(cell, "wet_stone")
 			_road_cells.erase(cell)
 			_obstacle_cells[cell] = true
 			layout.mark_solid_rect(Rect2i(cell, Vector2i.ONE))
@@ -262,23 +302,50 @@ func _paint_building_area(rect: Rect2i) -> void:
 		_place_architecture(door_cell, "plaster_door")
 
 
-func _paint_gate_area(rect: Rect2i, water_gate: bool) -> void:
-	layout.clear_solid_rect(rect)
-	layout.clear_water_rect(rect)
+func _paint_mountain_area(area: Dictionary, rect: Rect2i) -> void:
+	var variants := _area_tiles(area)
+	if variants.is_empty():
+		variants = ["mountain_a", "mountain_b", "mountain_c", "mountain_d"]
 	for y in range(rect.position.y, rect.position.y + rect.size.y):
 		for x in range(rect.position.x, rect.position.x + rect.size.x):
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
+			var tile_name := _pick_name(variants, cell)
+			if not _place_terrain(cell, tile_name):
+				continue
+			cancel_water(cell)
+			_road_cells.erase(cell)
+			_obstacle_cells[cell] = true
+			layout.mark_solid_rect(Rect2i(cell, Vector2i.ONE))
+			layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
+
+
+func _paint_gate_area(rect: Rect2i, water_gate: bool) -> void:
+	var horizontal := rect.size.x >= rect.size.y
+	for y in range(rect.position.y, rect.position.y + rect.size.y):
+		for x in range(rect.position.x, rect.position.x + rect.size.x):
+			var cell := Vector2i(x, y)
+			if not layout.cell_in_bounds(cell):
+				continue
+			var was_bridge := layout.is_bridge_cell(cell)
+			var bridge_horizontal := horizontal
+			if was_bridge:
+				bridge_horizontal = bool(_bridge_orientations.get(cell, horizontal))
+			var terrain_name := "wet_stone" if water_gate else "stone_road_a"
+			var architecture_name := "water_gate_arch" if water_gate else "land_gate_arch"
+			if not _place_terrain(cell, terrain_name) or not _place_architecture(cell, architecture_name):
+				continue
+			cancel_water(cell)
+			layout.clear_solid_rect(Rect2i(cell, Vector2i.ONE))
 			if water_gate:
-				_place_terrain(cell, "wet_stone")
-				layout.mark_bridge_rect(Rect2i(cell, Vector2i.ONE))
-				_place_architecture(cell, "water_gate_arch")
 				_road_cells.erase(cell)
 			else:
-				_place_terrain(cell, "stone_road_a")
-				_place_architecture(cell, "land_gate_arch")
 				_road_cells[cell] = true
+			if water_gate or was_bridge:
+				layout.mark_bridge_rect(Rect2i(cell, Vector2i.ONE))
+				_bridge_cells[cell] = true
+				_bridge_orientations[cell] = bridge_horizontal
 			_obstacle_cells.erase(cell)
 			layout.set_minimap_color(cell, Color("#d8b15e"))
 
@@ -293,10 +360,13 @@ func _paint_reeds_area(area: Dictionary, rect: Rect2i) -> void:
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
-			var tile_name := _pick_name(variants, cell)
-			_place_terrain(cell, tile_name)
-			layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
-			if _hash_cell(cell, 97) < density:
+			if layout.is_bridge_cell(cell) or layout.is_solid_cell(cell):
+				continue
+			if not layout.is_water_cell(cell):
+				var tile_name := _pick_name(variants, cell)
+				if _place_terrain(cell, tile_name):
+					layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
+			if float(_hash_cell(cell, 97)) / 1000003.0 < density:
 				_place_prop(cell, "reeds" if _hash_cell(cell, 31) % 3 else "grass")
 
 
@@ -309,55 +379,123 @@ func _paint_props_area(area: Dictionary, rect: Rect2i) -> void:
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
+			if layout.is_solid_cell(cell) or layout.is_bridge_cell(cell):
+				continue
+			if density < 1.0 and float(_hash_cell(cell, 53)) / 1000003.0 > density:
+				continue
+			if not _place_prop(cell, prop_name):
+				continue
 			if solid:
 				layout.mark_solid_rect(Rect2i(cell, Vector2i.ONE))
 				_obstacle_cells[cell] = true
-			if density < 1.0 and _hash_cell(cell, 53) > density:
-				continue
-			_place_prop(cell, prop_name)
-			if solid:
 				layout.set_minimap_color(cell, Color("#3b3d32"))
 
 
 func _beautify_water_edges() -> void:
 	for cell in _water_cells.keys():
 		var water_cell := cell as Vector2i
+		if layout.is_bridge_cell(water_cell) or layout.is_solid_cell(water_cell):
+			continue
 		var edge := false
 		for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
-			if not _water_cells.has(water_cell + direction):
+			if not _water_cells.has(water_cell + direction) and not layout.is_bridge_cell(water_cell + direction):
 				edge = true
 				break
 		if edge:
-			_place_terrain(water_cell, "water_shallow_a" if _hash_cell(water_cell, 13) % 2 == 0 else "water_shallow_b")
-			layout.set_minimap_color(water_cell, Color("#245965"))
+			var tile_name := "water_shallow_a" if _hash_cell(water_cell, 13) % 2 == 0 else "water_shallow_b"
+			if _place_terrain(water_cell, tile_name):
+				layout.set_minimap_color(water_cell, layout.minimap_color_for_tile(tile_name))
 
 
 func cancel_water(cell: Vector2i) -> void:
 	layout.clear_water_rect(Rect2i(cell, Vector2i.ONE))
+	layout.clear_bridge_rect(Rect2i(cell, Vector2i.ONE))
 	_water_cells.erase(cell)
+	_bridge_cells.erase(cell)
+	_bridge_orientations.erase(cell)
 
 
-func _place_terrain(cell: Vector2i, tile_name: String) -> void:
-	_place(terrain_layer, "terrain", cell, tile_name)
+func _place_terrain(cell: Vector2i, tile_name: String) -> bool:
+	return _place(terrain_layer, "terrain", cell, tile_name)
 
 
-func _place_architecture(cell: Vector2i, tile_name: String) -> void:
-	_place(architecture_layer, "architecture", cell, tile_name)
+func _place_architecture(cell: Vector2i, tile_name: String) -> bool:
+	return _place(architecture_layer, "architecture", cell, tile_name)
 
 
-func _place_prop(cell: Vector2i, tile_name: String) -> void:
-	_place(props_layer, "props", cell, tile_name)
+func _place_prop(cell: Vector2i, tile_name: String) -> bool:
+	return _place(props_layer, "props", cell, tile_name)
 
 
-func _place(layer: TileMapLayer, atlas_key: String, cell: Vector2i, tile_name: String) -> void:
+func _place(layer: TileMapLayer, atlas_key: String, cell: Vector2i, tile_name: String) -> bool:
 	if not layer.tile_set or not _indices.has(atlas_key):
-		return
+		return false
 	var lookup: Dictionary = _indices[atlas_key] as Dictionary
 	if not lookup.has(tile_name):
-		return
+		return false
 	var index := int(lookup[tile_name])
 	var atlas_coords := Vector2i(index % 8, index / 8)
 	layer.set_cell(cell, int(_source_ids[atlas_key]), atlas_coords, 0)
+	return true
+
+
+func _on_connectivity_repaired(cells: Array) -> void:
+	_paint_repair_cells(cells)
+
+
+func _paint_repair_cells(cells: Array) -> void:
+	if cells.is_empty():
+		return
+	for value in cells:
+		var cell := value as Vector2i
+		if not layout.cell_in_bounds(cell):
+			continue
+		architecture_layer.erase_cell(cell)
+		props_layer.erase_cell(cell)
+		_obstacle_cells.erase(cell)
+		var tile_name := "earth_road_a" if _hash_cell(cell, 7) % 2 == 0 else "earth_road_b"
+		if layout.is_bridge_cell(cell):
+			tile_name = "dock_horizontal"
+			_bridge_cells[cell] = true
+			_bridge_orientations[cell] = true
+			_road_cells.erase(cell)
+		else:
+			_bridge_cells.erase(cell)
+			_bridge_orientations.erase(cell)
+			_road_cells[cell] = true
+		if layout.is_water_cell(cell):
+			_water_cells[cell] = true
+		else:
+			_water_cells.erase(cell)
+		if _place_terrain(cell, tile_name):
+			layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
+	if shade_layer != null:
+		shade_layer.queue_redraw()
+
+
+func terrain_tile_name(cell: Vector2i) -> String:
+	return _tile_name_at(terrain_layer, "terrain", cell)
+
+
+func architecture_tile_name(cell: Vector2i) -> String:
+	return _tile_name_at(architecture_layer, "architecture", cell)
+
+
+func prop_tile_name(cell: Vector2i) -> String:
+	return _tile_name_at(props_layer, "props", cell)
+
+
+func _tile_name_at(layer: TileMapLayer, atlas_key: String, cell: Vector2i) -> String:
+	if layer == null or layer.get_cell_source_id(cell) < 0:
+		return ""
+	var coords := layer.get_cell_atlas_coords(cell)
+	var atlas: Dictionary = _atlas_config.get(atlas_key, {}) as Dictionary
+	var columns := int(atlas.get("columns", 8))
+	var index := coords.x + coords.y * columns
+	var names: Array = atlas.get("tiles", []) as Array
+	if index < 0 or index >= names.size():
+		return ""
+	return str(names[index])
 
 
 func _area_rect(area: Dictionary) -> Rect2i:
@@ -420,25 +558,38 @@ func _draw_shading(target: CanvasItem) -> void:
 		if not _is_road_like(road_cell + Vector2i.RIGHT):
 			target.draw_line(Vector2(x0 + tile, y0), Vector2(x0 + tile, y0 + tile), edge, 2.0)
 
-	# 3) 水岸：深色岸线 + 外侧浅滩高光，明确低地边界。
+	# 3) 桥面：只在朝水的一侧描连续投影，不在每块甲板上切出黑缝。
+	for cell in _bridge_cells.keys():
+		var bridge_cell := cell as Vector2i
+		var horizontal := bool(_bridge_orientations.get(bridge_cell, true))
+		var x0 := float(bridge_cell.x) * tile
+		var y0 := float(bridge_cell.y) * tile
+		if horizontal and not _bridge_cells.has(bridge_cell + Vector2i.DOWN):
+			target.draw_line(Vector2(x0, y0 + tile), Vector2(x0 + tile, y0 + tile), Color(0.03, 0.07, 0.06, 0.42), 3.0)
+		elif not horizontal and not _bridge_cells.has(bridge_cell + Vector2i.RIGHT):
+			target.draw_line(Vector2(x0 + tile, y0), Vector2(x0 + tile, y0 + tile), Color(0.03, 0.07, 0.06, 0.42), 3.0)
+
+	# 4) 水岸：深色岸线 + 外侧浅滩高光；桥头接缝不画成阻断水岸。
 	for cell in _water_cells.keys():
 		var water_cell := cell as Vector2i
+		if layout.is_bridge_cell(water_cell):
+			continue
 		var x0 := float(water_cell.x) * tile
 		var y0 := float(water_cell.y) * tile
 		var x1 := x0 + tile
 		var y1 := y0 + tile
-		if not _water_cells.has(water_cell + Vector2i.UP):
+		if not _water_cells.has(water_cell + Vector2i.UP) and not layout.is_bridge_cell(water_cell + Vector2i.UP):
 			target.draw_line(Vector2(x0, y0), Vector2(x1, y0), Color(0.03, 0.11, 0.13, 0.55), 2.0)
 			target.draw_line(Vector2(x0, y0 - 3.0), Vector2(x1, y0 - 3.0), Color(0.74, 0.66, 0.47, 0.16), 2.0)
-		if not _water_cells.has(water_cell + Vector2i.DOWN):
+		if not _water_cells.has(water_cell + Vector2i.DOWN) and not layout.is_bridge_cell(water_cell + Vector2i.DOWN):
 			target.draw_line(Vector2(x0, y1), Vector2(x1, y1), Color(0.03, 0.11, 0.13, 0.55), 2.0)
-		if not _water_cells.has(water_cell + Vector2i.LEFT):
+		if not _water_cells.has(water_cell + Vector2i.LEFT) and not layout.is_bridge_cell(water_cell + Vector2i.LEFT):
 			target.draw_line(Vector2(x0, y0), Vector2(x0, y1), Color(0.03, 0.11, 0.13, 0.55), 2.0)
 			target.draw_line(Vector2(x0 - 3.0, y0), Vector2(x0 - 3.0, y1), Color(0.74, 0.66, 0.47, 0.14), 2.0)
-		if not _water_cells.has(water_cell + Vector2i.RIGHT):
+		if not _water_cells.has(water_cell + Vector2i.RIGHT) and not layout.is_bridge_cell(water_cell + Vector2i.RIGHT):
 			target.draw_line(Vector2(x1, y0), Vector2(x1, y1), Color(0.03, 0.11, 0.13, 0.55), 2.0)
 
-	# 4) 障碍物：南/东侧落影，北/西侧受光，墙体与屋顶不再与地面糊在一起。
+	# 5) 障碍物：南/东侧落影，北/西侧受光，墙体、栏杆与屋顶不再与地面糊在一起。
 	for cell in _obstacle_cells.keys():
 		var solid_cell := cell as Vector2i
 		var x0 := float(solid_cell.x) * tile

@@ -26,18 +26,23 @@ func test_upgrade_cards_are_bilingual_sourced_and_decorated() -> void:
 			var icon_path := str(card.get("icon", ""))
 			assert_true(icon_path.begins_with("res://assets/icons/game_icons/"))
 			assert_true(ResourceLoader.exists(icon_path), "%s icon is missing: %s" % [card_id, icon_path])
-	assert_eq(total, 141, "the three-choice catalog must expose 141 authored cards (110 base + 30 tower + 1 wade)")
+	assert_eq(total, 143, "the three-choice catalog must expose 143 authored cards")
+	assert_eq(UpgradeCatalog.family_data("attributes").size(), 51)
+	assert_eq(UpgradeCatalog.family_data("skills").size(), 38)
+	assert_eq(UpgradeCatalog.family_data("events").size(), 22)
+	assert_eq(UpgradeCatalog.family_data("towers").size(), 32)
 
 
 func test_catalog_offer_count_exceeds_reference_build_scopes() -> void:
-	assert_eq(UpgradeCatalog.total_card_count(), 141)
+	assert_eq(UpgradeCatalog.total_card_count(), 143)
+	assert_eq(UpgradeCatalog.total_offer_count(), 580)
 	assert_gte(
 		UpgradeCatalog.total_offer_count(),
-		149,
+		151,
 		"card levels must exceed Brotato's 64 upgrades plus the VS passive scope"
 	)
 	var pool := UpgradeCatalog.build_card_pool({}, {}, 0.8)
-	assert_eq(pool.size(), 141, "a fresh run must see every one of the authored cards")
+	assert_eq(pool.size(), 143, "a fresh run must see every one of the authored cards")
 	var families := {}
 	for option in pool:
 		families[str(option.get("family", ""))] = true
@@ -131,6 +136,53 @@ func test_level_up_overlay_renders_three_cultural_cards() -> void:
 		assert_not_null((card.find_child("CardIcon", true, false) as TextureRect).texture)
 
 
+func test_level_up_blocks_mouse_and_number_input_for_one_second() -> void:
+	var options: Array[Dictionary] = []
+	var pool := UpgradeCatalog.build_card_pool({}, {}, 0.8)
+	for family in ["attribute", "skill", "event"]:
+		for option in pool:
+			if str(option.get("family", "")) == family:
+				options.append(option)
+				break
+	var overlay := LevelUpOverlay.new()
+	add_child_autofree(overlay)
+	await wait_process_frames(2)
+	var selected: Array[int] = []
+	overlay.chosen.connect(func(index: int) -> void: selected.append(index))
+	overlay.show_options(options, 12)
+
+	assert_true(overlay.is_locked())
+	assert_false(overlay.can_choose(0))
+	assert_true(overlay._hint.visible)
+	assert_string_contains(str(overlay._hint.text), "选择锁定")
+	assert_true(str(overlay._hint.text).contains("0.") or str(overlay._hint.text).contains("1.0"))
+	for i in range(3):
+		var card := overlay.find_child("UpgradeCard%d" % (i + 1), true, false) as Button
+		assert_true(card.disabled, "every card must be disabled during the lock")
+		card.pressed.emit()
+		overlay._choose(i)
+		overlay._unhandled_input(_number_key_event(KEY_1 + i))
+		assert_true(overlay.get_viewport().is_input_handled(), "number input must be consumed while locked")
+	assert_eq(selected.size(), 0, "mouse and 1/2/3 input must not choose during the lock")
+
+	await wait_seconds(1.05)
+	assert_false(overlay.is_locked())
+	assert_true(overlay.can_choose(0))
+	assert_eq(str(overlay._hint.text), Locale.t("levelup.hint", {"pool": options.size()}))
+	for i in range(3):
+		var card := overlay.find_child("UpgradeCard%d" % (i + 1), true, false) as Button
+		assert_false(card.disabled)
+	overlay._unhandled_input(_number_key_event(KEY_2))
+	assert_eq(selected, [1], "number selection must work after exactly one second")
+
+	overlay.hide_options()
+	assert_false(overlay.is_locked())
+	overlay.show_options(options, 13)
+	assert_true(overlay.is_locked(), "re-showing options must restart the input lock")
+	overlay._choose(0)
+	assert_eq(selected, [1], "direct selection must also respect a restarted lock")
+
+
 func test_touch_controls_use_lantern_patrol_language() -> void:
 	var controls := TouchControls.new()
 	controls.force_visible = true
@@ -175,3 +227,11 @@ func test_run_applies_attribute_and_event_cards() -> void:
 	assert_true(run.used_events.has(event_id))
 	assert_eq(run.merit, old_merit + 200)
 	assert_gt(run.battlefield.alive_count(), 0, "event elites must enter the battlefield")
+
+
+func _number_key_event(code: int) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.physical_keycode = code
+	event.keycode = code
+	event.pressed = true
+	return event

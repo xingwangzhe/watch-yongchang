@@ -9,7 +9,6 @@ const ICON_KATANA := preload("res://assets/icons/game_icons/wpn_katana.svg")
 const ICON_SPEAR := preload("res://assets/icons/game_icons/wpn_spear.svg")
 const ICON_BOW := preload("res://assets/icons/game_icons/wpn_bow.svg")
 const ICON_MUSKET := preload("res://assets/icons/game_icons/wpn_musket.svg")
-const ICON_SHIELD := preload("res://assets/icons/game_icons/wpn_shield.svg")
 const ICON_DRAGON := preload("res://assets/icons/game_icons/wpn_dragon_lantern.svg")
 const ICON_CANNON := preload("res://assets/icons/game_icons/wpn_cannon.svg")
 const ICON_BANNER := preload("res://assets/icons/game_icons/wpn_banner.svg")
@@ -148,7 +147,6 @@ func _build_arsenal(parent: VBoxContainer) -> void:
 		{"name": "ArsenalSpear", "key": "weapon.spear", "icon": ICON_SPEAR},
 		{"name": "ArsenalBow", "key": "weapon.bow", "icon": ICON_BOW},
 		{"name": "ArsenalMusket", "key": "weapon.musket", "icon": ICON_MUSKET},
-		{"name": "ArsenalShield", "key": "weapon.shield", "icon": ICON_SHIELD},
 		{"name": "ArsenalDragonLantern", "key": "weapon.dragon_lantern", "icon": ICON_DRAGON},
 		{"name": "ArsenalCannon", "key": "weapon.cannon", "icon": ICON_CANNON},
 		{"name": "ArsenalBanner", "key": "weapon.banner", "icon": ICON_BANNER},

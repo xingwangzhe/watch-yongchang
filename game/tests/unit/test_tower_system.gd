@@ -122,6 +122,51 @@ func test_tower_arrow_actually_damages_enemy() -> void:
 	assert_lt(float(enemy["hp"]), before_hp, "arrow must really hit and damage the enemy")
 
 
+func test_tower_burst_continues_during_main_cooldown() -> void:
+	var field := _new_field()
+	field.apply_tower_stats({"tower_burst_shots": 3})
+	var tower_pos := Vector2(1952, 1536)
+	var tower_index := field.spawn_tower("watchtower", tower_pos)
+	field.towers[tower_index]["attack_timer"] = 0.0
+	var enemy_index := field.spawn_enemy_at("scout", tower_pos + Vector2(180, 0))
+	field.enemies[enemy_index]["speed"] = 0.0
+	field.enemies[enemy_index]["hp"] = 100000.0
+	field.enemies[enemy_index]["max_hp"] = 100000.0
+	var player := {"pos": Vector2(2500, 1536), "radius": 18.0, "pickup_radius": 0.0}
+	field.update_world(1.0 / 60.0, player)
+	assert_eq(field.tower_shots.size(), 1)
+	assert_gt(float(field.towers[tower_index]["attack_timer"]), 0.0)
+	for _frame in range(8):
+		field.update_world(1.0 / 60.0, player)
+	assert_eq(field.tower_shots.size(), 2, "burst must fire while the main volley is cooling down")
+
+
+func test_tower_twin_lanes_fire_concurrently_with_new_volley() -> void:
+	var field := _new_field()
+	field.apply_tower_stats({"tower_burst_shots": 2, "tower_burst_lanes": 1})
+	var tower_pos := Vector2(1952, 1536)
+	var tower_index := field.spawn_tower("watchtower", tower_pos)
+	var tower: Dictionary = field.towers[tower_index]
+	assert_eq((tower["burst_lanes"] as Array).size(), 2)
+	tower["attack_timer"] = 0.0
+	tower["cooldown"] = 0.12
+	var enemy_index := field.spawn_enemy_at("scout", tower_pos + Vector2(180, 0))
+	field.enemies[enemy_index]["speed"] = 0.0
+	field.enemies[enemy_index]["hp"] = 100000.0
+	field.enemies[enemy_index]["max_hp"] = 100000.0
+	var player := {"pos": Vector2(2500, 1536), "radius": 18.0, "pickup_radius": 0.0}
+	field.update_world(1.0 / 60.0, player)
+	for _frame in range(6):
+		field.update_world(1.0 / 60.0, player)
+	var before := field.tower_shots.size()
+	tower["attack_timer"] = 0.0
+	field.update_world(1.0 / 60.0, player)
+	assert_eq(field.tower_shots.size() - before, 3, "one new volley and two independent bursts must fire in the same frame")
+	var lanes: Array = tower["burst_lanes"] as Array
+	assert_eq(int(lanes[0]["remaining"]), 1)
+	assert_eq(int(lanes[1]["remaining"]), 1)
+
+
 func test_tower_body_blocks_enemies_and_stops_facing_jitter() -> void:
 	var field := _new_field()
 	var tower_pos := Vector2(1952, 1536)
@@ -192,7 +237,9 @@ func test_enemy_shots_can_destroy_tower() -> void:
 func test_tower_cards_drive_every_tower_stat() -> void:
 	var data := GameData.load_json("res://data/upgrades.json")
 	var cards: Dictionary = data.get("towers", {}) as Dictionary
-	assert_eq(cards.size(), 30)
+	assert_eq(cards.size(), 32)
+	assert_true(cards.has("tower_repeating_rack"))
+	assert_true(cards.has("tower_twin_trigger"))
 	var used_stats := {}
 	for card_id in cards.keys():
 		var card: Dictionary = cards[card_id] as Dictionary

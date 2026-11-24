@@ -1,5 +1,20 @@
 extends GutTest
 
+var _tutorial_seen_before := false
+
+
+func before_each() -> void:
+	_tutorial_seen_before = bool(SaveSystem.data.get("tutorial_seen", false))
+	SaveSystem.data["tutorial_seen"] = true
+	InputSetup.ensure_defaults()
+
+
+func after_each() -> void:
+	SaveSystem.data["tutorial_seen"] = _tutorial_seen_before
+	for action in InputSetup.ORDER:
+		if Input.is_action_pressed(action):
+			Input.action_release(action)
+
 
 func test_jeff_fx_catalog_covers_player_and_enemy_combinations() -> void:
 	var data := GameData.load_json("res://data/attack_fx.json")
@@ -74,7 +89,7 @@ func test_jeff_fx_rotates_toward_mouse_and_stacks_impact_layers() -> void:
 	assert_eq(field._enemy_instance_transform(Vector2.ZERO, 64.0, false, -1.0).x.x < 0.0, true)
 
 
-func test_player_faces_left_movement_and_attacks_only_while_mouse_is_held() -> void:
+func test_player_faces_left_movement_and_manual_hold_controls_attacks() -> void:
 	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
 	add_child_autofree(run)
 	await wait_process_frames(3)

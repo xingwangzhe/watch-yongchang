@@ -28,7 +28,7 @@ func play_line(line: Dictionary) -> float:
 	var text := GameData.loc(line, "zh") if Locale.current == "zh" else str(line.get("en", ""))
 	var audio_path := ""
 	var lines: Dictionary = _voice_data.get("lines", {}) as Dictionary
-	if lines.has(line_id):
+	if bool(_voice_data.get("audio_enabled", false)) and lines.has(line_id):
 		var entry := lines[line_id] as Dictionary
 		audio_path = str(entry.get("audio", ""))
 		if Locale.current != "zh":

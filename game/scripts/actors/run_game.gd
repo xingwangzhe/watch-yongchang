@@ -3,6 +3,9 @@ extends Node2D
 const FIXED_STEP := 1.0 / 60.0
 const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
+const ATTACK_BUFFER_DURATION := 0.18
+const GAMEPLAY_CURSOR_PATH := "res://assets/ui/watch_cursor.png"
+const GAMEPLAY_CURSOR_HOTSPOT := Vector2(3, 0)
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
 const ICON_KATANA := "res://assets/icons/game_icons/wpn_katana.svg"
@@ -40,6 +43,7 @@ var hud: RunHUD
 var touch_controls: TouchControls
 var narrative: NarrativePlayer
 var story: StoryOverlay
+var tutorial_overlay: TutorialOverlay
 var level_up_overlay: LevelUpOverlay
 var shop_overlay: ShopOverlay
 var overlay_layer: CanvasLayer
@@ -94,6 +98,8 @@ var _invuln := 0.0
 var _last_move := Vector2.RIGHT
 var _aim_direction := Vector2.RIGHT
 var _attack_held := false
+var _attack_buffer := 0.0
+var _auto_attack := false
 var _mouse_screen_pos := Vector2.ZERO
 var _has_mouse_screen_pos := false
 var _move_trail_timer := 0.0
@@ -125,6 +131,10 @@ var _wade_sfx_cd := 0.0
 var _pickup_sfx_cd := 0.0
 var _result_recorded := false
 var _run_start_merit := 0
+var _run_started := false
+var _tutorial_first_run := false
+var _gameplay_cursor: Texture2D
+var _gameplay_cursor_active := false
 
 
 func _ready() -> void:
@@ -140,6 +150,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_sync_gameplay_cursor()
 	if _paused or _game_over:
 		return
 	_accum = minf(_accum + delta, 0.20)
@@ -157,13 +168,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if is_instance_valid(codex_overlay):
 		return
+	if is_instance_valid(tutorial_overlay) and tutorial_overlay.visible:
+		return
 	if story.visible or level_up_overlay.visible:
 		return
 	if event.is_action_pressed("ui_cancel"):
 		_set_pause(not _paused)
 		get_viewport().set_input_as_handled()
 		return
-	if _paused:
+	if not _gameplay_input_allowed():
 		return
 	if event is InputEventMouseButton:
 		var mouse_button := event as InputEventMouseButton
@@ -172,6 +185,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseMotion:
 		_mouse_screen_pos = (event as InputEventMouseMotion).position
 		_has_mouse_screen_pos = true
+	if event.is_action_pressed("toggle_auto_attack") and not (event is InputEventKey and (event as InputEventKey).echo):
+		_auto_attack = not _auto_attack
+		_release_attack()
+		hud.update_hud(_hud_state())
+		get_viewport().set_input_as_handled()
+		return
+	if event.is_action_pressed("attack") and not (event is InputEventKey and (event as InputEventKey).echo):
+		_attack_buffer = ATTACK_BUFFER_DURATION
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("toggle_codex"):
 		_open_codex()
 		get_viewport().set_input_as_handled()
@@ -179,6 +202,24 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("dash"):
 		_try_dash()
 		get_viewport().set_input_as_handled()
+
+
+func _gameplay_input_allowed() -> bool:
+	if not _run_started or _paused or _game_over or _shop_open:
+		return false
+	if is_instance_valid(story) and story.visible:
+		return false
+	if is_instance_valid(tutorial_overlay) and tutorial_overlay.visible:
+		return false
+	if is_instance_valid(level_up_overlay) and level_up_overlay.visible:
+		return false
+	if is_instance_valid(codex_overlay):
+		return false
+	if is_instance_valid(pause_overlay) and pause_overlay.visible:
+		return false
+	if is_instance_valid(result_overlay) and result_overlay.visible:
+		return false
+	return true
 
 
 func _open_codex() -> void:
@@ -190,11 +231,13 @@ func _open_codex() -> void:
 	codex_overlay.z_index = 80
 	overlay_layer.add_child(codex_overlay)
 	codex_overlay.closed.connect(_close_codex)
+	_sync_gameplay_cursor()
 
 
 func _close_codex() -> void:
 	codex_overlay = null
 	_paused = _game_over
+	_sync_gameplay_cursor()
 
 
 func _load_data() -> void:
@@ -279,6 +322,10 @@ func _build_ui() -> void:
 	story = StoryOverlay.new()
 	overlay_layer.add_child(story)
 	story.finished.connect(_on_story_finished)
+	tutorial_overlay = TutorialOverlay.new()
+	tutorial_overlay.z_index = 65
+	overlay_layer.add_child(tutorial_overlay)
+	tutorial_overlay.closed.connect(_on_tutorial_closed)
 	level_up_overlay = LevelUpOverlay.new()
 	overlay_layer.add_child(level_up_overlay)
 	level_up_overlay.chosen.connect(_on_upgrade_chosen)
@@ -410,20 +457,52 @@ func _on_story_finished() -> void:
 	if _story_mode == "intro":
 		SaveSystem.data["intro_seen"] = true
 		SaveSystem.autosave({"intro_seen": true})
-		_paused = false
-		var preset := GameData.loc(character_def, "preset_name")
-		var character_line := str(character_def.get("era", "1559"))
-		if not preset.is_empty():
-			character_line += " · " + preset
-		character_line += " · " + GameData.loc(character_def, "name")
-		hud.show_banner(
-			GameData.loc(map_def, "name"),
-			character_line,
-			3.4
-		)
-		_play_sfx(SFX_WAVE)
+		if not bool(SaveSystem.data.get("tutorial_seen", false)):
+			_open_tutorial(true)
+		else:
+			_start_gameplay()
 	elif _story_mode == "epilogue":
 		_show_result(true)
+
+
+func _open_tutorial(first_run: bool) -> void:
+	if _game_over:
+		return
+	_paused = true
+	_release_attack()
+	pause_overlay.visible = false
+	_tutorial_first_run = first_run
+	tutorial_overlay.open(first_run)
+	_sync_gameplay_cursor()
+
+
+func _on_tutorial_closed(_skipped: bool) -> void:
+	SaveSystem.complete_tutorial()
+	if _tutorial_first_run:
+		_tutorial_first_run = false
+		_start_gameplay()
+	else:
+		_set_pause(true)
+	_sync_gameplay_cursor()
+
+
+func _start_gameplay() -> void:
+	_run_started = true
+	_paused = false
+	pause_overlay.visible = false
+	var preset := GameData.loc(character_def, "preset_name")
+	var character_line := str(character_def.get("era", "1559"))
+	if not preset.is_empty():
+		character_line += " · " + preset
+	character_line += " · " + GameData.loc(character_def, "name")
+	hud.update_hud(_hud_state())
+	hud.show_banner(
+		GameData.loc(map_def, "name"),
+		character_line,
+		3.4
+	)
+	_play_sfx(SFX_WAVE)
+	_sync_gameplay_cursor()
 
 
 func _step(delta: float) -> void:
@@ -450,10 +529,14 @@ func _step(delta: float) -> void:
 
 
 func _update_player(delta: float) -> void:
+	if not _gameplay_input_allowed():
+		_attack_held = false
+		return
 	_dash_cd = maxf(0.0, _dash_cd - delta)
 	_dash_timer = maxf(0.0, _dash_timer - delta)
 	_dash_buff = maxf(0.0, _dash_buff - delta)
 	_invuln = maxf(0.0, _invuln - delta)
+	_attack_buffer = maxf(0.0, _attack_buffer - delta)
 	_kill_sfx_cd = maxf(0.0, _kill_sfx_cd - delta)
 	_pickup_sfx_cd = maxf(0.0, _pickup_sfx_cd - delta)
 	if float(player.get("regen", 0.0)) > 0.0 and float(player["hp"]) > 0.0:
@@ -469,13 +552,20 @@ func _update_player(delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if is_instance_valid(touch_controls):
 		input_vector = (input_vector + touch_controls.move_vector).limit_length(1.0)
-	_attack_held = Input.is_action_pressed("attack")
+	_attack_held = not _auto_attack and Input.is_action_pressed("attack")
 	var mouse_world := get_global_mouse_position()
 	if _has_mouse_screen_pos:
 		mouse_world = get_viewport().get_canvas_transform().affine_inverse() * _mouse_screen_pos
 	var aim_vector := mouse_world - (player["pos"] as Vector2)
 	if aim_vector.length_squared() > 16.0:
 		_aim_direction = aim_vector.normalized()
+	if _auto_attack:
+		var target := battlefield.nearest_enemy_any(player["pos"] as Vector2)
+		if not target.is_empty():
+			var target_direction := (target["pos"] as Vector2) - (player["pos"] as Vector2)
+			if target_direction.length_squared() > 4.0:
+				_aim_direction = target_direction.normalized()
+	battlefield.player_aim = _aim_direction
 	if input_vector.length_squared() > 0.001:
 		_last_move = input_vector.normalized()
 	if input_vector.length_squared() > 0.001 and _dash_timer <= 0.0:
@@ -504,7 +594,7 @@ func _update_player(delta: float) -> void:
 				_wade_sfx_cd = 0.11
 				battlefield.spawn_wade_splash(previous_position, 1.0)
 	player["pos"] = battlefield.resolve_player_move(previous_position, desired_position, float(player["radius"]))
-	if _attack_held:
+	if _auto_attack or _attack_held or _attack_buffer > 0.0:
 		player["facing"] = _aim_direction
 	elif input_vector.length_squared() > 0.001:
 		player["facing"] = input_vector.normalized()
@@ -546,7 +636,7 @@ func _try_dash() -> void:
 
 
 func _on_touch_dash_requested() -> void:
-	if _paused or _game_over or _shop_open or story.visible or level_up_overlay.visible:
+	if _paused or _game_over or _shop_open or story.visible or tutorial_overlay.visible or level_up_overlay.visible:
 		return
 	_try_dash()
 
@@ -726,14 +816,22 @@ func _cast_skill(behavior: String, level: int) -> void:
 
 
 func _update_weapons(delta: float) -> void:
+	if not _gameplay_input_allowed():
+		return
+	var wants_attack := _auto_attack or _attack_held or _attack_buffer > 0.0
+	var buffered_click := _attack_buffer > 0.0 and not _attack_held and not _auto_attack
+	var fired_any := false
 	for weapon in weapons:
 		weapon["timer"] = float(weapon["timer"]) - delta
-		if not _attack_held:
+		if not wants_attack:
 			continue
 		if float(weapon["timer"]) > 0.0:
 			continue
 		var fired := _fire_weapon(weapon)
+		fired_any = fired_any or fired
 		weapon["timer"] = _weapon_cooldown(weapon) if fired else 0.10
+	if buffered_click and fired_any:
+		_attack_buffer = 0.0
 
 
 func _fire_weapon(weapon: Dictionary) -> bool:
@@ -853,27 +951,6 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
 			_play_sfx(SFX_FIRE)
 			return true
-		"orbit":
-			var count := int(definition.get("count", 1)) + int((int(weapon["level"]) - 1) / 2)
-			if bool(weapon["evolved"]):
-				count += 2
-			var orbit_radius := float(definition.get("range", 78.0)) * float(player["area_mult"])
-			for i in range(count):
-				var angle := elapsed * 3.6 + float(i) * TAU / float(count)
-				var orbit_pos := origin + Vector2(cos(angle), sin(angle)) * orbit_radius
-				battlefield.damage_circle(orbit_pos, 24.0, damage, float(definition.get("knockback", 16.0)), Color("#d5b26a"))
-				battlefield.add_effect({
-					"type": "orbit",
-					"pos": origin,
-					"ttl": 0.18,
-					"max_ttl": 0.18,
-					"radius": orbit_radius,
-					"angle": angle,
-					"color": Color("#d8b86d"),
-				})
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
-			_play_sfx(SFX_HIT)
-			return true
 		"aura":
 			battlefield.damage_circle(origin, radius, damage, 4.0, Color("#e9a85b"))
 			battlefield.add_effect({
@@ -977,6 +1054,8 @@ func _recompute_stats() -> void:
 		"tower_rebuild_hp": 0.60,
 		"tower_pierce": 0.0,
 		"tower_volley": 0.0,
+		"tower_burst_shots": 0.0,
+		"tower_burst_lanes": 0.0,
 		"tower_armor": 0.0,
 		"tower_regen": 0.0,
 		"tower_crit": 0.0,
@@ -1132,7 +1211,8 @@ func _add_stat(stats: Dictionary, stat: String, amount: float) -> void:
 		"armor", "crit", "regen", "max_hp_flat", "shield_max", "shield_regen", \
 		"thorns", "lifesteal", "dodge", "execute_below", "luck", "oil_max", "revive", \
 		"wade_speed", \
-		"tower_rebuild_hp", "tower_pierce", "tower_volley", "tower_armor", "tower_regen", \
+		"tower_rebuild_hp", "tower_pierce", "tower_volley", "tower_burst_shots", \
+		"tower_burst_lanes", "tower_armor", "tower_regen", \
 		"tower_crit", "tower_chain", "tower_splash", "tower_burn", "tower_slow", \
 		"tower_knockback", "tower_execute", "tower_marksman", "tower_overcharge", \
 		"tower_rebuild", "tower_thorns", "tower_lifesteal", "tower_count", \
@@ -1345,6 +1425,7 @@ func _show_level_up() -> void:
 		"pool": _upgrade_pool_count(),
 		"taken": card_levels.size() + passives.size() + weapons.size(),
 	})
+	_sync_gameplay_cursor()
 
 
 func _upgrade_pool_count() -> int:
@@ -1496,7 +1577,7 @@ func _build_upgrade_options() -> Array[Dictionary]:
 
 
 func _on_upgrade_chosen(index: int) -> void:
-	if index < 0 or index >= _current_upgrade_options.size():
+	if not level_up_overlay.can_choose(index):
 		return
 	AudioBus.play_confirm()
 	var option := _current_upgrade_options[index]
@@ -1536,6 +1617,7 @@ func _on_upgrade_chosen(index: int) -> void:
 		_show_level_up()
 	else:
 		_paused = false
+	_sync_gameplay_cursor()
 
 
 func _apply_tower_tier_upgrade(option: Dictionary) -> void:
@@ -1576,6 +1658,8 @@ func _maybe_open_shop() -> void:
 		return
 	if is_instance_valid(level_up_overlay) and level_up_overlay.visible:
 		return
+	if is_instance_valid(tutorial_overlay) and tutorial_overlay.visible:
+		return
 	_open_shop()
 
 
@@ -1595,6 +1679,7 @@ func _open_shop() -> void:
 		_shop_mercenary_info()
 	)
 	AudioBus.play_confirm()
+	_sync_gameplay_cursor()
 
 
 func _on_shop_buy(index: int) -> void:
@@ -1718,6 +1803,7 @@ func _on_shop_closed() -> void:
 	shop_overlay.visible = false
 	if not _game_over and not _victory_started:
 		_paused = false
+	_sync_gameplay_cursor()
 
 
 func _shop_mercenary_info() -> Dictionary:
@@ -1923,6 +2009,7 @@ func _show_result(victory: bool) -> void:
 	_result_recorded = true
 	SaveSystem.data["run_scales"] = scales.size()
 	SaveSystem.autosave({"last_mode": "result"})
+	_sync_gameplay_cursor()
 
 
 func _new_unlocks(before: int, after: int) -> Array[String]:
@@ -1959,15 +2046,57 @@ func _set_pause(paused: bool) -> void:
 				"weapons": weapons.size(),
 				"passives": passives.size(),
 			})
+		var resume := pause_overlay.find_child("ResumeButton", true, false) as Button
+		if resume != null:
+			resume.grab_focus()
+	_sync_gameplay_cursor()
 
 
 func _release_attack() -> void:
 	_attack_held = false
+	_attack_buffer = 0.0
+
+
+func _gameplay_cursor_should_show() -> bool:
+	return _gameplay_input_allowed()
+
+
+func _sync_gameplay_cursor() -> void:
+	_set_gameplay_cursor(_gameplay_cursor_should_show())
+
+
+func _set_gameplay_cursor(active: bool) -> void:
+	if DisplayServer.get_name() == "headless":
+		active = false
+	if active == _gameplay_cursor_active:
+		return
+	if active:
+		if _gameplay_cursor == null:
+			_gameplay_cursor = load(GAMEPLAY_CURSOR_PATH) as Texture2D
+		if _gameplay_cursor == null:
+			push_warning("Gameplay cursor is missing: %s" % GAMEPLAY_CURSOR_PATH)
+			return
+		Input.set_custom_mouse_cursor(
+			_gameplay_cursor,
+			Input.CURSOR_ARROW,
+			GAMEPLAY_CURSOR_HOTSPOT
+		)
+	else:
+		Input.set_custom_mouse_cursor(null)
+		Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+	_gameplay_cursor_active = active
 
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		_release_attack()
+		_set_gameplay_cursor(false)
+	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
+		_sync_gameplay_cursor()
+
+
+func _exit_tree() -> void:
+	_set_gameplay_cursor(false)
 
 
 func _update_camera(delta: float) -> void:
@@ -1976,8 +2105,11 @@ func _update_camera(delta: float) -> void:
 	camera.position = camera.position.lerp(player["pos"] as Vector2, clampf(delta * 8.0, 0.0, 1.0))
 
 
-func debug_prepare_capture(mode: String) -> Dictionary:
+func debug_prepare_capture(mode: String, page: int = 0) -> Dictionary:
 	story.visible = false
+	tutorial_overlay.visible = false
+	_tutorial_first_run = false
+	_run_started = true
 	level_up_overlay.hide_options()
 	shop_overlay.visible = false
 	_shop_open = false
@@ -2007,6 +2139,18 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 	camera.position = capture_center
 	battlefield.player_pos = capture_center
 	battlefield.clear_all_effects()
+	if mode == "aim":
+		battlefield.enemies.clear()
+		battlefield.allies.clear()
+		battlefield.towers.clear()
+		_paused = true
+		_auto_attack = false
+		_aim_direction = Vector2(0.8, -0.6).normalized()
+		battlefield.player_aim = _aim_direction
+		battlefield.queue_redraw()
+		hud.update_hud(_hud_state())
+		_set_gameplay_cursor(false)
+		return {"mode": mode, "enemies": battlefield.enemies.size()}
 	var ring_ids := ["scout", "ronin", "archer", "shield", "gun", "banner", "general"]
 	for i in range(44):
 		var angle := TAU * float(i) / 44.0
@@ -2023,6 +2167,13 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 			var tower_id: String = ["watchtower", "arrow_tower", "dragon_tower"][i]
 			battlefield.spawn_tower(tower_id, capture_center + (tower_spots[i] as Vector2))
 		_towers_built = battlefield.towers.size()
+	if mode == "tutorial":
+		_paused = true
+		_release_attack()
+		_set_gameplay_cursor(false)
+		tutorial_overlay.open(true)
+		tutorial_overlay._go_page(clampi(page, 0, TutorialOverlay.PAGE_COUNT - 1))
+		return {"mode": mode, "tutorial_visible": tutorial_overlay.visible}
 	if mode == "tower":
 		# 战斗验收照：不放 7 条展示弧，只看实际战斗画面
 		return {"mode": mode, "towers": battlefield.live_tower_count(), "enemies": battlefield.enemies.size()}
@@ -2074,7 +2225,7 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 		})
 	elif mode == "fx":
 		_paused = true
-		var weapon_ids := ["saber", "spear", "bow", "musket", "shield", "dragon_lantern", "cannon", "banner"]
+		var weapon_ids := ["saber", "spear", "bow", "musket", "dragon_lantern", "cannon", "banner"]
 		for i in range(weapon_ids.size()):
 			var angle := TAU * float(i) / float(weapon_ids.size())
 			var direction := Vector2(cos(angle), sin(angle))
@@ -2129,6 +2280,7 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 			touch_controls.queue_redraw()
 		hud.show_banner(Locale.t("capture.combat_title"), Locale.t("capture.combat_sub"), 8.0)
 	hud.update_hud(_hud_state())
+	_sync_gameplay_cursor()
 	return {
 		"mode": mode,
 		"enemies": battlefield.alive_count(),
@@ -2186,6 +2338,9 @@ func _hud_state() -> Dictionary:
 		"mercenary_max": int(shop_data.get("max_mercenaries", 3)),
 		"skills": active_skills.size(),
 		"cards": card_levels.size(),
+		"auto_attack": _auto_attack,
+		"attack_mode": Locale.t("hud.attack_auto" if _auto_attack else "hud.attack_manual"),
+		"attack_toggle": Locale.t("hud.attack_toggle", {"key": InputSetup.describe("toggle_auto_attack")}),
 		"move_hint": Locale.t("hud.move_hint"),
 		"scales": scales,
 		"boss_active": not boss.is_empty(),
@@ -2209,11 +2364,11 @@ func _build_pause_overlay() -> void:
 	pause_overlay.add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var panel := PanelContainer.new()
-	UILayout.place(panel, 390, 154, 500, 412, 0.5, 0.5)
+	UILayout.place(panel, 390, 125, 500, 470, 0.5, 0.5)
 	panel.add_theme_stylebox_override("panel", _panel_texture_box())
 	pause_overlay.add_child(panel)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 16)
+	column.add_theme_constant_override("separation", 12)
 	panel.add_child(column)
 	var title := _label(Locale.t("pause.title"), 36, GOLD)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -2225,15 +2380,22 @@ func _build_pause_overlay() -> void:
 	var stats := _label("", 15, Color(PAPER, 0.86))
 	stats.name = "PauseStats"
 	stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	stats.custom_minimum_size = Vector2(0, 98)
+	stats.custom_minimum_size = Vector2(0, 86)
 	column.add_child(stats)
 	var resume := _small_button(Locale.t("pause.resume"), true)
+	resume.name = "ResumeButton"
 	resume.pressed.connect(func() -> void: _set_pause(false))
 	column.add_child(resume)
+	var tutorial := _small_button(Locale.t("pause.tutorial"), false)
+	tutorial.name = "PauseTutorialButton"
+	tutorial.pressed.connect(func() -> void: _open_tutorial(false))
+	column.add_child(tutorial)
 	var restart := _small_button(Locale.t("pause.restart"), false)
+	restart.name = "RestartButton"
 	restart.pressed.connect(func() -> void: get_tree().reload_current_scene())
 	column.add_child(restart)
 	var back := _small_button(Locale.t("pause.back"), false)
+	back.name = "PauseBackButton"
 	back.pressed.connect(_return_to_menu)
 	column.add_child(back)
 	var hint := _label(Locale.t("pause.hint"), 12, Color(MUTED, 0.56))
@@ -2299,6 +2461,7 @@ func _build_result_overlay() -> void:
 
 
 func _return_to_menu() -> void:
+	_set_gameplay_cursor(false)
 	if not _result_recorded:
 		SaveSystem.record_run(merit, kills, false, elapsed)
 	SaveSystem.autosave({"last_mode": "menu"})

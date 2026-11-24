@@ -242,31 +242,26 @@ def earth_road(s: Sprite, index: int, variant: int = 0) -> None:
 
 
 def dock_planks(s: Sprite, index: int, vertical: bool = True) -> None:
-    if not vertical:
-        ox, _ = fill(s, index, WOOD_DARK)
-    else:
-        ox, _ = fill(s, index, WOOD_DARK)
-    _, oy = origin(index)
+    ox, oy = fill(s, index, WOOD_DARK)
+    # 高光与木钉都内缩，保证相邻甲板的拼接边颜色一致，没有一格一框的断口。
     if vertical:
         for x0 in range(0, TILE, 8):
             rect(s, ox, oy, x0 + 1, 0, x0 + 6, TILE - 1, WOOD)
-            rect(s, ox, oy, x0 + 1, 0, x0 + 1, 4, WOOD_LIGHT)
-            rect(s, ox, oy, x0 + 1, 16, x0 + 1, 20, WOOD_LIGHT)
+            rect(s, ox, oy, x0 + 2, 5, x0 + 3, 11, WOOD_LIGHT)
+            rect(s, ox, oy, x0 + 2, 20, x0 + 3, 26, WOOD_LIGHT)
             rect(s, ox, oy, x0 + 7, 0, x0 + 7, TILE - 1, WOOD_DARK)
             for y in (7, 23):
                 px(s, ox + x0 + 4, oy + y, STONE_HIGHLIGHT)
-        for y in (0, 16):
-            rect(s, ox, oy, 0, y, TILE - 1, y, WOOD_DARK)
+                px(s, ox + x0 + 5, oy + y + 1, WOOD_DARK)
     else:
         for y0 in range(0, TILE, 8):
             rect(s, ox, oy, 0, y0 + 1, TILE - 1, y0 + 6, WOOD)
-            rect(s, ox, oy, 0, y0 + 1, 4, y0 + 1, WOOD_LIGHT)
-            rect(s, ox, oy, 16, y0 + 1, 20, y0 + 1, WOOD_LIGHT)
+            rect(s, ox, oy, 4, y0 + 2, 12, y0 + 3, WOOD_LIGHT)
+            rect(s, ox, oy, 20, y0 + 2, 27, y0 + 3, WOOD_LIGHT)
             rect(s, ox, oy, 0, y0 + 7, TILE - 1, y0 + 7, WOOD_DARK)
             for x in (8, 24):
                 px(s, ox + x, oy + y0 + 4, STONE_HIGHLIGHT)
-    # 桥面高出水面：只压南侧投影，横向拼接时不会出现一格格黑框。
-    rect(s, ox, oy, 0, TILE - 2, TILE - 1, TILE - 1, EARTH_DARKEST)
+                px(s, ox + x + 1, oy + y0 + 5, WOOD_DARK)
 
 
 def shore_side(s: Sprite, index: int, side: str) -> None:
@@ -438,8 +433,56 @@ def mud_grass_tile(s: Sprite, index: int) -> None:
             px(s, ox + x, oy + y - 1, REED_LIGHT)
 
 
+def mountain_tile(s: Sprite, index: int, variant: int = 0) -> None:
+    """Opaque fractured rock: reads as a solid blocker, never as shallow water."""
+    ox, oy = fill(s, index, STONE_DARK)
+    shift = (variant % 4) * 2
+    peak = 5 if variant < 4 else 2
+    s.polygon(
+        [
+            (ox + 0, oy + 12), (ox + 5 + shift, oy + peak + 3),
+            (ox + 13, oy + 9), (ox + 21 - shift, oy + peak),
+            (ox + 27, oy + 8), (ox + 32, oy + 14),
+            (ox + 32, oy + 32), (ox + 0, oy + 32),
+        ],
+        STONE,
+    )
+    s.polygon(
+        [
+            (ox + 5 + shift, oy + peak + 3), (ox + 13, oy + 9),
+            (ox + 12, oy + 20), (ox + 4, oy + 29), (ox + 0, oy + 32),
+            (ox + 0, oy + 12),
+        ],
+        STONE_LIGHT,
+    )
+    s.polygon(
+        [
+            (ox + 13, oy + 9), (ox + 21 - shift, oy + peak),
+            (ox + 25, oy + 18), (ox + 19, oy + 28), (ox + 12, oy + 20),
+        ],
+        STONE_SHADOW,
+    )
+    s.polygon(
+        [
+            (ox + 25, oy + 18), (ox + 27, oy + 8), (ox + 32, oy + 14),
+            (ox + 32, oy + 32), (ox + 22, oy + 32), (ox + 19, oy + 28),
+        ],
+        STONE_DARK,
+    )
+    line(s, ox, oy, 13, 9, 12, 20, STONE_HIGHLIGHT)
+    line(s, ox, oy, 12, 20, 16, 24, STONE_SHADOW)
+    line(s, ox, oy, 16, 24, 14, 31, INK)
+    line(s, ox, oy, 25, 18, 28, 23, STONE_HIGHLIGHT)
+    line(s, ox, oy, 28, 23, 26, 30, INK)
+    rng = random.Random(15000 + variant)
+    for _ in range(12):
+        x = rng.randrange(3, TILE - 3)
+        y = rng.randrange(14, TILE - 2)
+        px(s, ox + x, oy + y, STONE_HIGHLIGHT if rng.random() < 0.45 else STONE_SHADOW)
+
+
 def build_terrain() -> Sprite:
-    s = atlas()
+    s = atlas(rows=5)
     mud_tile(s, 0, 0)
     mud_tile(s, 1, 1, base=EARTH_DARK)
     sand_tile(s, 2, 0)
@@ -472,6 +515,8 @@ def build_terrain() -> Sprite:
     sand_tile(s, 29, 2)
     wet_stone_tile(s, 30)
     mud_grass_tile(s, 31)
+    for variant in range(8):
+        mountain_tile(s, 32 + variant, variant)
     return s
 
 
@@ -756,14 +801,23 @@ def gate_part(s: Sprite, index: int, part: str = "left", water: bool = False) ->
             rect(s, ox, oy, 17, 20, 18, 22, GOLD)
 
 
-def wooden_railing(s: Sprite, index: int) -> None:
+def wooden_railing(s: Sprite, index: int, vertical: bool = False) -> None:
     ox, oy = origin(index)
-    for x in range(0, TILE, 9):
-        rect(s, ox, oy, x + 1, 7, x + 3, 29, WOOD_DARK)
-        rect(s, ox, oy, x + 2, 8, x + 3, 28, WOOD)
-    rect(s, ox, oy, 0, 8, TILE - 1, 10, WOOD)
-    rect(s, ox, oy, 0, 9, TILE - 1, 9, WOOD_LIGHT)
-    rect(s, ox, oy, 0, 26, TILE - 1, 28, WOOD_DARK)
+    # 横杆贯穿整格边界；相邻栏杆拼接后不会出现一格一断的缺口。
+    if vertical:
+        for y0 in range(0, TILE, 9):
+            rect(s, ox, oy, 7, y0 + 1, 29, y0 + 3, WOOD_DARK)
+            rect(s, ox, oy, 8, y0 + 2, 28, y0 + 3, WOOD)
+        rect(s, ox, oy, 8, 0, 10, TILE - 1, WOOD)
+        rect(s, ox, oy, 9, 0, 9, TILE - 1, WOOD_LIGHT)
+        rect(s, ox, oy, 26, 0, 28, TILE - 1, WOOD_DARK)
+    else:
+        for x in range(0, TILE, 9):
+            rect(s, ox, oy, x + 1, 7, x + 3, 29, WOOD_DARK)
+            rect(s, ox, oy, x + 2, 8, x + 3, 28, WOOD)
+        rect(s, ox, oy, 0, 8, TILE - 1, 10, WOOD)
+        rect(s, ox, oy, 0, 9, TILE - 1, 9, WOOD_LIGHT)
+        rect(s, ox, oy, 0, 26, TILE - 1, 28, WOOD_DARK)
 
 
 def stone_steps(s: Sprite, index: int) -> None:
@@ -879,7 +933,7 @@ def build_architecture() -> Sprite:
     storefront(s, 28)
     gable_wall(s, 29, flip=False)
     gable_wall(s, 30, flip=True)
-    wall_base(s, 31)
+    wooden_railing(s, 31, vertical=True)
     return s
 
 
@@ -1326,22 +1380,30 @@ def compose_preview(terrain: Sprite, architecture: Sprite, props: Sprite) -> Ima
                 else:
                     index = 24 if (tx + ty) % 9 == 0 else 8 if (tx * 2 + ty) % 7 == 0 else 0
             else:
-                index = 2 if ty == 5 else 6
+                index = 2 if ty == 5 or (ty == 9 and tx < 12) else 6
                 if ty >= 8 and (tx + ty) % 8 == 0:
                     index = 7
             paste(terrain_img, index, tx, ty)
 
-    for tx in range(2, 7):
-        paste(terrain_img, 14, tx, 6)
-        if tx % 2 == 0:
-            paste(terrain_img, 15, tx, 7)
-    paste(props_img, 9, 3, 8)
+    for tx in range(1, 8):
+        for ty in range(6, 9):
+            paste(terrain_img, 15, tx, ty)
+        paste(architecture_img, 24, tx, 6)
+        paste(architecture_img, 24, tx, 8)
+    for ty in range(6, 9):
+        for tx in range(8, 11):
+            paste(terrain_img, 14, tx, ty)
+        paste(architecture_img, 31, 8, ty)
+        paste(architecture_img, 31, 10, ty)
+    for ty in range(8, 11):
+        for tx in range(13, 19):
+            paste(terrain_img, 32 + ((tx * 3 + ty * 5) % 8), tx, ty)
+    paste(props_img, 9, 4, 10)
 
     for tx in range(1, 6):
         paste(terrain_img, 9, tx, 2)
         paste(props_img, 0, tx, 1)
-    for tx in range(0, 4):
-        paste(terrain_img, 26, tx, 7)
+    paste(terrain_img, 26, 0, 7)
 
     for tx in range(8, 20):
         paste(architecture_img, 5, tx, 4)
@@ -1389,7 +1451,7 @@ def compose_preview(terrain: Sprite, architecture: Sprite, props: Sprite) -> Ima
 
 def compose_seam_check(terrain: Sprite) -> Image.Image:
     source = terrain.composite()
-    checks = (0, 2, 3, 4, 10, 14)
+    checks = (0, 2, 3, 4, 10, 14, 15, 32)
     cell_w = TILE * 3
     gap = 8
     sheet = Image.new("RGBA", (len(checks) * (cell_w + gap) + gap, cell_w + gap * 2),
@@ -1443,7 +1505,7 @@ def main() -> None:
     shutil.copy2(out / "architecture_atlas_1x.png", runtime / "architecture_atlas.png")
     shutil.copy2(out / "props_atlas_1x.png", runtime / "props_atlas.png")
     shutil.copy2(out / "animated_props_1x.png", runtime / "animated_props.png")
-    print("tiles: terrain 32, architecture 32, props 16, animated clips 4x4")
+    print("tiles: terrain 40, architecture 32, props 16, animated clips 4x4")
     terrain.stats()
     architecture.stats()
     props.stats()
