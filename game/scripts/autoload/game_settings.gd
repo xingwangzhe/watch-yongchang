@@ -363,13 +363,15 @@ func _has_linux_vulkan_device() -> bool:
 		"/usr/local/share/vulkan/icd.d",
 		"/etc/vulkan/icd.d",
 	]:
+		if not DirAccess.dir_exists_absolute(directory):
+			continue
 		for file in DirAccess.get_files_at(directory):
 			if file.ends_with(".json"):
 				has_icd = true
 				break
 		if has_icd:
 			break
-	if not has_icd:
+	if not has_icd or not DirAccess.dir_exists_absolute("/dev/dri"):
 		return false
 	for device in DirAccess.get_files_at("/dev/dri"):
 		if device.begins_with("renderD"):

@@ -41,7 +41,7 @@ python3 dora/build.py
 "$GDA_GODOT" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
 
-测试框架为 GUT 9.7.1。当前 Linux 基线为 **164 tests / 164 passed / 41203 asserts**。CI 同时包含 Linux 与原生 Windows GUT；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
+测试框架为 GUT 9.7.1。当前 Linux 基线为 **165 tests / 165 passed / 41204 asserts**。CI 同时包含 Linux 与原生 Windows GUT；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
 
 发布包由本地构建产生，包含 Linux / Windows 可执行文件及外部 PCK、macOS ZIP、Dora 源码 ZIP、完整源码 ZIP 和 `release-manifest.json`。PCK 内容、ZIP CRC、哈希、法律文件与禁用路径审计见 [docs/build_2026-11-25.md](docs/build_2026-11-25.md)。
 

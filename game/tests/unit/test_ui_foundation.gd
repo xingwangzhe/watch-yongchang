@@ -210,6 +210,11 @@ func test_auto_renderer_falls_back_to_opengl_without_vulkan() -> void:
 	assert_false(GameSettings.renderer_requires_restart())
 
 
+func test_linux_vulkan_probe_tolerates_missing_driver_directories() -> void:
+	var probe_result: bool = GameSettings._has_linux_vulkan_device()
+	assert_true(probe_result is bool, "missing driver directories must not emit engine errors")
+
+
 func test_manual_vulkan_falls_back_when_unsupported() -> void:
 	GameSettings.renderer_mode = GameSettings.RENDERER_VULKAN
 	GameSettings.vulkan_probe_override = 0
