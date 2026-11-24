@@ -169,22 +169,22 @@ func _build_menu() -> void:
 	_start_button.pressed.connect(_on_start_pressed)
 
 	_settings_button = _make_button("SettingsButton", "menu.settings")
-	_settings_button.position = Vector2(180.0, button_y + 64.0)
+	_settings_button.position = Vector2(180.0, button_y + 58.0)
 	add_child(_settings_button)
 	_settings_button.pressed.connect(open_settings)
 
 	_about_button = _make_button("AboutButton", "menu.about")
-	_about_button.position = Vector2(180.0, button_y + 128.0)
+	_about_button.position = Vector2(180.0, button_y + 116.0)
 	add_child(_about_button)
 	_about_button.pressed.connect(_on_about_pressed)
 
 	_language_button = _make_button("LanguageButton", "menu.language")
-	_language_button.position = Vector2(180.0, button_y + 192.0)
+	_language_button.position = Vector2(180.0, button_y + 174.0)
 	add_child(_language_button)
 	_language_button.pressed.connect(_on_language_pressed)
 
 	_quit_button = _make_button("QuitButton", "menu.quit")
-	_quit_button.position = Vector2(180.0, button_y + 256.0)
+	_quit_button.position = Vector2(180.0, button_y + 232.0)
 	add_child(_quit_button)
 	_quit_button.pressed.connect(_on_quit_pressed)
 
@@ -192,8 +192,8 @@ func _build_menu() -> void:
 func _build_watch_panel() -> void:
 	var panel := PanelContainer.new()
 	panel.name = "WatchPanel"
-	panel.position = Vector2(744.0, 128.0)
-	panel.size = Vector2(448.0, 496.0)
+	panel.position = Vector2(792.0, 128.0)
+	panel.size = Vector2(400.0, 470.0)
 	panel.add_theme_stylebox_override("panel", _panel_texture_box(30))
 	add_child(panel)
 
@@ -312,9 +312,9 @@ func _build_settings_overlay() -> void:
 
 	_settings_panel = PanelContainer.new()
 	_settings_panel.name = "SettingsPanel"
-	_settings_panel.position = Vector2(328.0, 18.0)
-	_settings_panel.custom_minimum_size = Vector2(624.0, 684.0)
-	_settings_panel.size = Vector2(624.0, 684.0)
+	_settings_panel.position = Vector2(340.0, 40.0)
+	_settings_panel.custom_minimum_size = Vector2(600.0, 640.0)
+	_settings_panel.size = Vector2(600.0, 640.0)
 	_settings_panel.add_theme_stylebox_override("panel", _panel_texture_box(28))
 	_settings_overlay.add_child(_settings_panel)
 
@@ -668,8 +668,8 @@ func _make_button(node_name: String, key: String, primary: bool = false) -> Butt
 	var button := Button.new()
 	button.name = node_name
 	button.text = Locale.t(key)
-	button.custom_minimum_size = Vector2(352.0, 56.0)
-	button.size = Vector2(352.0, 56.0)
+	button.custom_minimum_size = Vector2(320.0, 48.0)
+	button.size = Vector2(320.0, 48.0)
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.add_theme_font_override("font", UI_FONT)
 	button.add_theme_font_size_override("font_size", 20)
