@@ -75,5 +75,41 @@ attribution are unchanged. This use does not imply endorsement by the authors.
 | `card_chain_lightning.svg` | Chain lightning | Willdabeast | https://game-icons.net/1x1/willdabeast/chain-lightning.html |
 | `card_chain_mail.svg` | Chain mail | Willdabeast | https://game-icons.net/1x1/willdabeast/chain-mail.html |
 | `card_draw.svg` | Card draw | Faithtoken | https://game-icons.net/1x1/faithtoken/card-draw.html |
+| `card_archery_target.svg` | Archery target | Lorc | https://game-icons.net/1x1/lorc/archery-target.html |
+| `card_arrow_cluster.svg` | Arrow cluster | Lorc | https://game-icons.net/1x1/lorc/arrow-cluster.html |
+| `card_arrow_flights.svg` | Arrow flights | Lorc | https://game-icons.net/1x1/lorc/arrow-flights.html |
+| `card_barbed_arrow.svg` | Barbed arrow | Lorc | https://game-icons.net/1x1/lorc/barbed-arrow.html |
+| `card_broadhead_arrow.svg` | Broadhead arrow | Lorc | https://game-icons.net/1x1/lorc/broadhead-arrow.html |
+| `card_on_target.svg` | On target | Lorc | https://game-icons.net/1x1/lorc/on-target.html |
+| `card_target_arrows.svg` | Target arrows | Lorc | https://game-icons.net/1x1/lorc/target-arrows.html |
+| `card_target_shot.svg` | Target shot | Lorc | https://game-icons.net/1x1/lorc/target-shot.html |
+| `card_arrowhead.svg` | Arrowhead | Lorc | https://game-icons.net/1x1/lorc/arrowhead.html |
+| `card_stone_tower.svg` | Stone tower | Lorc | https://game-icons.net/1x1/lorc/stone-tower.html |
+| `card_castle.svg` | Castle | Lorc | https://game-icons.net/1x1/lorc/castle.html |
+| `card_wooden_fence.svg` | Wooden fence | Lorc | https://game-icons.net/1x1/lorc/wooden-fence.html |
+| `card_heavy_arrow.svg` | Heavy arrow | Lorc | https://game-icons.net/1x1/lorc/heavy-arrow.html |
+| `card_targeting.svg` | Targeting | Lorc | https://game-icons.net/1x1/lorc/targeting.html |
+| `card_thrown_spear.svg` | Thrown spear | Lorc | https://game-icons.net/1x1/lorc/thrown-spear.html |
+| `card_spears.svg` | Spears | Lorc | https://game-icons.net/1x1/lorc/spears.html |
+| `card_winged_arrow.svg` | Winged arrow | Lorc | https://game-icons.net/1x1/lorc/winged-arrow.html |
+| `card_arrow_scope.svg` | Arrow scope | Lorc | https://game-icons.net/1x1/lorc/arrow-scope.html |
+| `card_pocket_bow.svg` | Pocket bow | Lorc | https://game-icons.net/1x1/lorc/pocket-bow.html |
+| `card_tower_flag.svg` | Tower flag | Delapouite | https://game-icons.net/1x1/delapouite/tower-flag.html |
+| `card_delapouite_castle.svg` | Castle | Delapouite | https://game-icons.net/1x1/delapouite/castle.html |
+| `card_palisade.svg` | Palisade | Delapouite | https://game-icons.net/1x1/delapouite/palisade.html |
+| `card_barricade.svg` | Barricade | Delapouite | https://game-icons.net/1x1/delapouite/barricade.html |
+| `card_wood_beam.svg` | Wood beam | Delapouite | https://game-icons.net/1x1/delapouite/wood-beam.html |
+| `card_wood_pile.svg` | Wood pile | Delapouite | https://game-icons.net/1x1/delapouite/wood-pile.html |
+| `card_bow_string.svg` | Bow string | Delapouite | https://game-icons.net/1x1/delapouite/bow-string.html |
+| `card_archer.svg` | Archer | Delapouite | https://game-icons.net/1x1/delapouite/archer.html |
+| `card_quiver.svg` | Quiver | Delapouite | https://game-icons.net/1x1/delapouite/quiver.html |
+| `card_crane_winch.svg` | Crane | Delapouite | https://game-icons.net/1x1/delapouite/crane.html |
+| `card_brick_wall.svg` | Brick wall | Delapouite | https://game-icons.net/1x1/delapouite/brick-wall.html |
+| `card_stone_wall.svg` | Stone wall | Delapouite | https://game-icons.net/1x1/delapouite/stone-wall.html |
+| `card_siege_tower.svg` | Siege tower | Delapouite | https://game-icons.net/1x1/delapouite/siege-tower.html |
+| `card_wooden_crate.svg` | Wooden crate | Delapouite | https://game-icons.net/1x1/delapouite/wooden-crate.html |
+| `card_toolbox.svg` | Toolbox | Delapouite | https://game-icons.net/1x1/delapouite/toolbox.html |
+| `card_torch.svg` | Torch | Delapouite | https://game-icons.net/1x1/delapouite/torch.html |
+| `card_bullseye.svg` | Bullseye | Skoll | https://game-icons.net/1x1/skoll/bullseye.html |
 
 Machine-readable credit entries live in `game/data/credits.json`.

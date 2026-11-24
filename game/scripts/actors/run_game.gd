@@ -27,6 +27,11 @@ const MUTED := Color("#baa98a")
 const GOLD := Color("#e1b35a")
 const VERMILION := Color("#c05a41")
 const GDA_CALLABLE := ["debug_prepare_capture"]
+const TOWER_SLOTS := [
+	Vector2(-250, -120), Vector2(250, -120), Vector2(-300, 150),
+	Vector2(300, 150), Vector2(0, -290), Vector2(-390, 20), Vector2(390, 20),
+	Vector2(-180, 290), Vector2(180, 290),
+]
 
 var battlefield: Battlefield
 var camera: Camera2D
@@ -110,6 +115,7 @@ var _current_shop_offers: Array[Dictionary] = []
 var mercenaries: Array[String] = []
 var _current_upgrade_options: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
+var _towers_built := 0
 var _narrative_timer: Timer
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_index := 0
@@ -217,7 +223,7 @@ func _load_data() -> void:
 	_scale_events = wave_data.get("scale_events", []) as Array
 	_event_lines = wave_data.get("event_lines", []) as Array
 	_next_shop_time = float(shop_data.get("interval_seconds", 120.0))
-	for section in ["prologue", "main_intro", "epilogue"]:
+	for section in ["prologue", "main_intro", "field_notes", "epilogue"]:
 		for line in narrative_data.get(section, []) as Array:
 			if line is Dictionary:
 				_lines_by_id[str(line.get("id", ""))] = line
@@ -236,6 +242,8 @@ func _build_world() -> void:
 	battlefield.scale_collected.connect(_on_scale_collected)
 	battlefield.boss_spawned.connect(_on_boss_spawned)
 	battlefield.boss_defeated.connect(_on_boss_defeated)
+	battlefield.tower_destroyed.connect(_on_tower_destroyed)
+	battlefield.tower_damaged.connect(_on_tower_damaged)
 	battlefield.ally_support.connect(_on_ally_support)
 
 	camera = Camera2D.new()
@@ -345,22 +353,61 @@ func _setup_player() -> void:
 	battlefield.set_meta("ground_tint", Color(str(map_def.get("ground_tint", "#ebf0d0"))))
 	battlefield.set_meta("light_radius", float(player["light_radius"]))
 	battlefield.enemy_hp_mult = float(map_def.get("enemy_hp_mult", 1.0))
+	_sync_towers()
 	xp_need = _xp_need_for_level(1)
 	camera.position = player["pos"] as Vector2
 	hud.update_hud(_hud_state())
 	SaveSystem.autosave({"last_mode": "run"})
 
 
+func _sync_towers() -> void:
+	"""按 player.tower_count 补齐箭塔：开局布两座，后续靠三选一「增筑」扩到上限。"""
+	if battlefield == null or player.is_empty():
+		return
+	var desired := mini(int(player.get("tower_count", 2)), TOWER_SLOTS.size())
+	if desired <= _towers_built:
+		return
+	var center := player["pos"] as Vector2
+	while _towers_built < desired:
+		var offset: Vector2 = TOWER_SLOTS[_towers_built]
+		battlefield.spawn_tower("watchtower", center + offset)
+		_towers_built += 1
+
+
+func _on_tower_destroyed(tower_id: String, _world_position: Vector2) -> void:
+	var definition := battlefield.tower_definition(tower_id)
+	var label := GameData.loc(definition, "name")
+	if label.is_empty():
+		label = Locale.t("tower.destroyed_fallback")
+	hud.show_banner(Locale.t("tower.destroyed"), label, 2.6)
+	_play_sfx(SFX_ALARM, 0.86, 0.72)
+
+
+func _on_tower_damaged(_tower_id: String, _ratio: float) -> void:
+	# 塔受击的即时反馈交给 FeedbackManager 的火花与震动，
+	# 这里不叠加 UI，避免 HUD 抖动。
+	pass
+
+
 func _schedule_intro() -> void:
 	_story_mode = "intro"
 	_paused = true
 	_release_attack()
-	var intro := narrative_data.get("main_intro", []) as Array
+	# 叙事重写：首次守夜播 4 句开场钩子；重玩仅播王陆自白 1 句，避免重复阅读打断游玩。
+	var intro: Array = []
+	if bool(SaveSystem.data.get("intro_seen", false)):
+		var quick: Variant = _lines_by_id.get("narr_1559_02")
+		if quick != null:
+			intro.append(quick)
+	else:
+		intro = narrative_data.get("main_intro", []) as Array
 	story.start(intro, Locale.t("story.main_heading"))
 
 
 func _on_story_finished() -> void:
 	if _story_mode == "intro":
+		SaveSystem.data["intro_seen"] = true
+		SaveSystem.autosave({"intro_seen": true})
 		_paused = false
 		var preset := GameData.loc(character_def, "preset_name")
 		var character_line := str(character_def.get("era", "1559"))
@@ -909,6 +956,34 @@ func _recompute_stats() -> void:
 		"light_mult": 1.0,
 		"projectile_speed_mult": 1.0,
 		"knockback_mult": 1.0,
+		# ---- 箭塔增益（tower_* 独立命名空间，整体推给 Battlefield）----
+		"tower_damage_mult": 1.0,
+		"tower_range_mult": 1.0,
+		"tower_hp_mult": 1.0,
+		"tower_arrow_speed": 1.0,
+		"tower_size_mult": 1.0,
+		"tower_fire_rate": 1.0,
+		"tower_taunt": 1.0,
+		"tower_rebuild_hp": 0.60,
+		"tower_pierce": 0.0,
+		"tower_volley": 0.0,
+		"tower_armor": 0.0,
+		"tower_regen": 0.0,
+		"tower_crit": 0.0,
+		"tower_chain": 0.0,
+		"tower_splash": 0.0,
+		"tower_burn": 0.0,
+		"tower_slow": 0.0,
+		"tower_knockback": 0.0,
+		"tower_execute": 0.0,
+		"tower_marksman": 0.0,
+		"tower_overcharge": 0.0,
+		"tower_rebuild": 0.0,
+		"tower_thorns": 0.0,
+		"tower_lifesteal": 0.0,
+		"tower_count": 2.0,
+		"tower_xp_gain": 0.0,
+		"tower_gold_gain": 0.0,
 	}
 	for passive_id in passives.keys():
 		if not passive_defs.has(passive_id):
@@ -1024,16 +1099,32 @@ func _recompute_stats() -> void:
 	if int(player["oil_max"]) > old_oil_max:
 		player["oil"] = int(player["oil"]) + int(player["oil_max"]) - old_oil_max
 	player["oil"] = clampi(int(player["oil"]), 0, int(player["oil_max"]))
+	# 箭塔增益整体下发；Battlefield 负责同步既有塔的血量上限与护甲
+	var tower_stats := {}
+	for key in stats.keys():
+		if str(key).begins_with("tower_"):
+			tower_stats[str(key)] = stats[key]
+	player["tower_count"] = int(maxf(0.0, float(stats["tower_count"])))
+	player["tower_taunt"] = float(stats["tower_taunt"])
+	if battlefield != null:
+		battlefield.apply_tower_stats(tower_stats)
 
 
 func _add_stat(stats: Dictionary, stat: String, amount: float) -> void:
 	match stat:
 		"damage_mult", "speed_mult", "pickup_mult", "area_mult", "xp_mult", \
 		"max_hp_mult", "projectile_speed_mult", "gold_mult", "light_mult", \
-		"knockback_mult", "cooldown_mult", "dash_cd_mult", "skill_cd_mult":
+		"knockback_mult", "cooldown_mult", "dash_cd_mult", "skill_cd_mult", \
+		"tower_damage_mult", "tower_range_mult", "tower_hp_mult", "tower_arrow_speed", \
+		"tower_size_mult", "tower_fire_rate", "tower_taunt":
 			stats[stat] = float(stats.get(stat, 1.0)) * (1.0 + amount)
 		"armor", "crit", "regen", "max_hp_flat", "shield_max", "shield_regen", \
-		"thorns", "lifesteal", "dodge", "execute_below", "luck", "oil_max", "revive":
+		"thorns", "lifesteal", "dodge", "execute_below", "luck", "oil_max", "revive", \
+		"tower_rebuild_hp", "tower_pierce", "tower_volley", "tower_armor", "tower_regen", \
+		"tower_crit", "tower_chain", "tower_splash", "tower_burn", "tower_slow", \
+		"tower_knockback", "tower_execute", "tower_marksman", "tower_overcharge", \
+		"tower_rebuild", "tower_thorns", "tower_lifesteal", "tower_count", \
+		"tower_xp_gain", "tower_gold_gain":
 			stats[stat] = float(stats.get(stat, 0.0)) + amount
 
 
@@ -1410,7 +1501,7 @@ func _on_upgrade_chosen(index: int) -> void:
 		"passive_upgrade":
 			var passive_id := str(option.get("passive_id", ""))
 			passives[passive_id] = int(passives.get(passive_id, 0)) + 1
-		"attribute", "skill":
+		"attribute", "skill", "tower":
 			_apply_card(option)
 		"event":
 			_apply_event(option)
@@ -1419,6 +1510,8 @@ func _on_upgrade_chosen(index: int) -> void:
 		"oil":
 			player["oil"] = mini(int(player["oil_max"]), int(player["oil"]) + 3)
 	_recompute_stats()
+	_apply_tower_tier_upgrade(option)
+	_sync_towers()
 	player["hp"] = minf(float(player["max_hp"]), float(player["hp"]) + float(player["max_hp"]) * 0.08)
 	_pending_levels = maxi(0, _pending_levels - 1)
 	level_up_overlay.hide_options()
@@ -1426,6 +1519,33 @@ func _on_upgrade_chosen(index: int) -> void:
 		_show_level_up()
 	else:
 		_paused = false
+
+
+func _apply_tower_tier_upgrade(option: Dictionary) -> void:
+	"""「箭塔升阶」卡：把所有望楼推进一档（望楼→箭楼→龙首箭楼）。"""
+	var definition: Dictionary = option.get("definition", {}) as Dictionary
+	var tier_gain := 0
+	for effect in definition.get("effects", []) as Array:
+		if not effect is Dictionary:
+			continue
+		if str((effect as Dictionary).get("stat", "")) == "tower_tier":
+			tier_gain += int((effect as Dictionary).get("amount", 0.0))
+	if tier_gain <= 0 or battlefield == null:
+		return
+	var order := ["watchtower", "arrow_tower", "dragon_tower"]
+	var upgraded := 0
+	for index in range(battlefield.towers.size()):
+		var tower: Dictionary = battlefield.towers[index]
+		if not bool(tower.get("alive", false)):
+			continue
+		var current_tier := order.find(str(tower["id"]))
+		if current_tier < 0 or current_tier >= order.size() - 1:
+			continue
+		var next_id: String = order[mini(order.size() - 1, current_tier + tier_gain)]
+		if battlefield.upgrade_tower(index, next_id):
+			upgraded += 1
+	if upgraded > 0:
+		_play_sfx(SFX_LEVEL_UP, 0.8, 0.66)
 
 
 func _maybe_open_shop() -> void:
@@ -1878,6 +1998,18 @@ func debug_prepare_capture(mode: String) -> Dictionary:
 		var position := capture_center + Vector2(cos(angle), sin(angle)) * radius
 		var enemy_id: String = str(ring_ids[i % ring_ids.size()])
 		battlefield.spawn_enemy_at(enemy_id, position, "red" if enemy_id == "general" else "")
+	# 箭塔展示：三档各一座，验证贴图、血条与围攻逻辑
+	if mode == "tower" or mode == "fx":
+		var tower_spots := [
+			Vector2(-230, -60), Vector2(230, -60), Vector2(0, 210),
+		]
+		for i in range(tower_spots.size()):
+			var tower_id: String = ["watchtower", "arrow_tower", "dragon_tower"][i]
+			battlefield.spawn_tower(tower_id, capture_center + (tower_spots[i] as Vector2))
+		_towers_built = battlefield.towers.size()
+	if mode == "tower":
+		# 战斗验收照：不放 7 条展示弧，只看实际战斗画面
+		return {"mode": mode, "towers": battlefield.live_tower_count(), "enemies": battlefield.enemies.size()}
 	for i in range(7):
 		var angle := TAU * float(i) / 7.0
 		battlefield.add_effect({

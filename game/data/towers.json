@@ -1,0 +1,63 @@
+{
+	"version": 1,
+	"note_zh": "箭塔定义。箭塔是自动攻击的友方工事，有独立血量，会被倭寇围攻摧毁。数值为建筑基础值，三选一卡牌的 tower_* 增益在其上乘算/加算。",
+	"note_en": "Arrow tower definitions. Towers are friendly structures with their own HP, auto-firing at nearby enemies and destructible by wokou. Base values are multiplied/added by tower_* upgrade cards.",
+	"starting_towers": 2,
+	"max_towers": 7,
+	"towers": {
+		"watchtower": {
+			"name_zh": "望楼",
+			"name_en": "Watchtower",
+			"texture": "res://assets/units/towers/watchtower.png",
+			"sprite_scale": 1.0,
+			"hp": 340.0,
+			"radius": 36.0,
+			"range": 430.0,
+			"damage": 24.0,
+			"cooldown": 1.2,
+			"pierce": 1,
+			"projectile_speed": 640.0,
+			"arrow_color": "#efe0b4",
+			"upgrade_to": "arrow_tower",
+			"upgrade_cost": 60,
+			"desc_zh": "木构望楼，楼顶架一架连弩，替守夜人分担正面压力。",
+			"desc_en": "A timber watchtower with a repeating crossbow mounted on the platform."
+		},
+		"arrow_tower": {
+			"name_zh": "箭楼",
+			"name_en": "Arrow Tower",
+			"texture": "res://assets/units/towers/arrow_tower.png",
+			"sprite_scale": 1.06,
+			"hp": 560.0,
+			"radius": 40.0,
+			"range": 480.0,
+			"damage": 40.0,
+			"cooldown": 1.05,
+			"pierce": 2,
+			"projectile_speed": 700.0,
+			"arrow_color": "#f3d98d",
+			"upgrade_to": "dragon_tower",
+			"upgrade_cost": 140,
+			"desc_zh": "砖石基座的双弩箭楼，射程更远，可一箭贯穿两人。",
+			"desc_en": "A brick-based tower with twin crossbows, longer reach and piercing bolts."
+		},
+		"dragon_tower": {
+			"name_zh": "龙首箭楼",
+			"name_en": "Dragon-Head Tower",
+			"texture": "res://assets/units/towers/dragon_tower.png",
+			"sprite_scale": 1.12,
+			"hp": 820.0,
+			"radius": 44.0,
+			"range": 540.0,
+			"damage": 62.0,
+			"cooldown": 0.92,
+			"pierce": 3,
+			"projectile_speed": 780.0,
+			"arrow_color": "#ffd070",
+			"upgrade_to": "",
+			"upgrade_cost": 0,
+			"desc_zh": "龙首铜弩坐镇高台，灯火通明，箭出如龙吟。",
+			"desc_en": "A dragon-headed bronze ballista on the high platform, lanterns burning bright."
+		}
+	}
+}

@@ -91,25 +91,27 @@
       "en": "I am Wang Lu, called A-Liu at home. Tonight I am the last lamp outside the fort.",
       "category": "演绎",
       "source_ref": "虚构守灯乡勇，代表嘉靖三十八年守堡民众；堡史见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283-306"
+    }
+  ],
+  "field_notes": [
+    {
+      "id": "narr_1559_03",
+      "speaker_zh": "旁白",
+      "speaker_en": "Narrator",
+      "zh": "汤和筑宁村所在前，王氏筑永昌堡在后。两座城隔着百七十年，共用同一条海防线。",
+      "en": "Tang He built Ningcun garrison first; the Wang clan built Yongchang Fort generations later. Two walls, one coastal line.",
+      "category": "制度",
+      "source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:5"
     },
-  {
-    "id": "narr_1559_03",
-    "speaker_zh": "旁白",
-    "speaker_en": "Narrator",
-    "zh": "汤和筑宁村所在前，王氏筑永昌堡在后。两座城隔着百七十年，共用同一条海防线。",
-    "en": "Tang He built Ningcun garrison first; the Wang clan built Yongchang Fort generations later. Two walls, one coastal line.",
-    "category": "制度",
-    "source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:5"
-  },
-  {
-    "id": "narr_1559_04",
-    "speaker_zh": "旁白",
-    "speaker_en": "Narrator",
-    "zh": "堡成那年，五色龙灯第一次绕城。纸鳞下没有神兵，只有一排排不肯熄的灯。",
-    "en": "In the year the fort was finished, the five-colour dragon lantern first circled the wall. Beneath the paper scales were no gods, only lamps refusing to go out.",
-    "category": "民俗",
-    "source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3"
-  },
+    {
+      "id": "narr_1559_04",
+      "speaker_zh": "旁白",
+      "speaker_en": "Narrator",
+      "zh": "堡成那年，五色龙灯第一次绕城。纸鳞下没有神兵，只有一排排不肯熄的灯。",
+      "en": "In the year the fort was finished, the five-colour dragon lantern first circled the wall. Beneath the paper scales were no gods, only lamps refusing to go out.",
+      "category": "民俗",
+      "source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3"
+    },
     {
       "id": "narr_main_02",
       "speaker_zh": "王陆",

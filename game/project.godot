@@ -12,12 +12,12 @@ config_version=5
 
 config/name="守望·永昌"
 run/main_scene="res://scenes/main_menu.tscn"
-run/max_fps=60
 config/features=PackedStringArray("4.7", "GL Compatibility")
+run/max_fps=60
 
 [autoload]
-GdaHarness="*res://addons/gda_harness/gda_harness.gd"
 
+GdaHarness="*res://addons/gda_harness/gda_harness.gd"
 GameSettings="*res://scripts/autoload/game_settings.gd"
 Locale="*res://scripts/autoload/locale.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"
@@ -28,7 +28,6 @@ FeedbackManager="*res://scripts/feedback/feedback_manager.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-window/size/resizable=true
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
@@ -42,8 +41,8 @@ theme/custom_font="res://assets/fonts/LXGWWenKai-Regular.ttf"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-textures/canvas_textures/default_texture_filter=0
 textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.031, 0.058, 0.074, 1)

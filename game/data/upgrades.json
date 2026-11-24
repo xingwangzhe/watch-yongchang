@@ -13,7 +13,12 @@
 			"rarity": "common",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:283",
-			"effects": [{ "stat": "armor", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "armor",
+					"amount": 0.02
+				}
+			]
 		},
 		"rattan_guard": {
 			"name_zh": "藤牌护身",
@@ -27,7 +32,16 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "armor", "amount": 0.025 }, { "stat": "speed_mult", "amount": -0.005 }]
+			"effects": [
+				{
+					"stat": "armor",
+					"amount": 0.025
+				},
+				{
+					"stat": "speed_mult",
+					"amount": -0.005
+				}
+			]
 		},
 		"cotton_armor": {
 			"name_zh": "棉甲",
@@ -41,7 +55,12 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "max_hp_mult", "amount": 0.04 }]
+			"effects": [
+				{
+					"stat": "max_hp_mult",
+					"amount": 0.04
+				}
+			]
 		},
 		"heart_mirror": {
 			"name_zh": "护心镜",
@@ -55,7 +74,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
-			"effects": [{ "stat": "shield_max", "amount": 8 }, { "stat": "shield_regen", "amount": 0.4 }]
+			"effects": [
+				{
+					"stat": "shield_max",
+					"amount": 8
+				},
+				{
+					"stat": "shield_regen",
+					"amount": 0.4
+				}
+			]
 		},
 		"lantern_oil": {
 			"name_zh": "灯油罐",
@@ -69,7 +97,12 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:10.1",
-			"effects": [{ "stat": "oil_max", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "oil_max",
+					"amount": 1
+				}
+			]
 		},
 		"medicine_pouch": {
 			"name_zh": "药囊",
@@ -83,7 +116,12 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "regen", "amount": 0.25 }]
+			"effects": [
+				{
+					"stat": "regen",
+					"amount": 0.25
+				}
+			]
 		},
 		"herb_bundle": {
 			"name_zh": "草药束",
@@ -97,7 +135,12 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
-			"effects": [{ "stat": "regen", "amount": 0.4 }]
+			"effects": [
+				{
+					"stat": "regen",
+					"amount": 0.4
+				}
+			]
 		},
 		"rice_ration": {
 			"name_zh": "军粮",
@@ -111,7 +154,12 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:4",
-			"effects": [{ "stat": "max_hp_flat", "amount": 8 }]
+			"effects": [
+				{
+					"stat": "max_hp_flat",
+					"amount": 8
+				}
+			]
 		},
 		"salt_fish": {
 			"name_zh": "咸鱼干",
@@ -125,7 +173,16 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "max_hp_flat", "amount": 5 }, { "stat": "regen", "amount": 0.1 }]
+			"effects": [
+				{
+					"stat": "max_hp_flat",
+					"amount": 5
+				},
+				{
+					"stat": "regen",
+					"amount": 0.1
+				}
+			]
 		},
 		"smoked_fish": {
 			"name_zh": "熏鱼",
@@ -139,7 +196,16 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "max_hp_mult", "amount": 0.02 }, { "stat": "damage_mult", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "max_hp_mult",
+					"amount": 0.02
+				},
+				{
+					"stat": "damage_mult",
+					"amount": 0.01
+				}
+			]
 		},
 		"gaiters": {
 			"name_zh": "绑腿",
@@ -153,7 +219,12 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "speed_mult", "amount": 0.04 }]
+			"effects": [
+				{
+					"stat": "speed_mult",
+					"amount": 0.04
+				}
+			]
 		},
 		"straw_sandals": {
 			"name_zh": "草鞋",
@@ -167,7 +238,16 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "speed_mult", "amount": 0.03 }, { "stat": "dash_cd_mult", "amount": -0.03 }]
+			"effects": [
+				{
+					"stat": "speed_mult",
+					"amount": 0.03
+				},
+				{
+					"stat": "dash_cd_mult",
+					"amount": -0.03
+				}
+			]
 		},
 		"sea_wind": {
 			"name_zh": "海风",
@@ -181,7 +261,12 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:3",
-			"effects": [{ "stat": "speed_mult", "amount": 0.04 }]
+			"effects": [
+				{
+					"stat": "speed_mult",
+					"amount": 0.04
+				}
+			]
 		},
 		"tide_boots": {
 			"name_zh": "潮靴",
@@ -195,7 +280,16 @@
 			"rarity": "rare",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "speed_mult", "amount": 0.03 }, { "stat": "pickup_mult", "amount": 0.04 }]
+			"effects": [
+				{
+					"stat": "speed_mult",
+					"amount": 0.03
+				},
+				{
+					"stat": "pickup_mult",
+					"amount": 0.04
+				}
+			]
 		},
 		"compass": {
 			"name_zh": "罗盘",
@@ -209,7 +303,12 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "pickup_mult", "amount": 0.08 }]
+			"effects": [
+				{
+					"stat": "pickup_mult",
+					"amount": 0.08
+				}
+			]
 		},
 		"fishing_net": {
 			"name_zh": "渔网",
@@ -223,7 +322,12 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "pickup_mult", "amount": 0.10 }]
+			"effects": [
+				{
+					"stat": "pickup_mult",
+					"amount": 0.1
+				}
+			]
 		},
 		"paper_crane": {
 			"name_zh": "纸鸢",
@@ -237,7 +341,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "pickup_mult", "amount": 0.12 }, { "stat": "xp_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "pickup_mult",
+					"amount": 0.12
+				},
+				{
+					"stat": "xp_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"abacus": {
 			"name_zh": "算盘",
@@ -251,7 +364,12 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:283",
-			"effects": [{ "stat": "xp_mult", "amount": 0.06 }]
+			"effects": [
+				{
+					"stat": "xp_mult",
+					"amount": 0.06
+				}
+			]
 		},
 		"book_pile": {
 			"name_zh": "书册",
@@ -265,7 +383,16 @@
 			"rarity": "common",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
-			"effects": [{ "stat": "xp_mult", "amount": 0.05 }, { "stat": "cooldown_mult", "amount": -0.01 }]
+			"effects": [
+				{
+					"stat": "xp_mult",
+					"amount": 0.05
+				},
+				{
+					"stat": "cooldown_mult",
+					"amount": -0.01
+				}
+			]
 		},
 		"county_records": {
 			"name_zh": "县志",
@@ -279,7 +406,16 @@
 			"rarity": "rare",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15038",
-			"effects": [{ "stat": "xp_mult", "amount": 0.07 }, { "stat": "luck", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "xp_mult",
+					"amount": 0.07
+				},
+				{
+					"stat": "luck",
+					"amount": 0.02
+				}
+			]
 		},
 		"whetstone": {
 			"name_zh": "磨刀石",
@@ -293,7 +429,12 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "damage_mult", "amount": 0.04 }]
+			"effects": [
+				{
+					"stat": "damage_mult",
+					"amount": 0.04
+				}
+			]
 		},
 		"iron_sand": {
 			"name_zh": "铁砂",
@@ -307,7 +448,12 @@
 			"rarity": "common",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "damage_mult", "amount": 0.05 }]
+			"effects": [
+				{
+					"stat": "damage_mult",
+					"amount": 0.05
+				}
+			]
 		},
 		"gunpowder": {
 			"name_zh": "火药",
@@ -321,7 +467,16 @@
 			"rarity": "uncommon",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "area_mult", "amount": 0.05 }, { "stat": "damage_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "area_mult",
+					"amount": 0.05
+				},
+				{
+					"stat": "damage_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"wolf_tooth": {
 			"name_zh": "狼牙",
@@ -335,7 +490,12 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "crit", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "crit",
+					"amount": 0.02
+				}
+			]
 		},
 		"hunter_eye": {
 			"name_zh": "猎眼",
@@ -349,7 +509,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "crit", "amount": 0.025 }, { "stat": "damage_mult", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "crit",
+					"amount": 0.025
+				},
+				{
+					"stat": "damage_mult",
+					"amount": 0.01
+				}
+			]
 		},
 		"crossbow_mechanism": {
 			"name_zh": "弩机",
@@ -363,7 +532,16 @@
 			"rarity": "uncommon",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "projectile_speed_mult", "amount": 0.08 }, { "stat": "crit", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "projectile_speed_mult",
+					"amount": 0.08
+				},
+				{
+					"stat": "crit",
+					"amount": 0.01
+				}
+			]
 		},
 		"fire_arrow": {
 			"name_zh": "火箭",
@@ -377,7 +555,16 @@
 			"rarity": "uncommon",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "damage_mult", "amount": 0.03 }, { "stat": "area_mult", "amount": 0.03 }]
+			"effects": [
+				{
+					"stat": "damage_mult",
+					"amount": 0.03
+				},
+				{
+					"stat": "area_mult",
+					"amount": 0.03
+				}
+			]
 		},
 		"dragon_scale": {
 			"name_zh": "龙鳞",
@@ -391,7 +578,16 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
-			"effects": [{ "stat": "luck", "amount": 0.04 }, { "stat": "crit", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "luck",
+					"amount": 0.04
+				},
+				{
+					"stat": "crit",
+					"amount": 0.01
+				}
+			]
 		},
 		"five_color_paper": {
 			"name_zh": "五色纸",
@@ -405,7 +601,12 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
-			"effects": [{ "stat": "area_mult", "amount": 0.06 }]
+			"effects": [
+				{
+					"stat": "area_mult",
+					"amount": 0.06
+				}
+			]
 		},
 		"bamboo_frame": {
 			"name_zh": "竹架",
@@ -419,7 +620,16 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
-			"effects": [{ "stat": "area_mult", "amount": 0.04 }, { "stat": "max_hp_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "area_mult",
+					"amount": 0.04
+				},
+				{
+					"stat": "max_hp_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"bamboo_spear": {
 			"name_zh": "竹枪",
@@ -433,7 +643,16 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "damage_mult", "amount": 0.03 }, { "stat": "area_mult", "amount": 0.03 }]
+			"effects": [
+				{
+					"stat": "damage_mult",
+					"amount": 0.03
+				},
+				{
+					"stat": "area_mult",
+					"amount": 0.03
+				}
+			]
 		},
 		"reeds": {
 			"name_zh": "芦苇",
@@ -447,7 +666,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "dodge", "amount": 0.02 }, { "stat": "speed_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "dodge",
+					"amount": 0.02
+				},
+				{
+					"stat": "speed_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"fog_lantern": {
 			"name_zh": "雾灯",
@@ -461,7 +689,16 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
-			"effects": [{ "stat": "dodge", "amount": 0.03 }, { "stat": "light_mult", "amount": 0.05 }]
+			"effects": [
+				{
+					"stat": "dodge",
+					"amount": 0.03
+				},
+				{
+					"stat": "light_mult",
+					"amount": 0.05
+				}
+			]
 		},
 		"night_watch": {
 			"name_zh": "更漏",
@@ -475,7 +712,12 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
-			"effects": [{ "stat": "cooldown_mult", "amount": -0.03 }]
+			"effects": [
+				{
+					"stat": "cooldown_mult",
+					"amount": -0.03
+				}
+			]
 		},
 		"stopwatch": {
 			"name_zh": "铜壶滴漏",
@@ -489,7 +731,16 @@
 			"rarity": "uncommon",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
-			"effects": [{ "stat": "cooldown_mult", "amount": -0.04 }, { "stat": "xp_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "cooldown_mult",
+					"amount": -0.04
+				},
+				{
+					"stat": "xp_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"drumbeat": {
 			"name_zh": "鼓点",
@@ -503,7 +754,16 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "cooldown_mult", "amount": -0.025 }, { "stat": "crit", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "cooldown_mult",
+					"amount": -0.025
+				},
+				{
+					"stat": "crit",
+					"amount": 0.01
+				}
+			]
 		},
 		"bell_chain": {
 			"name_zh": "铜铃串",
@@ -517,7 +777,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
-			"effects": [{ "stat": "luck", "amount": 0.03 }, { "stat": "pickup_mult", "amount": 0.03 }]
+			"effects": [
+				{
+					"stat": "luck",
+					"amount": 0.03
+				},
+				{
+					"stat": "pickup_mult",
+					"amount": 0.03
+				}
+			]
 		},
 		"chain_mail": {
 			"name_zh": "锁子甲",
@@ -531,7 +800,16 @@
 			"rarity": "rare",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "armor", "amount": 0.03 }, { "stat": "speed_mult", "amount": -0.01 }]
+			"effects": [
+				{
+					"stat": "armor",
+					"amount": 0.03
+				},
+				{
+					"stat": "speed_mult",
+					"amount": -0.01
+				}
+			]
 		},
 		"iron_caltrop": {
 			"name_zh": "铁蒺藜",
@@ -545,7 +823,12 @@
 			"rarity": "common",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "thorns", "amount": 2 }]
+			"effects": [
+				{
+					"stat": "thorns",
+					"amount": 2
+				}
+			]
 		},
 		"blood_courage": {
 			"name_zh": "血勇",
@@ -559,7 +842,12 @@
 			"rarity": "uncommon",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "lifesteal", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "lifesteal",
+					"amount": 1
+				}
+			]
 		},
 		"war_manual": {
 			"name_zh": "军器谱",
@@ -573,7 +861,16 @@
 			"rarity": "rare",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "damage_mult", "amount": 0.04 }, { "stat": "crit", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "damage_mult",
+					"amount": 0.04
+				},
+				{
+					"stat": "crit",
+					"amount": 0.01
+				}
+			]
 		},
 		"ancestral_lamp": {
 			"name_zh": "祖灯",
@@ -587,7 +884,12 @@
 			"rarity": "legendary",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
-			"effects": [{ "stat": "revive", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "revive",
+					"amount": 1
+				}
+			]
 		},
 		"mid_autumn_lantern": {
 			"name_zh": "中元灯",
@@ -601,7 +903,16 @@
 			"rarity": "legendary",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
-			"effects": [{ "stat": "revive", "amount": 1 }, { "stat": "regen", "amount": 0.2 }]
+			"effects": [
+				{
+					"stat": "revive",
+					"amount": 1
+				},
+				{
+					"stat": "regen",
+					"amount": 0.2
+				}
+			]
 		},
 		"jade_pendant": {
 			"name_zh": "玉佩",
@@ -615,7 +926,16 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "luck", "amount": 0.05 }, { "stat": "armor", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "luck",
+					"amount": 0.05
+				},
+				{
+					"stat": "armor",
+					"amount": 0.01
+				}
+			]
 		},
 		"seal_of_wang": {
 			"name_zh": "王氏门印",
@@ -629,7 +949,16 @@
 			"rarity": "rare",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
-			"effects": [{ "stat": "xp_mult", "amount": 0.04 }, { "stat": "damage_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "xp_mult",
+					"amount": 0.04
+				},
+				{
+					"stat": "damage_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"silver_ingot": {
 			"name_zh": "银锭",
@@ -643,7 +972,12 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
-			"effects": [{ "stat": "gold_mult", "amount": 0.08 }]
+			"effects": [
+				{
+					"stat": "gold_mult",
+					"amount": 0.08
+				}
+			]
 		},
 		"pirate_blade": {
 			"name_zh": "倭刀",
@@ -657,7 +991,16 @@
 			"rarity": "rare",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "damage_mult", "amount": 0.08 }, { "stat": "armor", "amount": -0.02 }]
+			"effects": [
+				{
+					"stat": "damage_mult",
+					"amount": 0.08
+				},
+				{
+					"stat": "armor",
+					"amount": -0.02
+				}
+			]
 		},
 		"smuggled_salt": {
 			"name_zh": "私盐",
@@ -671,7 +1014,16 @@
 			"rarity": "rare",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "gold_mult", "amount": 0.12 }, { "stat": "max_hp_mult", "amount": -0.03 }]
+			"effects": [
+				{
+					"stat": "gold_mult",
+					"amount": 0.12
+				},
+				{
+					"stat": "max_hp_mult",
+					"amount": -0.03
+				}
+			]
 		},
 		"beacon_oil": {
 			"name_zh": "望楼灯油",
@@ -685,7 +1037,16 @@
 			"rarity": "uncommon",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
-			"effects": [{ "stat": "oil_max", "amount": 1 }, { "stat": "light_mult", "amount": 0.1 }]
+			"effects": [
+				{
+					"stat": "oil_max",
+					"amount": 1
+				},
+				{
+					"stat": "light_mult",
+					"amount": 0.1
+				}
+			]
 		},
 		"cannon_powder": {
 			"name_zh": "炮药",
@@ -699,7 +1060,16 @@
 			"rarity": "common",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "area_mult", "amount": 0.07 }, { "stat": "cooldown_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "area_mult",
+					"amount": 0.07
+				},
+				{
+					"stat": "cooldown_mult",
+					"amount": 0.02
+				}
+			]
 		}
 	},
 	"skills": {
@@ -715,7 +1085,12 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
-			"effects": [{ "stat": "skill_volley", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "skill_volley",
+					"amount": 1
+				}
+			]
 		},
 		"crossbow_volley": {
 			"name_zh": "神机箭",
@@ -729,7 +1104,16 @@
 			"rarity": "uncommon",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "skill_volley", "amount": 1 }, { "stat": "projectile_speed_mult", "amount": 0.04 }]
+			"effects": [
+				{
+					"stat": "skill_volley",
+					"amount": 1
+				},
+				{
+					"stat": "projectile_speed_mult",
+					"amount": 0.04
+				}
+			]
 		},
 		"paper_crane_volley": {
 			"name_zh": "纸鸢引箭",
@@ -743,7 +1127,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "skill_volley", "amount": 1 }, { "stat": "crit", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "skill_volley",
+					"amount": 1
+				},
+				{
+					"stat": "crit",
+					"amount": 0.01
+				}
+			]
 		},
 		"arrow_rain": {
 			"name_zh": "箭雨",
@@ -757,7 +1150,16 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "skill_volley", "amount": 1 }, { "stat": "area_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "skill_volley",
+					"amount": 1
+				},
+				{
+					"stat": "area_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"lantern_nova": {
 			"name_zh": "灯火照海",
@@ -771,7 +1173,12 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:10.1",
-			"effects": [{ "stat": "skill_nova", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "skill_nova",
+					"amount": 1
+				}
+			]
 		},
 		"dragon_lantern_nova": {
 			"name_zh": "龙灯巡城",
@@ -785,7 +1192,16 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
-			"effects": [{ "stat": "skill_nova", "amount": 1 }, { "stat": "area_mult", "amount": 0.03 }]
+			"effects": [
+				{
+					"stat": "skill_nova",
+					"amount": 1
+				},
+				{
+					"stat": "area_mult",
+					"amount": 0.03
+				}
+			]
 		},
 		"firecracker_nova": {
 			"name_zh": "爆竹驱祟",
@@ -799,7 +1215,16 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
-			"effects": [{ "stat": "skill_nova", "amount": 1 }, { "stat": "crit", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "skill_nova",
+					"amount": 1
+				},
+				{
+					"stat": "crit",
+					"amount": 0.01
+				}
+			]
 		},
 		"gong_nova": {
 			"name_zh": "铜锣震海",
@@ -813,7 +1238,16 @@
 			"rarity": "uncommon",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "skill_nova", "amount": 1 }, { "stat": "knockback_mult", "amount": 0.05 }]
+			"effects": [
+				{
+					"stat": "skill_nova",
+					"amount": 1
+				},
+				{
+					"stat": "knockback_mult",
+					"amount": 0.05
+				}
+			]
 		},
 		"tide_slow": {
 			"name_zh": "潮汐阵",
@@ -827,7 +1261,12 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "skill_slow", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "skill_slow",
+					"amount": 1
+				}
+			]
 		},
 		"fishing_net_slow": {
 			"name_zh": "渔网滞敌",
@@ -841,7 +1280,16 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "skill_slow", "amount": 1 }, { "stat": "pickup_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "skill_slow",
+					"amount": 1
+				},
+				{
+					"stat": "pickup_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"sea_fog_slow": {
 			"name_zh": "海雾迷阵",
@@ -855,7 +1303,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
-			"effects": [{ "stat": "skill_slow", "amount": 1 }, { "stat": "dodge", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "skill_slow",
+					"amount": 1
+				},
+				{
+					"stat": "dodge",
+					"amount": 0.01
+				}
+			]
 		},
 		"cold_incense_slow": {
 			"name_zh": "冷香",
@@ -869,7 +1326,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
-			"effects": [{ "stat": "skill_slow", "amount": 1 }, { "stat": "regen", "amount": 0.1 }]
+			"effects": [
+				{
+					"stat": "skill_slow",
+					"amount": 1
+				},
+				{
+					"stat": "regen",
+					"amount": 0.1
+				}
+			]
 		},
 		"incense_burn": {
 			"name_zh": "焚香净夜",
@@ -883,7 +1349,12 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
-			"effects": [{ "stat": "skill_burn", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "skill_burn",
+					"amount": 1
+				}
+			]
 		},
 		"fire_oil_burn": {
 			"name_zh": "火油泼阵",
@@ -897,7 +1368,16 @@
 			"rarity": "rare",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "skill_burn", "amount": 1 }, { "stat": "area_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "skill_burn",
+					"amount": 1
+				},
+				{
+					"stat": "area_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"dragon_breath_burn": {
 			"name_zh": "龙息",
@@ -911,7 +1391,16 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
-			"effects": [{ "stat": "skill_burn", "amount": 1 }, { "stat": "damage_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "skill_burn",
+					"amount": 1
+				},
+				{
+					"stat": "damage_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"wok_burn": {
 			"name_zh": "灶火燎原",
@@ -925,7 +1414,16 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "skill_burn", "amount": 1 }, { "stat": "regen", "amount": 0.05 }]
+			"effects": [
+				{
+					"stat": "skill_burn",
+					"amount": 1
+				},
+				{
+					"stat": "regen",
+					"amount": 0.05
+				}
+			]
 		},
 		"wardrum_stun": {
 			"name_zh": "擂鼓催阵",
@@ -939,7 +1437,12 @@
 			"rarity": "uncommon",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "skill_stun", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "skill_stun",
+					"amount": 1
+				}
+			]
 		},
 		"night_watch_stun": {
 			"name_zh": "更鼓惊宵",
@@ -953,7 +1456,16 @@
 			"rarity": "uncommon",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
-			"effects": [{ "stat": "skill_stun", "amount": 1 }, { "stat": "cooldown_mult", "amount": -0.01 }]
+			"effects": [
+				{
+					"stat": "skill_stun",
+					"amount": 1
+				},
+				{
+					"stat": "cooldown_mult",
+					"amount": -0.01
+				}
+			]
 		},
 		"iron_chain_stun": {
 			"name_zh": "铁索横江",
@@ -967,7 +1479,16 @@
 			"rarity": "rare",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "skill_stun", "amount": 1 }, { "stat": "thorns", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "skill_stun",
+					"amount": 1
+				},
+				{
+					"stat": "thorns",
+					"amount": 1
+				}
+			]
 		},
 		"thunder_chain": {
 			"name_zh": "雷火连营",
@@ -981,7 +1502,12 @@
 			"rarity": "rare",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "skill_chain", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "skill_chain",
+					"amount": 1
+				}
+			]
 		},
 		"chain_lightning_skill": {
 			"name_zh": "铁索雷光",
@@ -995,7 +1521,16 @@
 			"rarity": "rare",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "skill_chain", "amount": 1 }, { "stat": "crit", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "skill_chain",
+					"amount": 1
+				},
+				{
+					"stat": "crit",
+					"amount": 0.01
+				}
+			]
 		},
 		"herb_heal": {
 			"name_zh": "药香回春",
@@ -1009,7 +1544,16 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "skill_heal", "amount": 1 }, { "stat": "regen", "amount": 0.05 }]
+			"effects": [
+				{
+					"stat": "skill_heal",
+					"amount": 1
+				},
+				{
+					"stat": "regen",
+					"amount": 0.05
+				}
+			]
 		},
 		"feast_heal": {
 			"name_zh": "百家宴",
@@ -1023,7 +1567,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "skill_heal", "amount": 1 }, { "stat": "max_hp_mult", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "skill_heal",
+					"amount": 1
+				},
+				{
+					"stat": "max_hp_mult",
+					"amount": 0.01
+				}
+			]
 		},
 		"lantern_heal": {
 			"name_zh": "灯油续命",
@@ -1037,7 +1590,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:10.1",
-			"effects": [{ "stat": "skill_heal", "amount": 1 }, { "stat": "oil_max", "amount": 0.2 }]
+			"effects": [
+				{
+					"stat": "skill_heal",
+					"amount": 1
+				},
+				{
+					"stat": "oil_max",
+					"amount": 0.2
+				}
+			]
 		},
 		"rattan_shield_skill": {
 			"name_zh": "藤牌阵",
@@ -1051,7 +1613,20 @@
 			"rarity": "uncommon",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "skill_shield", "amount": 1 }, { "stat": "shield_max", "amount": 12 }, { "stat": "shield_regen", "amount": 0.8 }]
+			"effects": [
+				{
+					"stat": "skill_shield",
+					"amount": 1
+				},
+				{
+					"stat": "shield_max",
+					"amount": 12
+				},
+				{
+					"stat": "shield_regen",
+					"amount": 0.8
+				}
+			]
 		},
 		"heart_shield_skill": {
 			"name_zh": "护心镜阵",
@@ -1065,7 +1640,20 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
-			"effects": [{ "stat": "skill_shield", "amount": 1 }, { "stat": "shield_max", "amount": 16 }, { "stat": "armor", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "skill_shield",
+					"amount": 1
+				},
+				{
+					"stat": "shield_max",
+					"amount": 16
+				},
+				{
+					"stat": "armor",
+					"amount": 0.01
+				}
+			]
 		},
 		"fishing_magnet": {
 			"name_zh": "渔网收魂",
@@ -1079,7 +1667,12 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "skill_magnet", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "skill_magnet",
+					"amount": 1
+				}
+			]
 		},
 		"paper_crane_magnet": {
 			"name_zh": "纸鸢衔灯",
@@ -1093,7 +1686,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "skill_magnet", "amount": 1 }, { "stat": "pickup_mult", "amount": 0.03 }]
+			"effects": [
+				{
+					"stat": "skill_magnet",
+					"amount": 1
+				},
+				{
+					"stat": "pickup_mult",
+					"amount": 0.03
+				}
+			]
 		},
 		"caltrop_thorns": {
 			"name_zh": "铁蒺藜阵",
@@ -1107,7 +1709,16 @@
 			"rarity": "common",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
-			"effects": [{ "stat": "skill_thorns", "amount": 1 }, { "stat": "thorns", "amount": 3 }]
+			"effects": [
+				{
+					"stat": "skill_thorns",
+					"amount": 1
+				},
+				{
+					"stat": "thorns",
+					"amount": 3
+				}
+			]
 		},
 		"wolf_tooth_thorns": {
 			"name_zh": "狼牙反噬",
@@ -1121,7 +1732,20 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "skill_thorns", "amount": 1 }, { "stat": "thorns", "amount": 2 }, { "stat": "crit", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "skill_thorns",
+					"amount": 1
+				},
+				{
+					"stat": "thorns",
+					"amount": 2
+				},
+				{
+					"stat": "crit",
+					"amount": 0.01
+				}
+			]
 		},
 		"blood_lifesteal": {
 			"name_zh": "血勇饮血",
@@ -1135,7 +1759,16 @@
 			"rarity": "uncommon",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "skill_lifesteal", "amount": 1 }, { "stat": "lifesteal", "amount": 2 }]
+			"effects": [
+				{
+					"stat": "skill_lifesteal",
+					"amount": 1
+				},
+				{
+					"stat": "lifesteal",
+					"amount": 2
+				}
+			]
 		},
 		"life_tap_skill": {
 			"name_zh": "以血换灯",
@@ -1149,7 +1782,20 @@
 			"rarity": "rare",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:10.1",
-			"effects": [{ "stat": "skill_lifesteal", "amount": 1 }, { "stat": "lifesteal", "amount": 1 }, { "stat": "damage_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "skill_lifesteal",
+					"amount": 1
+				},
+				{
+					"stat": "lifesteal",
+					"amount": 1
+				},
+				{
+					"stat": "damage_mult",
+					"amount": 0.02
+				}
+			]
 		},
 		"lantern_step": {
 			"name_zh": "灯影步",
@@ -1163,7 +1809,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:10.1",
-			"effects": [{ "stat": "skill_dash", "amount": 1 }, { "stat": "dash_cd_mult", "amount": -0.12 }]
+			"effects": [
+				{
+					"stat": "skill_dash",
+					"amount": 1
+				},
+				{
+					"stat": "dash_cd_mult",
+					"amount": -0.12
+				}
+			]
 		},
 		"night_patrol": {
 			"name_zh": "夜巡",
@@ -1177,7 +1832,20 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
-			"effects": [{ "stat": "skill_aura", "amount": 1 }, { "stat": "speed_mult", "amount": 0.03 }, { "stat": "dodge", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "skill_aura",
+					"amount": 1
+				},
+				{
+					"stat": "speed_mult",
+					"amount": 0.03
+				},
+				{
+					"stat": "dodge",
+					"amount": 0.01
+				}
+			]
 		},
 		"banner_aura": {
 			"name_zh": "令旗",
@@ -1191,7 +1859,20 @@
 			"rarity": "uncommon",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
-			"effects": [{ "stat": "skill_aura", "amount": 1 }, { "stat": "area_mult", "amount": 0.04 }, { "stat": "cooldown_mult", "amount": -0.02 }]
+			"effects": [
+				{
+					"stat": "skill_aura",
+					"amount": 1
+				},
+				{
+					"stat": "area_mult",
+					"amount": 0.04
+				},
+				{
+					"stat": "cooldown_mult",
+					"amount": -0.02
+				}
+			]
 		},
 		"pine_aura": {
 			"name_zh": "松风",
@@ -1205,7 +1886,20 @@
 			"rarity": "common",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "skill_aura", "amount": 1 }, { "stat": "regen", "amount": 0.2 }, { "stat": "armor", "amount": 0.01 }]
+			"effects": [
+				{
+					"stat": "skill_aura",
+					"amount": 1
+				},
+				{
+					"stat": "regen",
+					"amount": 0.2
+				},
+				{
+					"stat": "armor",
+					"amount": 0.01
+				}
+			]
 		},
 		"moon_aura": {
 			"name_zh": "月照",
@@ -1219,7 +1913,20 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
-			"effects": [{ "stat": "skill_aura", "amount": 1 }, { "stat": "light_mult", "amount": 0.08 }, { "stat": "luck", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "skill_aura",
+					"amount": 1
+				},
+				{
+					"stat": "light_mult",
+					"amount": 0.08
+				},
+				{
+					"stat": "luck",
+					"amount": 0.02
+				}
+			]
 		},
 		"willow_aura": {
 			"name_zh": "柳影",
@@ -1233,7 +1940,20 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "skill_aura", "amount": 1 }, { "stat": "dodge", "amount": 0.02 }, { "stat": "speed_mult", "amount": 0.02 }]
+			"effects": [
+				{
+					"stat": "skill_aura",
+					"amount": 1
+				},
+				{
+					"stat": "dodge",
+					"amount": 0.02
+				},
+				{
+					"stat": "speed_mult",
+					"amount": 0.02
+				}
+			]
 		}
 	},
 	"events": {
@@ -1249,7 +1969,16 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
-			"effects": [{ "stat": "event_hp_pct", "amount": -0.10 }, { "stat": "damage_mult", "amount": 0.06 }]
+			"effects": [
+				{
+					"stat": "event_hp_pct",
+					"amount": -0.1
+				},
+				{
+					"stat": "damage_mult",
+					"amount": 0.06
+				}
+			]
 		},
 		"sea_offering": {
 			"name_zh": "海祭",
@@ -1263,7 +1992,16 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
-			"effects": [{ "stat": "event_hp_pct", "amount": -0.20 }, { "stat": "revive", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "event_hp_pct",
+					"amount": -0.2
+				},
+				{
+					"stat": "revive",
+					"amount": 1
+				}
+			]
 		},
 		"smugglers_cache": {
 			"name_zh": "私盐窖",
@@ -1277,7 +2015,16 @@
 			"rarity": "uncommon",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "event_merit", "amount": 200 }, { "stat": "event_spawn_elite", "amount": 2 }]
+			"effects": [
+				{
+					"stat": "event_merit",
+					"amount": 200
+				},
+				{
+					"stat": "event_spawn_elite",
+					"amount": 2
+				}
+			]
 		},
 		"beacon_fire": {
 			"name_zh": "烽火",
@@ -1291,7 +2038,16 @@
 			"rarity": "common",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
-			"effects": [{ "stat": "event_oil", "amount": 3 }, { "stat": "event_spawn_wave", "amount": 8 }]
+			"effects": [
+				{
+					"stat": "event_oil",
+					"amount": 3
+				},
+				{
+					"stat": "event_spawn_wave",
+					"amount": 8
+				}
+			]
 		},
 		"broken_wall": {
 			"name_zh": "城墙缺口",
@@ -1305,7 +2061,16 @@
 			"rarity": "uncommon",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
-			"effects": [{ "stat": "max_hp_mult", "amount": -0.10 }, { "stat": "area_mult", "amount": 0.10 }]
+			"effects": [
+				{
+					"stat": "max_hp_mult",
+					"amount": -0.1
+				},
+				{
+					"stat": "area_mult",
+					"amount": 0.1
+				}
+			]
 		},
 		"refugee_crowd": {
 			"name_zh": "流民入堡",
@@ -1319,7 +2084,16 @@
 			"rarity": "uncommon",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15545",
-			"effects": [{ "stat": "oil_max", "amount": -1 }, { "stat": "xp_mult", "amount": 0.08 }]
+			"effects": [
+				{
+					"stat": "oil_max",
+					"amount": -1
+				},
+				{
+					"stat": "xp_mult",
+					"amount": 0.08
+				}
+			]
 		},
 		"oath_at_dawn": {
 			"name_zh": "黎明誓约",
@@ -1333,7 +2107,16 @@
 			"rarity": "uncommon",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:10.1",
-			"effects": [{ "stat": "event_full_heal", "amount": 1 }, { "stat": "damage_mult", "amount": -0.05 }]
+			"effects": [
+				{
+					"stat": "event_full_heal",
+					"amount": 1
+				},
+				{
+					"stat": "damage_mult",
+					"amount": -0.05
+				}
+			]
 		},
 		"five_dragon_blessing": {
 			"name_zh": "五龙现",
@@ -1347,7 +2130,16 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
-			"effects": [{ "stat": "luck", "amount": 0.06 }, { "stat": "max_hp_mult", "amount": -0.05 }]
+			"effects": [
+				{
+					"stat": "luck",
+					"amount": 0.06
+				},
+				{
+					"stat": "max_hp_mult",
+					"amount": -0.05
+				}
+			]
 		},
 		"ancestral_dream": {
 			"name_zh": "祖灵托梦",
@@ -1361,7 +2153,16 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
-			"effects": [{ "stat": "revive", "amount": 1 }, { "stat": "event_hp_pct", "amount": -0.15 }]
+			"effects": [
+				{
+					"stat": "revive",
+					"amount": 1
+				},
+				{
+					"stat": "event_hp_pct",
+					"amount": -0.15
+				}
+			]
 		},
 		"pirate_tide": {
 			"name_zh": "倭潮",
@@ -1375,7 +2176,16 @@
 			"rarity": "rare",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "event_spawn_elite", "amount": 3 }, { "stat": "event_merit", "amount": 300 }]
+			"effects": [
+				{
+					"stat": "event_spawn_elite",
+					"amount": 3
+				},
+				{
+					"stat": "event_merit",
+					"amount": 300
+				}
+			]
 		},
 		"typhoon": {
 			"name_zh": "台风",
@@ -1389,7 +2199,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "event_enemy_speed", "amount": 0.10 }, { "stat": "crit", "amount": 0.05 }]
+			"effects": [
+				{
+					"stat": "event_enemy_speed",
+					"amount": 0.1
+				},
+				{
+					"stat": "crit",
+					"amount": 0.05
+				}
+			]
 		},
 		"plague": {
 			"name_zh": "疫气",
@@ -1403,7 +2222,16 @@
 			"rarity": "uncommon",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "max_hp_mult", "amount": -0.08 }, { "stat": "regen", "amount": 0.5 }]
+			"effects": [
+				{
+					"stat": "max_hp_mult",
+					"amount": -0.08
+				},
+				{
+					"stat": "regen",
+					"amount": 0.5
+				}
+			]
 		},
 		"black_market": {
 			"name_zh": "黑市",
@@ -1417,7 +2245,16 @@
 			"rarity": "rare",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
-			"effects": [{ "stat": "gold_mult", "amount": 0.15 }, { "stat": "armor", "amount": -0.03 }]
+			"effects": [
+				{
+					"stat": "gold_mult",
+					"amount": 0.15
+				},
+				{
+					"stat": "armor",
+					"amount": -0.03
+				}
+			]
 		},
 		"temple_fire": {
 			"name_zh": "庙火",
@@ -1431,7 +2268,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
-			"effects": [{ "stat": "area_mult", "amount": 0.12 }, { "stat": "max_hp_mult", "amount": -0.06 }]
+			"effects": [
+				{
+					"stat": "area_mult",
+					"amount": 0.12
+				},
+				{
+					"stat": "max_hp_mult",
+					"amount": -0.06
+				}
+			]
 		},
 		"missing_soldier": {
 			"name_zh": "失踪乡勇",
@@ -1445,7 +2291,16 @@
 			"rarity": "uncommon",
 			"category": "演绎",
 			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:2",
-			"effects": [{ "stat": "damage_mult", "amount": -0.10 }, { "stat": "pickup_mult", "amount": 0.18 }]
+			"effects": [
+				{
+					"stat": "damage_mult",
+					"amount": -0.1
+				},
+				{
+					"stat": "pickup_mult",
+					"amount": 0.18
+				}
+			]
 		},
 		"iron_oath": {
 			"name_zh": "铁誓",
@@ -1459,7 +2314,16 @@
 			"rarity": "rare",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:283",
-			"effects": [{ "stat": "armor", "amount": 0.06 }, { "stat": "speed_mult", "amount": -0.04 }]
+			"effects": [
+				{
+					"stat": "armor",
+					"amount": 0.06
+				},
+				{
+					"stat": "speed_mult",
+					"amount": -0.04
+				}
+			]
 		},
 		"lantern_offering": {
 			"name_zh": "献灯",
@@ -1473,7 +2337,16 @@
 			"rarity": "legendary",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
-			"effects": [{ "stat": "event_oil", "amount": -2 }, { "stat": "revive", "amount": 1 }]
+			"effects": [
+				{
+					"stat": "event_oil",
+					"amount": -2
+				},
+				{
+					"stat": "revive",
+					"amount": 1
+				}
+			]
 		},
 		"fish_goddess": {
 			"name_zh": "渔娘指引",
@@ -1487,7 +2360,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
-			"effects": [{ "stat": "pickup_mult", "amount": 0.12 }, { "stat": "xp_mult", "amount": 0.04 }]
+			"effects": [
+				{
+					"stat": "pickup_mult",
+					"amount": 0.12
+				},
+				{
+					"stat": "xp_mult",
+					"amount": 0.04
+				}
+			]
 		},
 		"tide_tablet": {
 			"name_zh": "潮碑",
@@ -1501,7 +2383,16 @@
 			"rarity": "rare",
 			"category": "史实",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
-			"effects": [{ "stat": "damage_mult", "amount": 0.08 }, { "stat": "cooldown_mult", "amount": 0.04 }]
+			"effects": [
+				{
+					"stat": "damage_mult",
+					"amount": 0.08
+				},
+				{
+					"stat": "cooldown_mult",
+					"amount": 0.04
+				}
+			]
 		},
 		"old_map": {
 			"name_zh": "海防旧图",
@@ -1515,7 +2406,16 @@
 			"rarity": "rare",
 			"category": "制度",
 			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:5",
-			"effects": [{ "stat": "xp_mult", "amount": 0.10 }, { "stat": "event_spawn_elite", "amount": 2 }]
+			"effects": [
+				{
+					"stat": "xp_mult",
+					"amount": 0.1
+				},
+				{
+					"stat": "event_spawn_elite",
+					"amount": 2
+				}
+			]
 		},
 		"widow_thread": {
 			"name_zh": "寡妇纺线",
@@ -1529,7 +2429,16 @@
 			"rarity": "uncommon",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15545",
-			"effects": [{ "stat": "regen", "amount": 0.3 }, { "stat": "damage_mult", "amount": -0.03 }]
+			"effects": [
+				{
+					"stat": "regen",
+					"amount": 0.3
+				},
+				{
+					"stat": "damage_mult",
+					"amount": -0.03
+				}
+			]
 		},
 		"dawn_bell": {
 			"name_zh": "黎明钟",
@@ -1543,7 +2452,604 @@
 			"rarity": "rare",
 			"category": "民俗",
 			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
-			"effects": [{ "stat": "max_hp_mult", "amount": 0.10 }, { "stat": "speed_mult", "amount": -0.03 }]
+			"effects": [
+				{
+					"stat": "max_hp_mult",
+					"amount": 0.1
+				},
+				{
+					"stat": "speed_mult",
+					"amount": -0.03
+				}
+			]
+		}
+	},
+	"towers": {
+		"tower_quench": {
+			"name_zh": "箭镞淬火",
+			"name_en": "Quenched Heads",
+			"desc_zh": "箭塔伤害 +12%。",
+			"desc_en": "Tower damage +12%.",
+			"culture_zh": "堡内铁匠把箭镞烧红入盐水，淬出的锋口能破倭刀软甲。",
+			"culture_en": "The fort smith quenches each arrowhead in brine so it bites through soft Japanese armour.",
+			"icon": "res://assets/icons/game_icons/card_broadhead_arrow.svg",
+			"max_level": 6,
+			"rarity": "common",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_damage_mult",
+					"amount": 0.12
+				}
+			]
+		},
+		"tower_long_limb": {
+			"name_zh": "加长弩臂",
+			"name_en": "Longer Limbs",
+			"desc_zh": "箭塔射程 +8%。",
+			"desc_en": "Tower range +8%.",
+			"culture_zh": "弩臂越长，弦力越足。望楼的木料选自海风里长了三十年的榉木。",
+			"culture_en": "Longer limbs store more draw. The watchtower beams come from beech grown thirty years in sea wind.",
+			"icon": "res://assets/icons/game_icons/card_bow_string.svg",
+			"max_level": 5,
+			"rarity": "common",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_range_mult",
+					"amount": 0.08
+				}
+			]
+		},
+		"tower_trigger": {
+			"name_zh": "连弩机括",
+			"name_en": "Repeating Trigger",
+			"desc_zh": "箭塔射击间隔 -7%。",
+			"desc_en": "Tower fire interval -7%.",
+			"culture_zh": "机括一扣，箭落入槽，再扣再落。守夜人不必抬头看，只听声响便知塔还活着。",
+			"culture_en": "One pull drops a bolt into the groove, another sends it out. You need not look up; the sound tells you the tower still lives.",
+			"icon": "res://assets/icons/game_icons/card_targeting.svg",
+			"max_level": 5,
+			"rarity": "common",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_fire_rate",
+					"amount": -0.07
+				}
+			]
+		},
+		"tower_rammed_earth": {
+			"name_zh": "夯土加厚",
+			"name_en": "Rammed Earth",
+			"desc_zh": "箭塔耐久 +15%。",
+			"desc_en": "Tower HP +15%.",
+			"culture_zh": "永昌堡的墙是夯土夹碎石，一层土一层石，倭寇的刀砍上去只留白痕。",
+			"culture_en": "Yongchang's walls are rammed earth packed with rubble, layer upon layer; a wokou blade leaves only a white mark.",
+			"icon": "res://assets/icons/game_icons/card_brick_wall.svg",
+			"max_level": 6,
+			"rarity": "common",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_hp_mult",
+					"amount": 0.15
+				}
+			]
+		},
+		"tower_iron_frame": {
+			"name_zh": "裹铁塔身",
+			"name_en": "Ironbound Frame",
+			"desc_zh": "箭塔减伤 +5%。",
+			"desc_en": "Tower damage taken -5%.",
+			"culture_zh": "塔身四角包铁，是军械坊剩下的船钉熔了重打的。",
+			"culture_en": "The tower's four corners are clad in iron, re-forged from leftover boat nails.",
+			"icon": "res://assets/icons/game_icons/card_stone_wall.svg",
+			"max_level": 5,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_armor",
+					"amount": 0.05
+				}
+			]
+		},
+		"tower_midnight_repair": {
+			"name_zh": "夜半修缮",
+			"name_en": "Midnight Repair",
+			"desc_zh": "箭塔每秒自修 1.6 点。",
+			"desc_en": "Towers repair 1.6 HP/s.",
+			"culture_zh": "守夜人轮班，一半人守灯，一半人抱着木楔与麻绳在塔下补漏。",
+			"culture_en": "Half the watch keeps the lamps, half works below with wedges and hemp rope, patching leaks.",
+			"icon": "res://assets/icons/game_icons/card_toolbox.svg",
+			"max_level": 5,
+			"rarity": "common",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_regen",
+					"amount": 1.6
+				}
+			]
+		},
+		"tower_pierce_bolt": {
+			"name_zh": "透甲长箭",
+			"name_en": "Armour-Piercing Bolt",
+			"desc_zh": "箭矢额外贯穿 +1 名敌人。",
+			"desc_en": "Arrows pierce +1 enemy.",
+			"culture_zh": "长箭杆重镞小，专为穿透藤牌与锁子甲而造。",
+			"culture_en": "A long shaft with a small heavy head, made to punch through rattan shields and mail.",
+			"icon": "res://assets/icons/game_icons/card_heavy_arrow.svg",
+			"max_level": 3,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_pierce",
+					"amount": 1
+				}
+			]
+		},
+		"tower_raise": {
+			"name_zh": "增筑望楼",
+			"name_en": "Raise Another Tower",
+			"desc_zh": "额外修建一座箭塔。",
+			"desc_en": "Build one more tower.",
+			"culture_zh": "堡内木料与砖石尚有存余。多起一座楼，海岸线上就多一双眼睛。",
+			"culture_en": "Timber and brick remain in the store. One more tower means one more pair of eyes on the shoreline.",
+			"icon": "res://assets/icons/game_icons/card_tower_flag.svg",
+			"max_level": 5,
+			"rarity": "rare",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_count",
+					"amount": 1
+				}
+			]
+		},
+		"tower_volley_three": {
+			"name_zh": "三矢齐发",
+			"name_en": "Three-Bolt Volley",
+			"desc_zh": "每次射击额外 +1 支箭。",
+			"desc_en": "Each volley fires +1 arrow.",
+			"culture_zh": "连弩上并排三个箭槽，机括一落，三矢同出。",
+			"culture_en": "Three grooves side by side: one trigger drop sends three bolts at once.",
+			"icon": "res://assets/icons/game_icons/card_arrow_cluster.svg",
+			"max_level": 2,
+			"rarity": "rare",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_volley",
+					"amount": 1
+				}
+			]
+		},
+		"tower_loophole": {
+			"name_zh": "射孔瞄准",
+			"name_en": "Loophole Aim",
+			"desc_zh": "箭塔暴击率 +6%。",
+			"desc_en": "Tower crit +6%.",
+			"culture_zh": "垛口留出的射孔只有一掌宽，逼着射手把每一箭都算准。",
+			"culture_en": "The loophole is a palm wide, forcing the archer to make every shot count.",
+			"icon": "res://assets/icons/game_icons/card_bullseye.svg",
+			"max_level": 5,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_crit",
+					"amount": 0.06
+				}
+			]
+		},
+		"tower_chain_bolt": {
+			"name_zh": "连环箭",
+			"name_en": "Chained Bolts",
+			"desc_zh": "箭矢命中后再跳向 +1 名敌人。",
+			"desc_en": "Arrows chain to +1 enemy.",
+			"culture_zh": "箭尾系细麻绳，钉住一人便扯动下一支的机簧。",
+			"culture_en": "A thin hemp cord ties the tails: pinning one target trips the next trigger.",
+			"icon": "res://assets/icons/game_icons/card_arrow_flights.svg",
+			"max_level": 2,
+			"rarity": "rare",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_chain",
+					"amount": 1
+				}
+			]
+		},
+		"tower_burst_head": {
+			"name_zh": "爆裂箭头",
+			"name_en": "Bursting Head",
+			"desc_zh": "箭矢命中溅射 26 范围。",
+			"desc_en": "Arrows splash within 26 units.",
+			"culture_zh": "箭头中空填硝，落点炸开一团火星，专治成群结队的倭寇。",
+			"culture_en": "A hollow head packed with powder bursts into sparks where it lands: made for wokou who come in crowds.",
+			"icon": "res://assets/icons/game_icons/card_target_shot.svg",
+			"max_level": 3,
+			"rarity": "rare",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_splash",
+					"amount": 26.0
+				}
+			]
+		},
+		"tower_fire_oil": {
+			"name_zh": "火油箭",
+			"name_en": "Fire-Oil Arrow",
+			"desc_zh": "箭矢附加每秒 7 点灼烧。",
+			"desc_en": "Arrows burn for 7 damage/s.",
+			"culture_zh": "灯油浸过的麻布缠在箭杆上，点着了射出去，落在船篷上就收不住。",
+			"culture_en": "Hemp soaked in lamp oil wraps the shaft; once lit and loosed, it will not stop on a boat awning.",
+			"icon": "res://assets/icons/game_icons/card_torch.svg",
+			"max_level": 4,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_burn",
+					"amount": 7.0
+				}
+			]
+		},
+		"tower_cord_bolt": {
+			"name_zh": "缠绳箭",
+			"name_en": "Tangled Cord",
+			"desc_zh": "箭矢使命中目标减速 12%。",
+			"desc_en": "Arrows slow targets by 12%.",
+			"culture_zh": "箭上缠浸水麻绳，中者脚下打结，跑不快也站不稳。",
+			"culture_en": "Wet hemp cord trails the bolt; whoever it catches stumbles and slows.",
+			"icon": "res://assets/icons/game_icons/card_quiver.svg",
+			"max_level": 4,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_slow",
+					"amount": 0.12
+				}
+			]
+		},
+		"tower_ballista_recoil": {
+			"name_zh": "巨弩冲力",
+			"name_en": "Ballista Recoil",
+			"desc_zh": "箭矢击退 +70。",
+			"desc_en": "Arrow knockback +70.",
+			"culture_zh": "床弩一发，后座把整座楼板顶得吱呀作响，人也被推得倒退三步。",
+			"culture_en": "A bed-crossbow shot makes the whole platform groan and shoves a man back three steps.",
+			"icon": "res://assets/icons/game_icons/card_ballista.svg",
+			"max_level": 3,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_knockback",
+					"amount": 70.0
+				}
+			]
+		},
+		"tower_finishing_volley": {
+			"name_zh": "落矢收命",
+			"name_en": "Finishing Volley",
+			"desc_zh": "对生命低于 6% 的敌人直接斩杀。",
+			"desc_en": "Execute enemies below 6% HP.",
+			"culture_zh": "塔上专留一束重箭，等伤者退到墙根才放，省箭也省命。",
+			"culture_en": "A bundle of heavy bolts is kept back for the wounded who crawl to the wall: saves arrows and lives.",
+			"icon": "res://assets/icons/game_icons/card_archery_target.svg",
+			"max_level": 4,
+			"rarity": "rare",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_execute",
+					"amount": 0.06
+				}
+			]
+		},
+		"tower_high_vantage": {
+			"name_zh": "高台远望",
+			"name_en": "High Vantage",
+			"desc_zh": "箭矢飞行越远伤害越高，最高 +30%。",
+			"desc_en": "Longer flights deal up to +30% damage.",
+			"culture_zh": "楼越高，看得越远，箭也借了更多下坠的势。",
+			"culture_en": "The higher the tower, the further the sight, and the more the falling arrow borrows from gravity.",
+			"icon": "res://assets/icons/game_icons/card_arrow_scope.svg",
+			"max_level": 4,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_marksman",
+					"amount": 0.3
+				}
+			]
+		},
+		"tower_overcharge": {
+			"name_zh": "过热连射",
+			"name_en": "Overcharge",
+			"desc_zh": "连续射击时射速最多再快 12%。",
+			"desc_en": "Sustained fire speeds up to +12%.",
+			"culture_zh": "机括连扣到发烫，射速反而更快 —— 只要别让弦崩断。",
+			"culture_en": "Keep pulling until the trigger burns and the shots come faster — as long as the string holds.",
+			"icon": "res://assets/icons/game_icons/card_winged_arrow.svg",
+			"max_level": 4,
+			"rarity": "rare",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_overcharge",
+					"amount": 0.12
+				}
+			]
+		},
+		"tower_standing_masons": {
+			"name_zh": "工匠待命",
+			"name_en": "Standing Masons",
+			"desc_zh": "塔毁后重建速度 +15%。",
+			"desc_en": "Rebuild 15% faster after destruction.",
+			"culture_zh": "泥瓦匠守在塔基旁，塔一塌就上手，不等号令。",
+			"culture_en": "Masons wait at the footing and start the moment a tower falls, without waiting for orders.",
+			"icon": "res://assets/icons/game_icons/card_crane_winch.svg",
+			"max_level": 4,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_rebuild",
+					"amount": 0.15
+				},
+				{
+					"stat": "tower_rebuild_hp",
+					"amount": 0.02
+				}
+			]
+		},
+		"tower_stocked_timber": {
+			"name_zh": "备料充足",
+			"name_en": "Stocked Timber",
+			"desc_zh": "重建后的塔起始血量 +8%。",
+			"desc_en": "Rebuilt towers start with +8% HP.",
+			"culture_zh": "塔下堆着预先削好的梁木与砖坯，重建只是把它们立起来。",
+			"culture_en": "Pre-cut beams and green bricks are stacked at the base; rebuilding is only a matter of standing them up.",
+			"icon": "res://assets/icons/game_icons/card_wood_pile.svg",
+			"max_level": 4,
+			"rarity": "common",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_rebuild_hp",
+					"amount": 0.08
+				}
+			]
+		},
+		"tower_abatis": {
+			"name_zh": "拒马倒刺",
+			"name_en": "Abatis Spikes",
+			"desc_zh": "塔身受击反弹 10% 伤害。",
+			"desc_en": "Towers reflect 10% damage.",
+			"culture_zh": "塔基外围一圈削尖的木桩，砍塔的人先被扎穿脚背。",
+			"culture_en": "A ring of sharpened stakes surrounds the base; whoever hacks the tower is skewered first.",
+			"icon": "res://assets/icons/game_icons/card_palisade.svg",
+			"max_level": 4,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_thorns",
+					"amount": 0.1
+				}
+			]
+		},
+		"tower_lamp_draught": {
+			"name_zh": "灯油回魂",
+			"name_en": "Lamp Oil Draught",
+			"desc_zh": "箭塔造成伤害的 3% 转为你的生命。",
+			"desc_en": "3% of tower damage heals you.",
+			"culture_zh": "塔上灯油与药囊同源。箭出得多，灯就旺，人的气也跟着回来。",
+			"culture_en": "The tower's oil and your medicine come from the same jar: more arrows, brighter lamp, steadier breath.",
+			"icon": "res://assets/icons/game_icons/card_target_arrows.svg",
+			"max_level": 4,
+			"rarity": "rare",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_lifesteal",
+					"amount": 0.03
+				}
+			]
+		},
+		"tower_drum_call": {
+			"name_zh": "击鼓聚敌",
+			"name_en": "Drum Call",
+			"desc_zh": "箭塔吸引敌人的范围 +15%。",
+			"desc_en": "Tower taunt radius +15%.",
+			"culture_zh": "楼上架一面小鼓，鼓点一响，倭寇便以为守军主力在那座楼里。",
+			"culture_en": "A small drum on the platform: its beat convinces the wokou that the defenders' main force is inside.",
+			"icon": "res://assets/icons/game_icons/card_drum.svg",
+			"max_level": 4,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_taunt",
+					"amount": 0.15
+				}
+			]
+		},
+		"tower_broad_base": {
+			"name_zh": "扩筑基座",
+			"name_en": "Broadened Base",
+			"desc_zh": "箭塔体型 +6%，耐久同步提升。",
+			"desc_en": "Tower size +6% (with durability).",
+			"culture_zh": "基座向外扩一圈条石，楼上便能多站一人、多架一弩。",
+			"culture_en": "One more course of stone widens the base: room for another archer and another crossbow.",
+			"icon": "res://assets/icons/game_icons/card_stone_tower.svg",
+			"max_level": 3,
+			"rarity": "common",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_size_mult",
+					"amount": 0.06
+				},
+				{
+					"stat": "tower_hp_mult",
+					"amount": 0.04
+				}
+			]
+		},
+		"tower_swift_loose": {
+			"name_zh": "轻矢快弦",
+			"name_en": "Swifter Loose",
+			"desc_zh": "箭矢飞行速度 +10%。",
+			"desc_en": "Arrow flight speed +10%.",
+			"culture_zh": "箭杆削细一分，弦换新牛筋，箭出得又快又平。",
+			"culture_en": "A slimmer shaft and a fresh sinew string: the bolt leaves fast and flat.",
+			"icon": "res://assets/icons/game_icons/card_pocket_bow.svg",
+			"max_level": 4,
+			"rarity": "common",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_arrow_speed",
+					"amount": 0.1
+				}
+			]
+		},
+		"tower_ascent": {
+			"name_zh": "箭塔升阶",
+			"name_en": "Tower Ascent",
+			"desc_zh": "所有箭塔升一阶：望楼→箭楼→龙首箭楼。",
+			"desc_en": "Upgrade every tower one tier.",
+			"culture_zh": "从木构望楼到砖石箭楼，再到龙首铜弩的高台 —— 一座楼的成长，就是一条海岸线的成长。",
+			"culture_en": "From timber watchtower to brick arrow tower to the dragon-headed ballista platform: a tower's growth is a shoreline's growth.",
+			"icon": "res://assets/icons/game_icons/card_siege_tower.svg",
+			"max_level": 2,
+			"rarity": "legendary",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_tier",
+					"amount": 1
+				}
+			]
+		},
+		"tower_gleanings": {
+			"name_zh": "塔下拾遗",
+			"name_en": "Gleanings Below",
+			"desc_zh": "箭塔击杀的经验 +12%。",
+			"desc_en": "Tower kills grant +12% XP.",
+			"culture_zh": "塔下的箭簇与散落的行囊，守夜人顺手就捡了。",
+			"culture_en": "Bolts and spilled packs below the tower: the watch picks them up in passing.",
+			"icon": "res://assets/icons/game_icons/card_arrowhead.svg",
+			"max_level": 4,
+			"rarity": "common",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_xp_gain",
+					"amount": 0.12
+				}
+			]
+		},
+		"tower_merit_ledger": {
+			"name_zh": "军功记塔",
+			"name_en": "Tower Merits",
+			"desc_zh": "箭塔击杀的军功 +10%。",
+			"desc_en": "Tower kills grant +10% merit.",
+			"culture_zh": "每座楼都有一本小册，记录它射落了多少人 —— 战后凭册记功。",
+			"culture_en": "Each tower keeps a small ledger of its kills; merit is counted from it after the battle.",
+			"icon": "res://assets/icons/game_icons/card_wooden_crate.svg",
+			"max_level": 4,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_gold_gain",
+					"amount": 0.1
+				}
+			]
+		},
+		"tower_barricade_line": {
+			"name_zh": "拒马横列",
+			"name_en": "Barricade Line",
+			"desc_zh": "箭矢减速 +10%，击退 +40。",
+			"desc_en": "Arrow slow +10%, knockback +40.",
+			"culture_zh": "塔前横一排拒马，箭把敌人钉在木刺之间，进退都难。",
+			"culture_en": "A row of barricades before the tower: arrows pin attackers among the spikes, unable to advance or retreat.",
+			"icon": "res://assets/icons/game_icons/card_barricade.svg",
+			"max_level": 3,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_slow",
+					"amount": 0.1
+				},
+				{
+					"stat": "tower_knockback",
+					"amount": 40.0
+				}
+			]
+		},
+		"tower_watch_fire": {
+			"name_zh": "烽火相望",
+			"name_en": "Beacon Sight",
+			"desc_zh": "箭塔射程 +6%，暴击 +3%。",
+			"desc_en": "Tower range +6%, crit +3%.",
+			"culture_zh": "沿海诸堡以烽火相望。一处举火，邻堡便知敌从哪个方向来。",
+			"culture_en": "Coastal forts answer each other with beacon fire; one light tells the next where the enemy comes from.",
+			"icon": "res://assets/icons/game_icons/card_castle.svg",
+			"max_level": 4,
+			"rarity": "uncommon",
+			"category": "工事",
+			"source_ref": "data/towers.json",
+			"effects": [
+				{
+					"stat": "tower_range_mult",
+					"amount": 0.06
+				},
+				{
+					"stat": "tower_crit",
+					"amount": 0.03
+				}
+			]
 		}
 	}
 }

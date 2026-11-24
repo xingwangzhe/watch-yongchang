@@ -10,18 +10,25 @@ signal oil_collected(amount: int)
 signal heal_collected(amount: float)
 signal xp_collected(amount: float)
 signal ally_support(source_id: String, kind: String, amount: float)
+signal tower_destroyed(tower_id: String, world_position: Vector2)
+signal tower_damaged(tower_id: String, ratio: float)
 
 const CELL_SIZE := 64.0
 const VIEW_HALF := Vector2(720.0, 430.0)
 const ENEMY_BATCH_CAPACITY := 512
 const ENEMY_SPRITE_BASE_SIZE := 96.0
 const PLAYER_SPRITE_SIZE := 96.0
+const TOWER_AGGRO := 360.0
+const TOWER_SPRITE_BASE := 168.0
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
 const PAPER := Color("#efe1c2")
 const GOLD := Color("#e1b35a")
+const TOWER_REBUILD_DELAY := 26.0
 
 var enemies: Array[Dictionary] = []
 var allies: Array[Dictionary] = []
+var towers: Array[Dictionary] = []
+var tower_shots: Array[Dictionary] = []
 var orbs: Array[Dictionary] = []
 var oil_drops: Array[Dictionary] = []
 var heal_drops: Array[Dictionary] = []
@@ -39,6 +46,9 @@ var time := 0.0
 var rng := RandomNumberGenerator.new()
 var enemy_data: Dictionary = {}
 var mercenary_data: Dictionary = {}
+var tower_defs: Dictionary = {}
+var tower_stats: Dictionary = {}
+var tower_textures: Dictionary = {}
 var textures: Dictionary = {}
 var enemy_sprite_frames: Dictionary = {}
 var player_idle_frames: Array[Texture2D] = []
@@ -87,6 +97,7 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 	_enemy_quad.size = Vector2.ONE
 	enemy_data = GameData.get_enemies()
 	mercenary_data = GameData.get_mercenaries()
+	_load_towers()
 	for enemy_id in enemy_data.keys():
 		var definition: Dictionary = enemy_data[enemy_id]
 		var texture_path := str(definition.get("texture", ""))
@@ -141,9 +152,381 @@ func _load_sprite_frames(path: String, frame_count: int) -> Array[Texture2D]:
 	return result
 
 
+# ============================================================ 箭塔（友方工事）
+# 箭塔是静态友方实体：自动锁定射程内最近的倭寇、发射箭矢、有独立血量，
+# 会被靠近的倭寇围攻摧毁。数值基线来自 data/towers.json，
+# 三选一卡牌的 tower_* 增益通过 apply_tower_stats() 统一作用。
+
+func _load_towers() -> void:
+	var data := GameData.load_json("res://data/towers.json")
+	tower_defs = data.get("towers", {}) as Dictionary
+	tower_textures.clear()
+	for tower_id in tower_defs.keys():
+		var definition: Dictionary = tower_defs[tower_id] as Dictionary
+		var texture := GameData.texture(str(definition.get("texture", "")))
+		if texture == null:
+			push_warning("Missing tower texture: %s" % definition.get("texture", ""))
+			continue
+		tower_textures[tower_id] = texture
+
+
+func tower_definition(tower_id: String) -> Dictionary:
+	return tower_defs.get(tower_id, {}) as Dictionary
+
+
+func apply_tower_stats(stats: Dictionary) -> void:
+	"""由 run_game._recompute_stats() 推送塔增益；同步缩放既有塔的血量上限。"""
+	tower_stats = stats.duplicate(true)
+	for tower in towers:
+		if not bool(tower.get("alive", true)):
+			continue
+		var definition := tower_definition(str(tower["id"]))
+		var base_hp := float(definition.get("hp", 300.0))
+		var new_max := base_hp * float(stats.get("tower_hp_mult", 1.0))
+		var ratio := 1.0
+		if float(tower["max_hp"]) > 0.0:
+			ratio = clampf(float(tower["hp"]) / float(tower["max_hp"]), 0.0, 1.0)
+		tower["max_hp"] = new_max
+		tower["hp"] = clampf(new_max * ratio, 1.0, new_max)
+		tower["radius"] = float(definition.get("radius", 36.0)) * float(stats.get("tower_size_mult", 1.0))
+		tower["armor"] = clampf(float(stats.get("tower_armor", 0.0)), 0.0, 0.70)
+
+
+func spawn_tower(tower_id: String, position: Vector2) -> int:
+	if not tower_defs.has(tower_id):
+		return -1
+	var definition: Dictionary = tower_defs[tower_id] as Dictionary
+	var spawn_position := position
+	if map_layout != null:
+		spawn_position = map_layout.find_walkable_position(position, 20.0)
+	var max_hp := float(definition.get("hp", 300.0)) * float(tower_stats.get("tower_hp_mult", 1.0))
+	var tower := {
+		"id": tower_id,
+		"pos": spawn_position,
+		"hp": max_hp,
+		"max_hp": max_hp,
+		"radius": float(definition.get("radius", 36.0)) * float(tower_stats.get("tower_size_mult", 1.0)),
+		"range": float(definition.get("range", 420.0)),
+		"damage": float(definition.get("damage", 20.0)),
+		"cooldown": float(definition.get("cooldown", 1.2)),
+		"attack_timer": rng.randf_range(0.1, 0.7),
+		"pierce": int(definition.get("pierce", 1)),
+		"projectile_speed": float(definition.get("projectile_speed", 640.0)),
+		"arrow_color": Color(str(definition.get("arrow_color", "#efe0b4"))),
+		"sprite_scale": float(definition.get("sprite_scale", 1.0)),
+		"armor": clampf(float(tower_stats.get("tower_armor", 0.0)), 0.0, 0.70),
+		"flash": 0.0,
+		"hit_cd": 0.0,
+		"heat": 0.0,
+		"alive": true,
+		"rebuild_timer": 0.0,
+		"tex": tower_textures.get(tower_id, null) as Texture2D,
+	}
+	towers.append(tower)
+	return towers.size() - 1
+
+
+func live_tower_count() -> int:
+	var total := 0
+	for tower in towers:
+		if bool(tower.get("alive", false)):
+			total += 1
+	return total
+
+
+func tower_summary() -> Array[Dictionary]:
+	"""给 HUD 用的轻量快照，避免 UI 侧直接摸实体池。"""
+	var views: Array[Dictionary] = []
+	for tower in towers:
+		if not bool(tower.get("alive", false)):
+			continue
+		var definition := tower_definition(str(tower["id"]))
+		views.append({
+			"id": str(tower["id"]),
+			"name": str(definition.get("name_zh", "")),
+			"hp": float(tower["hp"]),
+			"max_hp": float(tower["max_hp"]),
+		})
+	return views
+
+
+func upgrade_tower(index: int, next_id: String, heal_ratio: float = 0.45) -> bool:
+	if index < 0 or index >= towers.size():
+		return false
+	if not tower_defs.has(next_id):
+		return false
+	var tower := towers[index]
+	if not bool(tower.get("alive", false)):
+		return false
+	var definition := tower_definition(next_id)
+	tower["id"] = next_id
+	tower["tex"] = tower_textures.get(next_id, tower.get("tex", null)) as Texture2D
+	tower["sprite_scale"] = float(definition.get("sprite_scale", 1.0))
+	tower["radius"] = float(definition.get("radius", 36.0)) * float(tower_stats.get("tower_size_mult", 1.0))
+	tower["range"] = float(definition.get("range", 420.0))
+	tower["damage"] = float(definition.get("damage", 20.0))
+	tower["cooldown"] = float(definition.get("cooldown", 1.2))
+	tower["pierce"] = int(definition.get("pierce", 1))
+	tower["projectile_speed"] = float(definition.get("projectile_speed", 640.0))
+	var new_max := float(definition.get("hp", 300.0)) * float(tower_stats.get("tower_hp_mult", 1.0))
+	tower["max_hp"] = maxf(new_max, float(tower["max_hp"]))
+	tower["hp"] = clampf(float(tower["hp"]) + new_max * heal_ratio, 1.0, float(tower["max_hp"]))
+	add_effect({
+		"type": "aura", "pos": tower["pos"], "ttl": 0.7, "max_ttl": 0.7,
+		"radius": 96.0, "color": Color("#f0c363"),
+	})
+	return true
+
+
+func _update_towers(delta: float) -> void:
+	if towers.is_empty():
+		return
+	var range_mult := float(tower_stats.get("tower_range_mult", 1.0))
+	var damage_mult := float(tower_stats.get("tower_damage_mult", 1.0))
+	var rate_mult := clampf(float(tower_stats.get("tower_fire_rate", 1.0)), 0.30, 1.0)
+	var regen := float(tower_stats.get("tower_regen", 0.0))
+	var volley := int(tower_stats.get("tower_volley", 0))
+	var pierce_bonus := int(tower_stats.get("tower_pierce", 0))
+	var crit_chance := clampf(float(tower_stats.get("tower_crit", 0.0)), 0.0, 1.0)
+	var arrow_speed_mult := float(tower_stats.get("tower_arrow_speed", 1.0))
+	var overcharge := clampf(float(tower_stats.get("tower_overcharge", 0.0)), 0.0, 0.55)
+	var rebuild_bonus := float(tower_stats.get("tower_rebuild", 0.0))
+	for tower in towers:
+		if not bool(tower.get("alive", false)):
+			continue
+		tower["flash"] = maxf(0.0, float(tower["flash"]) - delta)
+		tower["hit_cd"] = maxf(0.0, float(tower["hit_cd"]) - delta)
+		if regen > 0.0 and float(tower["hp"]) < float(tower["max_hp"]):
+			tower["hp"] = minf(float(tower["max_hp"]), float(tower["hp"]) + regen * delta)
+		tower["attack_timer"] = float(tower["attack_timer"]) - delta
+		tower["heat"] = maxf(0.0, float(tower["heat"]) - delta * 1.6)
+		var position := tower["pos"] as Vector2
+		var effective_range := float(tower["range"]) * range_mult
+		var target := nearest_enemy(position, effective_range)
+		if target.is_empty() or float(tower["attack_timer"]) > 0.0:
+			continue
+		tower["heat"] = minf(1.0, float(tower["heat"]) + 0.34)
+		var spread := 1.0 + overcharge * float(tower["heat"])
+		var shots := 1 + volley
+		var base_damage := float(tower["damage"]) * damage_mult
+		var target_pos := target["pos"] as Vector2
+		for shot_index in range(shots):
+			var aim := (target_pos - position)
+			if shots > 1:
+				var jitter := (float(shot_index) - float(shots - 1) * 0.5) * 0.09
+				aim = aim.rotated(jitter)
+			var damage := base_damage
+			var critical := false
+			if crit_chance > 0.0 and rng.randf() < crit_chance:
+				damage *= 1.8
+				critical = true
+			_fire_tower_arrow(
+				position,
+				aim.normalized(),
+				float(tower["projectile_speed"]) * arrow_speed_mult,
+				damage,
+				int(tower["pierce"]) + pierce_bonus,
+				tower["arrow_color"] as Color,
+				critical
+			)
+		tower["attack_timer"] = maxf(0.08, float(tower["cooldown"]) * rate_mult / spread)
+
+
+func _fire_tower_arrow(origin: Vector2, direction: Vector2, speed: float, damage: float, pierce: int, color: Color, critical: bool) -> void:
+	if tower_shots.size() > 220:
+		return
+	tower_shots.append({
+		"pos": origin,
+		"vel": direction * speed,
+		"damage": damage,
+		"pierce": maxi(1, pierce),
+		"ttl": 1.5,
+		"hit": [],
+		"color": color,
+		"critical": critical,
+		"burn": float(tower_stats.get("tower_burn", 0.0)),
+		"slow": float(tower_stats.get("tower_slow", 0.0)),
+		"knockback": float(tower_stats.get("tower_knockback", 0.0)),
+		"splash": float(tower_stats.get("tower_splash", 0.0)),
+		"chain": int(tower_stats.get("tower_chain", 0)),
+		"execute": float(tower_stats.get("tower_execute", 0.0)),
+		"lifesteal": float(tower_stats.get("tower_lifesteal", 0.0)),
+		"marksman": float(tower_stats.get("tower_marksman", 0.0)),
+		"origin": origin,
+	})
+
+
+func _update_tower_shots(delta: float) -> void:
+	if tower_shots.is_empty():
+		return
+	for shot in tower_shots:
+		if float(shot["ttl"]) <= 0.0:
+			continue
+		shot["ttl"] = float(shot["ttl"]) - delta
+		var previous_position := shot["pos"] as Vector2
+		var position := previous_position + (shot["vel"] as Vector2) * delta
+		if map_layout != null and map_layout.is_segment_wall_blocked(previous_position, position, 3.0):
+			shot["ttl"] = 0.0
+			continue
+		shot["pos"] = position
+		var hit_list: Array = shot["hit"] as Array
+		for index in query_circle(position, 38.0):
+			if hit_list.has(index) or index < 0 or index >= enemies.size():
+				continue
+			var enemy := enemies[index]
+			if not bool(enemy.get("alive", false)):
+				continue
+			var enemy_pos := enemy["pos"] as Vector2
+			if position.distance_to(enemy_pos) > 22.0 + float(enemy["radius"]):
+				continue
+			hit_list.append(index)
+			var direction := (shot["vel"] as Vector2).normalized()
+			var damage := float(shot["damage"])
+			# 神射：距离越远伤害越高
+			var marksman := float(shot.get("marksman", 0.0))
+			if marksman > 0.0:
+				var travelled := (shot["origin"] as Vector2).distance_to(enemy_pos)
+				damage *= 1.0 + marksman * clampf(travelled / 420.0, 0.0, 1.0)
+			# 破甲：残血直接斩杀
+			var execute := float(shot.get("execute", 0.0))
+			if execute > 0.0 and float(enemy["hp"]) <= float(enemy["max_hp"]) * execute:
+				damage = maxf(damage, float(enemy["hp"]) + 1.0)
+			damage_enemy(index, damage, direction * float(shot.get("knockback", 0.0)), shot["color"] as Color, bool(shot["critical"]))
+			var burn := float(shot.get("burn", 0.0))
+			if burn > 0.0:
+				enemy["burn_timer"] = maxf(float(enemy.get("burn_timer", 0.0)), 2.4)
+				enemy["burn_dps"] = maxf(float(enemy.get("burn_dps", 0.0)), burn)
+			var slow := float(shot.get("slow", 0.0))
+			if slow > 0.0:
+				enemy["slow_timer"] = maxf(float(enemy.get("slow_timer", 0.0)), 1.8)
+				enemy["slow_factor"] = minf(float(enemy.get("slow_factor", 1.0)), clampf(1.0 - slow, 0.25, 1.0))
+			var splash := float(shot.get("splash", 0.0))
+			if splash > 0.0:
+				damage_circle(enemy_pos, splash, damage * 0.45, 0.0, shot["color"] as Color)
+			var lifesteal := float(shot.get("lifesteal", 0.0))
+			if lifesteal > 0.0:
+				ally_support.emit("tower", "heal", damage * lifesteal)
+			var chain := int(shot.get("chain", 0))
+			if chain > 0:
+				_chain_tower_arrow(enemy_pos, index, damage * 0.6, chain, shot["color"] as Color)
+			shot["pierce"] = int(shot["pierce"]) - 1
+			if int(shot["pierce"]) <= 0:
+				shot["ttl"] = 0.0
+				break
+
+
+func _chain_tower_arrow(origin: Vector2, skip_index: int, damage: float, jumps: int, color: Color) -> void:
+	var current := origin
+	var visited: Array[int] = [skip_index]
+	for i in range(jumps):
+		var best := -1
+		var best_dist := 190.0 * 190.0
+		for index in query_circle(current, 190.0):
+			if visited.has(index) or index < 0 or index >= enemies.size():
+				continue
+			var enemy := enemies[index]
+			if not bool(enemy.get("alive", false)):
+				continue
+			var dist := current.distance_squared_to(enemy["pos"] as Vector2)
+			if dist < best_dist:
+				best_dist = dist
+				best = index
+		if best < 0:
+			return
+		visited.append(best)
+		var next_pos := enemies[best]["pos"] as Vector2
+		add_effect({
+			"type": "thrust", "pos": current, "ttl": 0.18, "max_ttl": 0.18,
+			"direction": (next_pos - current).normalized(),
+			"length": current.distance_to(next_pos), "color": color,
+		})
+		damage_enemy(best, damage, Vector2.ZERO, color, false)
+		current = next_pos
+		damage *= 0.8
+
+
+func damage_tower(index: int, damage: float, attacker_index: int = -1) -> void:
+	if index < 0 or index >= towers.size():
+		return
+	var tower := towers[index]
+	if not bool(tower.get("alive", false)):
+		return
+	var armor := clampf(float(tower.get("armor", 0.0)), 0.0, 0.70)
+	var final_damage := maxf(1.0, damage * (1.0 - armor))
+	tower["hp"] = float(tower["hp"]) - final_damage
+	tower["flash"] = 0.16
+	tower_damaged.emit(str(tower["id"]), clampf(float(tower["hp"]) / maxf(1.0, float(tower["max_hp"])), 0.0, 1.0))
+	# 荆棘墙：塔受击反弹伤害给攻击者
+	var thorns := float(tower_stats.get("tower_thorns", 0.0))
+	if thorns > 0.0 and attacker_index >= 0:
+		damage_enemy(attacker_index, final_damage * thorns, Vector2.ZERO, Color("#d9a95f"), false)
+	if float(tower["hp"]) <= 0.0:
+		_destroy_tower(index)
+
+
+func _destroy_tower(index: int) -> void:
+	var tower := towers[index]
+	if not bool(tower.get("alive", false)):
+		return
+	tower["alive"] = false
+	tower["hp"] = 0.0
+	var position := tower["pos"] as Vector2
+	add_effect({
+		"type": "death", "pos": position, "ttl": 0.85, "max_ttl": 0.85,
+		"radius": 96.0, "color": Color("#c4573d"),
+	})
+	add_effect({
+		"type": "aura", "pos": position, "ttl": 0.6, "max_ttl": 0.6,
+		"radius": 140.0, "color": Color("#e07845"),
+	})
+	tower_destroyed.emit(str(tower["id"]), position)
+	# 重建：由「修造」类增益解锁，倒计时后原地复起，血量按比例
+	var rebuild := float(tower_stats.get("tower_rebuild", 0.0))
+	if rebuild > 0.0:
+		tower["rebuild_timer"] = TOWER_REBUILD_DELAY * clampf(1.0 - rebuild, 0.25, 1.0)
+	else:
+		tower["rebuild_timer"] = -1.0
+
+
+func _revive_towers(delta: float) -> void:
+	for tower in towers:
+		if bool(tower.get("alive", false)):
+			continue
+		var timer := float(tower.get("rebuild_timer", -1.0))
+		if timer < 0.0:
+			continue
+		timer -= delta
+		tower["rebuild_timer"] = timer
+		if timer > 0.0:
+			continue
+		tower["alive"] = true
+		tower["hp"] = float(tower["max_hp"]) * clampf(float(tower_stats.get("tower_rebuild_hp", 0.6)), 0.2, 1.0)
+		tower["attack_timer"] = 0.5
+		add_effect({
+			"type": "aura", "pos": tower["pos"], "ttl": 0.8, "max_ttl": 0.8,
+			"radius": 110.0, "color": Color("#9bc27e"),
+		})
+
+
+func _nearest_tower_index(origin: Vector2, max_range: float) -> int:
+	var best := -1
+	var best_dist := max_range
+	for index in range(towers.size()):
+		var tower := towers[index]
+		if not bool(tower.get("alive", false)):
+			continue
+		var dist := origin.distance_to(tower["pos"] as Vector2) - float(tower["radius"])
+		if dist < best_dist:
+			best_dist = dist
+			best = index
+	return best
+
+
 func reset(seed_value: int = 20261123) -> void:
 	enemies.clear()
 	allies.clear()
+	towers.clear()
+	tower_shots.clear()
 	orbs.clear()
 	oil_drops.clear()
 	heal_drops.clear()
@@ -179,9 +562,12 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	_screen_clear_timer = maxf(0.0, _screen_clear_timer - delta)
 	_dragon_phase += delta * 1.7
 	_rebuild_spatial()
+	_update_towers(delta)
+	_revive_towers(delta)
 	_update_allies(delta, player)
 	_update_enemies(delta, player, enemy_speed_mult)
 	_update_player_shots(delta)
+	_update_tower_shots(delta)
 	_update_enemy_shots(delta, player)
 	_update_pickups(delta, player)
 	_update_effects(delta)
@@ -827,8 +1213,9 @@ func _ally_attack(ally: Dictionary, target: Dictionary, direction: Vector2) -> v
 
 
 func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> void:
-	var target := player.get("pos", Vector2.ZERO) as Vector2
+	var player_pos_target := player.get("pos", Vector2.ZERO) as Vector2
 	var dark_speed := 1.0
+	var aggro := TOWER_AGGRO * float(tower_stats.get("tower_taunt", 1.0))
 	for index in range(enemies.size()):
 		var enemy := enemies[index]
 		if not bool(enemy.get("alive", false)):
@@ -851,13 +1238,30 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			if not bool(enemy.get("alive", false)):
 				continue
 		var position := enemy["pos"] as Vector2
-		var to_player := target - position
-		var distance := maxf(0.001, to_player.length())
-		var direction := to_player / distance
+		# 目标选择：最近的活塔若严格近于玩家，则改为围攻箭塔。
+		# 这样箭塔能替玩家吸收压力，但不会让杂兵完全无视玩家。
+		var target := player_pos_target
+		var siege_index := -1
+		var player_distance := position.distance_to(player_pos_target)
+		if not towers.is_empty():
+			var tower_index := _nearest_tower_index(position, aggro)
+			if tower_index >= 0:
+				var tower_distance := position.distance_to(towers[tower_index]["pos"] as Vector2)
+				if tower_distance < player_distance:
+					siege_index = tower_index
+					target = towers[tower_index]["pos"] as Vector2
+		var to_target := target - position
+		var distance := maxf(0.001, to_target.length())
+		var direction := to_target / distance
 		var behavior := str(enemy["behavior"])
 		var movement := Vector2.ZERO
 		var navigation := direction
-		if map_layout != null:
+		if siege_index >= 0:
+			# 塔在前方近处时不走流场（流场只指向玩家），直线压上并贴塔。
+			navigation = direction
+			if map_layout != null and distance > 90.0:
+				navigation = direction
+		elif map_layout != null:
 			navigation = map_layout.navigation_direction(position, target)
 		if behavior == "ranged":
 			if distance > float(enemy["attack_range"]) * 0.82:
@@ -901,11 +1305,21 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 				clampf(float(enemy["radius"]) * 0.72, 9.0, 26.0)
 			)
 		enemy["pos"] = position
-		if distance < player_radius + float(enemy["radius"]) and _contact_cd <= 0.0:
+		if siege_index >= 0 and siege_index < towers.size():
+			# 逼近到塔基座就动手拆塔
+			var tower := towers[siege_index]
+			if bool(tower.get("alive", false)):
+				var tower_pos := tower["pos"] as Vector2
+				var reach := float(tower["radius"]) + float(enemy["radius"]) + 6.0
+				if position.distance_to(tower_pos) <= reach and float(tower.get("hit_cd", 0.0)) <= 0.0:
+					play_enemy_attack_fx(str(enemy["id"]), tower_pos, direction)
+					damage_tower(siege_index, float(enemy["damage"]), index)
+					tower["hit_cd"] = 0.62
+		elif distance < player_radius + float(enemy["radius"]) and _contact_cd <= 0.0:
 			play_enemy_attack_fx(str(enemy["id"]), position, direction)
 			player_hit.emit(float(enemy["damage"]))
 			_contact_cd = 0.70
-		if position.distance_squared_to(target) > 2100.0 * 2100.0:
+		if position.distance_squared_to(player_pos_target) > 2100.0 * 2100.0:
 			enemy["alive"] = false
 		if _screen_clear_timer > 0.0:
 			enemy["speed"] = float(enemy["speed"])
@@ -964,6 +1378,19 @@ func _update_enemy_shots(delta: float, player: Dictionary) -> void:
 			shot["ttl"] = 0.0
 			continue
 		shot["pos"] = position
+		# 箭塔同样会吃流矢：先判塔，再判玩家。
+		var tower_hit := false
+		for tower_index in range(towers.size()):
+			var tower := towers[tower_index]
+			if not bool(tower.get("alive", false)):
+				continue
+			if position.distance_to(tower["pos"] as Vector2) < float(tower["radius"]) + 9.0:
+				damage_tower(tower_index, float(shot["damage"]))
+				shot["ttl"] = 0.0
+				tower_hit = true
+				break
+		if tower_hit:
+			continue
 		if position.distance_to(target) < player_radius + 9.0:
 			player_hit.emit(float(shot["damage"]))
 			shot["ttl"] = 0.0
@@ -1040,6 +1467,9 @@ func _update_effects(delta: float) -> void:
 	for index in range(enemy_shots.size() - 1, -1, -1):
 		if float(enemy_shots[index]["ttl"]) <= 0.0:
 			enemy_shots.remove_at(index)
+	for index in range(tower_shots.size() - 1, -1, -1):
+		if float(tower_shots[index]["ttl"]) <= 0.0:
+			tower_shots.remove_at(index)
 
 
 func _cleanup_dead() -> void:
@@ -1049,6 +1479,13 @@ func _cleanup_dead() -> void:
 			continue
 		enemies.remove_at(index)
 		removed += 1
+	# 未解锁重建的塔：残骸保留片刻后彻底移除
+	for index in range(towers.size() - 1, -1, -1):
+		var tower := towers[index]
+		if bool(tower.get("alive", false)):
+			continue
+		if float(tower.get("rebuild_timer", -1.0)) < -1.0:
+			towers.remove_at(index)
 	_dead_count = 0
 	if removed > 0:
 		_rebuild_spatial()
@@ -1118,21 +1555,104 @@ func _draw() -> void:
 	if map_layout == null:
 		draw_rect(Rect2(center - VIEW_HALF, VIEW_HALF * 2.0), Color("#111a19"))
 	_draw_light(center)
+	_draw_towers()
 	_draw_pickups()
 	_draw_enemies()
 	_draw_allies()
 	_draw_player()
 	_draw_projectiles()
+	_draw_tower_shots()
 	_draw_jeff_fx()
 	_draw_effects()
 	FeedbackManager.draw(self)
 	_draw_dragons()
 
+func _draw_towers() -> void:
+	if towers.is_empty():
+		return
+	for tower in towers:
+		var position := tower["pos"] as Vector2
+		var alive := bool(tower.get("alive", false))
+		if absf(position.x - player_pos.x) > VIEW_HALF.x + 220.0:
+			continue
+		if absf(position.y - player_pos.y) > VIEW_HALF.y + 260.0:
+			continue
+		var size := TOWER_SPRITE_BASE * float(tower.get("sprite_scale", 1.0))
+		# 落地阴影
+		draw_circle(position + Vector2(0, size * 0.28), size * 0.34, Color(0.0, 0.0, 0.0, 0.26))
+		var tex := tower.get("tex", null) as Texture2D
+		if not alive:
+			# 残骸：压暗 + 半高
+			if tex != null:
+				draw_set_transform(position, 0.0, Vector2(1.0, 0.42))
+				draw_texture_rect(
+					tex,
+					Rect2(Vector2(-size * 0.5, -size * 0.79), Vector2(size, size)),
+					false,
+					Color(0.30, 0.24, 0.22, 0.85)
+				)
+				draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			continue
+		if tex != null:
+			var tint := Color.WHITE
+			if float(tower["flash"]) > 0.0:
+				tint = FeedbackManager.config.flash_color
+			draw_set_transform(position, 0.0, Vector2(1.0, 1.0))
+			draw_texture_rect(
+				tex,
+				Rect2(Vector2(-size * 0.5, -size * 0.79), Vector2(size, size)),
+				false,
+				tint
+			)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		else:
+			draw_rect(
+				Rect2(position - Vector2(size * 0.5, size * 0.9), Vector2(size, size)),
+				Color("#6d5a42")
+			)
+		# 血条：仅在受损时显示，避免常驻 HUD 噪点
+		var hp_ratio := clampf(float(tower["hp"]) / maxf(1.0, float(tower["max_hp"])), 0.0, 1.0)
+		if hp_ratio < 0.999:
+			var bar_w := size * 0.62
+			var bar_pos := position + Vector2(-bar_w * 0.5, -size * 0.92)
+			draw_rect(Rect2(bar_pos, Vector2(bar_w, 5)), Color(0.04, 0.04, 0.05, 0.82))
+			var bar_color := Color("#8fbf6e")
+			if hp_ratio < 0.32:
+				bar_color = Color("#c4573d")
+			elif hp_ratio < 0.66:
+				bar_color = Color("#d8b45f")
+			draw_rect(Rect2(bar_pos, Vector2(bar_w * hp_ratio, 5)), bar_color)
+
+
+func _draw_tower_shots() -> void:
+	if tower_shots.is_empty():
+		return
+	for shot in tower_shots:
+		var position := shot["pos"] as Vector2
+		var vel := shot["vel"] as Vector2
+		var direction := vel.normalized()
+		var color := shot["color"] as Color
+		var side := Vector2(-direction.y, direction.x)
+		# 箭矢按真实形状绘制（杆 + 箭头 + 尾羽），不用长线条冒充
+		var tail := position - direction * 17.0
+		draw_line(tail, position, color, 2.0, true)
+		var head := position + direction * 6.0
+		draw_colored_polygon(
+			PackedVector2Array([head, position - direction * 1.0 + side * 3.0, position - direction * 1.0 - side * 3.0]),
+			color
+		)
+		draw_line(tail, tail - direction * 4.0 + side * 2.5, Color(color, 0.7), 1.0, true)
+		draw_line(tail, tail - direction * 4.0 - side * 2.5, Color(color, 0.7), 1.0, true)
+
+
 func _draw_light(center: Vector2) -> void:
+	# 灯火范围用多层柔和衰减表现，保留「照到哪」的判断依据，
+	# 但不再画一道生硬的辅助圆弧线。
 	var light_radius := float(get_meta("light_radius", 225.0))
-	draw_circle(center, light_radius + 70.0, Color(0.95, 0.62, 0.22, 0.035))
-	draw_circle(center, light_radius + 32.0, Color(0.98, 0.72, 0.28, 0.045))
-	draw_arc(center, light_radius, 0.0, TAU, 64, Color(0.98, 0.72, 0.28, 0.18), 2.0, true)
+	draw_circle(center, light_radius + 90.0, Color(0.95, 0.62, 0.22, 0.030))
+	draw_circle(center, light_radius + 58.0, Color(0.96, 0.66, 0.24, 0.034))
+	draw_circle(center, light_radius + 30.0, Color(0.98, 0.72, 0.28, 0.040))
+	draw_circle(center, light_radius + 10.0, Color(0.99, 0.78, 0.34, 0.046))
 
 
 func _draw_pickups() -> void:
@@ -1140,7 +1660,6 @@ func _draw_pickups() -> void:
 		var position := orb["pos"] as Vector2
 		draw_circle(position, 7.0, Color(0.94, 0.70, 0.27, 0.16))
 		draw_circle(position, 3.5, Color(0.98, 0.83, 0.44, 0.96))
-		draw_arc(position, 8.0, 0.0, TAU, 12, Color(0.98, 0.82, 0.38, 0.38), 1.0, true)
 	for drop in oil_drops:
 		var position := drop["pos"] as Vector2
 		draw_circle(position, 11.0, Color(0.92, 0.64, 0.22, 0.20))
@@ -1158,7 +1677,6 @@ func _draw_pickups() -> void:
 		var bob := sin(time * 4.0 + float(scale["phase"])) * 4.0
 		draw_circle(position + Vector2(0, bob), 13.0, Color(color, 0.18))
 		draw_circle(position + Vector2(0, bob), 7.0, color)
-		draw_arc(position + Vector2(0, bob), 13.0, 0.0, TAU, 16, Color(color, 0.70), 2.0, true)
 
 
 func _draw_enemies() -> void:
@@ -1186,11 +1704,6 @@ func _draw_enemies() -> void:
 		_draw_enemy_batch(str(batch_id), groups[batch_id] as Array, false)
 	for enemy in decorations:
 		var position := enemy["pos"] as Vector2
-		var radius := float(enemy["radius"])
-		var ring_color := Color(GOLD, 0.64)
-		if not str(enemy.get("scale_color", "")).is_empty():
-			ring_color = Color(_scale_color(str(enemy["scale_color"])), 0.72)
-		draw_arc(position, radius + 7.0, 0.0, TAU, 20, ring_color, 2.0, true)
 		if float(enemy["hp"]) < float(enemy["max_hp"]) and bool(enemy.get("boss", false)):
 			var width := 96.0
 			var ratio := clampf(float(enemy["hp"]) / float(enemy["max_hp"]), 0.0, 1.0)
@@ -1290,7 +1803,6 @@ func _draw_player() -> void:
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		draw_circle(player_pos, 22.0, Color("#d8b45a"))
-	draw_circle(player_pos + Vector2(0, -30), 5.0, Color(1.0, 0.78, 0.34, 0.48))
 
 
 func _draw_allies() -> void:
@@ -1299,9 +1811,6 @@ func _draw_allies() -> void:
 		var scale_value := float(ally.get("scale", 0.62))
 		var size := PLAYER_SPRITE_SIZE * scale_value
 		draw_circle(position + Vector2(0, size * 0.16), size * 0.28, Color(0.0, 0.0, 0.0, 0.25))
-		if str(ally.get("rarity", "common")) in ["rare", "legendary"]:
-			var ring_color := Color("#79a9bf") if str(ally["rarity"]) == "rare" else Color("#d9a95f")
-			draw_arc(position + Vector2(0, 2), size * 0.38, 0.0, TAU, 18, Color(ring_color, 0.42), 1.5, true)
 		var frames: Array = (
 			ally["walk_frames"] as Array
 			if bool(ally.get("moving", false))
@@ -1332,12 +1841,22 @@ func _draw_projectiles() -> void:
 	for shot in player_shots:
 		var position := shot["pos"] as Vector2
 		var direction := (shot["vel"] as Vector2).normalized()
-		draw_line(position - direction * 9.0, position + direction * 9.0, shot["color"] as Color, 2.0, true)
-		draw_circle(position, 3.0, Color(1.0, 0.92, 0.62, 0.85))
+		var color := shot["color"] as Color
+		var side := Vector2(-direction.y, direction.x)
+		# 弹丸本体：短杆 + 弹头，不画贯穿式辅助线
+		draw_line(position - direction * 6.0, position, color, 2.5, true)
+		draw_colored_polygon(
+			PackedVector2Array([
+				position + direction * 5.0,
+				position + side * 3.0,
+				position - side * 3.0,
+			]),
+			color
+		)
 	for shot in enemy_shots:
 		var position := shot["pos"] as Vector2
 		draw_circle(position, 4.5, Color("#d65b45"))
-		draw_arc(position, 7.0, 0.0, TAU, 10, Color(0.9, 0.34, 0.24, 0.45), 1.0, true)
+		draw_circle(position, 2.0, Color("#ffd9a8"))
 
 
 func _draw_jeff_fx() -> void:

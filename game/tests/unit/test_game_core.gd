@@ -177,7 +177,7 @@ func test_battlefield_spatial_hash_damage_and_pickups() -> void:
 func test_narrative_lines_have_categories_and_sources() -> void:
 	var narrative := GameData.load_json("res://data/narrative.json")
 	var count := 0
-	for section in ["prologue", "main_intro", "epilogue"]:
+	for section in ["prologue", "main_intro", "field_notes", "epilogue"]:
 		for line in narrative.get(section, []) as Array:
 			count += 1
 			assert_true(line is Dictionary)

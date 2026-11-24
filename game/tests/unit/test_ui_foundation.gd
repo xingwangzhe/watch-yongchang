@@ -257,7 +257,7 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	var font_entry: Dictionary = (credits.get("fonts", []) as Array)[0]
 	assert_string_contains(font_entry.get("notice_zh", ""), "OFL")
 	var icon_entries: Array = credits.get("icons", [])
-	assert_eq(icon_entries.size(), 65, "every used game-icons asset must be credited")
+	assert_eq(icon_entries.size(), 101, "every used game-icons asset must be credited")
 	for entry in icon_entries:
 		assert_true(entry is Dictionary)
 		assert_eq(str(entry.get("license", "")), "CC BY 3.0")
@@ -571,6 +571,66 @@ func test_language_switch_updates_live_menu_copy() -> void:
 	assert_string_contains(language.text, "English")
 	assert_eq(start.text, "Start Game")
 	assert_eq(menu.find_child("SettingsButton", true, false).text, "Settings")
+
+
+func test_story_structure_splits_opening_and_field_notes() -> void:
+	var n := GameData.load_json("res://data/narrative.json")
+	var opening: Array = n.get("main_intro", [])
+	var field: Array = n.get("field_notes", [])
+	assert_eq(opening.size(), 4, "opening hook must stay short so play starts quickly")
+	assert_eq(field.size(), 11, "remaining lines must be paced across the run")
+	var ids: Dictionary = {}
+	for line in opening:
+		ids[str(line.get("id", ""))] = true
+	for line in field:
+		ids[str(line.get("id", ""))] = true
+	assert_true(ids.has("narr_1558_01"))
+	assert_true(ids.has("narr_1558_02"))
+	assert_true(ids.has("narr_1559_01"))
+	assert_true(ids.has("narr_1559_02"))
+	# 关键史实与角色钩子必须留在开场前 4 句
+	assert_true(ids.has("narr_1559_02"), "Wang Lu self-introduction must open the run")
+
+
+func test_field_notes_are_fully_scheduled_on_timeline() -> void:
+	var n := GameData.load_json("res://data/narrative.json")
+	var w := GameData.load_json("res://data/waves.json")
+	var field_ids: Dictionary = {}
+	for line in n.get("field_notes", []) as Array:
+		field_ids[str(line.get("id", ""))] = true
+	var scheduled: Dictionary = {}
+	var last_t := -1.0
+	for event in w.get("event_lines", []) as Array:
+		var t := float(event.get("t", 0.0))
+		assert_gt(t, last_t, "timeline events must be strictly increasing")
+		last_t = t
+		assert_true(field_ids.has(str(event.get("key", ""))), "timeline key must exist in field_notes")
+		scheduled[str(event.get("key", ""))] = true
+	assert_eq(scheduled.size(), field_ids.size(), "every field note must be scheduled exactly once")
+
+
+func test_story_overlay_has_no_fullscreen_dim() -> void:
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	# 轻量过场：不得存在覆盖全屏、alpha>0.1 的 ColorRect 遮罩
+	for rect in run.story.find_children("*", "ColorRect", true, false):
+		var cr := rect as ColorRect
+		if cr.color.a <= 0.1:
+			continue
+		var size: Vector2 = cr.size
+		assert_lt(size.x * size.y, 1280.0 * 300.0, "story overlay must not dim the whole battlefield")
+	assert_not_null(run.story.find_child("BottomFade", true, false), "local bottom fade must exist")
+
+
+func test_replay_shortens_intro_to_single_line() -> void:
+	SaveSystem.data["intro_seen"] = true
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	assert_true(run.story.visible, "replay still shows the sourced self-introduction")
+	assert_eq(run.story._lines.size(), 1, "replay must show one line, not re-read the whole intro")
+	assert_eq(str(run.story._lines[0].get("id", "")), "narr_1559_02")
 
 
 func _remove_user_file(path: String) -> void:

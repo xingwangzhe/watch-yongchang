@@ -1,55 +1,536 @@
 [
-  { "file": "card_bamboo.svg", "author": "Delapouite", "icon": "Bamboo", "slug": "bamboo" },
-  { "file": "card_boat_fishing.svg", "author": "Delapouite", "icon": "Fishing boat", "slug": "boat-fishing" },
-  { "file": "card_herbs.svg", "author": "Delapouite", "icon": "Herbs bundle", "slug": "herbs-bundle" },
-  { "file": "card_abacus.svg", "author": "Delapouite", "icon": "Abacus", "slug": "abacus" },
-  { "file": "card_coins.svg", "author": "Delapouite", "icon": "Coins", "slug": "coins" },
-  { "file": "card_crane.svg", "author": "Delapouite", "icon": "Crane", "slug": "crane" },
-  { "file": "card_dragon_shield.svg", "author": "Delapouite", "icon": "Dragon shield", "slug": "dragon-shield" },
-  { "file": "card_drum.svg", "author": "Delapouite", "icon": "Drum", "slug": "drum" },
-  { "file": "card_gong.svg", "author": "Delapouite", "icon": "Gong", "slug": "gong" },
-  { "file": "card_knot.svg", "author": "Delapouite", "icon": "Knot", "slug": "knot" },
-  { "file": "card_axe_log.svg", "author": "Delapouite", "icon": "Axe in log", "slug": "axe-in-log" },
-  { "file": "card_hunter_eyes.svg", "author": "Delapouite", "icon": "Hunter eyes", "slug": "hunter-eyes" },
-  { "file": "card_reeds.svg", "author": "Delapouite", "icon": "High grass", "slug": "high-grass" },
-  { "file": "card_gate.svg", "author": "Delapouite", "icon": "Gate", "slug": "gate" },
-  { "file": "card_fog.svg", "author": "Delapouite", "icon": "Fog", "slug": "fog" },
-  { "file": "card_books.svg", "author": "Delapouite", "icon": "Book pile", "slug": "book-pile" },
-  { "file": "card_heart_armor.svg", "author": "Delapouite", "icon": "Heart armor", "slug": "heart-armor" },
-  { "file": "card_smoked_fish.svg", "author": "Delapouite", "icon": "Fish smoking", "slug": "fish-smoking" },
-  { "file": "card_flute.svg", "author": "Delapouite", "icon": "Flute", "slug": "flute" },
-  { "file": "card_wave.svg", "author": "Lorc", "icon": "Big wave", "slug": "big-wave" },
-  { "file": "card_compass.svg", "author": "Lorc", "icon": "Compass", "slug": "compass" },
-  { "file": "card_book_aura.svg", "author": "Lorc", "icon": "Book aura", "slug": "book-aura" },
-  { "file": "card_firework.svg", "author": "Lorc", "icon": "Firework rocket", "slug": "firework-rocket" },
-  { "file": "card_dragon_breath.svg", "author": "Lorc", "icon": "Dragon breath", "slug": "dragon-breath" },
-  { "file": "card_double_dragon.svg", "author": "Lorc", "icon": "Double dragon", "slug": "double-dragon" },
-  { "file": "card_lightning_shield.svg", "author": "Lorc", "icon": "Lightning shield", "slug": "lightning-shield" },
-  { "file": "card_life_tap.svg", "author": "Lorc", "icon": "Life tap", "slug": "life-tap" },
-  { "file": "card_holy_grail.svg", "author": "Lorc", "icon": "Holy grail", "slug": "holy-grail" },
-  { "file": "card_incense.svg", "author": "Lorc", "icon": "Incense", "slug": "incense" },
-  { "file": "card_lantern_flame.svg", "author": "Lorc", "icon": "Lantern flame", "slug": "lantern-flame" },
-  { "file": "card_lotus.svg", "author": "Lorc", "icon": "Lotus flower", "slug": "lotus-flower" },
-  { "file": "card_moon.svg", "author": "Lorc", "icon": "Moon", "slug": "moon" },
-  { "file": "card_pine.svg", "author": "Lorc", "icon": "Pine tree", "slug": "pine-tree" },
-  { "file": "card_paper_lantern.svg", "author": "Lorc", "icon": "Paper lantern", "slug": "paper-lantern" },
-  { "file": "card_fishing_net.svg", "author": "Lorc", "icon": "Fishing net", "slug": "fishing-net" },
-  { "file": "card_bandage.svg", "author": "Lorc", "icon": "Bandage roll", "slug": "bandage-roll" },
-  { "file": "card_crown_coin.svg", "author": "Lorc", "icon": "Crown coin", "slug": "crown-coin" },
-  { "file": "card_night_sky.svg", "author": "Lorc", "icon": "Night sky", "slug": "night-sky" },
-  { "file": "card_ember_shot.svg", "author": "Lorc", "icon": "Ember shot", "slug": "ember-shot" },
-  { "file": "card_dumpling.svg", "author": "Caro Asercion", "icon": "Dumpling bao", "slug": "dumpling-bao" },
-  { "file": "card_wok.svg", "author": "Caro Asercion", "icon": "Wok", "slug": "wok" },
-  { "file": "card_paper_crane.svg", "author": "Caro Asercion", "icon": "Paper crane", "slug": "paper-crane" },
-  { "file": "card_spinning_wheel.svg", "author": "Caro Asercion", "icon": "Spinning wheel", "slug": "spinning-wheel" },
-  { "file": "card_willow.svg", "author": "Caro Asercion", "icon": "Willow tree", "slug": "willow-tree" },
-  { "file": "card_heron.svg", "author": "Caro Asercion", "icon": "Heron", "slug": "heron" },
-  { "file": "card_windchimes.svg", "author": "Caro Asercion", "icon": "Windchimes", "slug": "windchimes" },
-  { "file": "card_pestle.svg", "author": "Skoll", "icon": "Pestle mortar", "slug": "pestle-mortar" },
-  { "file": "card_stopwatch.svg", "author": "Skoll", "icon": "Stopwatch", "slug": "stopwatch" },
-  { "file": "card_treasure.svg", "author": "Skoll", "icon": "Open treasure chest", "slug": "open-treasure-chest" },
-  { "file": "card_ballista.svg", "author": "Skoll", "icon": "Ballista", "slug": "ballista" },
-  { "file": "card_chain_lightning.svg", "author": "Willdabeast", "icon": "Chain lightning", "slug": "chain-lightning" },
-  { "file": "card_chain_mail.svg", "author": "Willdabeast", "icon": "Chain mail", "slug": "chain-mail" },
-  { "file": "card_draw.svg", "author": "Faithtoken", "icon": "Card draw", "slug": "card-draw" }
+  {
+    "file": "card_bamboo.svg",
+    "author": "Delapouite",
+    "icon": "Bamboo",
+    "slug": "bamboo"
+  },
+  {
+    "file": "card_boat_fishing.svg",
+    "author": "Delapouite",
+    "icon": "Fishing boat",
+    "slug": "boat-fishing"
+  },
+  {
+    "file": "card_herbs.svg",
+    "author": "Delapouite",
+    "icon": "Herbs bundle",
+    "slug": "herbs-bundle"
+  },
+  {
+    "file": "card_abacus.svg",
+    "author": "Delapouite",
+    "icon": "Abacus",
+    "slug": "abacus"
+  },
+  {
+    "file": "card_coins.svg",
+    "author": "Delapouite",
+    "icon": "Coins",
+    "slug": "coins"
+  },
+  {
+    "file": "card_crane.svg",
+    "author": "Delapouite",
+    "icon": "Crane",
+    "slug": "crane"
+  },
+  {
+    "file": "card_dragon_shield.svg",
+    "author": "Delapouite",
+    "icon": "Dragon shield",
+    "slug": "dragon-shield"
+  },
+  {
+    "file": "card_drum.svg",
+    "author": "Delapouite",
+    "icon": "Drum",
+    "slug": "drum"
+  },
+  {
+    "file": "card_gong.svg",
+    "author": "Delapouite",
+    "icon": "Gong",
+    "slug": "gong"
+  },
+  {
+    "file": "card_knot.svg",
+    "author": "Delapouite",
+    "icon": "Knot",
+    "slug": "knot"
+  },
+  {
+    "file": "card_axe_log.svg",
+    "author": "Delapouite",
+    "icon": "Axe in log",
+    "slug": "axe-in-log"
+  },
+  {
+    "file": "card_hunter_eyes.svg",
+    "author": "Delapouite",
+    "icon": "Hunter eyes",
+    "slug": "hunter-eyes"
+  },
+  {
+    "file": "card_reeds.svg",
+    "author": "Delapouite",
+    "icon": "High grass",
+    "slug": "high-grass"
+  },
+  {
+    "file": "card_gate.svg",
+    "author": "Delapouite",
+    "icon": "Gate",
+    "slug": "gate"
+  },
+  {
+    "file": "card_fog.svg",
+    "author": "Delapouite",
+    "icon": "Fog",
+    "slug": "fog"
+  },
+  {
+    "file": "card_books.svg",
+    "author": "Delapouite",
+    "icon": "Book pile",
+    "slug": "book-pile"
+  },
+  {
+    "file": "card_heart_armor.svg",
+    "author": "Delapouite",
+    "icon": "Heart armor",
+    "slug": "heart-armor"
+  },
+  {
+    "file": "card_smoked_fish.svg",
+    "author": "Delapouite",
+    "icon": "Fish smoking",
+    "slug": "fish-smoking"
+  },
+  {
+    "file": "card_flute.svg",
+    "author": "Delapouite",
+    "icon": "Flute",
+    "slug": "flute"
+  },
+  {
+    "file": "card_wave.svg",
+    "author": "Lorc",
+    "icon": "Big wave",
+    "slug": "big-wave"
+  },
+  {
+    "file": "card_compass.svg",
+    "author": "Lorc",
+    "icon": "Compass",
+    "slug": "compass"
+  },
+  {
+    "file": "card_book_aura.svg",
+    "author": "Lorc",
+    "icon": "Book aura",
+    "slug": "book-aura"
+  },
+  {
+    "file": "card_firework.svg",
+    "author": "Lorc",
+    "icon": "Firework rocket",
+    "slug": "firework-rocket"
+  },
+  {
+    "file": "card_dragon_breath.svg",
+    "author": "Lorc",
+    "icon": "Dragon breath",
+    "slug": "dragon-breath"
+  },
+  {
+    "file": "card_double_dragon.svg",
+    "author": "Lorc",
+    "icon": "Double dragon",
+    "slug": "double-dragon"
+  },
+  {
+    "file": "card_lightning_shield.svg",
+    "author": "Lorc",
+    "icon": "Lightning shield",
+    "slug": "lightning-shield"
+  },
+  {
+    "file": "card_life_tap.svg",
+    "author": "Lorc",
+    "icon": "Life tap",
+    "slug": "life-tap"
+  },
+  {
+    "file": "card_holy_grail.svg",
+    "author": "Lorc",
+    "icon": "Holy grail",
+    "slug": "holy-grail"
+  },
+  {
+    "file": "card_incense.svg",
+    "author": "Lorc",
+    "icon": "Incense",
+    "slug": "incense"
+  },
+  {
+    "file": "card_lantern_flame.svg",
+    "author": "Lorc",
+    "icon": "Lantern flame",
+    "slug": "lantern-flame"
+  },
+  {
+    "file": "card_lotus.svg",
+    "author": "Lorc",
+    "icon": "Lotus flower",
+    "slug": "lotus-flower"
+  },
+  {
+    "file": "card_moon.svg",
+    "author": "Lorc",
+    "icon": "Moon",
+    "slug": "moon"
+  },
+  {
+    "file": "card_pine.svg",
+    "author": "Lorc",
+    "icon": "Pine tree",
+    "slug": "pine-tree"
+  },
+  {
+    "file": "card_paper_lantern.svg",
+    "author": "Lorc",
+    "icon": "Paper lantern",
+    "slug": "paper-lantern"
+  },
+  {
+    "file": "card_fishing_net.svg",
+    "author": "Lorc",
+    "icon": "Fishing net",
+    "slug": "fishing-net"
+  },
+  {
+    "file": "card_bandage.svg",
+    "author": "Lorc",
+    "icon": "Bandage roll",
+    "slug": "bandage-roll"
+  },
+  {
+    "file": "card_crown_coin.svg",
+    "author": "Lorc",
+    "icon": "Crown coin",
+    "slug": "crown-coin"
+  },
+  {
+    "file": "card_night_sky.svg",
+    "author": "Lorc",
+    "icon": "Night sky",
+    "slug": "night-sky"
+  },
+  {
+    "file": "card_ember_shot.svg",
+    "author": "Lorc",
+    "icon": "Ember shot",
+    "slug": "ember-shot"
+  },
+  {
+    "file": "card_dumpling.svg",
+    "author": "Caro Asercion",
+    "icon": "Dumpling bao",
+    "slug": "dumpling-bao"
+  },
+  {
+    "file": "card_wok.svg",
+    "author": "Caro Asercion",
+    "icon": "Wok",
+    "slug": "wok"
+  },
+  {
+    "file": "card_paper_crane.svg",
+    "author": "Caro Asercion",
+    "icon": "Paper crane",
+    "slug": "paper-crane"
+  },
+  {
+    "file": "card_spinning_wheel.svg",
+    "author": "Caro Asercion",
+    "icon": "Spinning wheel",
+    "slug": "spinning-wheel"
+  },
+  {
+    "file": "card_willow.svg",
+    "author": "Caro Asercion",
+    "icon": "Willow tree",
+    "slug": "willow-tree"
+  },
+  {
+    "file": "card_heron.svg",
+    "author": "Caro Asercion",
+    "icon": "Heron",
+    "slug": "heron"
+  },
+  {
+    "file": "card_windchimes.svg",
+    "author": "Caro Asercion",
+    "icon": "Windchimes",
+    "slug": "windchimes"
+  },
+  {
+    "file": "card_pestle.svg",
+    "author": "Skoll",
+    "icon": "Pestle mortar",
+    "slug": "pestle-mortar"
+  },
+  {
+    "file": "card_stopwatch.svg",
+    "author": "Skoll",
+    "icon": "Stopwatch",
+    "slug": "stopwatch"
+  },
+  {
+    "file": "card_treasure.svg",
+    "author": "Skoll",
+    "icon": "Open treasure chest",
+    "slug": "open-treasure-chest"
+  },
+  {
+    "file": "card_ballista.svg",
+    "author": "Skoll",
+    "icon": "Ballista",
+    "slug": "ballista"
+  },
+  {
+    "file": "card_chain_lightning.svg",
+    "author": "Willdabeast",
+    "icon": "Chain lightning",
+    "slug": "chain-lightning"
+  },
+  {
+    "file": "card_chain_mail.svg",
+    "author": "Willdabeast",
+    "icon": "Chain mail",
+    "slug": "chain-mail"
+  },
+  {
+    "file": "card_draw.svg",
+    "author": "Faithtoken",
+    "icon": "Card draw",
+    "slug": "card-draw"
+  },
+  {
+    "file": "card_archery_target.svg",
+    "author": "Lorc",
+    "icon": "Archery target",
+    "slug": "archery-target"
+  },
+  {
+    "file": "card_arrow_cluster.svg",
+    "author": "Lorc",
+    "icon": "Arrow cluster",
+    "slug": "arrow-cluster"
+  },
+  {
+    "file": "card_arrow_flights.svg",
+    "author": "Lorc",
+    "icon": "Arrow flights",
+    "slug": "arrow-flights"
+  },
+  {
+    "file": "card_barbed_arrow.svg",
+    "author": "Lorc",
+    "icon": "Barbed arrow",
+    "slug": "barbed-arrow"
+  },
+  {
+    "file": "card_broadhead_arrow.svg",
+    "author": "Lorc",
+    "icon": "Broadhead arrow",
+    "slug": "broadhead-arrow"
+  },
+  {
+    "file": "card_on_target.svg",
+    "author": "Lorc",
+    "icon": "On target",
+    "slug": "on-target"
+  },
+  {
+    "file": "card_target_arrows.svg",
+    "author": "Lorc",
+    "icon": "Target arrows",
+    "slug": "target-arrows"
+  },
+  {
+    "file": "card_target_shot.svg",
+    "author": "Lorc",
+    "icon": "Target shot",
+    "slug": "target-shot"
+  },
+  {
+    "file": "card_arrowhead.svg",
+    "author": "Lorc",
+    "icon": "Arrowhead",
+    "slug": "arrowhead"
+  },
+  {
+    "file": "card_stone_tower.svg",
+    "author": "Lorc",
+    "icon": "Stone tower",
+    "slug": "stone-tower"
+  },
+  {
+    "file": "card_castle.svg",
+    "author": "Lorc",
+    "icon": "Castle",
+    "slug": "castle"
+  },
+  {
+    "file": "card_wooden_fence.svg",
+    "author": "Lorc",
+    "icon": "Wooden fence",
+    "slug": "wooden-fence"
+  },
+  {
+    "file": "card_heavy_arrow.svg",
+    "author": "Lorc",
+    "icon": "Heavy arrow",
+    "slug": "heavy-arrow"
+  },
+  {
+    "file": "card_targeting.svg",
+    "author": "Lorc",
+    "icon": "Targeting",
+    "slug": "targeting"
+  },
+  {
+    "file": "card_thrown_spear.svg",
+    "author": "Lorc",
+    "icon": "Thrown spear",
+    "slug": "thrown-spear"
+  },
+  {
+    "file": "card_spears.svg",
+    "author": "Lorc",
+    "icon": "Spears",
+    "slug": "spears"
+  },
+  {
+    "file": "card_winged_arrow.svg",
+    "author": "Lorc",
+    "icon": "Winged arrow",
+    "slug": "winged-arrow"
+  },
+  {
+    "file": "card_arrow_scope.svg",
+    "author": "Lorc",
+    "icon": "Arrow scope",
+    "slug": "arrow-scope"
+  },
+  {
+    "file": "card_pocket_bow.svg",
+    "author": "Lorc",
+    "icon": "Pocket bow",
+    "slug": "pocket-bow"
+  },
+  {
+    "file": "card_tower_flag.svg",
+    "author": "Delapouite",
+    "icon": "Tower flag",
+    "slug": "tower-flag"
+  },
+  {
+    "file": "card_delapouite_castle.svg",
+    "author": "Delapouite",
+    "icon": "Castle",
+    "slug": "castle"
+  },
+  {
+    "file": "card_palisade.svg",
+    "author": "Delapouite",
+    "icon": "Palisade",
+    "slug": "palisade"
+  },
+  {
+    "file": "card_barricade.svg",
+    "author": "Delapouite",
+    "icon": "Barricade",
+    "slug": "barricade"
+  },
+  {
+    "file": "card_wood_beam.svg",
+    "author": "Delapouite",
+    "icon": "Wood beam",
+    "slug": "wood-beam"
+  },
+  {
+    "file": "card_wood_pile.svg",
+    "author": "Delapouite",
+    "icon": "Wood pile",
+    "slug": "wood-pile"
+  },
+  {
+    "file": "card_bow_string.svg",
+    "author": "Delapouite",
+    "icon": "Bow string",
+    "slug": "bow-string"
+  },
+  {
+    "file": "card_archer.svg",
+    "author": "Delapouite",
+    "icon": "Archer",
+    "slug": "archer"
+  },
+  {
+    "file": "card_quiver.svg",
+    "author": "Delapouite",
+    "icon": "Quiver",
+    "slug": "quiver"
+  },
+  {
+    "file": "card_crane_winch.svg",
+    "author": "Delapouite",
+    "icon": "Crane",
+    "slug": "crane"
+  },
+  {
+    "file": "card_brick_wall.svg",
+    "author": "Delapouite",
+    "icon": "Brick wall",
+    "slug": "brick-wall"
+  },
+  {
+    "file": "card_stone_wall.svg",
+    "author": "Delapouite",
+    "icon": "Stone wall",
+    "slug": "stone-wall"
+  },
+  {
+    "file": "card_siege_tower.svg",
+    "author": "Delapouite",
+    "icon": "Siege tower",
+    "slug": "siege-tower"
+  },
+  {
+    "file": "card_wooden_crate.svg",
+    "author": "Delapouite",
+    "icon": "Wooden crate",
+    "slug": "wooden-crate"
+  },
+  {
+    "file": "card_toolbox.svg",
+    "author": "Delapouite",
+    "icon": "Toolbox",
+    "slug": "toolbox"
+  },
+  {
+    "file": "card_torch.svg",
+    "author": "Delapouite",
+    "icon": "Torch",
+    "slug": "torch"
+  },
+  {
+    "file": "card_bullseye.svg",
+    "author": "Skoll",
+    "icon": "Bullseye",
+    "slug": "bullseye"
+  }
 ]
