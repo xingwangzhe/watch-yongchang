@@ -104,19 +104,23 @@ func _build_ui() -> void:
 	_merit_label.size = Vector2(286, 30)
 	add_child(_merit_label)
 
-	_build_character_panel()
-	_build_detail_panel()
-	_build_footer()
+	var panels := HBoxContainer.new()
+	panels.name = "SelectionPanels"
+	panels.position = Vector2(72, 146)
+	panels.add_theme_constant_override("separation", 24)
+	add_child(panels)
+	_build_character_panel(panels)
+	_build_detail_panel(panels)
 
 
-func _build_character_panel() -> void:
+func _build_character_panel(parent: HBoxContainer) -> void:
 	var panel := PanelContainer.new()
-	panel.position = Vector2(72, 146)
-	panel.size = Vector2(344, 500)
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.custom_minimum_size = Vector2(344, 0)
 	panel.add_theme_stylebox_override("panel", _panel_box(26))
-	add_child(panel)
+	parent.add_child(panel)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
+	column.add_theme_constant_override("separation", 6)
 	panel.add_child(column)
 	var heading := _label(Locale.t("select.roster"), 19, MUTED)
 	column.add_child(heading)
@@ -126,20 +130,20 @@ func _build_character_panel() -> void:
 		var entry := _characters[character_id] as Dictionary
 		var button := _card_button("", false)
 		button.name = "Character_%s" % character_id
-		button.custom_minimum_size = Vector2(0, 59)
+		button.custom_minimum_size = Vector2(0, 52)
 		button.pressed.connect(_select_character.bind(character_id))
 		column.add_child(button)
 		_char_buttons[character_id] = button
 
 
-func _build_detail_panel() -> void:
+func _build_detail_panel(parent: HBoxContainer) -> void:
 	var panel := PanelContainer.new()
-	panel.position = Vector2(440, 146)
-	panel.size = Vector2(768, 500)
-	panel.add_theme_stylebox_override("panel", _panel_box(30))
-	add_child(panel)
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.custom_minimum_size = Vector2(768, 0)
+	panel.add_theme_stylebox_override("panel", _panel_box(22))
+	parent.add_child(panel)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
+	column.add_theme_constant_override("separation", 8)
 	panel.add_child(column)
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 24)
@@ -147,7 +151,7 @@ func _build_detail_panel() -> void:
 	column.add_child(body)
 
 	var portrait_frame := PanelContainer.new()
-	portrait_frame.custom_minimum_size = Vector2(248, 278)
+	portrait_frame.custom_minimum_size = Vector2(220, 220)
 	portrait_frame.add_theme_stylebox_override("panel", _flat_box(Color(0.03, 0.04, 0.04, 0.84), Color(GOLD, 0.34)))
 	body.add_child(portrait_frame)
 	_portrait = TextureRect.new()
@@ -159,7 +163,7 @@ func _build_detail_panel() -> void:
 
 	var details := VBoxContainer.new()
 	details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	details.add_theme_constant_override("separation", 9)
+	details.add_theme_constant_override("separation", 6)
 	body.add_child(details)
 	_name_label = _label("", 38, GOLD)
 	details.add_child(_name_label)
@@ -173,7 +177,7 @@ func _build_detail_panel() -> void:
 	details.add_child(detail_rule)
 	_note_label = _label("", 16, Color(PAPER, 0.88))
 	_note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_note_label.custom_minimum_size = Vector2(0, 92)
+	_note_label.custom_minimum_size = Vector2(0, 64)
 	details.add_child(_note_label)
 	_loadout_label = _label("", 15, Color(MUTED, 0.94))
 	_loadout_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -207,26 +211,48 @@ func _build_detail_panel() -> void:
 	_map_description = _label("", 14, Color(PAPER, 0.76))
 	_map_description.position = Vector2(0, 0)
 	_map_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_map_description.custom_minimum_size = Vector2(0, 46)
+	_map_description.max_lines_visible = 2
+	_map_description.clip_text = true
+	_map_description.custom_minimum_size = Vector2(0, 40)
 	column.add_child(_map_description)
+	_build_footer(column)
 
 
-func _build_footer() -> void:
-	_begin_button = _card_button(Locale.t("select.begin"), true)
-	_begin_button.name = "BeginButton"
-	_begin_button.position = Vector2(1000, 656)
-	_begin_button.size = Vector2(208, 48)
-	_begin_button.pressed.connect(_begin_run)
-	add_child(_begin_button)
+# 页脚作为详情面板内 VBoxContainer 的最后一行，由容器自动排布，
+# 不再使用绝对坐标，杜绝说明文字与按钮重叠。
+func _build_footer(parent: VBoxContainer) -> void:
+	var footer_rule := ColorRect.new()
+	footer_rule.color = Color(GOLD, 0.22)
+	footer_rule.custom_minimum_size = Vector2(0, 1)
+	parent.add_child(footer_rule)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	row.custom_minimum_size = Vector2(0, 46)
+	parent.add_child(row)
+
 	var back := _card_button(Locale.t("select.back"), false)
 	back.name = "BackButton"
-	back.position = Vector2(440, 656)
-	back.size = Vector2(168, 48)
+	back.custom_minimum_size = Vector2(140, 44)
 	back.pressed.connect(_back_to_menu)
-	add_child(back)
+	row.add_child(back)
+
+	var left_spacer := Control.new()
+	left_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(left_spacer)
+
 	var hint := _label(Locale.t("select.hint"), 13, Color(MUTED, 0.62))
-	hint.position = Vector2(626, 670)
-	add_child(hint)
+	hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(hint)
+
+	var right_spacer := Control.new()
+	right_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(right_spacer)
+
+	_begin_button = _card_button(Locale.t("select.begin"), true)
+	_begin_button.name = "BeginButton"
+	_begin_button.custom_minimum_size = Vector2(180, 44)
+	_begin_button.pressed.connect(_begin_run)
+	row.add_child(_begin_button)
 
 
 func _select_character(character_id: String) -> void:
@@ -303,6 +329,7 @@ func _refresh() -> void:
 		"subtitle": GameData.loc(map, "subtitle"),
 		"description": GameData.loc(map, "description"),
 	})
+	_map_description.tooltip_text = _map_description.text
 	_begin_button.disabled = false
 
 

@@ -152,8 +152,8 @@ func _build_roll() -> void:
 	_scroll.gui_input.connect(_on_scroll_gui_input)
 	add_child(_scroll)
 	_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_scroll.offset_top = 58.0
-	_scroll.offset_bottom = -64.0
+	_scroll.offset_top = 48.0
+	_scroll.offset_bottom = -56.0
 
 	var page_margin := MarginContainer.new()
 	page_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -284,13 +284,13 @@ func _build_chrome() -> void:
 	top_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(top_bar)
 	top_bar.position = Vector2(0.0, 0.0)
-	top_bar.size = Vector2(1280.0, 58.0)
+	top_bar.size = Vector2(1280.0, 48.0)
 
 	var top_rule := ColorRect.new()
 	top_rule.color = Color(GOLD, 0.34)
 	top_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(top_rule)
-	top_rule.position = Vector2(0.0, 57.0)
+	top_rule.position = Vector2(0.0, 47.0)
 	top_rule.size = Vector2(1280.0, 1.0)
 
 	var header := Label.new()
@@ -299,7 +299,7 @@ func _build_chrome() -> void:
 	header.add_theme_font_override("font", UI_FONT)
 	header.add_theme_font_size_override("font_size", 20)
 	header.add_theme_color_override("font_color", GOLD)
-	header.position = Vector2(42.0, 16.0)
+	header.position = Vector2(42.0, 12.0)
 	add_child(header)
 
 	var brand := Label.new()
@@ -309,7 +309,7 @@ func _build_chrome() -> void:
 	brand.add_theme_font_size_override("font_size", 14)
 	brand.add_theme_color_override("font_color", Color(MUTED, 0.62))
 	brand.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	brand.position = Vector2(1000.0, 20.0)
+	brand.position = Vector2(1000.0, 14.0)
 	brand.size = Vector2(238.0, 22.0)
 	add_child(brand)
 
@@ -318,7 +318,7 @@ func _build_chrome() -> void:
 	progress_track.color = Color(GOLD, 0.13)
 	progress_track.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(progress_track)
-	progress_track.position = Vector2(0.0, 654.0)
+	progress_track.position = Vector2(0.0, 662.0)
 	progress_track.size = Vector2(1280.0, 2.0)
 
 	_progress_fill = ColorRect.new()
@@ -326,7 +326,7 @@ func _build_chrome() -> void:
 	_progress_fill.color = Color(GOLD, 0.78)
 	_progress_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_progress_fill)
-	_progress_fill.position = Vector2(0.0, 654.0)
+	_progress_fill.position = Vector2(0.0, 662.0)
 	_progress_fill.size = Vector2(0.0, 2.0)
 
 	var bottom_bar := ColorRect.new()
@@ -334,13 +334,13 @@ func _build_chrome() -> void:
 	bottom_bar.color = Color(0.012, 0.018, 0.021, 0.94)
 	bottom_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bottom_bar)
-	bottom_bar.position = Vector2(0.0, 656.0)
-	bottom_bar.size = Vector2(1280.0, 64.0)
+	bottom_bar.position = Vector2(0.0, 664.0)
+	bottom_bar.size = Vector2(1280.0, 56.0)
 
 	var footer := HBoxContainer.new()
 	footer.add_theme_constant_override("separation", 16)
 	add_child(footer)
-	footer.position = Vector2(42.0, 665.0)
+	footer.position = Vector2(42.0, 670.0)
 	footer.size = Vector2(1196.0, 40.0)
 
 	_status = Label.new()

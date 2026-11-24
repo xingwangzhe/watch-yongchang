@@ -104,12 +104,12 @@ func _build_columns() -> void:
 		"accent": Color("#d1ad62"),
 	})
 	left.position = Vector2(48, 138)
-	left.size = Vector2(356, 360)
+	left.size = Vector2(356, 336)
 	_content.add_child(left)
 
 	var center := _bridge_panel()
 	center.position = Vector2(432, 138)
-	center.size = Vector2(416, 360)
+	center.size = Vector2(416, 336)
 	_content.add_child(center)
 
 	var right := _panel({
@@ -120,7 +120,7 @@ func _build_columns() -> void:
 		"accent": Color("#b95a43"),
 	})
 	right.position = Vector2(876, 138)
-	right.size = Vector2(356, 360)
+	right.size = Vector2(356, 336)
 	_content.add_child(right)
 
 
@@ -204,11 +204,11 @@ func _bridge_panel() -> PanelContainer:
 
 func _build_timeline() -> void:
 	var heading := _label(Locale.t("codex.timeline"), 17, GOLD)
-	heading.position = Vector2(54, 512)
+	heading.position = Vector2(54, 488)
 	_content.add_child(heading)
 	var row := HBoxContainer.new()
-	row.position = Vector2(50, 538)
-	row.size = Vector2(1180, 104)
+	row.position = Vector2(50, 514)
+	row.size = Vector2(1180, 88)
 	row.add_theme_constant_override("separation", 8)
 	_content.add_child(row)
 	for entry in _data.get("timeline", []) as Array:
@@ -231,13 +231,13 @@ func _build_timeline() -> void:
 
 func _build_sources() -> void:
 	var heading := _label(Locale.t("codex.sources"), 13, Color(MUTED, 0.82))
-	heading.position = Vector2(54, 658)
+	heading.position = Vector2(54, 630)
 	_content.add_child(heading)
 	var display_sources: Array[String] = []
 	for source in _localized_array("sources"):
 		display_sources.append(_display_source(str(source)))
 	var sources := _label(" · ".join(display_sources), 9, Color(MUTED, 0.56))
-	sources.position = Vector2(124, 657)
+	sources.position = Vector2(124, 629)
 	sources.size = Vector2(1100, 42)
 	sources.autowrap_mode = TextServer.AUTOWRAP_ARBITRARY
 	sources.max_lines_visible = 2

@@ -70,68 +70,92 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _build() -> void:
+	# 轻量遮罩：让场景可见，仅压暗到可辨字幕的程度。
 	var dim := ColorRect.new()
-	dim.color = Color(0.008, 0.012, 0.014, 0.80)
+	dim.color = Color(0.008, 0.012, 0.014, 0.46)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
+	# 不透明底板：压住底层 HUD 文字，避免半透明木纹面板透出造成文字重影。
+	var subtitle_bg := ColorRect.new()
+	subtitle_bg.name = "SubtitleOpaqueBacking"
+	subtitle_bg.color = Color("#0d1213")
+	subtitle_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	subtitle_bg.anchor_left = 0.0
+	subtitle_bg.anchor_right = 1.0
+	subtitle_bg.anchor_top = 1.0
+	subtitle_bg.anchor_bottom = 1.0
+	subtitle_bg.offset_left = 190.0
+	subtitle_bg.offset_right = -190.0
+	subtitle_bg.offset_top = -188.0
+	subtitle_bg.offset_bottom = -28.0
+	add_child(subtitle_bg)
+
+	# 底部紧凑字幕条：锚定父节点底边，宽 900、高 120，占屏比由 69% 降至 17%。
 	var panel := PanelContainer.new()
-	panel.position = Vector2(164.0, 112.0)
-	panel.size = Vector2(952.0, 500.0)
+	panel.name = "StoryPanel"
+	panel.anchor_left = 0.0
+	panel.anchor_right = 1.0
+	panel.anchor_top = 1.0
+	panel.anchor_bottom = 1.0
+	panel.offset_left = 190.0
+	panel.offset_right = -190.0
+	panel.offset_top = -188.0
+	panel.offset_bottom = -28.0
 	var panel_style := StyleBoxTexture.new()
 	panel_style.texture = PANEL_TEXTURE
-	panel_style.texture_margin_left = 28.0
-	panel_style.texture_margin_top = 28.0
-	panel_style.texture_margin_right = 28.0
-	panel_style.texture_margin_bottom = 28.0
-	panel_style.content_margin_left = 42.0
-	panel_style.content_margin_right = 42.0
-	panel_style.content_margin_top = 32.0
-	panel_style.content_margin_bottom = 30.0
+	panel_style.texture_margin_left = 18.0
+	panel_style.texture_margin_top = 18.0
+	panel_style.texture_margin_right = 18.0
+	panel_style.texture_margin_bottom = 18.0
+	panel_style.content_margin_left = 22.0
+	panel_style.content_margin_right = 22.0
+	panel_style.content_margin_top = 18.0
+	panel_style.content_margin_bottom = 10.0
 	panel.add_theme_stylebox_override("panel", panel_style)
 	add_child(panel)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 16)
+	column.add_theme_constant_override("separation", 3)
 	panel.add_child(column)
 
+	# 单行信息栏：说话人 · 分类 · 出处（出处过长时省略号裁剪）。
 	var heading_row := HBoxContainer.new()
+	heading_row.add_theme_constant_override("separation", 10)
 	column.add_child(heading_row)
-	var heading := _label("", 17, Color(MUTED, 0.88))
+	var heading := _label("", 13, Color(MUTED, 0.82))
 	heading.name = "StoryHeading"
 	heading_row.add_child(heading)
+	_category = _label("", 11, VERMILION)
+	heading_row.add_child(_category)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading_row.add_child(spacer)
-	_category = _label("", 12, VERMILION)
-	heading_row.add_child(_category)
+	_source = _label("", 10, Color(MUTED, 0.64))
+	_source.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_source.clip_text = true
+	_source.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_source.custom_minimum_size = Vector2(300.0, 0.0)
+	heading_row.add_child(_source)
 
 	var rule := ColorRect.new()
-	rule.color = Color(GOLD, 0.28)
+	rule.color = Color(GOLD, 0.26)
 	rule.custom_minimum_size = Vector2(0.0, 1.0)
 	column.add_child(rule)
 
-	_speaker = _label("", 26, GOLD)
+	_speaker = _label("", 18, GOLD)
 	column.add_child(_speaker)
-	_body = _label("", 28, PAPER)
+	_body = _label("", 20, PAPER)
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_body.custom_minimum_size = Vector2(860.0, 210.0)
+	_body.custom_minimum_size = Vector2(0.0, 36.0)
 	_body.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	column.add_child(_body)
-	_source = _label("", 12, Color(MUTED, 0.72))
-	_source.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_source.custom_minimum_size = Vector2(860.0, 36.0)
-	column.add_child(_source)
-
-	var grow := Control.new()
-	grow.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	column.add_child(grow)
 
 	var footer := HBoxContainer.new()
-	footer.add_theme_constant_override("separation", 12)
+	footer.add_theme_constant_override("separation", 10)
 	column.add_child(footer)
-	_progress = _label("", 12, Color(MUTED, 0.60))
+	_progress = _label("", 10, Color(MUTED, 0.55))
 	footer.add_child(_progress)
 	var footer_spacer := Control.new()
 	footer_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -186,9 +210,9 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 func _button(text: String, primary: bool) -> Button:
 	var button := Button.new()
 	button.text = text
-	button.custom_minimum_size = Vector2(118.0, 40.0)
+	button.custom_minimum_size = Vector2(96.0, 30.0)
 	button.add_theme_font_override("font", UI_FONT)
-	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_font_size_override("font_size", 13)
 	var box := StyleBoxFlat.new()
 	box.bg_color = Color(GOLD, 0.13 if primary else 0.05)
 	box.border_color = Color(GOLD, 0.72 if primary else 0.28)

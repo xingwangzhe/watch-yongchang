@@ -48,49 +48,70 @@ func _build() -> void:
 	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_root)
 
+	# 不透明底板：阻断半透明字幕面板下的 HUD 文字透视，避免重影。
+	var backing := ColorRect.new()
+	backing.name = "SubtitleOpaqueBacking"
+	backing.color = Color("#0d1213")
+	backing.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	backing.anchor_left = 0.0
+	backing.anchor_right = 1.0
+	backing.anchor_top = 1.0
+	backing.anchor_bottom = 1.0
+	backing.offset_left = 210.0
+	backing.offset_right = -210.0
+	backing.offset_top = -114.0
+	backing.offset_bottom = -20.0
+	_root.add_child(backing)
+
 	_panel = PanelContainer.new()
 	_panel.name = "SubtitlePanel"
 	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_panel.position = Vector2(170.0, 552.0)
-	_panel.size = Vector2(940.0, 146.0)
+	# 底部字幕条：锚定底边，宽 860、高 94（原 940×146，去掉冗余提示行）。
+	_panel.anchor_left = 0.0
+	_panel.anchor_right = 1.0
+	_panel.anchor_top = 1.0
+	_panel.anchor_bottom = 1.0
+	_panel.offset_left = 210.0
+	_panel.offset_right = -210.0
+	_panel.offset_top = -114.0
+	_panel.offset_bottom = -20.0
 	_panel.add_theme_stylebox_override("panel", _panel_style())
 	_root.add_child(_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 22)
-	margin.add_theme_constant_override("margin_right", 22)
-	margin.add_theme_constant_override("margin_top", 13)
-	margin.add_theme_constant_override("margin_bottom", 11)
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 12)
+	margin.add_theme_constant_override("margin_bottom", 10)
 	_panel.add_child(margin)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 5)
+	column.add_theme_constant_override("separation", 4)
 	margin.add_child(column)
 
 	var heading := HBoxContainer.new()
 	heading.add_theme_constant_override("separation", 10)
 	column.add_child(heading)
-	_speaker = _label("", 18, GOLD)
-	_speaker.custom_minimum_size = Vector2(150.0, 0.0)
+	_speaker = _label("", 16, GOLD)
+	_speaker.custom_minimum_size = Vector2(120.0, 0.0)
 	heading.add_child(_speaker)
-	_category = _label("", 12, VERMILION)
+	_category = _label("", 11, VERMILION)
 	heading.add_child(_category)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.add_child(spacer)
-	_source = _label("", 11, Color(MUTED, 0.74))
+	_source = _label("", 10, Color(MUTED, 0.70))
 	_source.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_source.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_source.clip_text = true
+	_source.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_source.custom_minimum_size = Vector2(280.0, 0.0)
 	heading.add_child(_source)
 
-	_body = _label("", 20, PAPER)
+	_body = _label("", 18, PAPER)
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_body.custom_minimum_size = Vector2(0.0, 54.0)
+	_body.custom_minimum_size = Vector2(0.0, 38.0)
+	_body.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	column.add_child(_body)
-
-	var hint := _label(Locale.t("story.subtitle_hint"), 11, Color(MUTED, 0.55))
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	column.add_child(hint)
 
 	_voice = VoiceLinePlayer.new()
 	_voice.name = "VoiceLinePlayer"

@@ -165,9 +165,10 @@ func _build_ui() -> void:
 	source.size = Vector2(640, 26)
 	root.add_child(source)
 
+	# 目标行置于字幕条上方，避免与底部字幕重叠。
 	_objective = _label("", 16, Color(PAPER, 0.94))
-	_objective.position = Vector2(306, 666)
-	_objective.size = Vector2(760, 34)
+	_objective.position = Vector2(306, 500)
+	_objective.size = Vector2(640, 28)
 	_objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_objective)
 	_progress = _label("", 14, GOLD)
@@ -186,8 +187,8 @@ func _build_ui() -> void:
 	root.add_child(_skip)
 
 	_continue = _button(Locale.t("prologue.enter"), true)
-	_continue.position = Vector2(1000, 610)
-	_continue.size = Vector2(224, 52)
+	_continue.position = Vector2(990, 486)
+	_continue.size = Vector2(224, 44)
 	_continue.visible = false
 	_continue.pressed.connect(_finish_prologue)
 	root.add_child(_continue)
