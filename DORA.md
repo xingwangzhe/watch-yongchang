@@ -195,7 +195,8 @@ PCK 路线仍由 Dora `GodotNode` 加载，但 `projectPath` 改为 PCK 文件�
 "$GDA_GODOT" --headless --path game --export-pack "macOS" artifacts/watch-yongchang-macos.pck
 ```
 
-上述命令会启动 Godot。2026-11-25 已通过三平台 `--export-release` 生成桌面发布产物，
+上述命令会启动 Godot。2026-11-25 已通过 Linux、Windows、macOS 与 Web 的
+`--export-release` 生成四平台发布产物，
 Linux / Windows 使用同目录外部 PCK，macOS PCK 位于 `.app/Contents/Resources/`；
 这些桌面包尚未在 Dora 中运行。Dora PCK 专用包结构应为：
 
@@ -214,18 +215,19 @@ dora-pck-package/
 切换时只修改包内 `init.lua` 的 `PROJECT_PATH`，并确保解压后两者同级。
 `dora/build.py` 刻意不导出 PCK，也不会把 PCK 混入源码 ZIP。
 
-当前没有 Web 导出预设。若要生成 Godot Web PCK，需先在 Godot 中新增并验证
-`Web` 预设，再导出；源码 ZIP 路线不依赖这个预设。无论哪条 Web 路线，都必须
-满足上面的 COOP/COEP，并使用匹配的 WebGL2 Godot 运行库。
+当前已提供 `Web` 导出预设，使用单线程、无 COOP/COEP 依赖的产物并部署到
+EdgeOne Makers。Dora 源码 ZIP 路线不依赖该 Web 预设；若另做 Dora Web PCK，
+仍必须使用匹配的 Dora/Godot WebGL2 运行库并单独验收。
 
 ## 7. CI 边界
 
 `.github/workflows/verify.yml` 中：
 
 - `asset-guard` 运行 `python3 dora/build.py --check`，不启动 Godot。
-- `linux-gut` 在既有 Godot 导入之后运行完整源码 ZIP 构建，输出到
-  `$RUNNER_TEMP/watch-yongchang-dora.zip`。
-- 没有 Dora 运行任务、没有 PCK 导出任务，也没有上传/发布 artifact 的步骤。
+- Linux、Windows、macOS 原生任务运行 GUT 与启动器 smoke；Web 任务构建并部署
+  在线版。
+- 没有 Dora 运行任务、没有 Dora PCK 导出任务，也没有上传/发布 Dora artifact
+  的步骤。
 
 因此 CI 只能证明静态约束和源码包布局可构建，不能证明 Dora 运行库、输入、
 音频、存档或 Web 隔离头实际工作。

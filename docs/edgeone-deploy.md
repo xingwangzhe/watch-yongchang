@@ -50,8 +50,10 @@ EDGEONE_API_TOKEN
 4. 复制 Token，在 GitHub 仓库 `Settings -> Secrets and variables -> Actions`
    新建 `EDGEONE_API_TOKEN`，不要把 Token 写入仓库、日志或文档。
 
-当前仓库已在 2026-11-25 配置 `EDGEONE_API_TOKEN`，并复用本地 EdgeOne CLI 的活动
-Token；除非轮换凭据，不要重复创建短期 Token。需要自助获取时，上述控制台路径仍适用。
+当前仓库已在 2026-11-25 配置 `EDGEONE_API_TOKEN`。除非轮换凭据，不要重复创建
+短期 Token。需要自助获取时，上述控制台路径仍适用。GitHub Actions 日志只显示
+脱敏后的 Secret 占位符；不要把 CLI 返回的带 `eo_token` 预览地址写入仓库或文档，
+生产入口统一使用自定义域名。
 
 EdgeOne 官方 GitHub Actions 教程：
 <https://pages.edgeone.ai/zh/document/use-github-actions>。
@@ -99,8 +101,11 @@ bunx -y edgeone@1.7.7 makers deploy game/build/web \
 ## 已验收状态（2026-11-25）
 
 - 项目：`shouwang`，Project ID `makers-hmgmargzbiuc`，Zone ID `zone-3kfm4dogb99e`。
-- 最近部署：原始目录直传，Deployment ID `dp7zxfmnewr6`；不再使用 `web-edgeone`
-  分片目录，也不再有 `edgeone-manifest.json` 或 `*.part*` 文件。
+- 最近 CI 部署：`Web build and EdgeOne deploy` 成功，Deployment ID
+  `dpes0levejho`；对应 run
+  <https://github.com/xingwangzhe/watch-yongchang/actions/runs/45588277313>。
+  原始目录直传，不再使用 `web-edgeone` 分片目录，也不再有
+  `edgeone-manifest.json` 或 `*.part*` 文件。
 - CNAME：`2026shouwang.needhelp.icu -> 2026shouwang.needhelp.icu.pages.dnsoe6.com`，
   TTL 600，DNSPod 记录 ID `2459497778`。
 - HTTPS：免费自动证书已签发，`CN=2026shouwang.needhelp.icu`，签发机构
