@@ -115,6 +115,7 @@ tools/*.tmp.*
 # ----- 像素素材临时研究输出（正式导出走 game/assets/）-----
 pixel-art/**/*_study/
 pixel-art/**/study/
+pixel-art/**/CRITIQUE.md
 
 # ----- CI 工具与包管理器缓存 -----
 .tools/
