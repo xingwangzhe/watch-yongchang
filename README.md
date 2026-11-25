@@ -10,13 +10,27 @@
 
 本仓库按 2026 OSGJ 开源奖要求公开可运行工程、构建说明、授权材料与可复核的文化索引。以下内容只在本地保留，不进入公开仓库或源码包：
 
-- 开发助手工作区、会话记忆、技能缓存；`design/` 只公开定稿 GDD 与地图重设计，
-  其他设计稿、数值表与评审记录不进入公开仓库。
+- 开发助手工作区、会话记忆、技能缓存；设计稿、数值表、评审记录与内部过程文档只在
+  本地保留，不进入公开仓库。
 - 赛事官网抓取缓存、主题解密载荷与密钥、站点图片和榜单原始数据。
 - 授权未明或明确不得再分发的第三方原始语料、PDF、OCR、缩略图与联系表。
 - 导出包、截图、日志、演示视频、测试产物与一次性迁移脚本。
 
 公开文化结论见 [`docs/06-资料文本化/`](docs/06-资料文本化/) 顶层索引；原始研究档案不随仓库分发。游戏运行不依赖这些本地档案。
+
+## 开源奖对照
+
+- **完整工程与运行说明**：Godot 工程在 `game/`，启动器、依赖与导出说明见本文件与
+  [`game/README.md`](game/README.md)。
+- **Dora 兼容版本**：入口 `init.lua`、适配说明 [`DORA.md`](DORA.md)、静态构建器
+  `dora/build.py`；真实 Dora 运行验收仍待对应运行库环境。
+- **代码许可**：AGPL-3.0-or-later，见 [`LICENSE`](LICENSE)。
+- **原创资产许可**：CC BY 4.0，见 [`LICENSE-CC-BY-4.0.txt`](LICENSE-CC-BY-4.0.txt)；
+  第三方素材保留原许可，逐项来源见 [`素材授权清单.csv`](素材授权清单.csv)。
+- **AI 使用声明**：见 [`AI使用与素材声明.md`](AI使用与素材声明.md)。
+- **公开构建与在线版**：GitHub Actions 按 Linux、Windows、macOS、Web 并行验证；
+  `main` 的 Web 构建部署到 <https://2026shouwang.needhelp.icu>。
+- **开发者日志**：三篇公开日志见下方“文档”列表。
 
 ## 快速运行
 
@@ -57,7 +71,7 @@ Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路�
 "$GDA_GODOT" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
 
-测试框架为 GUT 9.7.1。当前 Linux 基线为 **165 tests / 165 passed / 41217 asserts**。CI 并行执行 Linux、Windows 与 macOS 原生 GUT；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
+测试框架为 GUT 9.7.1。当前 Linux 基线为 **161 tests / 161 passed / 41177 asserts**。CI 并行执行 Linux、Windows、macOS 与 Web 构建，各平台都运行 GUT；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
 
 `main` 分支的 Web 构建会以单线程模式导出并自动部署至 EdgeOne Makers 项目 `shouwang`：
 <https://2026shouwang.needhelp.icu>。Web 构建不要求 COOP/COEP 响应头。
@@ -70,11 +84,9 @@ Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路�
 
 ## 文档
 
-- [游戏设计文档](design/游戏设计文档-GDD.md)
 - [Godot 工程说明](game/README.md)
 - [Dora 适配说明](DORA.md)
 - [EdgeOne Makers Web 部署](docs/edgeone-deploy.md)
-- [构建与审计报告](docs/build_2026-11-25.md)
 - [开发者日志 01：核心玩法与文化](docs/开发者日志-01-核心玩法与文化.md)
 - [开发者日志 02：战斗表现与操作手感](docs/开发者日志-02-战斗表现与操作手感.md)
 - [开发者日志 03：音频确权与 Dora 发布](docs/开发者日志-03-音频确权与Dora发布.md)

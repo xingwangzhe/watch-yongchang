@@ -189,13 +189,13 @@
 					"文化不是贴图：阵法、灯火、龙灯拼字与百家宴士气进入玩法。",
 					"赛事创作方向取自官网题解：抗倭叙事、城堡防御、家族传承、节庆巡游、水乡生活、未来想象。",
 					"资料索引：docs/06-资料文本化/AI资料索引与知识图谱.md。",
-					"设计取舍：design/游戏设计文档-GDD.md。"
+					"设计取舍：项目内部设计文档（不随仓库分发）。"
 				],
 				"lines_en": [
 					"Culture is not wallpaper: formations, lantern light, dragon-lantern characters, and feast morale shape the rules.",
 					"The event brief's creative directions: coastal resistance, castle defense, family heritage, festival processions, water-town life, and future imaginings.",
 					"Index: docs/06-资料文本化/AI资料索引与知识图谱.md.",
-					"Design decisions: design/游戏设计文档-GDD.md."
+					"Design decisions: internal project design documents (not distributed)."
 				],
 				"entries": [
 					{

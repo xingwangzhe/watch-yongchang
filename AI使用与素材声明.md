@@ -70,19 +70,19 @@
 > 道具 16 格（芦苇、烽火、拒马、渔舟、明字旗、石敢当、箭袋、渔网、牌匾、竹篱等）。
 > 文化取向为明代浙南沿海抗倭堡垒，明确排除鸟居、暖帘、日本家纹、武士旗等日式识别物。
 > 人工介入：确定文化方向与调色板、逐轮看图批评并修改 `build.py`（窗纸过曝、水门黑洞、瓦垄过密、岸线锯齿、军旗日式燕尾等问题）、
-> 用 `pixelstudio` 的 `preview / zoom / silhouette / stats` 检查，再在 Godot `game/scenes/tile_preview.tscn`
+> 用 `pixelstudio` 的 `preview / zoom / silhouette / stats` 检查，再在本地 Godot 预览场景
 > 以 `TileMapLayer` 实际切片验证。授权：**原创非代码资产 CC BY 4.0**；署名：xingwangzhe。
 >
 > **补充（2026-11-23，v1.18 原创主角与十六类倭寇精灵）**：新增两套角色图集，
 > 同样由 `skills/pixel-art-studio`（MIT）配合 Python/Pillow **程序化像素绘制**，
-> 源文件为 `pixel-art/actors/build.py`，不是扩散模型生图，未使用 itch.io 或任何第三方角色素材。
+> 源文件为本地实验脚本（不随公开仓库分发），不是扩散模型生图，未使用 itch.io 或任何第三方角色素材。
 > 产出：主角**戚继光** 128×128×16 帧（待机 2 / 行走 8 / 攻击 6），明式铁盔红缨、山文甲、红披风、腰刀；
 > 敌方**倭寇 16 类**，每类 128×128×16 帧（待机 2 / 行走 8 / 攻击 6）：斥候、浪人、火枪倭、藤牌武士、倭弓手、旗手、海盗、倭谍、
 > 倭将、大名、足轻、铁炮队长、僧兵、鬼面武者、水鬼、投弹手。倭寇的阵笠、胴丸、铁炮等仅作为反派识别，
 > 不用于明军与主角。人工介入：按约 6 头身的人体比例重建肩、肘、髋、膝、踝关节与两段式四肢，
 > 逐帧解算膝关节和肘关节，补齐颈部、骨盆与关节护片，避免断肢与浮头；
 > 多轮看图修正头身比、关节接缝、肩髋球关节过大、武器裁切、刀身过细、弓弧不可读、行走/攻击幅度过小等问题；
-> 用 Godot `game/scenes/actors_preview.tscn` 实际播放四帧循环验证。
+> 用本地 Godot 预览场景实际播放四帧循环验证。
 > 授权：**原创非代码资产 CC BY 4.0**；主角为原创像素形象，非历史肖像；署名：xingwangzhe。
 >
 > **补充（2026-11-23，v1.20 地图环境动效）**：新增 `animated_props.png`，
@@ -108,8 +108,8 @@
 > `generated/character_candidates/`，**没有 PNG/GIF/SVG/ZIP 或描摹结果进入成品**。
 > 本批次不是扩散模型生图，由 `skills/pixel-art-studio`（MIT）配合 Python/Pillow 程序化绘制；
 > 授权为**原创非代码资产 CC BY 4.0**，署名 xingwangzhe。Godot 运行时为
-> `game/scripts/character/character_forge.gd`，验收场景为
-> `game/scenes/character_forge_preview.tscn`，GUT 覆盖图集尺寸、行映射、双持与配方。
+> `game/scripts/character/character_forge.gd`，验收使用本地预览场景（不随公开仓库分发），
+> GUT 覆盖图集尺寸、行映射、双持与配方。
 >
 > **补充（2026-11-23，v1.24 战斗角色组合烘焙）**：八类敌兵与七名战斗角色改用
 > `enemies.json` / `characters.json` 内的 `character_recipe`，由
@@ -202,7 +202,7 @@
 >   `docs/screenshots/` 忽略产物，不进入游戏运行包；最终媒体作为赛事附件单独交付。
 > - 已通过 ffprobe 流信息、完整 FFmpeg 解码、实际第 2729 帧像素提取、联系表与响度检查：
 >   容器/音频/视频均为 91 秒，约 −20.79 LUFS、真峰值 −9.18 dBTP，无削波；封面与视频
->   SHA-256 已写入 `docs/build_2026-11-25.md` 和 `artifacts/release-manifest.json`。
+>   SHA-256 已写入 GitHub Actions 构建报告和 `artifacts/release-manifest.json`。
 > - Bilibili 上传与「2026 开源游戏开发大赛」标签仍待完成，不以本地 MP4 推定平台发布成功。
 >
 > **补充（2026-11-25，v2.1 恢复两首合规 BGM）**：
@@ -231,7 +231,7 @@
 >
 > **补充（2026-11-22 晚，v1.5 第三方 UI 装饰）**：按「装饰素材可商用 + 通用化 + 契合深底金描边风」要求，引入 OpenGameArt 两套 **CC0** 素材：**golden-ui by buch**（裁切琥珀金像素面板 `panel_gold.png` 作九宫格面板）与 **Free UI Asset Pack 1 by ctatz**（9 枚白色符号染金色 → 通用图标：播放/设置/信息/关闭/暂停/音量/静音/勾选/奖杯）。经 `tools/process_thirdparty_ui.py` 处理，`game/scripts/ui/ui_kit.gd` 作统一出口接入主菜单按钮、关于/设置/HUD 暂停与结算/事件横幅面板。TASL 逐项登记见 `game/data/credits.json` 与 `素材授权清单.csv`；原始文件仅保留历史溯源记录。
 >
-> **历史记录（2026-11-22 晚，v1.4 音频来源调整；BGM 于 2026-11-24 暂退、2026-11-25 恢复）**：当时要求「长音乐/短音效优先采用 CC0 或免费可商用现成素材，脚本合成仅作兜底」，工程 `game/assets/audio/` 曾全部更换为第三方素材：BGM 采用 OpenGameArt 的 **「Samurai Nights」by Majadroid（页面现提供 CC BY 4.0 / 3.0）**，9 个事件音效取自 OpenGameArt 的 CC0 音效包（Kenney / artisticdude / remaxim / ogrebane / wobbleboxx），经音频转换流程响度归一化、截短与 OGG 转码后嵌入。该曲在 2026-11-24 曾从运行时移除；2026-11-25 复核许可后恢复。当前完整音频 TASL 见 `game/assets/audio/LICENSES.md`。原合成工具 `tools/generate_audio.py` 保留用于生成原创母版。中文 UI 字体统一采用 **霞鹜文楷 / LXGW WenKai**，已设为 Godot 工程全局默认字体；字体许可 **SIL OFL 1.1**，完整协议文本随字体存放于 `assets/fonts/OFL.txt` 与 `game/assets/fonts/OFL.txt`。
+> **历史记录（2026-11-22 晚，v1.4 音频来源调整；BGM 于 2026-11-24 暂退、2026-11-25 恢复）**：当时要求「长音乐/短音效优先采用 CC0 或免费可商用现成素材，脚本合成仅作兜底」，工程 `game/assets/audio/` 曾全部更换为第三方素材：BGM 采用 OpenGameArt 的 **「Samurai Nights」by Majadroid（页面现提供 CC BY 4.0 / 3.0）**，9 个事件音效取自 OpenGameArt 的 CC0 音效包（Kenney / artisticdude / remaxim / ogrebane / wobbleboxx），经音频转换流程响度归一化、截短与 OGG 转码后嵌入。该曲在 2026-11-24 曾从运行时移除；2026-11-25 复核许可后恢复。当前完整音频 TASL 见 `game/assets/audio/LICENSES.md`。原合成工具 `tools/generate_audio.py` 保留用于生成原创母版。中文 UI 字体统一采用 **霞鹜文楷 / LXGW WenKai**，已设为 Godot 工程全局默认字体；字体许可 **SIL OFL 1.1**，完整协议文本随字体存放于 `game/assets/fonts/OFL.txt`。
 >
 > **历史记录（2026-11-23，基础 UI 骨架）**：重建的主菜单仅复用已登记资源，未新增第三方素材。
 > 当时继续使用 **「Samurai Nights」by Maik Hoffmann（Majadroid）**；
@@ -335,19 +335,18 @@
 
 ### 3.2 文本与数据资产
 
-> 本表保留 AI 使用与人工介入的历史记录。公开仓库只分发
-> `design/游戏设计文档-GDD.md` 与 `design/肉鸽地图重设计方案.md`；
-> 其他设计稿、数值表与过程材料仅本地留存，不随仓库、源码包或发行版分发。
+> 本表保留 AI 使用与人工介入的历史记录。设计稿、数值表与过程材料仅本地留存，
+> 不随公开仓库、源码包或发行版分发；下表中的内部路径仅用于说明工作流。
 
 | 文件 | AI 参与方式 | 人工介入 |
 |---|---|---|
-| `docs/比赛规则与主题归纳.md` | 从爬取原文归纳 | 人工核对规则条款与奖项条件 |
+| 赛事规则与主题归纳（内部整理，仅本地） | 从爬取原文归纳 | 人工核对规则条款与奖项条件 |
 | `docs/06-资料文本化/AI资料索引与知识图谱.md` | 实体抽取与关系整理 | 人工核对人物、地点、年代等关键事实 |
 | `docs/06-资料文本化/图片视觉标注.md` | 图像内容描述 | 人工复核五龙配色、拼字内容等文化元素 |
-| `design/游戏设计文档-GDD.md` | 完整撰写 | 人工定方向、取舍系统优先级 |
-| `design/Mindustry借鉴分析.md` | 联网调研与机制转译 | 人工确认三层落地方案 |
-| `design/兵种扩展设计.md` | 调研与 60 兵种设计 | 人工确认阶位结构、文化映射与数值带宽 |
-| `design/data/*.csv` | 数值表生成 | 人工校验字段、BOM、ID 唯一性与行数 |
+| 内部设计文档（仅本地） | 完整撰写 | 人工定方向、取舍系统优先级 |
+| 内部机制借鉴分析（仅本地） | 联网调研与机制转译 | 人工确认三层落地方案 |
+| 内部兵种扩展设计（仅本地） | 调研与 60 兵种设计 | 人工确认阶位结构、文化映射与数值带宽 |
+| 内部数值表（仅本地） | 数值表生成 | 人工校验字段、BOM、ID 唯一性与行数 |
 
 ### 3.3 代码
 

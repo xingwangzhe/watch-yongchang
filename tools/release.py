@@ -446,7 +446,6 @@ def legal_entries(output: Path) -> list[tuple[str, Path]]:
         "AI使用与素材声明.md",
         "素材授权清单.csv",
         "docs/edgeone-deploy.md",
-        "docs/build_2026-11-25.md",
         "game/LICENSE",
         "game/NOTICE",
         "game/LICENSE-CC-BY-4.0.txt",
@@ -458,6 +457,7 @@ def legal_entries(output: Path) -> list[tuple[str, Path]]:
         "game/assets/fx/jeff_fx/LICENSE.txt",
     ]
     entries = [(name, ROOT / name) for name in names]
+    entries.append(("assets/fonts/OFL.txt", GAME / "assets/fonts/OFL.txt"))
     entries.extend(
         [
             ("RELEASE-README.md", output / "RELEASE-README.md"),
@@ -505,7 +505,7 @@ Linux / Windows 的可执行文件和同名 `.pck` 必须放在同一目录。�
 
 ## Dora SSR 兼容
 
-Dora 适配入口与构建器保留在源码中，发布前只做静态兼容检查。本 GitHub Release 不发布 Dora 运行时包，发布路径为 Godot 原生三平台导出。
+Dora 适配入口与构建器保留在源码中，发布前只做静态兼容检查。本 GitHub Release 不发布 Dora 运行时包，发布路径为 Godot 原生桌面三平台导出与 Web 静态导出。
 
 ## 文件
 
@@ -539,7 +539,7 @@ def build_report(output: Path, tests: dict, commit: str, game_version: str) -> N
     rows.extend(
         [
             "",
-            "本工作流完成三平台导出、PCK v4 内容/MD5/法律文件审计、ZIP CRC/路径/敏感文件名审计、Linux 发行版启动 smoke 与哈希清单。",
+            "本工作流完成桌面三平台与 Web 导出、PCK v4 内容/MD5/法律文件审计、ZIP CRC/路径/敏感文件名审计、Linux 发行版启动 smoke 与哈希清单。",
             "原生 Windows GUT 由独立 `verify.yml` 验证；macOS 仅做结构与内嵌 PCK 审计，未在 macOS 实机运行；Dora 适配仅做静态兼容检查，不作为 GitHub Release 发布路径。",
             "",
         ]

@@ -371,17 +371,6 @@ func test_all_attack_clips_cover_five_actions() -> void:
 		expected_start += 6
 
 
-func test_preview_scene_instantiates_faction_recipes() -> void:
-	var scene := load("res://scenes/character_forge_preview.tscn") as PackedScene
-	assert_not_null(scene, "character forge preview must load")
-	if scene == null:
-		return
-	var preview := scene.instantiate()
-	add_child_autofree(preview)
-	await wait_process_frames(2)
-	assert_eq((preview.get("forges") as Array).size(), 10)
-
-
 func test_runtime_random_recipe_is_deterministic() -> void:
 	var forge := ForgeScript.new()
 	add_child_autofree(forge)

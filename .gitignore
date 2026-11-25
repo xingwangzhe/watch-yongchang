@@ -16,6 +16,7 @@
 .continue/
 .aider*
 .agents/
+AGENTS.md
 AGENTS.local.md
 CLAUDE.local.md
 
@@ -42,12 +43,11 @@ docs/source-manifest.json
 docs/06-资料文本化/**
 !docs/06-资料文本化/*.md
 
-# ----- 设计目录：默认只公开两份定稿文档 -----
-# 新增设计稿、数值表、评审记录与过程材料默认留在本地；
-# 如需公开新定稿，先人工审查再单独加白名单。
-design/*
-!design/游戏设计文档-GDD.md
-!design/肉鸽地图重设计方案.md
+# ----- 内部过程材料：设计稿、赛事研判与构建审计仅本地保留 -----
+design/
+docs/build_*.md
+docs/perf_*.md
+docs/比赛规则与主题归纳.md
 
 # ----- 本地研究、生成候选与第三方参考实现 -----
 assets/third_party/
@@ -92,6 +92,13 @@ __pycache__/
 *.mp4
 *.mkv
 
+# ----- 开发预览与旧角色实验，不得进入正式运行资产 -----
+game/assets/actors/
+game/data/actors.json
+game/scenes/*preview.tscn
+game/scripts/dev/
+pixel-art/actors/
+
 # ----- 本地密钥、证书与环境变量 -----
 .env
 .env.*
@@ -112,10 +119,18 @@ tools/_*
 scripts/*.tmp.*
 tools/*.tmp.*
 
-# ----- 像素素材临时研究输出（正式导出走 game/assets/）-----
+# ----- 像素素材中间图与验收图（构建脚本可重建，正式导出走 game/assets/）-----
+pixel-art/**/*.png
+pixel-art/**/*.gif
+pixel-art/**/*.jpg
+pixel-art/**/*.jpeg
 pixel-art/**/*_study/
 pixel-art/**/study/
 pixel-art/**/CRITIQUE.md
+pixel-art/character_forge/REFERENCE.md
+
+# ----- 根目录字体副本；运行时唯一字体位于 game/assets/fonts/ -----
+assets/fonts/
 
 # ----- CI 工具与包管理器缓存 -----
 .tools/

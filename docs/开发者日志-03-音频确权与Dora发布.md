@@ -21,8 +21,8 @@
 
 重新导出时发现开发用 `GdaHarness` 仍登记为 autoload，而导出包又排除了该插件，导致 Linux 发行版启动失败。修复方式是移除开发 autoload、加入回归断言并重新导出。三个平台 PCK 均审计为格式 v4、848 个文件，禁用路径、旧兵种、法律文件缺失和 MD5 错误均为 0。
 
-2026-11-25 起 Release 改为标签驱动：`.github/workflows/release.yml` 仅在 `v*.*.*` 标签上运行，校验 `game/project.godot` 的 `config/version` 后，用官方 Godot CLI 完成测试、三平台导出、审计与 GitHub CLI 发布。Dora 兼容入口与静态检查保留，但不再作为 Release 路径。
+2026-11-25 起 Release 改为标签驱动：`.github/workflows/release.yml` 仅在 `v*.*.*` 标签上运行，校验 `game/project.godot` 的 `config/version` 后，用官方 Godot CLI 完成测试、Linux/Windows/macOS/Web 四平台导出、审计与 GitHub CLI 发布。Dora 兼容入口与静态检查保留，但不再作为 Release 路径。
 
 ## 当前结果与边界
 
-Linux 发行版 smoke 通过；Dora 静态检查、源码 ZIP、Linux/Windows/macOS ZIP 与 PCK 审计通过。Windows Wine smoke 因宿主磁盘配额错误未通过，不能替代原生 Windows CI；真实 Dora、macOS 实机和赛事平台操作仍未完成。详细证据见 [构建与验收报告](build_2026-11-25.md) 和 [Dora 运行说明](../DORA.md)。
+Linux 发行版 smoke 通过；Dora 静态检查、源码 ZIP、Linux/Windows/macOS ZIP 与 PCK 审计通过。Windows Wine smoke 因宿主磁盘配额错误未通过，不能替代原生 Windows CI；真实 Dora、macOS 实机和赛事平台操作仍未完成。构建证据见 GitHub Actions 的 `release.yml` 报告，运行说明见 [Dora 运行说明](../DORA.md)。

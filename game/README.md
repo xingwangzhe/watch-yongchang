@@ -10,7 +10,7 @@ game-icons.net SVG。
 启动器、CI 与 GUT 都读取/校验该文件；升级引擎必须先改此文件并重跑全平台测试。
 
 新玩法：Vampire Survivors-like 割草生存 Roguelite，16 分钟单局。
-设计源：`../design/游戏设计文档-GDD.md`。
+设计稿与内部数值表只在本地保留，不随公开仓库分发。
 
 ## 已实现
 
@@ -127,7 +127,7 @@ game\launch.bat
   角色图集与瓦片图集、143 张卡的双语/来源/图标完整性、149+ 条目规模、
   三选一唯一性、减速/灼烧/眩晕/收魂、选项卡渲染、事件结算、
   触屏巡灯语言、敌兵组合配方与批渲染方向、引擎补丁版本与 `.godot-version` 一致性。
-- 最近一次 Linux 基线：**165 tests / 165 passed / 41214 asserts**（Godot 4.7.2-stable）。
+- 最近一次 Linux 基线：**161 tests / 161 passed / 41177 asserts**（Godot 4.7.2-stable）。
   Windows 原生 GUT 与启动器 smoke test 仍由 CI 复验。
 - 敌兵外观由 `game/data/enemies.json` 的 `character_recipe` 驱动，
   `pixel-art/character_forge/bake_battle_sprites.py` 从裸体基底、服装、头饰、
@@ -171,14 +171,14 @@ game\launch.bat
 - **第三方资产保留原许可**：音频 CC0、game-icons.net CC BY 3.0、字体 OFL 1.1、Jeff-FX-forge
   代码 MIT / 原创特效 CC0，其余工具按各自许可。逐项清单见上级仓库 `素材授权清单.csv`，
   每行包含 `source_url`、`license_url` 与 `rights_status`。
-- 根目录三份法律文件在 `game/` 内有逐字节副本，三平台导出预设显式包含法律文本、音频 TASL、
+- 根目录三份法律文件在 `game/` 内有逐字节副本，四个平台导出预设显式包含法律文本、音频 TASL、
   图标署名与字体/特效许可。MOSS 语音输出授权未核实，已从运行时删除，仅保留字幕回退。
 
 ## 导出
 
-三平台预设已写入 `export_presets.cfg`。2026-11-23 的旧忽略产物早于音频/许可整改，
-在重新导出与复查前不得分发。当前版本为 `0.1.0`；重建与审计结果见
-`../docs/build_2026-11-25.md`。GitHub Release 只由 `v*.*.*` 标签触发
+四平台预设已写入 `export_presets.cfg`。2026-11-23 的旧忽略产物早于音频/许可整改，
+在重新导出与复查前不得分发。当前版本为 `0.1.0`；重建与审计结果记录在
+GitHub Actions 的 `release.yml` 构建报告中。GitHub Release 只由 `v*.*.*` 标签触发
 `.github/workflows/release.yml` 生成。
 历史验收记录：
 
@@ -191,7 +191,6 @@ game\launch.bat
 
 导出模板已安装到 `~/.local/share/godot/export_templates/4.7.2.stable/`。
 构建产物在 `game/build/`，已被 `.gitignore` 排除，不入版本库。
-旧产物清单、哈希与 smoke 记录见 `../docs/build_2026-11-23.md`。
 
 ### Dora SSR 源码包
 
@@ -210,7 +209,6 @@ CLI 运行方式、可选 PCK 流程、平台运行库与许可范围见 `../DOR
 
 1. 补 Windows 原生 GUT 与启动器 smoke test，确认新增 M3 内容跨平台。
 2. 在正常唤醒的原生桌面复测 400–460 敌人；当前已把压力场景 draw calls 从 930 降到 14，
-   但本机会话被显示器/合成器限到约 1 帧/秒，绝对 FPS 仍需实机复测。详见
-   `../docs/perf_2026-11-23.md`。
+   但本机会话被显示器/合成器限到约 1 帧/秒，绝对 FPS 仍需实机复测。
 3. 在原生 Windows 与 macOS 上跑构建启动 smoke test；Windows 任务仍以 CI 为准。
 4. 继续平衡进化节奏、灯油压力、Boss 血量与敌人上限。

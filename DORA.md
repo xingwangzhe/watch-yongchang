@@ -16,7 +16,8 @@ Dora 适配执行 `python3 dora/build.py --check`，不构建、不上传 Dora �
 - 主场景：`res://scenes/main_menu.tscn`。
 - 视口：1280×720，`canvas_items` / `expand`。
 - 渲染：`gl_compatibility`。
-- 现有 Godot 导出预设：Linux、Windows、macOS；**没有 Web 预设**。
+- 现有 Godot 导出预设：Linux、Windows、macOS、Web；Web 预设用于 EdgeOne Makers
+  单线程静态部署。
 
 `python3 dora/build.py` 默认生成 `artifacts/watch-yongchang-dora.zip`，结构为：
 
@@ -83,8 +84,8 @@ local game = Dora.GodotNode(PROJECT_PATH, "", 1280, 720, 3)
 "$GDA_GODOT" --headless --path game --import
 ```
 
-2026-11-25 已用 Godot 4.7.2-stable 执行上述导入。当前源码 ZIP 为 1206 个文件、
-353 个导入 sidecar，约 65.96 MiB；最终 SHA-256 见 `docs/build_2026-11-25.md`。
+2026-11-25 已用 Godot 4.7.2-stable 执行上述导入。当前源码 ZIP 的最终 SHA-256
+由 GitHub Actions 构建报告与 `release-manifest.json` 记录。
 
 ### Dora 运行依赖
 
@@ -100,14 +101,7 @@ local game = Dora.GodotNode(PROJECT_PATH, "", 1280, 720, 3)
     WebGL2。不能加载桌面动态库或桌面 PCK。
 - Dora 引擎与 Godot 运行库是第三方运行依赖，不包含在本源码 ZIP 中。
 
-Web 部署还必须由服务器发送隔离响应头，否则 Godot Web 运行库无法启用所需能力：
-
-```text
-Cross-Origin-Opener-Policy: same-origin
-Cross-Origin-Embedder-Policy: require-corp
-```
-
-这两个响应头是 Web 运行条件，不是 Python 构建步骤。
+Web 预设使用单线程导出，不要求 COOP/COEP 响应头；EdgeOne Makers 可直接托管。
 
 ## 4. 构建与静态检查
 
