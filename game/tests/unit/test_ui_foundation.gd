@@ -177,8 +177,9 @@ func test_main_menu_moves_codex_to_menu_and_opens_controls() -> void:
 	assert_not_null(menu.find_child("ControlsButton", true, false), "settings must expose a controls button")
 	var music_title := menu.find_child("MusicTitle", true, false) as Label
 	assert_not_null(music_title)
-	assert_string_contains(str(music_title.text), "Yongchang Watch")
-	assert_false(str(music_title.text).contains("Samurai Nights"), "retired BGM must not be advertised")
+	assert_string_contains(str(music_title.text), "Samurai Nights")
+	assert_string_contains(str(music_title.text), "Majadroid")
+	assert_false(str(music_title.text).contains("Yongchang Watch"), "restored BGM must be advertised")
 	menu.open_settings()
 	menu.open_controls()
 	await wait_process_frames(1)
@@ -312,11 +313,17 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	var credits: Dictionary = about.credits_data()
 	var music_entries: Array = credits.get("music", [])
 	assert_eq(music_entries.size(), 3)
+	var allowed_music_licenses := {
+		"CC0 1.0": "https://creativecommons.org/publicdomain/zero/1.0/",
+		"CC BY 3.0": "https://creativecommons.org/licenses/by/3.0/",
+		"CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
+		"CC0 1.0 or CC BY 4.0": "https://creativecommons.org/publicdomain/zero/1.0/",
+	}
 	var music_files: Array[String] = []
 	for entry in music_entries:
 		var license_id := str(entry.get("license", ""))
-		assert_true(license_id == "CC0 1.0" or license_id == "CC0 1.0 or CC BY 4.0", "every shipped BGM must retain CC0")
-		assert_eq(str(entry.get("license_url", "")), "https://creativecommons.org/publicdomain/zero/1.0/")
+		assert_true(allowed_music_licenses.has(license_id), "every shipped BGM must use an open license")
+		assert_eq(str(entry.get("license_url", "")), allowed_music_licenses.get(license_id))
 		if str(entry.get("artist", "")) == "xingwangzhe":
 			assert_eq(license_id, "CC0 1.0 or CC BY 4.0", "original BGM must also offer CC BY 4.0")
 			assert_eq(str(entry.get("license_alt_url", "")), "https://creativecommons.org/licenses/by/4.0/")

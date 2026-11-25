@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Generate original, sample-free CC0 / CC BY 4.0 music for Watch of Yongchang.
 
-Default: synthesize the distinct 72-second about-page cue and encode it as Ogg.
+Default: synthesize the distinct 72-second about-page cue under assets/audio/.
 ``--legacy`` reproduces the original menu cue and event SFX under assets/audio/.
 ``--output PATH`` selects another Ogg destination (useful for verification).
+The shipped third-party runtime BGM is never overwritten by the default command.
 
 The musical material is deterministic additive synthesis: no recordings, samples,
 models, or third-party compositions are used. Python's standard library and ffmpeg
@@ -30,7 +31,6 @@ from pathlib import Path
 SR = 44100
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets" / "audio"
-RUNTIME_OUT = ROOT / "game" / "assets" / "audio"
 TAU = 2.0 * math.pi
 
 # Original menu cue: C-gong pentatonic, retained as reproducible provenance for
@@ -306,7 +306,7 @@ def main() -> None:
         return
     wav_path, duration = about_music()
     try:
-        encode_ogg(wav_path, args.output or RUNTIME_OUT / "bgm_about.ogg")
+        encode_ogg(wav_path, args.output or OUT / "bgm_about.ogg")
     finally:
         wav_path.unlink(missing_ok=True)
     print(f"about cue duration: {duration:.2f}s; no third-party samples")
