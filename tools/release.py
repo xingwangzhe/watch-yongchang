@@ -528,6 +528,8 @@ def main() -> int:
     RESULTS["tests"] = tests
     save_results(output)
 
+    for directory in ("linux", "windows", "macos"):
+        (GAME / "build" / directory).mkdir(parents=True, exist_ok=True)
     for preset in ("Linux", "Windows", "macOS"):
         run(f"export-{preset.lower()}", [godot, "--headless", "--path", "game", "--export-release", preset], output, timeout=600)
 
