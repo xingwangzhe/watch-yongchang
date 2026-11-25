@@ -306,7 +306,7 @@ jobs:
           fi
 
       - name: Import project
-        run: timeout 300 "$GODOT_BIN" --headless --path game --import
+        run: "$GODOT_BIN" --headless --path game --import
 
       - name: Run GUT
         run: |

@@ -235,6 +235,7 @@ jobs:
             "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip"
           unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
           chmod +x "$GODOT_BIN"
+          xattr -dr com.apple.quarantine .tools/Godot.app || true
           ACTUAL="$("$GODOT_BIN" --version)"
           EXPECTED_BASE="${GODOT_VERSION%-*}"
           EXPECTED_STATUS="${GODOT_VERSION#*-}"
@@ -245,7 +246,7 @@ jobs:
           fi
 
       - name: Import project
-        run: timeout 300 "$GODOT_BIN" --headless --path game --import
+        run: "$GODOT_BIN" --headless --path game --import
 
       - name: Run GUT
         run: |
