@@ -413,13 +413,22 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$EDGEONE_API_TOKEN"
-          bunx -y edgeone@1.7.7 makers deploy web-dist \
-            -n shouwang \
-            -t "$EDGEONE_API_TOKEN" \
-            --area global \
-            --skip-ai-gateway-sync \
-            --json \
-            2>&1 | tee "$RUNNER_TEMP/edgeone-deploy.log"
+          for attempt in 1 2 3; do
+            if bunx -y edgeone@1.7.7 makers deploy web-dist \
+              -n shouwang \
+              -t "$EDGEONE_API_TOKEN" \
+              --area global \
+              --skip-ai-gateway-sync \
+              --json \
+              2>&1 | tee "$RUNNER_TEMP/edgeone-deploy.log"; then
+              exit 0
+            fi
+            if [ "$attempt" -lt 3 ]; then
+              echo "EdgeOne deploy attempt $attempt failed; retrying in $((attempt * 15))s."
+              sleep $((attempt * 15))
+            fi
+          done
+          exit 1
 
   web-deploy-cloudflare:
     name: Web deploy · Cloudflare Pages
