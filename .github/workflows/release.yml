@@ -475,14 +475,46 @@ jobs:
             --branch main \
             --commit-dirty=true
 
+  edgeone-pages:
+    name: EdgeOne deploy
+    needs: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download Web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-web
+          path: ci-artifacts/web
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Deploy raw Web build to EdgeOne Makers
+        env:
+          EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$EDGEONE_API_TOKEN"
+          bunx -y edgeone@1.7.7 makers deploy ci-artifacts/web/site \
+            -n shouwang \
+            -t "$EDGEONE_API_TOKEN" \
+            --area global \
+            --skip-ai-gateway-sync \
+            --json \
+            2>&1 | tee "$RUNNER_TEMP/edgeone-deploy.log"
+
   publish:
-    name: Audit, EdgeOne deploy, and publish
+    name: Audit and publish
     needs:
       - linux
       - windows
       - macos
       - web
       - cloudflare-pages
+      - edgeone-pages
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -520,25 +552,6 @@ jobs:
           python3 tools/package_release.py \
             --input ci-artifacts \
             --output release-assets
-
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version: 1.4.5
-
-      - name: Deploy raw Web build to EdgeOne Makers
-        env:
-          EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
-        run: |
-          set -euo pipefail
-          test -n "$EDGEONE_API_TOKEN"
-          bunx -y edgeone@1.7.7 makers deploy ci-artifacts/web/site \
-            -n shouwang \
-            -t "$EDGEONE_API_TOKEN" \
-            --area global \
-            --skip-ai-gateway-sync \
-            --json \
-            2>&1 | tee "$RUNNER_TEMP/edgeone-deploy.log"
 
       - name: Upload release artifact
         if: always()
