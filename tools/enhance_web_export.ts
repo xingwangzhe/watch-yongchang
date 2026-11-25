@@ -1,5 +1,6 @@
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import sharp from "sharp";
 
 type ProjectMeta = {
   app: {
@@ -28,16 +29,6 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function runFfmpeg(args: string[]): void {
-  const result = Bun.spawnSync(["ffmpeg", "-hide_banner", "-loglevel", "error", ...args], {
-    stdout: "inherit",
-    stderr: "inherit",
-  });
-  if (result.exitCode !== 0) {
-    throw new Error(`ffmpeg failed with exit code ${result.exitCode}`);
-  }
-}
-
 if (!existsSync(INDEX_PATH)) {
   throw new Error(`Missing exported Web HTML: ${INDEX_PATH}`);
 }
@@ -52,16 +43,11 @@ const description =
 const canonical = meta.links.web;
 
 copyFileSync(ICON_PATH, join(WEB_DIR, "icon-512.png"));
-runFfmpeg([
-  "-i",
-  BACKDROP_PATH,
-  "-vf",
-  "scale=1200:675:flags=neighbor,crop=1200:630:0:22",
-  "-frames:v",
-  "1",
-  "-y",
-  join(WEB_DIR, "social-card.png"),
-]);
+await sharp(BACKDROP_PATH)
+  .resize(1200, 675, { kernel: "nearest", fit: "fill" })
+  .extract({ left: 0, top: 22, width: 1200, height: 630 })
+  .png({ compressionLevel: 9, adaptiveFiltering: true })
+  .toFile(join(WEB_DIR, "social-card.png"));
 
 const manifest = {
   name: meta.app.names.zh,

@@ -356,6 +356,9 @@ jobs:
         with:
           bun-version: 1.4.5
 
+      - name: Install build dependencies
+        run: bun install --frozen-lockfile
+
       - name: Export Web
         run: |
           set -euo pipefail
