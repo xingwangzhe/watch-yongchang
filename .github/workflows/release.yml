@@ -422,13 +422,16 @@ jobs:
         with:
           bun-version: 1.4.5
 
+      - name: Prepare EdgeOne split staging
+        run: bun run tools/prepare_edgeone_web.ts ci-artifacts/web/site ci-artifacts/web/edgeone-site
+
       - name: Deploy Web to EdgeOne Makers
         env:
           EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
         run: |
           set -euo pipefail
           test -n "$EDGEONE_API_TOKEN"
-          bunx -y edgeone@1.7.7 makers deploy ci-artifacts/web/site \
+          bunx -y edgeone@1.7.7 makers deploy ci-artifacts/web/edgeone-site \
             -n shouwang \
             -t "$EDGEONE_API_TOKEN" \
             --area global \

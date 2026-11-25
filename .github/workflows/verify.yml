@@ -46,7 +46,7 @@ jobs:
           check_empty "non-forge unit directories" find game/assets/units -maxdepth 1 -mindepth 1 -type d ! -name forge ! -name towers
           check_empty "legacy unit art at repo root" find assets -maxdepth 3 -type f \( -name '*.png' -o -name '预览-*.jpg' \)
           if [ "$fail" -ne 0 ]; then
-            echo "Asset red line violated; see AGENTS.md section 0."
+            echo "Asset red line violated; see the project asset rules in game/README.md."
             exit 1
           fi
           echo "Asset red lines clean."
@@ -320,6 +320,14 @@ jobs:
           grep -q 'const GODOT_THREADS_ENABLED = false;' game/build/web/index.html
           grep -q '"ensureCrossOriginIsolationHeaders":false' game/build/web/index.html
 
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Prepare EdgeOne split staging
+        run: bun run tools/prepare_edgeone_web.ts game/build/web game/build/web-edgeone
+
       - name: Upload Web artifact
         uses: actions/upload-artifact@v4
         with:
@@ -328,11 +336,6 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with:
-          bun-version: 1.4.5
-
       - name: Deploy to EdgeOne Makers
         if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         env:
@@ -340,7 +343,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$EDGEONE_API_TOKEN"
-          bunx -y edgeone@1.7.7 makers deploy game/build/web \
+          bunx -y edgeone@1.7.7 makers deploy game/build/web-edgeone \
             -n shouwang \
             -t "$EDGEONE_API_TOKEN" \
             --area global \
