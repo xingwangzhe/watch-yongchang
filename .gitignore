@@ -42,11 +42,12 @@ docs/source-manifest.json
 docs/06-资料文本化/**
 !docs/06-资料文本化/*.md
 
-# ----- 内部设计草稿与过程材料 -----
-design/*-draft.md
-design/*草稿*
-design/内部*
-design/_*
+# ----- 设计目录：默认只公开两份定稿文档 -----
+# 新增设计稿、数值表、评审记录与过程材料默认留在本地；
+# 如需公开新定稿，先人工审查再单独加白名单。
+design/*
+!design/游戏设计文档-GDD.md
+!design/肉鸽地图重设计方案.md
 
 # ----- 本地研究、生成候选与第三方参考实现 -----
 assets/third_party/
@@ -66,6 +67,12 @@ game/build/
 game/android/build/
 game/ios/build/
 .codegraph/
+*.pck
+*.exe
+*.x86_64
+*.dmg
+*.app/
+*.zip
 
 # ----- 截图、调试日志、演示视频与本地验收产物 -----
 docs/screenshots/
@@ -113,3 +120,8 @@ pixel-art/**/study/
 .tools/
 .venv/
 node_modules/
+.cache/
+.turbo/
+.parcel-cache/
+.eslintcache
+.stylelintcache
