@@ -56,6 +56,40 @@ jobs:
       - name: Dora compatibility check
         run: python3 dora/build.py --check
 
+  web-engine:
+    name: Web engine template
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        id: version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          test -n "$VERSION"
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build optimized Web export template
+        uses: ./.github/actions/build-web-engine
+        with:
+          godot-version: ${{ steps.version.outputs.value }}
+          emsdk-version: "4.0.20"
+          scons-version: "4.11.1"
+          output-dir: ${{ runner.temp }}/web-engine-dist
+          scons-cache: ${{ runner.temp }}/scons-cache
+          jobs: "4"
+
+      - name: Upload Web export template
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-web-template
+          path: ${{ runner.temp }}/web-engine-dist/web_nothreads_release.zip
+          if-no-files-found: error
+          retention-days: 14
+
   linux:
     name: Linux export
     needs: validate
@@ -298,7 +332,9 @@ jobs:
 
   web:
     name: Web export
-    needs: validate
+    needs:
+      - validate
+      - web-engine
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -313,7 +349,13 @@ jobs:
           test -n "$VERSION"
           echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
 
-      - name: Install Godot and export templates
+      - name: Download optimized Web template
+        uses: actions/download-artifact@v4
+        with:
+          name: release-web-template
+          path: ${{ runner.temp }}/web-export-template
+
+      - name: Install Godot and optimized Web template
         run: |
           set -euo pipefail
           mkdir -p .tools
@@ -323,16 +365,12 @@ jobs:
           unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
           mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
           chmod +x "$GODOT_BIN"
-          curl -fL --retry 3 \
-            -o "$RUNNER_TEMP/godot-templates.tpz" \
-            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
           TEMPLATE_VERSION="${GODOT_VERSION/-/.}"
-          unzip -q "$RUNNER_TEMP/godot-templates.tpz" -d "$RUNNER_TEMP/godot-templates"
-          TEMPLATE_ROOT="$(find "$RUNNER_TEMP/godot-templates" -mindepth 1 -maxdepth 1 -type d -name templates -print -quit)"
-          test -n "$TEMPLATE_ROOT"
-          mkdir -p "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION"
-          cp -a "$TEMPLATE_ROOT/." "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/"
-          test -f "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/web_nothreads_release.zip"
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION"
+          mkdir -p "$TEMPLATE_DIR"
+          cp "$RUNNER_TEMP/web-export-template/web_nothreads_release.zip" \
+            "$TEMPLATE_DIR/web_nothreads_release.zip"
+          test -s "$TEMPLATE_DIR/web_nothreads_release.zip"
           ACTUAL="$("$GODOT_BIN" --version)"
           EXPECTED_BASE="${GODOT_VERSION%-*}"
           EXPECTED_STATUS="${GODOT_VERSION#*-}"
@@ -361,6 +399,13 @@ jobs:
           done
           grep -q 'const GODOT_THREADS_ENABLED = false;' game/build/web/index.html
           grep -q '"ensureCrossOriginIsolationHeaders":false' game/build/web/index.html
+          LIMIT=$((25 * 1024 * 1024))
+          for file in index.wasm index.pck; do
+            SIZE="$(stat -c '%s' "game/build/web/$file")"
+            echo "$file bytes=$SIZE limit=$LIMIT"
+            test "$SIZE" -lt "$LIMIT"
+          done
+          find game/build/web -name '*.import' -delete
           cp -a game/build/web/. ci-artifacts/web/site/
           cp "$RUNNER_TEMP/gut-web.log" ci-artifacts/web/gut.log
 
@@ -422,16 +467,13 @@ jobs:
         with:
           bun-version: 1.4.5
 
-      - name: Prepare EdgeOne split staging
-        run: bun run tools/prepare_edgeone_web.ts ci-artifacts/web/site ci-artifacts/web/edgeone-site
-
-      - name: Deploy Web to EdgeOne Makers
+      - name: Deploy raw Web build to EdgeOne Makers
         env:
           EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
         run: |
           set -euo pipefail
           test -n "$EDGEONE_API_TOKEN"
-          bunx -y edgeone@1.7.7 makers deploy ci-artifacts/web/edgeone-site \
+          bunx -y edgeone@1.7.7 makers deploy ci-artifacts/web/site \
             -n shouwang \
             -t "$EDGEONE_API_TOKEN" \
             --area global \

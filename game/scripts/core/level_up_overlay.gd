@@ -5,7 +5,7 @@ signal chosen(index: int)
 
 const INPUT_LOCK_MSEC := 1000
 
-const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
+const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const PAPER := Color("#efe1c2")
 const MUTED := Color("#baa98a")
 const GOLD := Color("#e1b35a")

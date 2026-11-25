@@ -2,7 +2,7 @@ extends Control
 
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
-const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
+const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const CREDITS_PATH := "res://data/credits.json"
 const ABOUT_BGM_PATH := "res://assets/audio/bgm_about.ogg"
 

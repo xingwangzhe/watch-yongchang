@@ -1,6 +1,6 @@
 extends Node2D
 
-const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
+const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const GROUND_TEXTURE := preload("res://scripts/core/ground_texture.gd")
 const PAPER := Color("#efe1c2")
 const MUTED := Color("#baa98a")

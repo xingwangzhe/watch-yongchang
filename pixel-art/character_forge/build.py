@@ -4767,7 +4767,7 @@ def load_preview_atlases() -> dict[str, Image.Image]:
 
 
 def font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    path = ROOT / "game" / "assets" / "fonts" / "LXGWWenKai-Regular.ttf"
+    path = ROOT / "game" / "assets" / "fonts" / "LXGWWenKai-Regular.woff2"
     if path.exists():
         return ImageFont.truetype(str(path), size)
     return ImageFont.load_default()

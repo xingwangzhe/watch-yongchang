@@ -1,7 +1,7 @@
 class_name RunHUD
 extends CanvasLayer
 
-const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
+const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
 const OIL_METER := preload("res://scripts/ui/oil_meter.gd")
 const SCALE_METER := preload("res://scripts/ui/scale_meter.gd")

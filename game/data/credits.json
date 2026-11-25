@@ -1666,9 +1666,9 @@
 			"license": "SIL Open Font License 1.1",
 			"license_url": "https://openfontlicense.org/open-font-license-official-text/",
 			"url": "https://github.com/lxgw/LxgwWenKai",
-			"file": "res://assets/fonts/LXGWWenKai-Regular.ttf",
-			"notice_zh": "Copyright 2021-2026 LXGW；Copyright 2020 The Klee Project Authors。保留字体名称：霞鹜、霞鶩、落霞孤鹜、落霞孤鶩、LXGW。许可全文：game/assets/fonts/OFL.txt。",
-			"notice_en": "Copyright 2021-2026 LXGW; Copyright 2020 The Klee Project Authors. Reserved font names: 霞鹜, 霞鶩, 落霞孤鹜, 落霞孤鶩, LXGW. Full license: game/assets/fonts/OFL.txt."
+			"file": "res://assets/fonts/LXGWWenKai-Regular.woff2",
+			"notice_zh": "Copyright 2021-2026 LXGW；Copyright 2020 The Klee Project Authors。保留字体名称：霞鹜、霞鶩、落霞孤鹜、落霞孤鶩、LXGW。字形未修改，仅将容器由 TTF 转为 WOFF2。许可全文：game/assets/fonts/OFL.txt。",
+			"notice_en": "Copyright 2021-2026 LXGW; Copyright 2020 The Klee Project Authors. Reserved font names: 霞鹜, 霞鶩, 落霞孤鹜, 落霞孤鶩, LXGW. Glyphs unchanged; container converted from TTF to WOFF2. Full license: game/assets/fonts/OFL.txt."
 		}
 	],
 	"tools": [

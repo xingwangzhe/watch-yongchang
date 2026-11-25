@@ -2,13 +2,13 @@
 
 importer="font_data_dynamic"
 type="FontFile"
-uid="uid://88o0aw02obj6"
-path="res://.godot/imported/LXGWWenKai-Regular.ttf-228bcf86d51c4ee4cce2c848a0a87440.fontdata"
+uid="uid://bsp2v8rbkk346"
+path="res://.godot/imported/LXGWWenKai-Regular.woff2-4962631750bb1a56f4dce0c063f1b0d6.fontdata"
 
 [deps]
 
-source_file="res://assets/fonts/LXGWWenKai-Regular.ttf"
-dest_files=["res://.godot/imported/LXGWWenKai-Regular.ttf-228bcf86d51c4ee4cce2c848a0a87440.fontdata"]
+source_file="res://assets/fonts/LXGWWenKai-Regular.woff2"
+dest_files=["res://.godot/imported/LXGWWenKai-Regular.woff2-4962631750bb1a56f4dce0c063f1b0d6.fontdata"]
 
 [params]
 

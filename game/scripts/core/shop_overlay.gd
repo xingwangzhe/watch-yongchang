@@ -5,7 +5,7 @@ signal buy_requested(index: int)
 signal reroll_requested
 signal closed
 
-const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
+const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
 const PAPER := Color("#efe1c2")
 const MUTED := Color("#baa98a")

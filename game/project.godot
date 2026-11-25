@@ -37,7 +37,7 @@ enabled=PackedStringArray("res://addons/gut/plugin.cfg")
 
 [gui]
 
-theme/custom_font="res://assets/fonts/LXGWWenKai-Regular.ttf"
+theme/custom_font="res://assets/fonts/LXGWWenKai-Regular.woff2"
 
 [rendering]
 

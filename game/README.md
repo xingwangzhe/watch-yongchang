@@ -127,7 +127,7 @@ game\launch.bat
   角色图集与瓦片图集、143 张卡的双语/来源/图标完整性、149+ 条目规模、
   三选一唯一性、减速/灼烧/眩晕/收魂、选项卡渲染、事件结算、
   触屏巡灯语言、敌兵组合配方与批渲染方向、引擎补丁版本与 `.godot-version` 一致性。
-- 最近一次 Linux 基线：**161 tests / 161 passed / 41177 asserts**（Godot 4.7.2-stable）。
+- 最近一次 Linux 基线：**161 tests / 161 passed / 41180 asserts**（Godot 4.7.2-stable）。
   Windows 原生 GUT 与启动器 smoke test 仍由 CI 复验。
 - 敌兵外观由 `game/data/enemies.json` 的 `character_recipe` 驱动，
   `pixel-art/character_forge/bake_battle_sprites.py` 从裸体基底、服装、头饰、
@@ -135,8 +135,8 @@ game\launch.bat
 - 王陆六个守夜阵位与序章汤和同样使用 `characters.json` 的 `character_recipe`，
   分别烘焙 4 帧待机与 8 帧行走条；战斗、选择页头像和序章都不再绘制旧
   `static.png` 角色，旧兵种目录已删除。
-- 16 分钟无头平衡跑测：`tests/balance/balance_bot.gd`，日志见
-  `../docs/balance_2026-11-23.log`。
+- 16 分钟无头平衡跑测入口：`tests/balance/balance_bot.gd`；运行日志属于本地临时产物，
+  不随公开仓库分发。
 - CI 使用 `ubuntu-latest` 与原生 `windows-latest` 两套 GUT；Windows 任务直接运行
   Godot win64，不使用 Wine。本地 Wine 11 + Godot 4.7.2-stable 仅作额外预检，
   已验证 `auto`、`opengl` 与镜像配置读取。

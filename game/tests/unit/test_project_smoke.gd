@@ -57,7 +57,13 @@ func test_export_presets_cover_linux_windows_macos_and_web() -> void:
 		text,
 		'progressive_web_app/ensure_cross_origin_isolation_headers=false'
 	)
-	assert_string_contains(text, 'exclude_filter="build/*,export/*,tests/*,addons/gut/*,addons/gda_harness/*"')
+	assert_string_contains(text, 'exclude_filter="build/*,export/*,tests/*,addons/gut/*,addons/gda_harness/*')
+	assert_string_contains(text, 'assets/character_forge/*')
+	assert_string_contains(text, 'assets/fonts/LXGWWenKai-Regular.ttf')
+	assert_string_contains(
+		project,
+		'theme/custom_font="res://assets/fonts/LXGWWenKai-Regular.woff2"'
+	)
 	assert_string_contains(text, 'application/copyright="Code AGPL-3.0-or-later;')
 	assert_false(text.contains("Code GPL-3.0-or-later"), "export metadata must use AGPL")
 	assert_string_contains(text, 'include_filter="LICENSE,NOTICE,LICENSE-CC-BY-4.0.txt,')

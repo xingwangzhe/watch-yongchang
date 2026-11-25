@@ -4,7 +4,7 @@ extends Node
 ## 性能约定：全部视觉层用预分配 Dictionary 池，由 Battlefield._draw() 委托绘制；
 ## 命中时零节点创建、零材质创建、零资源加载。HitData 也走池。
 
-const UI_FONT = preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
+const UI_FONT = preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const MAX_CACHED_HIT_DATA := 256
 
 signal hit_processed(position: Vector2, damage: float, critical: bool, weight: int)

@@ -71,10 +71,12 @@ Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路�
 "$GDA_GODOT" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
 
-测试框架为 GUT 9.7.1。当前 Linux 基线为 **161 tests / 161 passed / 41177 asserts**。CI 并行执行 Linux、Windows、macOS 与 Web 构建，各平台都运行 GUT；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
+测试框架为 GUT 9.7.1。当前 Linux 基线为 **161 tests / 161 passed / 41180 asserts**。CI 并行执行 Linux、Windows、macOS GUT 与 Web 构建；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
 
 `main` 分支的 Web 构建会以单线程模式导出并自动部署至 EdgeOne Makers 项目 `shouwang`：
-<https://2026shouwang.needhelp.icu>。Web 构建不要求 COOP/COEP 响应头。
+<https://2026shouwang.needhelp.icu>。Web 构建不要求 COOP/COEP 响应头。CI 用 Godot
+官方 SCons 参数裁剪 Emscripten 运行时，再用 Binaryen `wasm-opt -Oz` 优化；wasm 与
+PCK 不切分、不预压缩，由 EdgeOne 自动压缩传输。
 
 推送 `v*.*.*` 标签会触发 `.github/workflows/release.yml`：工作流校验标签与 `game/project.godot` 的 `config/version` 一致，然后按操作系统并行执行 Linux、Windows、macOS、Web 四个构建作业，每个平台都运行 GUT 并导出原生产物。汇总作业执行 PCK/ZIP/许可证审计、Linux 发行版 smoke、Web 静态产物检查与 EdgeOne 部署，最后通过 GitHub CLI 创建 GitHub Release。发布包包含 Linux / Windows 可执行文件及外部 PCK、macOS ZIP、Web ZIP、完整源码 ZIP、`release-manifest.json` 和 `SHA256SUMS.txt`；Dora 源码包不随 Release 发布。
 

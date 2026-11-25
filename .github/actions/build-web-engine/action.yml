@@ -1,0 +1,170 @@
+name: Build optimized Godot Web template
+description: Build a size-trimmed, single-threaded Godot Web template with Emscripten and Binaryen.
+
+inputs:
+  godot-version:
+    description: Godot tag from game/.godot-version
+    required: true
+  emsdk-version:
+    description: Emscripten SDK stable version
+    required: false
+    default: "4.0.20"
+  scons-version:
+    description: SCons version
+    required: false
+    default: "4.11.1"
+  output-dir:
+    description: Directory that receives web_nothreads_release.zip
+    required: true
+  scons-cache:
+    description: Persistent SCons cache directory
+    required: false
+    default: ""
+  jobs:
+    description: Parallel compile jobs
+    required: false
+    default: "4"
+
+runs:
+  using: composite
+  steps:
+    - name: Restore compiled Web template
+      id: template-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.output-dir }}
+        key: godot-web-template-${{ inputs.godot-version }}-${{ inputs.emsdk-version }}-${{ inputs.scons-version }}-${{ hashFiles('.github/actions/build-web-engine/action.yml') }}
+
+    - name: Set up Emscripten
+      if: steps.template-cache.outputs.cache-hit != 'true'
+      uses: emscripten-core/setup-emsdk@v16
+      with:
+        version: ${{ inputs.emsdk-version }}
+
+    - name: Install SCons
+      if: steps.template-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 -m venv "$RUNNER_TEMP/scons-venv"
+        "$RUNNER_TEMP/scons-venv/bin/pip" install --disable-pip-version-check \
+          "scons==${{ inputs.scons-version }}"
+        echo "$RUNNER_TEMP/scons-venv/bin" >> "$GITHUB_PATH"
+
+    - name: Restore SCons cache
+      if: inputs.scons-cache != '' && steps.template-cache.outputs.cache-hit != 'true'
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.scons-cache }}
+        key: godot-web-${{ inputs.godot-version }}-${{ inputs.emsdk-version }}-${{ hashFiles('.github/actions/build-web-engine/action.yml') }}
+        restore-keys: |
+          godot-web-${{ inputs.godot-version }}-${{ inputs.emsdk-version }}-
+          godot-web-${{ inputs.godot-version }}-
+
+    - name: Check out Godot source
+      if: steps.template-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        SRC="$RUNNER_TEMP/godot-${GODOT_VERSION}-web"
+        if [ ! -d "$SRC/.git" ]; then
+          git clone --depth 1 --branch "$GODOT_VERSION" \
+            https://github.com/godotengine/godot.git "$SRC"
+        fi
+        git -C "$SRC" rev-parse --short HEAD
+      env:
+        GODOT_VERSION: ${{ inputs.godot-version }}
+
+    - name: Build trimmed Web template
+      if: steps.template-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        SRC="$RUNNER_TEMP/godot-${GODOT_VERSION}-web"
+        cd "$SRC"
+        CACHE_ARGS=()
+        if [ -n "$SCONS_CACHE" ]; then
+          mkdir -p "$SCONS_CACHE"
+          CACHE_ARGS=("cache_path=$SCONS_CACHE")
+        fi
+        scons -j"$JOBS" platform=web target=template_release arch=wasm32 threads=no \
+          production=yes lto=thin optimize=size debug_symbols=no use_closure_compiler=yes \
+          disable_3d=no disable_physics_2d=yes disable_physics_3d=yes \
+          disable_navigation_2d=yes disable_navigation_3d=yes disable_xr=yes \
+          module_godot_physics_2d_enabled=no module_godot_physics_3d_enabled=no \
+          module_jolt_physics_enabled=no module_navigation_2d_enabled=no \
+          module_navigation_3d_enabled=no module_csg_enabled=no \
+          module_fbx_enabled=no module_gltf_enabled=no module_gridmap_enabled=no \
+          module_openxr_enabled=no module_mobile_vr_enabled=no module_webxr_enabled=no \
+          module_lightmapper_rd_enabled=no module_raycast_enabled=no \
+          module_vhacd_enabled=no module_xatlas_unwrap_enabled=no \
+          module_camera_enabled=no module_webrtc_enabled=no \
+          module_websocket_enabled=no module_enet_enabled=no module_upnp_enabled=no \
+          module_jsonrpc_enabled=no module_zip_enabled=no module_jpg_enabled=no \
+          module_bmp_enabled=no module_tga_enabled=no module_hdr_enabled=no \
+          module_ktx_enabled=no module_dds_enabled=no module_basis_universal_enabled=no \
+          module_astcenc_enabled=no module_etcpak_enabled=no module_cvtt_enabled=no \
+          module_bcdec_enabled=no module_theora_enabled=no module_mp3_enabled=no \
+          module_interactive_music_enabled=no module_multiplayer_enabled=no \
+          module_betsy_enabled=no module_glslang_enabled=no \
+          module_meshoptimizer_enabled=no module_visual_shader_enabled=no \
+          module_msdfgen_enabled=no \
+          module_tinyexr_enabled=no module_mbedtls_enabled=no \
+          module_objectdb_profiler_enabled=no \
+          "${CACHE_ARGS[@]}"
+      env:
+        GODOT_VERSION: ${{ inputs.godot-version }}
+        JOBS: ${{ inputs.jobs }}
+        SCONS_CACHE: ${{ inputs.scons-cache }}
+
+    - name: Optimize wasm with Binaryen
+      if: steps.template-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        SRC="$RUNNER_TEMP/godot-${GODOT_VERSION}-web"
+        WASM="$SRC/bin/godot.web.template_release.wasm32.nothreads.wasm"
+        test -s "$WASM"
+        "$EMSDK/upstream/bin/wasm-opt" -Oz --all-features \
+          --strip-debug --strip-producers "$WASM" -o "$WASM.opt"
+        mv "$WASM.opt" "$WASM"
+        stat -c '%n %s bytes' "$WASM"
+      env:
+        GODOT_VERSION: ${{ inputs.godot-version }}
+
+    - name: Package export template
+      if: steps.template-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        SRC="$RUNNER_TEMP/godot-${GODOT_VERSION}-web"
+        ZIP="$SRC/bin/godot.web.template_release.wasm32.nothreads.zip"
+        WASM="$SRC/bin/godot.web.template_release.wasm32.nothreads.wasm"
+        STAGE="$RUNNER_TEMP/godot-web-template"
+        mkdir -p "$STAGE" "$OUTPUT_DIR"
+        unzip -q "$ZIP" -d "$STAGE"
+        cp "$WASM" "$STAGE/godot.wasm"
+        (cd "$STAGE" && zip -q -9 -r "$OUTPUT_DIR/web_nothreads_release.zip" .)
+        unzip -l "$OUTPUT_DIR/web_nothreads_release.zip"
+        SIZE="$(stat -c '%s' "$STAGE/godot.wasm")"
+        LIMIT=$((25 * 1024 * 1024))
+        test "$SIZE" -lt "$LIMIT"
+        echo "web wasm bytes=${SIZE} limit=${LIMIT}"
+      env:
+        GODOT_VERSION: ${{ inputs.godot-version }}
+        OUTPUT_DIR: ${{ inputs.output-dir }}
+
+    - name: Verify compiled Web template
+      shell: bash
+      run: |
+        set -euo pipefail
+        ZIP="$OUTPUT_DIR/web_nothreads_release.zip"
+        test -s "$ZIP"
+        unzip -tq "$ZIP"
+        unzip -p "$ZIP" godot.wasm > "$RUNNER_TEMP/godot-template.wasm"
+        SIZE="$(stat -c '%s' "$RUNNER_TEMP/godot-template.wasm")"
+        LIMIT=$((25 * 1024 * 1024))
+        test "$SIZE" -lt "$LIMIT"
+        echo "compiled template wasm bytes=${SIZE} limit=${LIMIT}"
+      env:
+        OUTPUT_DIR: ${{ inputs.output-dir }}

@@ -1,7 +1,7 @@
 class_name RunMinimap
 extends Control
 
-const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.ttf")
+const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const INK := Color(0.018, 0.028, 0.031, 0.94)
 const PAPER := Color("#efe1c2")
 const GOLD := Color("#e1b35a")
