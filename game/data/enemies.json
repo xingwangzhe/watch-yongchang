@@ -3,7 +3,7 @@
 		"scout": {
 			"name_zh": "倭寇斥候",
 			"name_en": "Wokou Scout",
-			"texture": "res://assets/units/forge/scout/walk.png",
+			"texture": "res://assets/units/forge/scout/walk.webp",
 			"sprite_frames": 8,
 			"sprite_fps": 10,
 			"character_recipe": {
@@ -26,7 +26,7 @@
 		"ronin": {
 			"name_zh": "浪人",
 			"name_en": "Ronin",
-			"texture": "res://assets/units/forge/ronin/walk.png",
+			"texture": "res://assets/units/forge/ronin/walk.webp",
 			"sprite_frames": 8,
 			"sprite_fps": 10,
 			"character_recipe": {
@@ -49,7 +49,7 @@
 		"shield": {
 			"name_zh": "藤牌武士",
 			"name_en": "Shield Wokou",
-			"texture": "res://assets/units/forge/shield/walk.png",
+			"texture": "res://assets/units/forge/shield/walk.webp",
 			"sprite_frames": 8,
 			"sprite_fps": 10,
 			"character_recipe": {
@@ -73,7 +73,7 @@
 		"gun": {
 			"name_zh": "火枪倭",
 			"name_en": "Wokou Gunner",
-			"texture": "res://assets/units/forge/gun/walk.png",
+			"texture": "res://assets/units/forge/gun/walk.webp",
 			"sprite_frames": 8,
 			"sprite_fps": 9,
 			"character_recipe": {
@@ -99,7 +99,7 @@
 		"archer": {
 			"name_zh": "倭弓手",
 			"name_en": "Wokou Archer",
-			"texture": "res://assets/units/forge/archer/walk.png",
+			"texture": "res://assets/units/forge/archer/walk.webp",
 			"sprite_frames": 8,
 			"sprite_fps": 9,
 			"character_recipe": {
@@ -125,7 +125,7 @@
 		"banner": {
 			"name_zh": "旗手",
 			"name_en": "Standard Bearer",
-			"texture": "res://assets/units/forge/banner/walk.png",
+			"texture": "res://assets/units/forge/banner/walk.webp",
 			"sprite_frames": 8,
 			"sprite_fps": 8,
 			"character_recipe": {
@@ -149,7 +149,7 @@
 		"general": {
 			"name_zh": "倭将",
 			"name_en": "Wokou General",
-			"texture": "res://assets/units/forge/general/walk.png",
+			"texture": "res://assets/units/forge/general/walk.webp",
 			"sprite_frames": 8,
 			"sprite_fps": 8,
 			"character_recipe": {
@@ -173,7 +173,7 @@
 		"daimyo": {
 			"name_zh": "大名",
 			"name_en": "Daimyo",
-			"texture": "res://assets/units/forge/daimyo/walk.png",
+			"texture": "res://assets/units/forge/daimyo/walk.webp",
 			"sprite_frames": 8,
 			"sprite_fps": 7,
 			"character_recipe": {

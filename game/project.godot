@@ -11,14 +11,16 @@ config_version=5
 [application]
 
 config/name="守望·永昌"
-config/version="0.1.0"
+config/version="0.1.1"
 run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 run/max_fps=60
+config/icon="res://assets/ui/icon_app_512.png"
 
 [autoload]
-
+GdaHarness="*res://addons/gda_harness/gda_harness.gd"
 GameSettings="*res://scripts/autoload/game_settings.gd"
+ProjectMeta="*res://scripts/autoload/project_meta.gd"
 Locale="*res://scripts/autoload/locale.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"
 AudioBus="*res://scripts/autoload/audio_bus.gd"

@@ -2,7 +2,7 @@ extends Control
 
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
-const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
+const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 
 const CHARACTER_ORDER := ["wanglu", "amei", "ashi", "achong", "agong", "aqi"]

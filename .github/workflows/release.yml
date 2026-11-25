@@ -21,10 +21,20 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Verify generated project metadata
+        run: |
+          bun run tools/sync_project_env.ts --check
+          bun test tools/sync_project_env.test.ts
+
       - name: Verify tag matches game version
         run: |
           set -euo pipefail
-          GAME_VERSION="$(sed -n 's/^config\/version="\([^"]*\)"/\1/p' game/project.godot | head -n1)"
+          GAME_VERSION="$(sed -n 's/^APP_VERSION=//p' .env | head -n1)"
           test -n "$GAME_VERSION"
           test "v${GAME_VERSION}" = "${GITHUB_REF_NAME}"
           echo "Release tag ${GITHUB_REF_NAME} matches game version ${GAME_VERSION}."
@@ -384,6 +394,11 @@ jobs:
       - name: Import project
         run: timeout 300 "$GODOT_BIN" --headless --path game --import
 
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
       - name: Run GUT
         run: |
           set -o pipefail
@@ -407,6 +422,10 @@ jobs:
             test "$SIZE" -lt "$LIMIT"
           done
           find game/build/web -name '*.import' -delete
+          bun run tools/enhance_web_export.ts
+          test -s game/build/web/social-card.png
+          test -s game/build/web/icon-512.png
+          grep -q 'property="og:title"' game/build/web/index.html
           cp -a game/build/web/. ci-artifacts/web/site/
           cp "$RUNNER_TEMP/gut-web.log" ci-artifacts/web/gut.log
 
@@ -418,13 +437,49 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  cloudflare-pages:
+    name: Cloudflare Pages deploy
+    needs: web
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Download Web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-web
+          path: ci-artifacts/web
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Deploy raw Web build to Cloudflare Pages
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_PAGES_PROJECT"
+          bunx -y wrangler@4.168.0 pages deploy ci-artifacts/web/site \
+            --project-name "$CLOUDFLARE_PAGES_PROJECT" \
+            --branch main \
+            --commit-dirty=true
+
   publish:
-    name: Audit, deploy, and publish
+    name: Audit, EdgeOne deploy, and publish
     needs:
       - linux
       - windows
       - macos
       - web
+      - cloudflare-pages
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -545,7 +600,7 @@ jobs:
             "《守望 · 永昌》${GITHUB_REF_NAME}。" \
             "" \
             "Linux、Windows、macOS 与 Web 在 GitHub Actions 上按操作系统并行构建，完成 GUT、PCK/ZIP 审计、Linux 发行版 smoke 与 Web 静态产物检查。" \
-            "Web 版已部署至 EdgeOne Makers 项目 \`shouwang\`：https://2026shouwang.needhelp.icu")"
+            "Web 版已并行部署至 EdgeOne Makers 与 Cloudflare Pages；生产入口：https://2026shouwang.needhelp.icu")"
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${FILES[@]}" --clobber
           else

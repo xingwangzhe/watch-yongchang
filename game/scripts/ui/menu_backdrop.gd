@@ -1,10 +1,10 @@
 extends Control
 
-const BACKDROP := preload("res://assets/ui/menu_backdrop.png")
-const CLOUDS := preload("res://assets/ui/menu_clouds.png")
-const WAVES := preload("res://assets/ui/menu_waves.png")
+const BACKDROP := preload("res://assets/ui/menu_backdrop.webp")
+const CLOUDS := preload("res://assets/ui/menu_clouds.webp")
+const WAVES := preload("res://assets/ui/menu_waves.webp")
 const BOAT := preload("res://assets/ui/menu_boat.png")
-const BEACON := preload("res://assets/ui/menu_beacon.png")
+const BEACON := preload("res://assets/ui/menu_beacon.webp")
 
 const MOON_CENTER := Vector2(618.0, 132.0)
 const BOAT_POSITIONS := [

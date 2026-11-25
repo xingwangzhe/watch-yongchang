@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "generated_from": ".env",
+  "app": {
+    "version": "0.1.1",
+    "godot_version": "4.7.2-stable",
+    "slug": "watch-yongchang",
+    "bundle_identifier": "fun.xingwangzhe.watch-yongchang",
+    "icon": "res://assets/ui/icon_app_512.png",
+    "names": {
+      "zh": "守望·永昌",
+      "en": "WATCH · YONGCHANG"
+    }
+  },
+  "author": {
+    "name": "xingwangzhe",
+    "email": "xingwangzhe@outlook.com"
+  },
+  "links": {
+    "repository": "https://github.com/xingwangzhe/watch-yongchang",
+    "web": "https://2026shouwang.needhelp.icu"
+  },
+  "cloudflare_pages": {
+    "project": "shouwang",
+    "domain": "2026shouwang.needhelp.icu"
+  },
+  "legal": {
+    "copyright_notice": "Code AGPL-3.0-or-later; original assets CC BY 4.0; third-party assets retain original licenses"
+  }
+}

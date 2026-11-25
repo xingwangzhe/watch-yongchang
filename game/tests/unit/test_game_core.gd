@@ -255,6 +255,19 @@ func test_health_bars_keep_all_layers_in_one_multimesh_batch() -> void:
 	assert_eq(unit_bar.count("_append_health_bar_rect("), 6, "background, fill and four borders must all stay")
 
 
+func test_pickups_and_projectiles_use_multimesh_batches() -> void:
+	var source := FileAccess.get_file_as_string("res://scripts/actors/battlefield.gd")
+	assert_true(source.contains("draw_multimesh(_orb_glow_batch, _orb_circle_texture)"))
+	assert_true(source.contains("draw_multimesh(_orb_core_batch, _orb_circle_texture)"))
+	assert_true(source.contains("draw_multimesh(_player_shot_batch, _player_shot_texture)"))
+	assert_true(source.contains("draw_multimesh(_enemy_shot_glow_batch, _orb_circle_texture)"))
+	assert_true(source.contains("draw_multimesh(_enemy_shot_core_batch, _orb_circle_texture)"))
+	var pickup_body := source.get_slice("func _draw_pickups", 1).get_slice("for drop in oil_drops", 0)
+	assert_false(pickup_body.contains("draw_circle"), "experience orbs must not issue per-orb draw calls")
+	var projectile_body := source.get_slice("func _draw_projectiles", 1).get_slice("func _draw_jeff_fx", 0)
+	assert_false(projectile_body.contains("draw_circle(position"), "projectiles must not issue per-shot draw calls")
+
+
 func test_narrative_lines_have_categories_and_sources() -> void:
 	var narrative := GameData.load_json("res://data/narrative.json")
 	var count := 0

@@ -3,7 +3,7 @@ extends Control
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
 const IconChips := preload("res://scripts/ui/icon_chip.gd")
-const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
+const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const ICON_KATANA := preload("res://assets/icons/game_icons/wpn_katana.svg")
 const ICON_SPEAR := preload("res://assets/icons/game_icons/wpn_spear.svg")

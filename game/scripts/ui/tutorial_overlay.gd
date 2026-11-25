@@ -7,7 +7,7 @@ extends Control
 signal closed(skipped: bool)
 
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
-const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
+const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
 const PAGE_COUNT := 3
 

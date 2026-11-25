@@ -1,0 +1,19 @@
+{
+  "name": "watch-yongchang-build-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "env:sync": "bun tools/sync_project_env.ts --write",
+    "env:check": "bun tools/sync_project_env.ts --check",
+    "env:test": "bun test tools/sync_project_env.test.ts",
+    "verify:env": "bun run env:check && bun run env:test",
+    "assets:font": "bun tools/optimize_font.ts",
+    "assets:images": "bun tools/optimize_runtime_images.ts",
+    "assets:optimize": "bun run assets:font && bun run assets:images",
+    "assets:check": "bun run assets:font -- --check && bun run assets:images -- --check"
+  },
+  "devDependencies": {
+    "sharp": "0.35.5",
+    "subset-font": "2.9.0"
+  }
+}

@@ -23,6 +23,16 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Verify generated project metadata
+        run: |
+          bun run tools/sync_project_env.ts --check
+          bun test tools/sync_project_env.test.ts
+
       - name: Retired unit paths and static.png must stay gone
         shell: bash
         run: |
@@ -72,7 +82,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          GAME_VERSION="$(sed -n 's/^config\/version="\([^"]*\)"/\1/p' game/project.godot | head -n1)"
+          GAME_VERSION="$(sed -n 's/^APP_VERSION=//p' .env | head -n1)"
           test -n "$GAME_VERSION"
           test "v${GAME_VERSION}" = "${GITHUB_REF_NAME}"
           echo "Tag ${GITHUB_REF_NAME} matches game version ${GAME_VERSION}."
@@ -286,7 +296,7 @@ jobs:
           retention-days: 14
 
   web-build:
-    name: Web build and EdgeOne deploy
+    name: Web build
     needs:
       - asset-guard
       - web-engine
@@ -341,6 +351,11 @@ jobs:
       - name: Import project
         run: timeout 300 "$GODOT_BIN" --headless --path game --import
 
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
       - name: Export Web
         run: |
           set -euo pipefail
@@ -358,6 +373,10 @@ jobs:
             test "$SIZE" -lt "$LIMIT"
           done
           find game/build/web -name '*.import' -delete
+          bun run tools/enhance_web_export.ts
+          test -s game/build/web/social-card.png
+          test -s game/build/web/icon-512.png
+          grep -q 'property="og:title"' game/build/web/index.html
 
       - name: Upload Web artifact
         uses: actions/upload-artifact@v4
@@ -367,22 +386,70 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  web-deploy-edgeone:
+    name: Web deploy · EdgeOne
+    needs: web-build
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download Web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build-${{ github.sha }}
+          path: web-dist
+
       - name: Set up Bun
         uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: 1.4.5
 
       - name: Deploy raw Web build to EdgeOne Makers
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
         env:
           EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
         run: |
           set -euo pipefail
           test -n "$EDGEONE_API_TOKEN"
-          bunx -y edgeone@1.7.7 makers deploy game/build/web \
+          bunx -y edgeone@1.7.7 makers deploy web-dist \
             -n shouwang \
             -t "$EDGEONE_API_TOKEN" \
             --area global \
             --skip-ai-gateway-sync \
             --json \
             2>&1 | tee "$RUNNER_TEMP/edgeone-deploy.log"
+
+  web-deploy-cloudflare:
+    name: Web deploy · Cloudflare Pages
+    needs: web-build
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Download Web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-build-${{ github.sha }}
+          path: web-dist
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Deploy raw Web build to Cloudflare Pages
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+          test -n "$CLOUDFLARE_PAGES_PROJECT"
+          bunx -y wrangler@4.168.0 pages deploy web-dist \
+            --project-name "$CLOUDFLARE_PAGES_PROJECT" \
+            --branch main \
+            --commit-dirty=true

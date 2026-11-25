@@ -12,9 +12,9 @@ Godot Web 导出预设为 `Web`，输出目录 `game/build/web/`。运行时固�
 
 EdgeOne 单个存储文件上限为 25 MiB。普通 Godot Web 模板的 `index.wasm` 约 39.5 MB，
 超过上限；本项目用 Emscripten 官方 SCons 参数裁剪运行时，并用官方 Binaryen
-`wasm-opt -Oz` 二次优化。当前 `index.wasm` 为 25,781,160 B（约 24.59 MiB），
-`index.pck` 为 18,333,032 B（约 17.48 MiB），距 25 MiB 上限约 423 KiB；
-CI 会硬断言 wasm 与 PCK 均小于 25 MiB。
+`wasm-opt -Oz` 二次优化。当前优化资源流水线后的本地 Web `export-pack` 为
+10,554,320 B（约 10.07 MiB）；旧构建的 `index.pck` 仍可能保留在 `game/build/`，
+重新导出前不要用旧产物估算发行体积。CI 会硬断言 wasm 与 PCK 均小于 25 MiB。
 
 ## 自定义 Web 引擎
 
@@ -25,7 +25,7 @@ CI 会硬断言 wasm 与 PCK 均小于 25 MiB。
   workflow 固定 `4.0.11`，本项目采用同一 4.0 稳定线的新补丁版本；
 - 编译完成的模板按 Godot / Emscripten / SCons / Action 版本缓存；命中后跳过整棵
   Godot 源码编译，仍会校验 ZIP 与 wasm 大小；
-- SCons `production=yes lto=thin optimize=size debug_symbols=no use_closure_compiler=yes`；
+- SCons `production=yes lto=thin optimize=size_extra debug_symbols=no use_closure_compiler=yes`；
 - `threads=no arch=wasm32`，关闭物理、导航、XR、网络、ZIP、视频等未使用模块；
 - 保留最小 3D mesh 支持（`disable_3d=no`），因为战斗背景使用 `QuadMesh`；
 - 保留 WebP、FreeType、WOFF2、OGG/Vorbis、SVG、文本服务等运行时必需模块；
@@ -84,20 +84,19 @@ bunx -y edgeone@1.7.7 makers deploy game/build/web \
 同样部署到该项目。GitHub Release 中的 Web ZIP 是未压缩原始静态站，可直接用于普通
 静态服务器。
 
-## 自定义域名
+## 自定义域名（DNSPod 海内外分流）
 
-1. 在 EdgeOne Makers 项目 `shouwang` 中添加自定义域名
-   `2026shouwang.needhelp.icu`。
-2. 读取 EdgeOne 给出的 CNAME 目标。
-3. 在 `needhelp.icu` 的 DNSPod / 腾讯云 DNS 控制台添加：
-   - 主机记录：`2026shouwang`
-   - 记录类型：`CNAME`
-   - 记录值：`2026shouwang.needhelp.icu.pages.dnsoe6.com`
-   - TTL：600 秒或控制台允许的默认值
-4. 等待 CNAME 生效后，在 EdgeOne 申请自动免费 SSL 证书。
-5. 验证 HTTP 跳转、HTTPS 证书链、游戏资源与浏览器控制台。
+`2026shouwang.needhelp.icu` 已由用户在 DNSPod 配置好海内外分流：境外使用
+Cloudflare Pages，境内保留 EdgeOne 镜像。部署脚本只上传静态产物，不查询、
+修改或重置 CNAME/DNS。
 
-免费证书由 EdgeOne 自动申请、部署和续期；CNAME 未指向 EdgeOne 时自动验证不会完成。
+如需调整分流：
+
+1. 先确认 EdgeOne Makers 与 Cloudflare Pages 两个项目都已成功部署。
+2. 仅由域名所有者在 DNSPod 控制台调整分流记录，不从 CI、CLI 或本仓库自动化中修改。
+3. 调整后检查 HTTPS、`/index.wasm`、`/index.pck` 与浏览器控制台。
+
+不要删除任一平台的项目或自定义域配置，否则再次切换需要重新验证。
 
 ## 已验收状态（2026-11-25）
 
@@ -107,11 +106,9 @@ bunx -y edgeone@1.7.7 makers deploy game/build/web \
   <https://github.com/xingwangzhe/watch-yongchang/actions/runs/45594130561>。
   原始目录直传，不再使用 `web-edgeone` 分片目录，也不再有
   `edgeone-manifest.json` 或 `*.part*` 文件。
-- CNAME：`2026shouwang.needhelp.icu -> 2026shouwang.needhelp.icu.pages.dnsoe6.com`，
-  TTL 600，DNSPod 记录 ID `2459497778`。
-- HTTPS：免费自动证书已签发，`CN=2026shouwang.needhelp.icu`，签发机构
-  TrustAsia DV TLS RSA CA 2025，有效期至 2027-02-22。
-- 域名控制台显示「已生效 / 已部署 / 生产」。
+- DNS：保留用户已完成的 DNSPod 海内外分流；部署流程不修改 CNAME。
+- HTTPS：由 Cloudflare Pages 自动签发并续期；EdgeOne 免费证书仍保留在镜像侧。
+- EdgeOne 域名控制台不再是当前生产 DNS 的事实来源；回滚方式见上一节。
 - 线上检查：`/`、`/index.wasm`、`/index.pck` 均返回 200；wasm 25,781,160 B，
   PCK 18,333,032 B。
 - 浏览器实测：主菜单、1386 汤和序章、王陆选择页、正篇战斗均正常渲染；

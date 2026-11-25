@@ -1,7 +1,7 @@
 # Audio licenses and TASL / 音频许可与逐文件溯源
 
 Last verified: 2026-11-25. This is the complete rights manifest for audio shipped
-in `game/assets/audio/`. All three runtime BGM tracks and all 20 SFX use open
+in `game/assets/audio/`. All three runtime BGM tracks and all 18 SFX use open
 licenses that permit redistribution: CC BY 4.0, CC BY 3.0, or CC0 1.0. Project
 originals retained only as source masters keep their existing CC0 / CC BY 4.0
 terms.
@@ -61,10 +61,8 @@ https://creativecommons.org/publicdomain/zero/1.0/
 | `sfx_fire.ogg` | Battle Sound Effects: Bow | ogrebane | https://opengameart.org/content/battle-sound-effects | Tower/ranged attack; loudness normalized and re-encoded to Ogg. |
 | `sfx_hit.ogg` | 3 Melee Sounds | remaxim | https://opengameart.org/content/3-melee-sounds | Unit hit; loudness normalized and re-encoded to Ogg. |
 | `sfx_build.ogg` | RPG Audio: Chop | Kenney | https://opengameart.org/content/50-rpg-sound-effects | Build complete; loudness normalized. |
-| `sfx_spawn.ogg` | RPG Sound Pack: Sword Unsheath | artisticdude | https://opengameart.org/content/rpg-sound-pack | Unit spawn; loudness normalized and re-encoded to Ogg. |
 | `sfx_wave.ogg` | Sound Pack 01: Rise01 | wobbleboxx | https://opengameart.org/content/level-up-power-up-coin-get-13-sounds | Wave start; AIF source converted to Ogg and loudness normalized. |
 | `sfx_alarm.ogg` | Sound Pack 01: Alarm | wobbleboxx | https://opengameart.org/content/level-up-power-up-coin-get-13-sounds | Fort alarm; shortened to 2.2 s, faded, loudness normalized, and re-encoded. |
-| `sfx_merge.ogg` | RPG Sound Pack: Metal Ringing | artisticdude | https://opengameart.org/content/rpg-sound-pack | Workshop merge; loudness normalized and re-encoded to Ogg. |
 | `sfx_win.ogg` | Sound Pack 01: Upper01 | wobbleboxx | https://opengameart.org/content/level-up-power-up-coin-get-13-sounds | Victory; AIF source converted to Ogg and loudness normalized. |
 | `sfx_lose.ogg` | Sound Pack 01: Downer01 | wobbleboxx | https://opengameart.org/content/level-up-power-up-coin-get-13-sounds | Defeat; AIF source converted to Ogg and loudness normalized. |
 

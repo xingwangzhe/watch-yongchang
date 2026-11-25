@@ -24,7 +24,7 @@
     "architecture": {
       "path": "res://assets/tiles/yongchang/architecture_atlas.png",
       "columns": 8,
-      "rows": 4,
+      "rows": 6,
       "tiles": [
         "stone_wall_a", "stone_wall_b", "stone_wall_moss", "arrow_slit",
         "wall_water_base", "merlon", "wall_cap", "wall_corner",
@@ -34,18 +34,25 @@
         "water_gate_left", "water_gate_arch", "water_gate_right",
         "wall_cap_damaged", "merlon_b", "wood_railing", "stone_steps",
         "plaster_door_b", "red_lantern", "storefront",
-        "gable_left", "gable_right", "wood_railing_vertical"
+        "gable_left", "gable_right", "wood_railing_vertical",
+        "roof_slope_b", "roof_slope_c", "roof_eave_b", "roof_eave_door",
+        "hall_roof_ridge", "hall_roof_slope", "hall_roof_eave", "hall_roof_corner",
+        "roof_verge", "roof_hip_left", "roof_hip_right",
+        "hall_roof_verge", "hall_roof_hip_left", "hall_roof_hip_right",
+        "roof_eave_shop", "roof_verge_b"
       ]
     },
     "props": {
       "path": "res://assets/tiles/yongchang/props_atlas.png",
       "columns": 8,
-      "rows": 2,
+      "rows": 3,
       "tiles": [
         "reeds", "grass", "stone_lamp", "beacon",
         "barricade", "crate", "barrel", "fish_trap",
         "banner_ming", "fishing_boat", "tent", "rope_coil",
-        "fishing_net", "arrow_bundle", "plaque", "bamboo_fence"
+        "fishing_net", "arrow_bundle", "plaque", "bamboo_fence",
+        "tree_a", "tree_b", "shrub", "bamboo",
+        "tree_canopy_a", "tree_canopy_b", "mooring_post", "wood_pile"
       ]
     },
     "animated_props": {

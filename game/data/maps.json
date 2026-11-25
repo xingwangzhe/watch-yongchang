@@ -9,92 +9,1362 @@
       "description_en": "Open flats split by two tide creeks, with salt-pan levees and the old seawall as natural cover. Standard speed and oil drain.",
       "unlock_merit": 0,
       "ground_tint": "#ebf0d0",
-      "enemy_speed_mult": 1.0,
-      "enemy_hp_mult": 1.0,
-      "spawn_rate_mult": 1.0,
-      "oil_interval": 30.0,
-      "light_scale": 1.0,
+      "enemy_speed_mult": 1,
+      "enemy_hp_mult": 1,
+      "spawn_rate_mult": 1,
+      "oil_interval": 30,
+      "light_scale": 1,
       "layout": {
-        "world_tiles": [120, 84],
+        "world_tiles": [
+          120,
+          84
+        ],
         "base_tile": "sand_a",
-        "start_tile": [61, 48],
+        "start_tile": [
+          61,
+          48
+        ],
         "highlands": [
-          [3, 16, 20, 12],
-          [99, 16, 18, 18],
-          [55, 4, 18, 9],
-          [55, 24, 14, 48],
-          [96, 44, 24, 14]
+          [
+            0,
+            0,
+            120,
+            7
+          ],
+          [
+            0,
+            69,
+            120,
+            4
+          ],
+          [
+            3,
+            9,
+            8,
+            20
+          ],
+          [
+            110,
+            9,
+            7,
+            22
+          ]
         ],
         "areas": [
-          {"kind": "terrain", "tile": "sand_b", "rect": [0, 0, 120, 12]},
-          {"kind": "reeds", "tiles": ["reed_bed", "mud_grass"], "rect": [0, 0, 120, 11], "density": 0.30},
-          {"kind": "terrain", "tiles": ["mud_grass", "mud_grass_b"], "rect": [0, 11, 22, 18]},
-          {"kind": "terrain", "tiles": ["mud_a", "mud_b"], "rect": [0, 29, 20, 32]},
-          {"kind": "terrain", "tiles": ["sand_b", "sand_c"], "rect": [98, 10, 22, 55]},
-          {"kind": "terrain", "tiles": ["mud_a", "cracked_mud"], "rect": [20, 29, 78, 43]},
-          {"kind": "terrain", "tiles": ["sand_a", "sand_b"], "rect": [0, 65, 120, 10]},
-          {"kind": "terrain", "tile": "salt_pan", "rect": [5, 18, 15, 8]},
-          {"kind": "terrain", "tile": "salt_pan", "rect": [5, 28, 15, 8]},
-          {"kind": "terrain", "tile": "salt_pan", "rect": [102, 20, 12, 8]},
-          {"kind": "terrain", "tile": "salt_pan", "rect": [102, 34, 12, 8]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [0, 75, 120, 9]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [27, 10, 7, 19]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [30, 29, 6, 12]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [24, 41, 10, 13]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [28, 54, 7, 21]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [84, 10, 7, 19]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [79, 29, 10, 12]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [84, 41, 6, 13]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [80, 54, 8, 21]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [7, 43, 12, 7]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [101, 45, 12, 6]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [59, 8, 4, 67]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [0, 62, 120, 4]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [22, 20, 4, 42]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [94, 20, 4, 42]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [8, 24, 14, 3]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [98, 28, 16, 3]},
-          {"kind": "building", "rect": [64, 9, 5, 5]},
-          {"kind": "building", "rect": [12, 51, 8, 5]},
-          {"kind": "building", "rect": [100, 52, 7, 5]},
-          {"kind": "wall", "rect": [0, 70, 20, 3]},
-          {"kind": "wall", "rect": [100, 70, 20, 3]},
-          {"kind": "bridge", "rect": [24, 62, 14, 4]},
-          {"kind": "bridge", "rect": [76, 62, 14, 4]},
-          {"kind": "bridge", "rect": [22, 36, 14, 4]},
-          {"kind": "bridge", "rect": [76, 36, 14, 4]},
-          {"kind": "bridge", "rect": [22, 18, 14, 4]},
-          {"kind": "bridge", "rect": [76, 18, 14, 4]},
-          {"kind": "bridge", "rect": [24, 70, 12, 4]},
-          {"kind": "bridge", "rect": [78, 70, 12, 4]},
-          {"kind": "props", "prop": "reeds", "rect": [16, 14, 10, 12], "density": 0.55},
-          {"kind": "props", "prop": "reeds", "rect": [36, 14, 10, 12], "density": 0.50},
-          {"kind": "props", "prop": "reeds", "rect": [84, 14, 10, 12], "density": 0.55},
-          {"kind": "props", "prop": "reeds", "rect": [16, 45, 8, 12], "density": 0.46},
-          {"kind": "props", "prop": "reeds", "rect": [42, 46, 12, 10], "density": 0.30},
-          {"kind": "props", "prop": "reeds", "rect": [92, 45, 8, 12], "density": 0.34},
-          {"kind": "props", "prop": "barricade", "rect": [40, 31, 2, 8], "density": 0.62, "solid": true},
-          {"kind": "props", "prop": "barricade", "rect": [78, 31, 2, 8], "density": 0.62, "solid": true},
-          {"kind": "props", "prop": "crate", "rect": [13, 56, 6, 2], "density": 0.35},
-          {"kind": "props", "prop": "barrel", "rect": [102, 57, 4, 2], "density": 0.35},
-          {"kind": "props", "prop": "fish_trap", "rect": [6, 67, 12, 2], "density": 0.25},
-          {"kind": "props", "prop": "fishing_boat", "rect": [88, 76, 18, 5], "density": 0.12}
+          {
+            "kind": "terrain",
+            "rect": [
+              0,
+              0,
+              120,
+              12
+            ],
+            "tiles": [
+              "sand_b",
+              "sand_c"
+            ]
+          },
+          {
+            "kind": "terrain",
+            "rect": [
+              0,
+              65,
+              120,
+              10
+            ],
+            "tiles": [
+              "sand_a",
+              "sand_b"
+            ]
+          },
+          {
+            "kind": "patch",
+            "center": [
+              16,
+              24
+            ],
+            "radius": [
+              11,
+              9
+            ],
+            "tiles": [
+              "salt_pan"
+            ],
+            "salt": 11
+          },
+          {
+            "kind": "patch",
+            "center": [
+              105,
+              25
+            ],
+            "radius": [
+              11,
+              10
+            ],
+            "tiles": [
+              "salt_pan"
+            ],
+            "salt": 13
+          },
+          {
+            "kind": "patch",
+            "center": [
+              18,
+              43
+            ],
+            "radius": [
+              13,
+              9
+            ],
+            "tiles": [
+              "mud_grass",
+              "mud_grass_b"
+            ],
+            "salt": 17
+          },
+          {
+            "kind": "patch",
+            "center": [
+              64,
+              36
+            ],
+            "radius": [
+              24,
+              18
+            ],
+            "tiles": [
+              "mud_a",
+              "mud_b",
+              "cracked_mud"
+            ],
+            "salt": 23
+          },
+          {
+            "kind": "patch",
+            "center": [
+              55,
+              62
+            ],
+            "radius": [
+              28,
+              9
+            ],
+            "tiles": [
+              "cracked_mud",
+              "mud_a"
+            ],
+            "salt": 29
+          },
+          {
+            "kind": "water_path",
+            "points": [
+              [
+                34,
+                4
+              ],
+              [
+                32,
+                13
+              ],
+              [
+                36,
+                21
+              ],
+              [
+                31,
+                30
+              ],
+              [
+                35,
+                39
+              ],
+              [
+                32,
+                47
+              ],
+              [
+                37,
+                55
+              ],
+              [
+                33,
+                63
+              ],
+              [
+                41,
+                71
+              ],
+              [
+                49,
+                82
+              ]
+            ],
+            "width": 7,
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water_path",
+            "points": [
+              [
+                87,
+                4
+              ],
+              [
+                85,
+                13
+              ],
+              [
+                89,
+                21
+              ],
+              [
+                86,
+                30
+              ],
+              [
+                90,
+                39
+              ],
+              [
+                86,
+                47
+              ],
+              [
+                89,
+                55
+              ],
+              [
+                84,
+                63
+              ],
+              [
+                78,
+                71
+              ],
+              [
+                70,
+                82
+              ]
+            ],
+            "width": 7,
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water",
+            "rect": [
+              20,
+              43,
+              8,
+              5
+            ],
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water",
+            "rect": [
+              96,
+              35,
+              9,
+              5
+            ],
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                60,
+                3
+              ],
+              [
+                60,
+                12
+              ],
+              [
+                58,
+                20
+              ],
+              [
+                61,
+                28
+              ],
+              [
+                59,
+                36
+              ],
+              [
+                61,
+                44
+              ],
+              [
+                61,
+                48
+              ],
+              [
+                60,
+                56
+              ],
+              [
+                62,
+                64
+              ],
+              [
+                60,
+                72
+              ],
+              [
+                60,
+                82
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "earth_road_a",
+              "earth_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                3,
+                20
+              ],
+              [
+                16,
+                21
+              ],
+              [
+                25,
+                20
+              ],
+              [
+                33,
+                22
+              ],
+              [
+                42,
+                21
+              ],
+              [
+                51,
+                22
+              ],
+              [
+                60,
+                22
+              ],
+              [
+                71,
+                23
+              ],
+              [
+                80,
+                22
+              ],
+              [
+                90,
+                21
+              ],
+              [
+                101,
+                22
+              ],
+              [
+                116,
+                20
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "earth_road_a",
+              "earth_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                3,
+                48
+              ],
+              [
+                14,
+                47
+              ],
+              [
+                23,
+                46
+              ],
+              [
+                31,
+                48
+              ],
+              [
+                42,
+                47
+              ],
+              [
+                52,
+                49
+              ],
+              [
+                61,
+                48
+              ],
+              [
+                72,
+                47
+              ],
+              [
+                84,
+                48
+              ],
+              [
+                96,
+                47
+              ],
+              [
+                108,
+                46
+              ],
+              [
+                117,
+                48
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "earth_road_a",
+              "earth_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                5,
+                62
+              ],
+              [
+                18,
+                64
+              ],
+              [
+                30,
+                62
+              ],
+              [
+                42,
+                64
+              ],
+              [
+                53,
+                62
+              ],
+              [
+                60,
+                62
+              ],
+              [
+                69,
+                64
+              ],
+              [
+                80,
+                62
+              ],
+              [
+                91,
+                64
+              ],
+              [
+                105,
+                62
+              ],
+              [
+                116,
+                63
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "earth_road_a",
+              "earth_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                4,
+                32
+              ],
+              [
+                11,
+                31
+              ],
+              [
+                18,
+                30
+              ],
+              [
+                25,
+                31
+              ]
+            ],
+            "width": 3,
+            "tiles": [
+              "earth_road_a",
+              "earth_road_b"
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              0,
+              69,
+              22,
+              3
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              96,
+              69,
+              24,
+              3
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              27,
+              18,
+              14,
+              6
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              81,
+              18,
+              14,
+              6
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              26,
+              45,
+              16,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              81,
+              45,
+              16,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              27,
+              59,
+              13,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              80,
+              59,
+              13,
+              7
+            ]
+          },
+          {
+            "kind": "building",
+            "rect": [
+              65,
+              10,
+              5,
+              4
+            ],
+            "style": "watch"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              12,
+              34,
+              7,
+              5
+            ],
+            "style": "hall"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              23,
+              53,
+              6,
+              4
+            ],
+            "style": "shop"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              103,
+              51,
+              6,
+              5
+            ],
+            "style": "shop"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              88,
+              66,
+              5,
+              3
+            ],
+            "style": "house"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              46,
+              66,
+              5,
+              3
+            ],
+            "style": "house"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              13,
+              10,
+              8,
+              7
+            ],
+            "density": 0.4,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              44,
+              10,
+              8,
+              7
+            ],
+            "density": 0.42,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              97,
+              10,
+              8,
+              7
+            ],
+            "density": 0.38,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              11,
+              51,
+              8,
+              7
+            ],
+            "density": 0.46,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              46,
+              29,
+              8,
+              9
+            ],
+            "density": 0.4,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              103,
+              26,
+              9,
+              6
+            ],
+            "density": 0.42,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              46,
+              55,
+              7,
+              5
+            ],
+            "density": 0.36,
+            "floor_tile": "mud_grass_b"
+          },
+          {
+            "kind": "reeds",
+            "rect": [
+              25,
+              6,
+              12,
+              9
+            ],
+            "tiles": [
+              "reed_bed",
+              "mud_grass"
+            ],
+            "density": 0.3
+          },
+          {
+            "kind": "reeds",
+            "rect": [
+              76,
+              6,
+              12,
+              9
+            ],
+            "tiles": [
+              "reed_bed",
+              "mud_grass"
+            ],
+            "density": 0.3
+          },
+          {
+            "kind": "reeds",
+            "rect": [
+              23,
+              67,
+              34,
+              6
+            ],
+            "tiles": [
+              "reed_bed",
+              "mud_grass"
+            ],
+            "density": 0.24
+          },
+          {
+            "kind": "props",
+            "rect": [
+              14,
+              39,
+              4,
+              2
+            ],
+            "prop": "barrel",
+            "density": 0.38,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              27,
+              59,
+              4,
+              2
+            ],
+            "prop": "crate",
+            "density": 0.34,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              20,
+              38,
+              4,
+              2
+            ],
+            "prop": "wood_pile",
+            "density": 0.42,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              42,
+              52,
+              3,
+              2
+            ],
+            "prop": "mooring_post",
+            "density": 0.5,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              6,
+              65,
+              12,
+              2
+            ],
+            "prop": "fish_trap",
+            "density": 0.3,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              86,
+              73,
+              16,
+              4
+            ],
+            "prop": "fishing_boat",
+            "density": 0.18,
+            "solid": false
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              27,
+              4,
+              4
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              73,
+              27,
+              6,
+              4
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              73,
+              32,
+              6,
+              5
+            ],
+            "style": "hall",
+            "ridge_count": 2
+          },
+          {
+            "kind": "building",
+            "rect": [
+              73,
+              38,
+              6,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              53,
+              5,
+              3
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              76,
+              53,
+              6,
+              3
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              6,
+              75,
+              4,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              12,
+              75,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              75,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              102,
+              75,
+              6,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              109,
+              75,
+              7,
+              3
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              9,
+              24,
+              3,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              104,
+              40,
+              4,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              22,
+              13,
+              3,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              68,
+              30,
+              4,
+              6
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              51,
+              40,
+              6,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              43,
+              34,
+              3,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              9,
+              11,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              54,
+              77,
+              3,
+              3
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              65,
+              53,
+              4,
+              3
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              24,
+              36,
+              5,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              87,
+              70,
+              5,
+              3
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              53,
+              55,
+              4,
+              4
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              32,
+              73,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              41,
+              12,
+              3,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              83,
+              75,
+              3,
+              4
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              72,
+              13,
+              3,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              107,
+              32,
+              5,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              92,
+              10,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              52,
+              12,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          }
         ],
         "landmarks": [
-          {"name_zh": "北堤", "name_en": "North Dike", "tile": [61, 8], "kind": "gate", "color": "#e1b35a"},
-          {"name_zh": "潮沟", "name_en": "Tide Creek", "tile": [34, 47], "kind": "water", "color": "#69a6b1"},
-          {"name_zh": "盐坂", "name_en": "Salt Pans", "tile": [12, 24], "kind": "place", "color": "#d9c487"},
-          {"name_zh": "旧海塘", "name_en": "Old Seawall", "tile": [10, 71], "kind": "gate", "color": "#c08c54"},
-          {"name_zh": "外海", "name_en": "Open Sea", "tile": [60, 80], "kind": "water", "color": "#397987"}
+          {
+            "name_zh": "北堤",
+            "name_en": "North Dike",
+            "tile": [
+              60,
+              6
+            ],
+            "kind": "gate",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "潮沟",
+            "name_en": "Tide Creek",
+            "tile": [
+              35,
+              30
+            ],
+            "kind": "water",
+            "color": "#69a6b1"
+          },
+          {
+            "name_zh": "盐坂",
+            "name_en": "Salt Pans",
+            "tile": [
+              15,
+              22
+            ],
+            "kind": "place",
+            "color": "#d9c487"
+          },
+          {
+            "name_zh": "旧海塘",
+            "name_en": "Old Seawall",
+            "tile": [
+              24,
+              71
+            ],
+            "kind": "gate",
+            "color": "#c08c54"
+          },
+          {
+            "name_zh": "外海",
+            "name_en": "Open Sea",
+            "tile": [
+              60,
+              80
+            ],
+            "kind": "water",
+            "color": "#397987"
+          }
         ],
         "spawn_lanes": [
-          [[4, 6], [28, 6], [48, 6], [72, 6], [116, 6]],
-          [[4, 63], [24, 63], [46, 63], [76, 63], [116, 63]],
-          [[4, 14], [4, 38], [4, 58], [4, 66]],
-          [[116, 14], [116, 38], [116, 58], [116, 66]],
-          [[61, 12], [61, 30], [61, 58], [61, 72]],
-          [[20, 20], [20, 44], [20, 58]],
-          [[99, 20], [99, 44], [99, 58]]
+          [
+            [
+              4,
+              6
+            ],
+            [
+              28,
+              6
+            ],
+            [
+              48,
+              6
+            ],
+            [
+              72,
+              6
+            ],
+            [
+              116,
+              6
+            ]
+          ],
+          [
+            [
+              4,
+              63
+            ],
+            [
+              24,
+              63
+            ],
+            [
+              46,
+              63
+            ],
+            [
+              76,
+              63
+            ],
+            [
+              116,
+              63
+            ]
+          ],
+          [
+            [
+              4,
+              14
+            ],
+            [
+              4,
+              38
+            ],
+            [
+              4,
+              58
+            ],
+            [
+              4,
+              66
+            ]
+          ],
+          [
+            [
+              116,
+              14
+            ],
+            [
+              116,
+              38
+            ],
+            [
+              116,
+              58
+            ],
+            [
+              116,
+              66
+            ]
+          ],
+          [
+            [
+              61,
+              12
+            ],
+            [
+              61,
+              30
+            ],
+            [
+              61,
+              58
+            ],
+            [
+              61,
+              72
+            ]
+          ],
+          [
+            [
+              20,
+              20
+            ],
+            [
+              20,
+              44
+            ],
+            [
+              20,
+              58
+            ]
+          ],
+          [
+            [
+              99,
+              20
+            ],
+            [
+              99,
+              44
+            ],
+            [
+              99,
+              58
+            ]
+          ]
         ]
       }
     },
@@ -108,122 +1378,1590 @@
       "unlock_merit": 900,
       "ground_tint": "#c6d9cf",
       "enemy_speed_mult": 0.92,
-      "enemy_hp_mult": 1.0,
+      "enemy_hp_mult": 1,
       "spawn_rate_mult": 1.06,
-      "oil_interval": 34.0,
+      "oil_interval": 34,
       "light_scale": 1.06,
       "layout": {
-        "world_tiles": [96, 160],
+        "world_tiles": [
+          96,
+          160
+        ],
         "base_tile": "mud_grass",
-        "start_tile": [48, 116],
+        "start_tile": [
+          48,
+          116
+        ],
         "highlands": [
-          [0, 17, 12, 26],
-          [0, 110, 12, 33],
-          [84, 17, 12, 26],
-          [84, 110, 12, 33]
+          [
+            0,
+            17,
+            12,
+            26
+          ],
+          [
+            0,
+            110,
+            12,
+            33
+          ],
+          [
+            84,
+            17,
+            12,
+            26
+          ],
+          [
+            84,
+            110,
+            12,
+            33
+          ]
         ],
         "areas": [
-          {"kind": "reeds", "tiles": ["reed_bed", "mud_grass"], "rect": [0, 0, 96, 17], "density": 0.34},
-          {"kind": "reeds", "tiles": ["reed_bed", "mud_grass"], "rect": [0, 143, 96, 17], "density": 0.34},
-          {"kind": "terrain", "tiles": ["mud_grass", "mud_grass_b"], "rect": [0, 17, 12, 126]},
-          {"kind": "terrain", "tiles": ["mud_grass", "mud_grass_b"], "rect": [84, 17, 12, 126]},
-          {"kind": "terrain", "tiles": ["earth_road_a", "earth_road_b"], "rect": [20, 28, 56, 104]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [16, 17, 64, 9]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [16, 134, 64, 9]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [12, 17, 8, 126]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [76, 17, 8, 126]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [35, 0, 6, 160]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [58, 0, 6, 160]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [24, 33, 4, 96]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [68, 33, 4, 96]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [24, 33, 48, 4]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [24, 125, 48, 4]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [45, 32, 6, 96]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [24, 77, 48, 6]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [45, 0, 6, 29]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [45, 128, 6, 32]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [0, 78, 21, 6]},
-          {"kind": "road", "tiles": ["earth_road_a", "earth_road_b"], "rect": [72, 78, 24, 6]},
-          {"kind": "wall", "rect": [20, 28, 56, 4]},
-          {"kind": "wall", "rect": [20, 128, 56, 4]},
-          {"kind": "wall", "rect": [20, 28, 4, 104]},
-          {"kind": "wall", "rect": [72, 28, 4, 104]},
-          {"kind": "tower", "rect": [24, 27, 4, 4]},
-          {"kind": "tower", "rect": [40, 27, 4, 4]},
-          {"kind": "tower", "rect": [66, 27, 4, 4]},
-          {"kind": "tower", "rect": [24, 129, 4, 4]},
-          {"kind": "tower", "rect": [40, 129, 4, 4]},
-          {"kind": "tower", "rect": [66, 129, 4, 4]},
-          {"kind": "tower", "rect": [19, 42, 4, 4]},
-          {"kind": "tower", "rect": [19, 92, 4, 4]},
-          {"kind": "tower", "rect": [19, 118, 4, 4]},
-          {"kind": "tower", "rect": [73, 42, 4, 4]},
-          {"kind": "tower", "rect": [73, 92, 4, 4]},
-          {"kind": "tower", "rect": [73, 118, 4, 4]},
-          {"kind": "building", "rect": [28, 37, 7, 8]},
-          {"kind": "building", "rect": [64, 37, 4, 8]},
-          {"kind": "building", "rect": [28, 95, 7, 8]},
-          {"kind": "building", "rect": [64, 95, 4, 8]},
-          {"kind": "building", "rect": [28, 56, 7, 10]},
-          {"kind": "building", "rect": [64, 56, 4, 10]},
-          {"kind": "building", "rect": [28, 115, 7, 8]},
-          {"kind": "building", "rect": [64, 115, 4, 8]},
-          {"kind": "bridge", "rect": [31, 45, 14, 5]},
-          {"kind": "bridge", "rect": [54, 45, 14, 5]},
-          {"kind": "bridge", "rect": [31, 77, 14, 6]},
-          {"kind": "bridge", "rect": [54, 77, 14, 6]},
-          {"kind": "bridge", "rect": [31, 110, 14, 5]},
-          {"kind": "bridge", "rect": [54, 110, 14, 5]},
-          {"kind": "bridge", "rect": [45, 15, 6, 17]},
-          {"kind": "bridge", "rect": [45, 126, 6, 21]},
-          {"kind": "bridge", "rect": [8, 78, 17, 6]},
-          {"kind": "bridge", "rect": [72, 78, 17, 6]},
-          {"kind": "bridge", "rect": [35, 16, 6, 16]},
-          {"kind": "bridge", "rect": [58, 16, 6, 16]},
-          {"kind": "bridge", "rect": [35, 126, 6, 20]},
-          {"kind": "bridge", "rect": [58, 126, 6, 20]},
-          {"kind": "gate", "rect": [45, 28, 6, 4]},
-          {"kind": "gate", "rect": [45, 128, 6, 4]},
-          {"kind": "gate", "rect": [20, 78, 4, 6]},
-          {"kind": "gate", "rect": [72, 78, 4, 6]},
-          {"kind": "water_gate", "rect": [35, 26, 6, 8]},
-          {"kind": "water_gate", "rect": [58, 26, 6, 8]},
-          {"kind": "water_gate", "rect": [35, 126, 6, 10]},
-          {"kind": "water_gate", "rect": [58, 126, 6, 10]},
-          {"kind": "props", "prop": "banner_ming", "rect": [44, 32, 8, 2], "density": 0.22},
-          {"kind": "props", "prop": "banner_ming", "rect": [44, 124, 8, 2], "density": 0.22},
-          {"kind": "props", "prop": "crate", "rect": [26, 44, 5, 3], "density": 0.32},
-          {"kind": "props", "prop": "barrel", "rect": [67, 44, 5, 3], "density": 0.32},
-          {"kind": "props", "prop": "barricade", "rect": [39, 58, 2, 12], "density": 0.46, "solid": true},
-          {"kind": "props", "prop": "barricade", "rect": [59, 58, 2, 12], "density": 0.46, "solid": true},
-          {"kind": "props", "prop": "stone_lamp", "rect": [42, 72, 2, 2], "density": 0.50},
-          {"kind": "props", "prop": "stone_lamp", "rect": [54, 72, 2, 2], "density": 0.50},
-          {"kind": "props", "prop": "fishing_boat", "rect": [17, 20, 10, 4], "density": 0.16},
-          {"kind": "props", "prop": "fishing_boat", "rect": [69, 137, 10, 4], "density": 0.16},
-          {"kind": "props", "prop": "reeds", "rect": [4, 26, 8, 20], "density": 0.38},
-          {"kind": "props", "prop": "reeds", "rect": [84, 108, 8, 26], "density": 0.38}
+          {
+            "kind": "terrain",
+            "rect": [
+              0,
+              0,
+              96,
+              17
+            ],
+            "tiles": [
+              "mud_grass",
+              "mud_grass_b"
+            ]
+          },
+          {
+            "kind": "terrain",
+            "rect": [
+              0,
+              143,
+              96,
+              17
+            ],
+            "tiles": [
+              "mud_grass",
+              "mud_grass_b"
+            ]
+          },
+          {
+            "kind": "terrain",
+            "rect": [
+              0,
+              17,
+              12,
+              126
+            ],
+            "tiles": [
+              "mud_grass",
+              "mud_grass_b"
+            ]
+          },
+          {
+            "kind": "terrain",
+            "rect": [
+              84,
+              17,
+              12,
+              126
+            ],
+            "tiles": [
+              "mud_grass",
+              "mud_grass_b"
+            ]
+          },
+          {
+            "kind": "water_path",
+            "points": [
+              [
+                16,
+                19
+              ],
+              [
+                80,
+                19
+              ],
+              [
+                80,
+                141
+              ],
+              [
+                16,
+                141
+              ],
+              [
+                16,
+                19
+              ]
+            ],
+            "width": 9,
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water_path",
+            "points": [
+              [
+                36,
+                0
+              ],
+              [
+                36,
+                18
+              ],
+              [
+                35,
+                35
+              ],
+              [
+                36,
+                55
+              ],
+              [
+                36,
+                75
+              ],
+              [
+                35,
+                95
+              ],
+              [
+                36,
+                115
+              ],
+              [
+                36,
+                160
+              ]
+            ],
+            "width": 6,
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water_path",
+            "points": [
+              [
+                61,
+                0
+              ],
+              [
+                61,
+                18
+              ],
+              [
+                60,
+                35
+              ],
+              [
+                61,
+                55
+              ],
+              [
+                61,
+                75
+              ],
+              [
+                60,
+                95
+              ],
+              [
+                61,
+                115
+              ],
+              [
+                61,
+                160
+              ]
+            ],
+            "width": 6,
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "patch",
+            "center": [
+              23,
+              72
+            ],
+            "radius": [
+              5,
+              7
+            ],
+            "tiles": [
+              "mud_grass",
+              "reed_bed"
+            ],
+            "salt": 37
+          },
+          {
+            "kind": "patch",
+            "center": [
+              72,
+              100
+            ],
+            "radius": [
+              5,
+              8
+            ],
+            "tiles": [
+              "mud_grass",
+              "reed_bed"
+            ],
+            "salt": 41
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                48,
+                3
+              ],
+              [
+                48,
+                18
+              ],
+              [
+                47,
+                28
+              ],
+              [
+                46,
+                40
+              ],
+              [
+                47,
+                52
+              ],
+              [
+                48,
+                64
+              ],
+              [
+                47,
+                76
+              ],
+              [
+                48,
+                88
+              ],
+              [
+                47,
+                100
+              ],
+              [
+                48,
+                116
+              ],
+              [
+                48,
+                128
+              ],
+              [
+                48,
+                140
+              ],
+              [
+                48,
+                158
+              ]
+            ],
+            "width": 6,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                4,
+                81
+              ],
+              [
+                16,
+                80
+              ],
+              [
+                24,
+                80
+              ],
+              [
+                34,
+                80
+              ],
+              [
+                48,
+                80
+              ],
+              [
+                62,
+                80
+              ],
+              [
+                72,
+                80
+              ],
+              [
+                84,
+                80
+              ],
+              [
+                92,
+                81
+              ]
+            ],
+            "width": 6,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                24,
+                32
+              ],
+              [
+                24,
+                44
+              ],
+              [
+                24,
+                56
+              ],
+              [
+                24,
+                70
+              ],
+              [
+                24,
+                80
+              ],
+              [
+                24,
+                96
+              ],
+              [
+                24,
+                108
+              ],
+              [
+                24,
+                124
+              ],
+              [
+                24,
+                128
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                72,
+                32
+              ],
+              [
+                72,
+                44
+              ],
+              [
+                72,
+                56
+              ],
+              [
+                72,
+                70
+              ],
+              [
+                72,
+                80
+              ],
+              [
+                72,
+                96
+              ],
+              [
+                72,
+                108
+              ],
+              [
+                72,
+                124
+              ],
+              [
+                72,
+                128
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                24,
+                36
+              ],
+              [
+                31,
+                35
+              ],
+              [
+                40,
+                36
+              ],
+              [
+                47,
+                36
+              ],
+              [
+                56,
+                35
+              ],
+              [
+                63,
+                36
+              ],
+              [
+                72,
+                36
+              ]
+            ],
+            "width": 3,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                24,
+                112
+              ],
+              [
+                31,
+                113
+              ],
+              [
+                40,
+                112
+              ],
+              [
+                48,
+                112
+              ],
+              [
+                56,
+                113
+              ],
+              [
+                63,
+                112
+              ],
+              [
+                72,
+                112
+              ]
+            ],
+            "width": 3,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              20,
+              28,
+              56,
+              4
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              20,
+              128,
+              56,
+              4
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              20,
+              28,
+              4,
+              104
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              72,
+              28,
+              4,
+              104
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              20,
+              28,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              34,
+              28,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              58,
+              28,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              71,
+              28,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              20,
+              127,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              34,
+              127,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              58,
+              127,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              71,
+              127,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              20,
+              44,
+              4,
+              4
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              20,
+              94,
+              4,
+              4
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              72,
+              44,
+              4,
+              4
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              72,
+              94,
+              4,
+              4
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              29,
+              44,
+              15,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              54,
+              44,
+              15,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              29,
+              77,
+              15,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              54,
+              77,
+              15,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              29,
+              109,
+              15,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              54,
+              109,
+              15,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              45,
+              14,
+              6,
+              17
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              45,
+              126,
+              6,
+              18
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              7,
+              78,
+              17,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              72,
+              78,
+              17,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              33,
+              14,
+              6,
+              16
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              58,
+              14,
+              6,
+              16
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              33,
+              128,
+              6,
+              17
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              58,
+              128,
+              6,
+              17
+            ]
+          },
+          {
+            "kind": "gate",
+            "rect": [
+              45,
+              28,
+              6,
+              4
+            ]
+          },
+          {
+            "kind": "gate",
+            "rect": [
+              45,
+              128,
+              6,
+              4
+            ]
+          },
+          {
+            "kind": "gate",
+            "rect": [
+              20,
+              78,
+              4,
+              7
+            ]
+          },
+          {
+            "kind": "gate",
+            "rect": [
+              72,
+              78,
+              4,
+              7
+            ]
+          },
+          {
+            "kind": "water_gate",
+            "rect": [
+              33,
+              25,
+              6,
+              8
+            ]
+          },
+          {
+            "kind": "water_gate",
+            "rect": [
+              58,
+              25,
+              6,
+              8
+            ]
+          },
+          {
+            "kind": "water_gate",
+            "rect": [
+              33,
+              127,
+              6,
+              9
+            ]
+          },
+          {
+            "kind": "water_gate",
+            "rect": [
+              58,
+              127,
+              6,
+              9
+            ]
+          },
+          {
+            "kind": "building",
+            "rect": [
+              27,
+              40,
+              5,
+              4
+            ],
+            "style": "hall"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              64,
+              38,
+              6,
+              4
+            ],
+            "style": "shop"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              27,
+              53,
+              5,
+              6
+            ],
+            "style": "house"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              64,
+              53,
+              6,
+              5
+            ],
+            "style": "house"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              27,
+              88,
+              5,
+              5
+            ],
+            "style": "hall"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              64,
+              88,
+              5,
+              5
+            ],
+            "style": "shop"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              27,
+              117,
+              6,
+              4
+            ],
+            "style": "house"
+          },
+          {
+            "kind": "building",
+            "rect": [
+              64,
+              117,
+              5,
+              5
+            ],
+            "style": "house"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              25,
+              63,
+              5,
+              7
+            ],
+            "density": 0.4,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              65,
+              63,
+              5,
+              7
+            ],
+            "density": 0.38,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              25,
+              96,
+              5,
+              7
+            ],
+            "density": 0.44,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              65,
+              96,
+              5,
+              7
+            ],
+            "density": 0.4,
+            "floor_tile": "mud_grass"
+          },
+          {
+            "kind": "reeds",
+            "rect": [
+              4,
+              22,
+              8,
+              18
+            ],
+            "tiles": [
+              "reed_bed",
+              "mud_grass"
+            ],
+            "density": 0.34
+          },
+          {
+            "kind": "reeds",
+            "rect": [
+              84,
+              118,
+              8,
+              20
+            ],
+            "tiles": [
+              "reed_bed",
+              "mud_grass"
+            ],
+            "density": 0.34
+          },
+          {
+            "kind": "props",
+            "rect": [
+              43,
+              72,
+              2,
+              2
+            ],
+            "prop": "stone_lamp",
+            "density": 0.5,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              51,
+              72,
+              2,
+              2
+            ],
+            "prop": "stone_lamp",
+            "density": 0.5,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              43,
+              30,
+              8,
+              2
+            ],
+            "prop": "banner_ming",
+            "density": 0.24,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              43,
+              126,
+              8,
+              2
+            ],
+            "prop": "banner_ming",
+            "density": 0.24,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              41,
+              69,
+              3,
+              4
+            ],
+            "prop": "mooring_post",
+            "density": 0.46,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              34,
+              119,
+              3,
+              2
+            ],
+            "prop": "wood_pile",
+            "density": 0.5,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              15,
+              22,
+              9,
+              4
+            ],
+            "prop": "fishing_boat",
+            "density": 0.16,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              72,
+              136,
+              9,
+              4
+            ],
+            "prop": "fishing_boat",
+            "density": 0.16,
+            "solid": false
+          },
+          {
+            "kind": "building",
+            "rect": [
+              52,
+              59,
+              5,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              16,
+              4,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              23,
+              4,
+              7,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              4,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              16,
+              151,
+              6,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              24,
+              151,
+              6,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              151,
+              6,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              51,
+              98,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              39,
+              93,
+              3,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              29,
+              70,
+              3,
+              4
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              51,
+              38,
+              3,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              53,
+              117,
+              3,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              51,
+              3,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              101,
+              3,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              52,
+              5,
+              3,
+              4
+            ],
+            "style": "watch",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              6,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              65,
+              7,
+              4,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              25,
+              147,
+              3,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              53,
+              147,
+              3,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              16,
+              147,
+              3,
+              3
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              66,
+              147,
+              3,
+              6
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          }
         ],
         "landmarks": [
-          {"name_zh": "迎川门", "name_en": "Yingchuan Gate", "tile": [48, 29], "kind": "gate", "color": "#e1b35a"},
-          {"name_zh": "通市门", "name_en": "Tongshi Gate", "tile": [48, 130], "kind": "gate", "color": "#e1b35a"},
-          {"name_zh": "镇山门", "name_en": "Zhenshan Gate", "tile": [21, 81], "kind": "gate", "color": "#e1b35a"},
-          {"name_zh": "环海门", "name_en": "Huanhai Gate", "tile": [74, 81], "kind": "gate", "color": "#e1b35a"},
-          {"name_zh": "上河", "name_en": "Upper Canal", "tile": [37, 72], "kind": "water", "color": "#69a6b1"},
-          {"name_zh": "下河", "name_en": "Lower Canal", "tile": [61, 72], "kind": "water", "color": "#69a6b1"},
-          {"name_zh": "北水门", "name_en": "North Water Gate", "tile": [37, 27], "kind": "water_gate", "color": "#8dc3cb"},
-          {"name_zh": "南水门", "name_en": "South Water Gate", "tile": [37, 134], "kind": "water_gate", "color": "#8dc3cb"}
+          {
+            "name_zh": "迎川门",
+            "name_en": "Yingchuan Gate",
+            "tile": [
+              48,
+              29
+            ],
+            "kind": "gate",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "通市门",
+            "name_en": "Tongshi Gate",
+            "tile": [
+              48,
+              130
+            ],
+            "kind": "gate",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "镇山门",
+            "name_en": "Zhenshan Gate",
+            "tile": [
+              21,
+              81
+            ],
+            "kind": "gate",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "环海门",
+            "name_en": "Huanhai Gate",
+            "tile": [
+              74,
+              81
+            ],
+            "kind": "gate",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "上河",
+            "name_en": "Upper Canal",
+            "tile": [
+              36,
+              72
+            ],
+            "kind": "water",
+            "color": "#69a6b1"
+          },
+          {
+            "name_zh": "下河",
+            "name_en": "Lower Canal",
+            "tile": [
+              61,
+              72
+            ],
+            "kind": "water",
+            "color": "#69a6b1"
+          },
+          {
+            "name_zh": "北水门",
+            "name_en": "North Water Gate",
+            "tile": [
+              36,
+              27
+            ],
+            "kind": "water_gate",
+            "color": "#8dc3cb"
+          },
+          {
+            "name_zh": "南水门",
+            "name_en": "South Water Gate",
+            "tile": [
+              36,
+              134
+            ],
+            "kind": "water_gate",
+            "color": "#8dc3cb"
+          }
         ],
         "spawn_lanes": [
-          [[48, 4], [48, 14], [48, 27]],
-          [[48, 148], [48, 158], [48, 132]],
-          [[3, 81], [10, 81], [21, 81]],
-          [[86, 81], [93, 81], [75, 81]],
-          [[7, 20], [7, 60], [7, 100], [7, 140]],
-          [[89, 20], [89, 60], [89, 100], [89, 140]],
-          [[26, 40], [26, 72], [26, 104], [26, 124]],
-          [[70, 40], [70, 72], [70, 104], [70, 124]],
-          [[34, 47], [44, 47], [52, 47], [66, 47]],
-          [[34, 112], [44, 112], [52, 112], [66, 112]]
+          [
+            [
+              48,
+              4
+            ],
+            [
+              48,
+              14
+            ],
+            [
+              48,
+              27
+            ]
+          ],
+          [
+            [
+              48,
+              148
+            ],
+            [
+              48,
+              158
+            ],
+            [
+              48,
+              132
+            ]
+          ],
+          [
+            [
+              3,
+              81
+            ],
+            [
+              10,
+              81
+            ],
+            [
+              21,
+              81
+            ]
+          ],
+          [
+            [
+              86,
+              81
+            ],
+            [
+              93,
+              81
+            ],
+            [
+              75,
+              81
+            ]
+          ],
+          [
+            [
+              7,
+              20
+            ],
+            [
+              7,
+              60
+            ],
+            [
+              7,
+              100
+            ],
+            [
+              7,
+              140
+            ]
+          ],
+          [
+            [
+              89,
+              20
+            ],
+            [
+              89,
+              60
+            ],
+            [
+              89,
+              100
+            ],
+            [
+              89,
+              140
+            ]
+          ],
+          [
+            [
+              24,
+              40
+            ],
+            [
+              24,
+              72
+            ],
+            [
+              24,
+              104
+            ],
+            [
+              24,
+              124
+            ]
+          ],
+          [
+            [
+              71,
+              40
+            ],
+            [
+              71,
+              72
+            ],
+            [
+              71,
+              104
+            ],
+            [
+              71,
+              124
+            ]
+          ],
+          [
+            [
+              34,
+              47
+            ],
+            [
+              44,
+              47
+            ],
+            [
+              52,
+              47
+            ],
+            [
+              66,
+              47
+            ]
+          ],
+          [
+            [
+              34,
+              112
+            ],
+            [
+              44,
+              112
+            ],
+            [
+              52,
+              112
+            ],
+            [
+              66,
+              112
+            ]
+          ]
         ]
       }
     },
@@ -239,172 +2977,2625 @@
       "enemy_speed_mult": 1.08,
       "enemy_hp_mult": 1.15,
       "spawn_rate_mult": 0.88,
-      "oil_interval": 27.0,
+      "oil_interval": 27,
       "light_scale": 0.94,
       "layout": {
-        "world_tiles": [96, 160],
+        "world_tiles": [
+          96,
+          160
+        ],
         "base_tile": "earth_road_a",
-        "start_tile": [50, 79],
+        "start_tile": [
+          50,
+          79
+        ],
         "highlands": [
-          [4, 26, 88, 2],
-          [4, 132, 88, 2],
-          [4, 4, 14, 4],
-          [78, 152, 14, 4]
+          [
+            4,
+            4,
+            88,
+            3
+          ],
+          [
+            4,
+            153,
+            88,
+            3
+          ],
+          [
+            4,
+            4,
+            3,
+            152
+          ],
+          [
+            89,
+            4,
+            3,
+            152
+          ]
         ],
         "areas": [
-          {"kind": "terrain", "tiles": ["earth_road_a", "earth_road_b"], "rect": [4, 4, 88, 152]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [0, 0, 96, 4]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [0, 156, 96, 4]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [0, 0, 4, 160]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [92, 0, 4, 160]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [29, 4, 4, 152]},
-          {"kind": "water", "tiles": ["water_deep_a", "water_deep_b"], "rect": [63, 4, 4, 152]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [47, 4, 6, 152]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [4, 77, 88, 6]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [4, 28, 88, 4]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [4, 53, 88, 4]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [4, 105, 88, 4]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [4, 130, 88, 4]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [14, 4, 4, 152]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [78, 4, 4, 152]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [34, 4, 3, 152]},
-          {"kind": "road", "tiles": ["stone_road_a", "stone_road_b"], "rect": [66, 4, 3, 152]},
-          {"kind": "wall", "rect": [4, 4, 88, 3]},
-          {"kind": "wall", "rect": [4, 153, 88, 3]},
-          {"kind": "wall", "rect": [4, 4, 3, 152]},
-          {"kind": "wall", "rect": [89, 4, 3, 152]},
-          {"kind": "tower", "rect": [4, 4, 5, 5]},
-          {"kind": "tower", "rect": [87, 4, 5, 5]},
-          {"kind": "tower", "rect": [4, 151, 5, 5]},
-          {"kind": "tower", "rect": [87, 151, 5, 5]},
-          {"kind": "building", "rect": [6, 7, 8, 8]},
-          {"kind": "building", "rect": [6, 17, 8, 8]},
-          {"kind": "building", "rect": [18, 7, 9, 10]},
-          {"kind": "building", "rect": [18, 19, 9, 7]},
-          {"kind": "building", "rect": [38, 7, 8, 9]},
-          {"kind": "building", "rect": [38, 18, 8, 8]},
-          {"kind": "building", "rect": [53, 7, 8, 9]},
-          {"kind": "building", "rect": [53, 18, 8, 8]},
-          {"kind": "building", "rect": [69, 7, 9, 10]},
-          {"kind": "building", "rect": [69, 19, 9, 7]},
-          {"kind": "building", "rect": [83, 7, 5, 10]},
-          {"kind": "building", "rect": [6, 33, 8, 9]},
-          {"kind": "building", "rect": [6, 45, 8, 7]},
-          {"kind": "building", "rect": [18, 33, 9, 8]},
-          {"kind": "building", "rect": [18, 43, 9, 9]},
-          {"kind": "building", "rect": [38, 33, 8, 8]},
-          {"kind": "building", "rect": [38, 43, 8, 9]},
-          {"kind": "building", "rect": [53, 33, 8, 8]},
-          {"kind": "building", "rect": [53, 43, 8, 9]},
-          {"kind": "building", "rect": [69, 33, 9, 8]},
-          {"kind": "building", "rect": [69, 43, 9, 9]},
-          {"kind": "building", "rect": [83, 33, 5, 8]},
-          {"kind": "building", "rect": [83, 43, 5, 9]},
-          {"kind": "building", "rect": [6, 57, 8, 8]},
-          {"kind": "building", "rect": [6, 67, 8, 9]},
-          {"kind": "building", "rect": [18, 57, 9, 9]},
-          {"kind": "building", "rect": [18, 68, 9, 8]},
-          {"kind": "building", "rect": [38, 57, 8, 9]},
-          {"kind": "building", "rect": [38, 68, 8, 8]},
-          {"kind": "building", "rect": [53, 57, 8, 9]},
-          {"kind": "building", "rect": [53, 68, 8, 8]},
-          {"kind": "building", "rect": [69, 57, 9, 9]},
-          {"kind": "building", "rect": [69, 68, 9, 8]},
-          {"kind": "building", "rect": [83, 57, 5, 9]},
-          {"kind": "building", "rect": [83, 68, 5, 8]},
-          {"kind": "building", "rect": [6, 84, 8, 8]},
-          {"kind": "building", "rect": [6, 94, 8, 10]},
-          {"kind": "building", "rect": [18, 84, 9, 8]},
-          {"kind": "building", "rect": [18, 94, 9, 10]},
-          {"kind": "building", "rect": [38, 84, 8, 8]},
-          {"kind": "building", "rect": [38, 94, 8, 10]},
-          {"kind": "building", "rect": [53, 84, 8, 8]},
-          {"kind": "building", "rect": [53, 94, 8, 10]},
-          {"kind": "building", "rect": [69, 84, 9, 8]},
-          {"kind": "building", "rect": [69, 94, 9, 10]},
-          {"kind": "building", "rect": [83, 84, 5, 8]},
-          {"kind": "building", "rect": [83, 94, 5, 10]},
-          {"kind": "building", "rect": [6, 110, 8, 8]},
-          {"kind": "building", "rect": [6, 120, 8, 9]},
-          {"kind": "building", "rect": [18, 110, 9, 8]},
-          {"kind": "building", "rect": [18, 120, 9, 9]},
-          {"kind": "building", "rect": [38, 110, 8, 8]},
-          {"kind": "building", "rect": [38, 120, 8, 9]},
-          {"kind": "building", "rect": [53, 110, 8, 8]},
-          {"kind": "building", "rect": [53, 120, 8, 9]},
-          {"kind": "building", "rect": [69, 110, 9, 8]},
-          {"kind": "building", "rect": [69, 120, 9, 9]},
-          {"kind": "building", "rect": [83, 110, 5, 8]},
-          {"kind": "building", "rect": [83, 120, 5, 9]},
-          {"kind": "building", "rect": [6, 134, 8, 8]},
-          {"kind": "building", "rect": [6, 144, 8, 7]},
-          {"kind": "building", "rect": [18, 134, 9, 8]},
-          {"kind": "building", "rect": [18, 144, 9, 7]},
-          {"kind": "building", "rect": [38, 134, 8, 8]},
-          {"kind": "building", "rect": [38, 144, 8, 7]},
-          {"kind": "building", "rect": [53, 134, 8, 8]},
-          {"kind": "building", "rect": [53, 144, 8, 7]},
-          {"kind": "building", "rect": [69, 134, 9, 8]},
-          {"kind": "building", "rect": [69, 144, 9, 7]},
-          {"kind": "building", "rect": [83, 134, 5, 8]},
-          {"kind": "building", "rect": [83, 144, 5, 7]},
-          {"kind": "bridge", "rect": [27, 31, 8, 5]},
-          {"kind": "bridge", "rect": [61, 31, 8, 5]},
-          {"kind": "bridge", "rect": [27, 55, 8, 5]},
-          {"kind": "bridge", "rect": [61, 55, 8, 5]},
-          {"kind": "bridge", "rect": [27, 77, 8, 6]},
-          {"kind": "bridge", "rect": [61, 77, 8, 6]},
-          {"kind": "bridge", "rect": [27, 107, 8, 5]},
-          {"kind": "bridge", "rect": [61, 107, 8, 5]},
-          {"kind": "bridge", "rect": [27, 132, 8, 5]},
-          {"kind": "bridge", "rect": [61, 132, 8, 5]},
-          {"kind": "bridge", "rect": [45, 0, 6, 7]},
-          {"kind": "bridge", "rect": [45, 153, 6, 7]},
-          {"kind": "bridge", "rect": [0, 78, 7, 6]},
-          {"kind": "bridge", "rect": [89, 78, 7, 6]},
-          {"kind": "gate", "rect": [45, 4, 6, 3]},
-          {"kind": "gate", "rect": [45, 153, 6, 3]},
-          {"kind": "gate", "rect": [4, 78, 3, 6]},
-          {"kind": "gate", "rect": [89, 78, 3, 6]},
-          {"kind": "water_gate", "rect": [29, 4, 4, 5]},
-          {"kind": "water_gate", "rect": [63, 4, 4, 5]},
-          {"kind": "water_gate", "rect": [29, 151, 4, 5]},
-          {"kind": "water_gate", "rect": [63, 151, 4, 5]},
-          {"kind": "props", "prop": "banner_ming", "rect": [46, 6, 8, 2], "density": 0.18},
-          {"kind": "props", "prop": "banner_ming", "rect": [46, 152, 8, 2], "density": 0.18},
-          {"kind": "props", "prop": "stone_lamp", "rect": [44, 75, 2, 2], "density": 0.50},
-          {"kind": "props", "prop": "stone_lamp", "rect": [54, 75, 2, 2], "density": 0.50},
-          {"kind": "props", "prop": "stone_lamp", "rect": [44, 83, 2, 2], "density": 0.50},
-          {"kind": "props", "prop": "stone_lamp", "rect": [54, 83, 2, 2], "density": 0.50},
-          {"kind": "props", "prop": "crate", "rect": [15, 58, 3, 6], "density": 0.34},
-          {"kind": "props", "prop": "barrel", "rect": [79, 58, 3, 6], "density": 0.34},
-          {"kind": "props", "prop": "barricade", "rect": [33, 84, 1, 4], "density": 0.34, "solid": true},
-          {"kind": "props", "prop": "barricade", "rect": [33, 135, 1, 4], "density": 0.34, "solid": true},
-          {"kind": "props", "prop": "bamboo_fence", "rect": [33, 58, 1, 10], "density": 0.30, "solid": true},
-          {"kind": "props", "prop": "bamboo_fence", "rect": [33, 108, 1, 10], "density": 0.30, "solid": true},
-          {"kind": "props", "prop": "fish_trap", "rect": [5, 153, 10, 2], "density": 0.22},
-          {"kind": "props", "prop": "reeds", "rect": [85, 80, 4, 18], "density": 0.25}
+          {
+            "kind": "terrain",
+            "rect": [
+              4,
+              4,
+              88,
+              152
+            ],
+            "tiles": [
+              "earth_road_a",
+              "earth_road_b",
+              "gravel"
+            ]
+          },
+          {
+            "kind": "water",
+            "rect": [
+              0,
+              0,
+              96,
+              4
+            ],
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water",
+            "rect": [
+              0,
+              156,
+              96,
+              4
+            ],
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water",
+            "rect": [
+              0,
+              0,
+              4,
+              160
+            ],
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water",
+            "rect": [
+              92,
+              0,
+              4,
+              160
+            ],
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water_path",
+            "points": [
+              [
+                31,
+                0
+              ],
+              [
+                31,
+                24
+              ],
+              [
+                30,
+                48
+              ],
+              [
+                31,
+                72
+              ],
+              [
+                31,
+                96
+              ],
+              [
+                30,
+                120
+              ],
+              [
+                31,
+                160
+              ]
+            ],
+            "width": 5,
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "water_path",
+            "points": [
+              [
+                65,
+                0
+              ],
+              [
+                65,
+                24
+              ],
+              [
+                66,
+                48
+              ],
+              [
+                65,
+                72
+              ],
+              [
+                65,
+                96
+              ],
+              [
+                66,
+                120
+              ],
+              [
+                65,
+                160
+              ]
+            ],
+            "width": 5,
+            "tiles": [
+              "water_deep_a",
+              "water_deep_b"
+            ]
+          },
+          {
+            "kind": "patch",
+            "center": [
+              22,
+              18
+            ],
+            "radius": [
+              7,
+              7
+            ],
+            "tiles": [
+              "earth_road_b",
+              "gravel"
+            ],
+            "salt": 43
+          },
+          {
+            "kind": "patch",
+            "center": [
+              74,
+              118
+            ],
+            "radius": [
+              8,
+              8
+            ],
+            "tiles": [
+              "earth_road_b",
+              "gravel"
+            ],
+            "salt": 47
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                49,
+                4
+              ],
+              [
+                49,
+                20
+              ],
+              [
+                50,
+                34
+              ],
+              [
+                48,
+                48
+              ],
+              [
+                50,
+                60
+              ],
+              [
+                50,
+                76
+              ],
+              [
+                50,
+                90
+              ],
+              [
+                49,
+                108
+              ],
+              [
+                50,
+                124
+              ],
+              [
+                49,
+                140
+              ],
+              [
+                49,
+                154
+              ]
+            ],
+            "width": 6,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                4,
+                79
+              ],
+              [
+                16,
+                78
+              ],
+              [
+                28,
+                80
+              ],
+              [
+                38,
+                78
+              ],
+              [
+                50,
+                79
+              ],
+              [
+                58,
+                80
+              ],
+              [
+                72,
+                78
+              ],
+              [
+                82,
+                80
+              ],
+              [
+                92,
+                79
+              ]
+            ],
+            "width": 6,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                4,
+                30
+              ],
+              [
+                16,
+                30
+              ],
+              [
+                28,
+                29
+              ],
+              [
+                40,
+                30
+              ],
+              [
+                50,
+                30
+              ],
+              [
+                60,
+                29
+              ],
+              [
+                72,
+                30
+              ],
+              [
+                82,
+                29
+              ],
+              [
+                92,
+                30
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                4,
+                54
+              ],
+              [
+                18,
+                54
+              ],
+              [
+                31,
+                53
+              ],
+              [
+                42,
+                54
+              ],
+              [
+                50,
+                54
+              ],
+              [
+                58,
+                53
+              ],
+              [
+                66,
+                54
+              ],
+              [
+                80,
+                54
+              ],
+              [
+                92,
+                54
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                4,
+                106
+              ],
+              [
+                16,
+                105
+              ],
+              [
+                28,
+                106
+              ],
+              [
+                40,
+                105
+              ],
+              [
+                50,
+                106
+              ],
+              [
+                60,
+                106
+              ],
+              [
+                72,
+                105
+              ],
+              [
+                82,
+                106
+              ],
+              [
+                92,
+                106
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                4,
+                130
+              ],
+              [
+                18,
+                130
+              ],
+              [
+                31,
+                131
+              ],
+              [
+                42,
+                130
+              ],
+              [
+                50,
+                130
+              ],
+              [
+                58,
+                131
+              ],
+              [
+                66,
+                130
+              ],
+              [
+                80,
+                130
+              ],
+              [
+                92,
+                130
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                15,
+                5
+              ],
+              [
+                15,
+                28
+              ],
+              [
+                14,
+                52
+              ],
+              [
+                15,
+                78
+              ],
+              [
+                15,
+                104
+              ],
+              [
+                14,
+                128
+              ],
+              [
+                15,
+                154
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "path",
+            "points": [
+              [
+                81,
+                5
+              ],
+              [
+                81,
+                28
+              ],
+              [
+                82,
+                52
+              ],
+              [
+                81,
+                78
+              ],
+              [
+                81,
+                104
+              ],
+              [
+                82,
+                128
+              ],
+              [
+                81,
+                154
+              ]
+            ],
+            "width": 4,
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              4,
+              4,
+              88,
+              3
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              4,
+              153,
+              88,
+              3
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              4,
+              4,
+              3,
+              152
+            ]
+          },
+          {
+            "kind": "wall",
+            "rect": [
+              89,
+              4,
+              3,
+              152
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              4,
+              4,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              87,
+              4,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              4,
+              151,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "tower",
+            "rect": [
+              87,
+              151,
+              5,
+              5
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              29,
+              27,
+              7,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              63,
+              27,
+              7,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              29,
+              51,
+              7,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              63,
+              51,
+              7,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              28,
+              76,
+              8,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              62,
+              76,
+              8,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              29,
+              103,
+              7,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              63,
+              103,
+              7,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              29,
+              127,
+              7,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              63,
+              127,
+              7,
+              7
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              29,
+              0,
+              6,
+              6
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              63,
+              0,
+              6,
+              6
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              29,
+              154,
+              6,
+              6
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              63,
+              154,
+              6,
+              6
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              46,
+              0,
+              6,
+              5
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              46,
+              155,
+              6,
+              5
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              0,
+              78,
+              6,
+              6
+            ]
+          },
+          {
+            "kind": "bridge",
+            "rect": [
+              90,
+              78,
+              6,
+              6
+            ]
+          },
+          {
+            "kind": "gate",
+            "rect": [
+              46,
+              4,
+              6,
+              3
+            ]
+          },
+          {
+            "kind": "gate",
+            "rect": [
+              46,
+              153,
+              6,
+              3
+            ]
+          },
+          {
+            "kind": "gate",
+            "rect": [
+              4,
+              78,
+              3,
+              6
+            ]
+          },
+          {
+            "kind": "gate",
+            "rect": [
+              89,
+              78,
+              3,
+              6
+            ]
+          },
+          {
+            "kind": "water_gate",
+            "rect": [
+              29,
+              4,
+              6,
+              5
+            ]
+          },
+          {
+            "kind": "water_gate",
+            "rect": [
+              63,
+              4,
+              6,
+              5
+            ]
+          },
+          {
+            "kind": "water_gate",
+            "rect": [
+              29,
+              151,
+              6,
+              5
+            ]
+          },
+          {
+            "kind": "water_gate",
+            "rect": [
+              63,
+              151,
+              6,
+              5
+            ]
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              8,
+              4,
+              5
+            ],
+            "style": "watch",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              14,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              21,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              34,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              39,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              45,
+              4,
+              6
+            ],
+            "style": "watch",
+            "ridge_count": 1
+          },
+          {
+            "kind": "props",
+            "rect": [
+              7,
+              58,
+              4,
+              5
+            ],
+            "prop": "tree_a",
+            "density": 0.18,
+            "solid": true
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              64,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              71,
+              4,
+              4
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              84,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              90,
+              4,
+              7
+            ],
+            "style": "house",
+            "ridge_count": 2
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              98,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              110,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              118,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              123,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              134,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              141,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              7,
+              146,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              8,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              14,
+              6,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              21,
+              6,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              34,
+              6,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              40,
+              6,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              47,
+              6,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              59,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              65,
+              6,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "props",
+            "rect": [
+              19,
+              71,
+              6,
+              4
+            ],
+            "prop": "bamboo",
+            "density": 0.22,
+            "solid": true
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              84,
+              6,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              90,
+              6,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              97,
+              6,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              110,
+              6,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              115,
+              6,
+              7
+            ],
+            "style": "shop",
+            "ridge_count": 2
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              123,
+              6,
+              4
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "props",
+            "rect": [
+              19,
+              134,
+              6,
+              5
+            ],
+            "prop": "tree_a",
+            "density": 0.18,
+            "solid": true
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              140,
+              6,
+              7
+            ],
+            "style": "house",
+            "ridge_count": 2
+          },
+          {
+            "kind": "building",
+            "rect": [
+              19,
+              148,
+              6,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              8,
+              4,
+              6
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              36,
+              15,
+              8,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              36,
+              21,
+              3,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              21,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              34,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              34,
+              3,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              39,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              39,
+              3,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              45,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              45,
+              3,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              58,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              58,
+              4,
+              6
+            ],
+            "style": "watch",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              65,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              65,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              70,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              70,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              36,
+              84,
+              6,
+              6
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "props",
+            "rect": [
+              36,
+              91,
+              7,
+              5
+            ],
+            "prop": "bamboo",
+            "density": 0.22,
+            "solid": true
+          },
+          {
+            "kind": "building",
+            "rect": [
+              36,
+              97,
+              7,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              110,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              110,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              115,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              115,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              122,
+              9,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              134,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              134,
+              3,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              141,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              141,
+              3,
+              5
+            ],
+            "style": "watch",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              35,
+              147,
+              4,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              40,
+              147,
+              3,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              8,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              14,
+              6,
+              7
+            ],
+            "style": "hall",
+            "ridge_count": 2
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              22,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              56,
+              34,
+              5,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              39,
+              6,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              45,
+              6,
+              6
+            ],
+            "style": "hall",
+            "ridge_count": 2
+          },
+          {
+            "kind": "building",
+            "rect": [
+              56,
+              58,
+              5,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              63,
+              6,
+              7
+            ],
+            "style": "house",
+            "ridge_count": 2
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              71,
+              6,
+              4
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              56,
+              91,
+              5,
+              6
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              98,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              56,
+              110,
+              5,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              115,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              121,
+              6,
+              6
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              134,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              140,
+              6,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              55,
+              147,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              8,
+              7,
+              7
+            ],
+            "style": "house",
+            "ridge_count": 2
+          },
+          {
+            "kind": "props",
+            "rect": [
+              70,
+              16,
+              7,
+              4
+            ],
+            "prop": "tree_a",
+            "density": 0.18,
+            "solid": true
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              22,
+              7,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              71,
+              34,
+              5,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              71,
+              39,
+              5,
+              7
+            ],
+            "style": "house",
+            "ridge_count": 2
+          },
+          {
+            "kind": "building",
+            "rect": [
+              71,
+              47,
+              5,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              58,
+              6,
+              4
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              63,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              69,
+              6,
+              6
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              71,
+              84,
+              6,
+              5
+            ],
+            "style": "hall",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              71,
+              90,
+              6,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              71,
+              97,
+              6,
+              6
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "props",
+            "rect": [
+              70,
+              110,
+              6,
+              5
+            ],
+            "prop": "bamboo",
+            "density": 0.22,
+            "solid": true
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              116,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              122,
+              6,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              134,
+              7,
+              7
+            ],
+            "style": "house",
+            "ridge_count": 2
+          },
+          {
+            "kind": "building",
+            "rect": [
+              70,
+              147,
+              7,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "props",
+            "rect": [
+              84,
+              8,
+              4,
+              5
+            ],
+            "prop": "tree_a",
+            "density": 0.18,
+            "solid": true
+          },
+          {
+            "kind": "props",
+            "rect": [
+              84,
+              14,
+              4,
+              6
+            ],
+            "prop": "tree_a",
+            "density": 0.18,
+            "solid": true
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              21,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              34,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              40,
+              4,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              46,
+              4,
+              5
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              58,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              63,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              71,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              84,
+              4,
+              5
+            ],
+            "style": "shop",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              90,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              97,
+              4,
+              6
+            ],
+            "style": "watch",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              110,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              115,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "props",
+            "rect": [
+              84,
+              122,
+              4,
+              5
+            ],
+            "prop": "tree_a",
+            "density": 0.18,
+            "solid": true
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              134,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              141,
+              4,
+              4
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "building",
+            "rect": [
+              84,
+              146,
+              4,
+              6
+            ],
+            "style": "house",
+            "ridge_count": 1
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              19,
+              16,
+              7,
+              7
+            ],
+            "density": 0.34,
+            "floor_tile": "earth_road_b"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              71,
+              40,
+              6,
+              6
+            ],
+            "density": 0.36,
+            "floor_tile": "earth_road_b"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              19,
+              89,
+              7,
+              7
+            ],
+            "density": 0.38,
+            "floor_tile": "earth_road_b"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              72,
+              89,
+              6,
+              6
+            ],
+            "density": 0.34,
+            "floor_tile": "earth_road_b"
+          },
+          {
+            "kind": "grove",
+            "rect": [
+              39,
+              35,
+              5,
+              7
+            ],
+            "density": 0.3,
+            "floor_tile": "earth_road_b"
+          },
+          {
+            "kind": "props",
+            "rect": [
+              43,
+              73,
+              2,
+              2
+            ],
+            "prop": "stone_lamp",
+            "density": 0.5,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              55,
+              73,
+              2,
+              2
+            ],
+            "prop": "stone_lamp",
+            "density": 0.5,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              43,
+              84,
+              2,
+              2
+            ],
+            "prop": "stone_lamp",
+            "density": 0.5,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              55,
+              84,
+              2,
+              2
+            ],
+            "prop": "stone_lamp",
+            "density": 0.5,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              44,
+              70,
+              10,
+              2
+            ],
+            "prop": "banner_ming",
+            "density": 0.28,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              44,
+              88,
+              10,
+              2
+            ],
+            "prop": "banner_ming",
+            "density": 0.28,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              34,
+              72,
+              3,
+              2
+            ],
+            "prop": "mooring_post",
+            "density": 0.5,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              51,
+              107,
+              3,
+              2
+            ],
+            "prop": "wood_pile",
+            "density": 0.46,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              17,
+              46,
+              4,
+              2
+            ],
+            "prop": "barrel",
+            "density": 0.3,
+            "solid": false
+          },
+          {
+            "kind": "props",
+            "rect": [
+              77,
+              97,
+              4,
+              2
+            ],
+            "prop": "crate",
+            "density": 0.3,
+            "solid": false
+          }
         ],
         "landmarks": [
-          {"name_zh": "十字街心", "name_en": "Crossroads", "tile": [50, 79], "kind": "place", "color": "#f0cb72"},
-          {"name_zh": "迎川门", "name_en": "Yingchuan Gate", "tile": [48, 4], "kind": "gate", "color": "#e1b35a"},
-          {"name_zh": "通市门", "name_en": "Tongshi Gate", "tile": [48, 154], "kind": "gate", "color": "#e1b35a"},
-          {"name_zh": "镇山门", "name_en": "Zhenshan Gate", "tile": [4, 81], "kind": "gate", "color": "#e1b35a"},
-          {"name_zh": "环海门", "name_en": "Huanhai Gate", "tile": [91, 81], "kind": "gate", "color": "#e1b35a"},
-          {"name_zh": "上河", "name_en": "Upper Canal", "tile": [31, 79], "kind": "water", "color": "#69a6b1"},
-          {"name_zh": "下河", "name_en": "Lower Canal", "tile": [65, 79], "kind": "water", "color": "#69a6b1"},
-          {"name_zh": "北水门", "name_en": "North Water Gate", "tile": [31, 5], "kind": "water_gate", "color": "#8dc3cb"},
-          {"name_zh": "南水门", "name_en": "South Water Gate", "tile": [31, 154], "kind": "water_gate", "color": "#8dc3cb"}
+          {
+            "name_zh": "十字街心",
+            "name_en": "Crossroads",
+            "tile": [
+              50,
+              79
+            ],
+            "kind": "place",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "迎川门",
+            "name_en": "Yingchuan Gate",
+            "tile": [
+              49,
+              5
+            ],
+            "kind": "gate",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "通市门",
+            "name_en": "Tongshi Gate",
+            "tile": [
+              49,
+              154
+            ],
+            "kind": "gate",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "镇山门",
+            "name_en": "Zhenshan Gate",
+            "tile": [
+              5,
+              81
+            ],
+            "kind": "gate",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "环海门",
+            "name_en": "Huanhai Gate",
+            "tile": [
+              90,
+              81
+            ],
+            "kind": "gate",
+            "color": "#e1b35a"
+          },
+          {
+            "name_zh": "西渠桥市",
+            "name_en": "West Canal Market",
+            "tile": [
+              32,
+              79
+            ],
+            "kind": "place",
+            "color": "#d9c487"
+          },
+          {
+            "name_zh": "东渠桥市",
+            "name_en": "East Canal Market",
+            "tile": [
+              66,
+              79
+            ],
+            "kind": "place",
+            "color": "#d9c487"
+          },
+          {
+            "name_zh": "北市",
+            "name_en": "North Market",
+            "tile": [
+              49,
+              30
+            ],
+            "kind": "place",
+            "color": "#d9c487"
+          },
+          {
+            "name_zh": "南市",
+            "name_en": "South Market",
+            "tile": [
+              49,
+              130
+            ],
+            "kind": "place",
+            "color": "#d9c487"
+          }
         ],
         "spawn_lanes": [
-          [[48, 1], [48, 12], [48, 26], [48, 48], [48, 70], [48, 88], [48, 118], [48, 146], [48, 158]],
-          [[8, 81], [20, 81], [40, 81], [58, 81], [72, 81], [90, 81]],
-          [[16, 12], [16, 40], [16, 64], [16, 96], [16, 120], [16, 148]],
-          [[80, 12], [80, 40], [80, 64], [80, 96], [80, 120], [80, 148]],
-          [[36, 12], [36, 45], [36, 70], [36, 96], [36, 122], [36, 148]],
-          [[68, 12], [68, 45], [68, 70], [68, 96], [68, 122], [68, 148]],
-          [[7, 31], [27, 31], [27, 33], [34, 33], [36, 31], [45, 31], [54, 31], [61, 31], [61, 33], [68, 33], [68, 31], [82, 31]],
-          [[8, 132], [27, 132], [27, 134], [34, 134], [36, 132], [45, 132], [54, 132], [61, 132], [61, 134], [68, 134], [68, 132], [82, 132]]
+          [
+            [
+              49,
+              4
+            ],
+            [
+              49,
+              16
+            ],
+            [
+              49,
+              29
+            ]
+          ],
+          [
+            [
+              49,
+              154
+            ],
+            [
+              49,
+              140
+            ],
+            [
+              49,
+              131
+            ]
+          ],
+          [
+            [
+              4,
+              81
+            ],
+            [
+              14,
+              81
+            ],
+            [
+              22,
+              81
+            ]
+          ],
+          [
+            [
+              91,
+              81
+            ],
+            [
+              82,
+              81
+            ],
+            [
+              74,
+              81
+            ]
+          ],
+          [
+            [
+              15,
+              20
+            ],
+            [
+              15,
+              60
+            ],
+            [
+              15,
+              100
+            ],
+            [
+              15,
+              140
+            ]
+          ],
+          [
+            [
+              81,
+              20
+            ],
+            [
+              81,
+              60
+            ],
+            [
+              81,
+              100
+            ],
+            [
+              81,
+              140
+            ]
+          ],
+          [
+            [
+              15,
+              40
+            ],
+            [
+              15,
+              70
+            ],
+            [
+              15,
+              100
+            ],
+            [
+              15,
+              130
+            ]
+          ],
+          [
+            [
+              81,
+              40
+            ],
+            [
+              81,
+              70
+            ],
+            [
+              81,
+              100
+            ],
+            [
+              81,
+              130
+            ]
+          ],
+          [
+            [
+              24,
+              54
+            ],
+            [
+              40,
+              54
+            ],
+            [
+              58,
+              54
+            ],
+            [
+              72,
+              54
+            ]
+          ],
+          [
+            [
+              24,
+              106
+            ],
+            [
+              40,
+              106
+            ],
+            [
+              58,
+              106
+            ],
+            [
+              72,
+              106
+            ]
+          ]
         ]
       }
     }

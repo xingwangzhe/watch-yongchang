@@ -95,6 +95,121 @@ func test_bridge_decks_and_railings_have_continuous_joining_edges() -> void:
 	assert_ne(horizontal_railing.get_pixel(16, 9), vertical_railing.get_pixel(16, 9), "railing orientations must use distinct art")
 
 
+func test_roofs_read_warm_and_eaves_expose_a_visible_facade() -> void:
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
+	assert_not_null(parsed, "tile index must parse")
+	if parsed == null:
+		return
+	var roof := _tile_image(parsed, "architecture", "roof_slope")
+	var eave := _tile_image(parsed, "architecture", "roof_eave")
+	var street := _tile_image(parsed, "terrain", "stone_road_a")
+	assert_not_null(roof, "roof slope must load")
+	assert_not_null(eave, "roof eave must load")
+	assert_not_null(street, "stone street must load")
+	if roof == null or eave == null or street == null:
+		return
+	var roof_average := _average_opaque_color(roof)
+	var street_average := _average_opaque_color(street)
+	assert_gt(
+		roof_average.r - roof_average.b,
+		0.015,
+		"roof tiles must stay warm instead of matching the cool stone street"
+	)
+	assert_gt(
+		street_average.b - street_average.r,
+		0.015,
+		"stone streets must stay cool so roofs separate at a glance"
+	)
+	var facade_pixels := 0
+	for y in range(23, 32):
+		for x in 32:
+			var color := eave.get_pixel(x, y)
+			if color.a > 0.9 and color.get_luminance() > 0.42:
+				facade_pixels += 1
+	assert_gt(facade_pixels, 48, "eave tile must expose a light plaster facade below the roof")
+
+
+func test_roof_variants_and_door_eave_keep_distinct_silhouettes() -> void:
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
+	assert_not_null(parsed, "tile index must parse")
+	if parsed == null:
+		return
+	var architecture: Dictionary = parsed["atlases"]["architecture"]
+	var names: Array = architecture["tiles"]
+	for tile_name in [
+		"roof_slope_b", "roof_slope_c", "roof_eave_b", "roof_eave_door",
+		"hall_roof_ridge", "hall_roof_slope", "hall_roof_eave", "hall_roof_corner",
+		"roof_verge", "roof_hip_left", "roof_hip_right",
+		"hall_roof_verge", "hall_roof_hip_left", "hall_roof_hip_right",
+		"roof_eave_shop", "roof_verge_b",
+	]:
+		assert_true(names.has(tile_name), "architecture atlas must expose %s" % tile_name)
+	var slope_a := _tile_image(parsed, "architecture", "roof_slope")
+	var slope_b := _tile_image(parsed, "architecture", "roof_slope_b")
+	var slope_c := _tile_image(parsed, "architecture", "roof_slope_c")
+	var door_eave := _tile_image(parsed, "architecture", "roof_eave_door")
+	var hall_eave := _tile_image(parsed, "architecture", "hall_roof_eave")
+	for image: Image in [slope_a, slope_b, slope_c, door_eave, hall_eave]:
+		assert_not_null(image, "roof variant tile must load")
+	if slope_a == null or slope_b == null or slope_c == null or door_eave == null or hall_eave == null:
+		return
+	assert_ne(slope_a.get_data(), slope_b.get_data(), "roof variants must not be duplicates")
+	assert_ne(slope_a.get_data(), slope_c.get_data(), "weathered roof variant must differ")
+	var red_door_pixels := 0
+	for y in range(22, 32):
+		for x in range(10, 22):
+			var color := door_eave.get_pixel(x, y)
+			if color.r > color.g * 1.45 and color.r > color.b * 1.45:
+				red_door_pixels += 1
+	assert_gt(red_door_pixels, 24, "door eave must keep a readable red door below its roof")
+	var hall_red_pixels := 0
+	for y in 32:
+		for x in 32:
+			var color := hall_eave.get_pixel(x, y)
+			if color.r > color.g * 1.35 and color.r > color.b * 1.30:
+				hall_red_pixels += 1
+	assert_gt(hall_red_pixels, 12, "hall eave must expose red timber columns")
+
+
+func test_roof_verge_side_wall_and_shop_eave_create_depth() -> void:
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
+	assert_not_null(parsed, "tile index must parse")
+	if parsed == null:
+		return
+	var verge := _tile_image(parsed, "architecture", "roof_verge")
+	var hip_left := _tile_image(parsed, "architecture", "roof_hip_left")
+	var hip_right := _tile_image(parsed, "architecture", "roof_hip_right")
+	var side_wall := _tile_image(parsed, "architecture", "gable_left")
+	var shop_eave := _tile_image(parsed, "architecture", "roof_eave_shop")
+	for image: Image in [verge, hip_left, hip_right, side_wall, shop_eave]:
+		assert_not_null(image, "depth roof tile must load")
+	if verge == null or hip_left == null or hip_right == null or side_wall == null or shop_eave == null:
+		return
+	assert_ne(hip_left.get_data(), hip_right.get_data(), "roof hips must be mirrored, not duplicated")
+	var verge_plaster := 0
+	for y in range(20, 32):
+		for x in 32:
+			var color := verge.get_pixel(x, y)
+			if color.a > 0.9 and color.g > 0.62 and color.b > 0.47:
+				verge_plaster += 1
+	assert_lt(verge_plaster, 12, "north roof verge must not read as another white facade")
+	var side_wall_plaster := 0
+	for y in 32:
+		for x in 32:
+			var color := side_wall.get_pixel(x, y)
+			if color.a > 0.9 and color.get_luminance() > 0.48:
+				side_wall_plaster += 1
+	assert_gt(side_wall_plaster, 48, "side wall must keep a readable plaster reveal")
+	assert_lt(side_wall_plaster, 450, "side wall reveal must leave most of the cell as roof volume")
+	var awning_pixels := 0
+	for y in range(18, 25):
+		for x in 32:
+			var color := shop_eave.get_pixel(x, y)
+			if color.r > color.g * 1.25 and color.r > color.b * 1.2:
+				awning_pixels += 1
+	assert_gt(awning_pixels, 28, "shop eave must expose a warm awning above the storefront")
+
+
 func test_animated_props_match_declared_grid() -> void:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
 	assert_not_null(parsed, "tile index must parse")
@@ -140,3 +255,19 @@ func _tile_image(parsed: Dictionary, atlas_key: String, tile_name: String) -> Im
 	var image := Image.create(tile_size, tile_size, false, Image.FORMAT_RGBA8)
 	image.blit_rect(source, Rect2i(cell, Vector2i.ONE * tile_size), Vector2i.ZERO)
 	return image
+
+
+func _average_opaque_color(image: Image) -> Color:
+	var total := Vector3.ZERO
+	var pixels := 0
+	for y in image.get_height():
+		for x in image.get_width():
+			var color := image.get_pixel(x, y)
+			if color.a <= 0.0:
+				continue
+			total += Vector3(color.r, color.g, color.b)
+			pixels += 1
+	if pixels == 0:
+		return Color(0.0, 0.0, 0.0, 0.0)
+	total /= float(pixels)
+	return Color(total.x, total.y, total.z, 1.0)

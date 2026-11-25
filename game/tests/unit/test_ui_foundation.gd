@@ -177,7 +177,7 @@ func test_main_menu_moves_codex_to_menu_and_opens_controls() -> void:
 	assert_not_null(menu.find_child("ControlsButton", true, false), "settings must expose a controls button")
 	var version_label := menu.find_child("Version", true, false) as Label
 	assert_not_null(version_label)
-	assert_eq(version_label.text, "v0.1.0")
+	assert_eq(version_label.text, "v%s" % ProjectMeta.version)
 	var music_title := menu.find_child("MusicTitle", true, false) as Label
 	assert_not_null(music_title)
 	assert_string_contains(str(music_title.text), "Samurai Nights")
@@ -314,7 +314,10 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	assert_ne(about.about_stream().resource_path, AudioBus.menu_stream.resource_path, "about music must be distinct")
 
 	var credits: Dictionary = about.credits_data()
-	assert_eq(str(ProjectSettings.get_setting("application/config/version", "")), "0.1.0")
+	assert_eq(
+		str(ProjectSettings.get_setting("application/config/version", "")),
+		ProjectMeta.version
+	)
 	var free_software: Dictionary = credits.get("free_software", {})
 	assert_false(free_software.is_empty(), "the roll must open with a free-software statement")
 	assert_string_contains(str(free_software.get("lines_zh", [""])[0]), "自由软件")
@@ -342,7 +345,7 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 		assert_false(music_files.has(file), "BGM credits must not duplicate a runtime file")
 		music_files.append(file)
 	var sfx_entries: Array = credits.get("sfx", [])
-	assert_eq(sfx_entries.size(), 7, "both Kenney packs and all five OpenGameArt sources must be credited")
+	assert_eq(sfx_entries.size(), 6, "both Kenney packs and all four OpenGameArt sources must be credited")
 	var sfx_files: Array[String] = []
 	for entry in sfx_entries:
 		assert_eq(str(entry.get("license", "")), "CC0 1.0")
@@ -355,7 +358,7 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 			assert_true(ResourceLoader.exists(file), "missing SFX: %s" % file)
 			assert_false(sfx_files.has(file), "SFX credits must not duplicate a runtime file")
 			sfx_files.append(file)
-	assert_eq(sfx_files.size(), 20, "every shipped SFX must be covered exactly once")
+	assert_eq(sfx_files.size(), 18, "every runtime SFX must be covered exactly once")
 	var font_entry: Dictionary = (credits.get("fonts", []) as Array)[0]
 	assert_string_contains(font_entry.get("notice_zh", ""), "OFL")
 	assert_true(str(font_entry.get("license_url", "")).begins_with("https://"))
@@ -366,7 +369,7 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	for entry in icon_entries:
 		assert_true(entry is Dictionary)
 		assert_true(ResourceLoader.exists(str(entry.get("file", ""))))
-		if str(entry.get("file", "")) == "res://assets/ui/watch_cursor.png":
+		if str(entry.get("file", "")) == "res://assets/ui/watch_cursor.webp":
 			cursor_credited = true
 			assert_eq(str(entry.get("license", "")), "CC BY 4.0")
 			assert_eq(str(entry.get("license_url", "")), "https://creativecommons.org/licenses/by/4.0/")
@@ -584,7 +587,7 @@ func test_character_select_enforces_unlocks_and_keeps_choice() -> void:
 	var portrait_texture := (select.find_child("Portrait", true, false) as TextureRect).texture as AtlasTexture
 	assert_not_null(portrait_texture, "select portrait must use a forge idle frame")
 	if portrait_texture != null:
-		assert_string_contains(portrait_texture.atlas.resource_path, "forge/players/amei/idle.png")
+		assert_string_contains(portrait_texture.atlas.resource_path, "forge/players/amei/idle.webp")
 		assert_eq(portrait_texture.region.size, Vector2(128, 128))
 	assert_false((select.find_child("Character_amei", true, false) as Button).disabled)
 	assert_false((select.find_child("Map_watergate", true, false) as Button).disabled)

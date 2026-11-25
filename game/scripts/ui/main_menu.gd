@@ -3,7 +3,8 @@ extends Control
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
 const IconChips := preload("res://scripts/ui/icon_chip.gd")
-const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
+const WebExitBridge := preload("res://scripts/ui/web_exit.gd")
+const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const ICON_LANTERN := preload("res://assets/icons/game_icons/ui_lantern.svg")
 const ICON_WATCHTOWER := preload("res://assets/icons/game_icons/ui_watchtower.svg")
@@ -55,8 +56,15 @@ var _controls_title: Label
 var _controls_settings_button: Button
 var _controls_done: Button
 var _tutorial_overlay: TutorialOverlay
+var _web_exit_notice: Control
+var _web_exit_title: Label
+var _web_exit_body: Label
+var _web_exit_reload_button: Button
+var _web_exit_repo_button: Button
+var _web_exit_dismiss_button: Button
 var _binding_labels: Dictionary = {}
 var _capture_action := ""
+var web_platform_override := -1
 
 
 func _ready() -> void:
@@ -70,6 +78,7 @@ func _ready() -> void:
 	_build_settings_overlay()
 	_build_controls_overlay()
 	_build_tutorial_overlay()
+	_build_web_exit_overlay()
 	_sync_settings_controls()
 	_connect_signals()
 	_refresh_texts()
@@ -108,7 +117,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if is_instance_valid(_tutorial_overlay) and _tutorial_overlay.visible:
 		return
-	if event.is_action_pressed("ui_cancel") and _controls_overlay.visible:
+	if event.is_action_pressed("ui_cancel") and _web_exit_notice.visible:
+		hide_web_exit_notice()
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("ui_cancel") and _controls_overlay.visible:
 		close_controls()
 		get_viewport().set_input_as_handled()
 	elif event.is_action_pressed("ui_cancel") and _settings_overlay.visible:
@@ -590,6 +602,62 @@ func _build_tutorial_overlay() -> void:
 	_tutorial_overlay.closed.connect(_on_tutorial_closed)
 
 
+func _build_web_exit_overlay() -> void:
+	_web_exit_notice = Control.new()
+	_web_exit_notice.name = "WebExitNotice"
+	_web_exit_notice.visible = false
+	_web_exit_notice.z_index = 50
+	add_child(_web_exit_notice)
+	_web_exit_notice.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var dim := ColorRect.new()
+	dim.name = "Dim"
+	dim.color = Color(0.015, 0.025, 0.030, 0.92)
+	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	_web_exit_notice.add_child(dim)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	var panel := PanelContainer.new()
+	panel.name = "WebExitPanel"
+	UILayout.place(panel, 330.0, 148.0, 620.0, 424.0, 0.5, 0.0)
+	panel.add_theme_stylebox_override("panel", _panel_texture_box(30))
+	_web_exit_notice.add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 18)
+	margin.add_theme_constant_override("margin_right", 18)
+	margin.add_theme_constant_override("margin_top", 18)
+	margin.add_theme_constant_override("margin_bottom", 18)
+	panel.add_child(margin)
+
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 14)
+	margin.add_child(column)
+
+	_web_exit_title = _make_label("WebExitTitle", "", 30, GOLD)
+	column.add_child(_web_exit_title)
+	_web_exit_body = _make_label("WebExitBody", "", 16, Color(PAPER, 0.92))
+	_web_exit_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_web_exit_body.custom_minimum_size = Vector2(0.0, 92.0)
+	column.add_child(_web_exit_body)
+	column.add_child(_rule())
+
+	_web_exit_reload_button = _make_button("WebExitReloadButton", "web_exit.reload")
+	_web_exit_reload_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_web_exit_reload_button.pressed.connect(_on_web_reload_pressed)
+	column.add_child(_web_exit_reload_button)
+
+	_web_exit_repo_button = _make_button("WebExitRepositoryButton", "web_exit.repository")
+	_web_exit_repo_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_web_exit_repo_button.pressed.connect(_on_web_repository_pressed)
+	column.add_child(_web_exit_repo_button)
+
+	_web_exit_dismiss_button = _make_button("WebExitDismissButton", "web_exit.dismiss", true)
+	_web_exit_dismiss_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_web_exit_dismiss_button.pressed.connect(hide_web_exit_notice)
+	column.add_child(_web_exit_dismiss_button)
+
+
 func _on_tutorial_pressed() -> void:
 	for button in [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]:
 		button.focus_mode = Control.FOCUS_NONE
@@ -742,9 +810,54 @@ func _on_codex_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/codex.tscn")
 
 
+func quit_route() -> String:
+	return "web" if WebExitBridge.is_web_platform(web_platform_override) else "native"
+
+
 func _on_quit_pressed() -> void:
 	SaveSystem.autosave({"last_mode": "menu"})
+	if quit_route() == "web":
+		WebExitBridge.request_close()
+		show_web_exit_notice()
+		return
 	get_tree().quit()
+
+
+func show_web_exit_notice() -> void:
+	_web_exit_notice.visible = true
+	_refresh_web_exit_texts()
+	_web_exit_dismiss_button.grab_focus()
+	SaveSystem.autosave({"last_mode": "menu"})
+
+
+func hide_web_exit_notice() -> void:
+	if not is_instance_valid(_web_exit_notice):
+		return
+	_web_exit_notice.visible = false
+	if is_instance_valid(_quit_button):
+		_quit_button.grab_focus()
+
+
+func _on_web_reload_pressed() -> void:
+	SaveSystem.autosave({"last_mode": "menu"})
+	if not WebExitBridge.reload_page():
+		get_tree().reload_current_scene()
+
+
+func _on_web_repository_pressed() -> void:
+	if not ProjectMeta.repo_url.is_empty():
+		OS.shell_open(ProjectMeta.repo_url)
+
+
+func _refresh_web_exit_texts() -> void:
+	if not is_instance_valid(_web_exit_notice):
+		return
+	_web_exit_title.text = Locale.t("web_exit.title")
+	_web_exit_body.text = Locale.t("web_exit.body")
+	_web_exit_reload_button.text = Locale.t("web_exit.reload")
+	_web_exit_repo_button.text = Locale.t("web_exit.repository")
+	_web_exit_repo_button.disabled = ProjectMeta.repo_url.is_empty()
+	_web_exit_dismiss_button.text = Locale.t("web_exit.dismiss")
 
 
 func _on_language_changed(_code: String) -> void:
@@ -824,7 +937,7 @@ func _refresh_texts() -> void:
 	_language_button.text = Locale.t("menu.language", {"name": Locale.language_name()})
 	_menu_codex_button.text = Locale.t("menu.codex")
 	_tutorial_button.text = Locale.t("menu.tutorial")
-	_quit_button.text = Locale.t("menu.quit")
+	_quit_button.text = Locale.t("menu.quit_web" if quit_route() == "web" else "menu.quit")
 	_back_button.text = Locale.t("settings.back")
 	if is_instance_valid(_controls_settings_button):
 		_controls_settings_button.text = Locale.t("settings.controls")
@@ -838,6 +951,7 @@ func _refresh_texts() -> void:
 	_renderer_restart_button.text = Locale.t("settings.renderer_restart")
 	_refresh_renderer_texts()
 	_update_renderer_status()
+	_refresh_web_exit_texts()
 
 
 func _sync_settings_controls() -> void:

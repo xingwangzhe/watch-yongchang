@@ -35,10 +35,10 @@ PAL = [
     "#29403e",  # stone
     "#405a50",  # stone light
     "#596d5b",  # stone highlight
-    "#0e1412",  # roof black
-    "#1c2523",  # roof dark
-    "#34413d",  # roof
-    "#5c665c",  # roof edge
+    "#08090a",  # roof black
+    "#241a16",  # roof dark
+    "#503a30",  # roof
+    "#a58669",  # roof edge
     "#201b15",  # earth/wood darkest
     "#35241c",  # wood dark
     "#4e3527",  # wood
@@ -57,6 +57,9 @@ PAL = [
     "#ffc76e",  # lantern core
     "#b9a77f",  # plaster/moon
     "#94805c",  # window paper
+    "#633f2d",  # warm roof body
+    "#c79b73",  # warm roof light
+    "#d6c49c",  # plaster highlight
 ]
 
 INK = 0
@@ -91,6 +94,9 @@ LANTERN = 28
 LANTERN_CORE = 29
 PLASTER = 30
 WINDOW = 31
+ROOF_WARM = 32
+ROOF_LIGHT = 33
+PLASTER_HI = 34
 
 
 def atlas(rows: int = ROWS) -> Sprite:
@@ -660,57 +666,224 @@ def plaster_wall(s: Sprite, index: int, feature: str = "plain") -> None:
         line(s, ox, oy, 17, 8, 23, 26, INK)
 
 
-def roof_field(s: Sprite, ox: int, oy: int, y0: int = 0, y1: int = TILE - 1) -> None:
-    for y in range(y0, y1 + 1, 8):
-        row = (y - y0) // 8
-        offset = 4 if row % 2 else 0
-        bottom = min(y1, y + 7)
-        for x0 in range(-offset, TILE, 8):
-            left = max(0, x0)
-            right = min(TILE - 1, x0 + 7)
-            if right < left:
-                continue
-            rect(s, ox, oy, left, y, right, bottom, ROOF)
-            rect(s, ox, oy, left, y, left, bottom, ROOF_DARK)
-            rect(s, ox, oy, left, y, max(left, right - 1), y, ROOF_DARK)
-            if right - left >= 4:
-                px(s, ox + (left + right) // 2, oy + y, ROOF_BLACK)
-            if x0 >= 0:
-                px(s, ox + x0 + 1, oy + y + 1, ROOF_EDGE)
+def roof_field(
+    s: Sprite,
+    ox: int,
+    oy: int,
+    y0: int = 0,
+    y1: int = TILE - 1,
+    variant: int = 0,
+    hall: bool = False,
+    glint_color: int | None = None,
+) -> None:
+    """Two broad barrel runs with deep horizontal courses.
+
+    The old four-channel pattern read as vertical planks at 1x. Two 16px runs
+    with a dark valley, a rounded highlight and a 8px course lip keep the roof
+    visibly curved while avoiding a grid-like texture.
+    """
+    gap = INK if hall else ROOF_BLACK
+    shadow = ROOF_BLACK if hall else ROOF_DARK
+    body = ROOF_DARK if hall else ROOF_WARM
+    body_alt = ROOF if variant != 2 or hall else ROOF_WARM
+    lip = ROOF_EDGE if not hall else ROOF
+    glint = glint_color if glint_color is not None else (ROOF_LIGHT if not hall else ROOF_EDGE)
+
+    rect(s, ox, oy, 0, y0, TILE - 1, y1, shadow)
+    for lane, x0 in enumerate((0, 16)):
+        lane_body = body_alt if lane == 1 and variant == 1 else body
+        # A wider valley and a broad convex body read as one ceramic run.
+        rect(s, ox, oy, x0, y0, x0 + 1, y1, gap)
+        rect(s, ox, oy, x0 + 2, y0, x0 + 2, y1, shadow)
+        rect(s, ox, oy, x0 + 3, y0, x0 + 11, y1, lane_body)
+        rect(s, ox, oy, x0 + 12, y0, x0 + 12, y1, ROOF if not hall else body)
+        rect(s, ox, oy, x0 + 13, y0, x0 + 14, y1, glint)
+        rect(s, ox, oy, x0 + 15, y0, x0 + 15, y1, gap)
+        for y in range(y0 + 8, y1 + 1, 8):
+            # Course lip: dark undercut, lit top edge, and a small scalloped
+            # dip at the centre of each barrel run.
+            rect(s, ox, oy, x0 + 2, y, x0 + 14, y, gap)
+            rect(s, ox, oy, x0 + 3, y - 1, x0 + 13, y - 1, lip)
+            rect(s, ox, oy, x0 + 5, y - 2, x0 + 10, y - 2, glint)
+            px(s, ox + x0 + 7, oy + max(y0, y - 3), ROOF_LIGHT if not hall else GOLD)
+            px(s, ox + x0 + 11, oy + max(y0, y - 2), ROOF_EDGE if not hall else ROOF)
+
+    if variant == 1:
+        for x, y in ((5, 6), (22, 14), (12, 27), (29, 24)):
+            if y0 <= y <= y1:
+                rect(s, ox, oy, x, y, x + 1, y + 1, ROOF_EDGE if not hall else ROOF)
+    elif variant == 2:
+        for x, y in ((4, 11), (14, 19), (27, 8), (20, 28)):
+            if y0 + 2 <= y <= y1 - 2:
+                rect(s, ox, oy, x, y, x + 2, y, EARTH_DARK)
+                px(s, ox + x + 1, oy + y - 1, REED_DARK)
 
 
-def roof_tile(s: Sprite, index: int, part: str = "slope") -> None:
-    ox, oy = fill(s, index, ROOF)
-    roof_field(s, ox, oy)
+def eave_facade(
+    s: Sprite,
+    ox: int,
+    oy: int,
+    variant: int,
+    hall: bool,
+    door: bool,
+    shop: bool = False,
+) -> None:
+    # 厚重檐口：黑檐影压在白墙之上，外挑瓦当和木梁形成清楚的出檐厚度。
+    roof_field(s, ox, oy, 0, 10, variant=variant, hall=hall)
+    rect(s, ox, oy, 0, 11, TILE - 1, 12, ROOF_BLACK)
+    rect(s, ox, oy, 0, 13, TILE - 1, 14, ROOF_DARK)
+    for x0 in range(0, TILE, 8):
+        rect(s, ox, oy, x0 + 1, 12, x0 + 6, 12, ROOF_EDGE)
+        rect(s, ox, oy, x0 + 2, 13, x0 + 5, 13, ROOF)
+        px(s, ox + x0 + 4, oy + 14, ROOF_LIGHT)
+    rect(s, ox, oy, 0, 15, TILE - 1, 15, ROOF_EDGE if not hall else GOLD)
+    rect(s, ox, oy, 0, 16, TILE - 1, 17, WOOD_DARK)
+    rect(s, ox, oy, 0, 16, TILE - 1, 16, WOOD)
+    rect(s, ox, oy, 0, 18, TILE - 1, 18, ROOF_BLACK)
+    for x0 in (2, 7, 24, 29):
+        rect(s, ox, oy, x0, 15, x0 + 1, 19, WOOD_DARK)
+        px(s, ox + x0, oy + 16, WOOD_LIGHT)
+
+    if shop:
+        # 店铺门面：红褐雨棚、金边招牌和敞开柜台，整排明显区别于民居白墙。
+        rect(s, ox, oy, 0, 19, TILE - 1, 20, WOOD_DARK)
+        for x in range(0, TILE, 4):
+            rect(s, ox, oy, x, 21, x + 2, 23, VERMILION if x % 8 == 0 else LANTERN)
+            rect(s, ox, oy, x, 21, x, 21, GOLD_LIGHT)
+        rect(s, ox, oy, 0, 24, TILE - 1, 24, ROOF_BLACK)
+        rect(s, ox, oy, 1, 25, 30, 31, WOOD_DARK)
+        rect(s, ox, oy, 3, 26, 13, 31, WOOD)
+        rect(s, ox, oy, 18, 26, 28, 31, WOOD)
+        rect(s, ox, oy, 7, 26, 24, 31, EARTH_DARKEST)
+        rect(s, ox, oy, 8, 27, 23, 30, ROOF_BLACK)
+        rect(s, ox, oy, 10, 28, 21, 29, WINDOW)
+        rect(s, ox, oy, 13, 29, 13, 30, WOOD_DARK)
+        rect(s, ox, oy, 18, 29, 18, 30, WOOD_DARK)
+        rect(s, ox, oy, 10, 18, 21, 20, VERMILION)
+        rect(s, ox, oy, 11, 18, 20, 19, GOLD)
+        rect(s, ox, oy, 13, 18, 18, 18, LANTERN)
+        return
+
+    # 白灰墙、木柱、门槛共同组成可见的南立面。
+    rect(s, ox, oy, 0, 19, TILE - 1, 31, PLASTER)
+    rect(s, ox, oy, 0, 19, TILE - 1, 19, SAND)
+    rect(s, ox, oy, 2, 20, 5, 28, PLASTER_HI)
+    rect(s, ox, oy, 26, 20, 29, 28, EARTH_LIGHT)
+    rect(s, ox, oy, 0, 30, TILE - 1, 31, STONE_DARK)
+    rect(s, ox, oy, 1, 30, TILE - 2, 30, STONE)
+    rect(s, ox, oy, 0, 19, 1, 31, WOOD_DARK)
+    rect(s, ox, oy, 30, 19, 31, 31, WOOD_DARK)
+    if hall:
+        for x0 in (3, 27):
+            rect(s, ox, oy, x0, 19, x0 + 1, 31, VERMILION)
+            rect(s, ox, oy, x0, 19, x0, 31, LANTERN)
+            px(s, ox + x0, oy + 20, GOLD_LIGHT)
+
+    if door:
+        rect(s, ox, oy, 9, 19, 22, 31, WOOD_DARK)
+        rect(s, ox, oy, 10, 20, 21, 31, VERMILION)
+        rect(s, ox, oy, 15, 20, 16, 31, EARTH_DARKEST)
+        rect(s, ox, oy, 8, 19, 23, 19, STONE_LIGHT)
+        for x in (13, 18):
+            for y in (23, 27):
+                px(s, ox + x, oy + y, GOLD_LIGHT)
+        return
+
+    # 两种窗棂间距，避免同一街区的屋檐立面完全复制。
+    windows = ((4, 10, 21), (20, 26, 21)) if variant != 1 else ((3, 12, 21), (19, 28, 21))
+    for x0, x1, y0 in windows:
+        rect(s, ox, oy, x0, y0, x1, y0 + 5, WOOD_DARK)
+        rect(s, ox, oy, x0 + 1, y0 + 1, x1 - 1, y0 + 4, WINDOW)
+        for x in range(x0 + 3, x1, 3):
+            rect(s, ox, oy, x, y0 + 1, x, y0 + 4, WOOD_DARK)
+        rect(s, ox, oy, x0, y0 + 6, x1, y0 + 6, EARTH_DARKEST)
+    if hall:
+        rect(s, ox, oy, 8, 20, 23, 21, GOLD)
+        rect(s, ox, oy, 10, 21, 21, 21, LANTERN)
+
+
+def roof_verge(s: Sprite, index: int, hall: bool = False, variant: int = 0) -> None:
+    """North roof edge without a plaster facade.
+
+    A narrow dark upstand and a lit tile bead make the roof slab read as a
+    separate raised volume even when the whole building is visible top-down.
+    """
+    ox, oy = fill(s, index, ROOF_WARM)
+    roof_field(
+        s, ox, oy, 7, TILE - 1,
+        variant=variant, hall=hall,
+        glint_color=ROOF_EDGE if not hall else GOLD,
+    )
+    rect(s, ox, oy, 0, 0, TILE - 1, 1, INK)
+    rect(s, ox, oy, 0, 2, TILE - 1, 3, ROOF_BLACK)
+    rect(s, ox, oy, 0, 4, TILE - 1, 4, ROOF_DARK)
+    rect(s, ox, oy, 0, 5, TILE - 1, 5, ROOF_EDGE if not hall else GOLD)
+    rect(s, ox, oy, 0, 6, TILE - 1, 6, ROOF_BLACK)
+    for x0 in range(0, TILE, 8):
+        rect(s, ox, oy, x0 + 1, 4, x0 + 6, 4, ROOF_EDGE if not hall else GOLD_LIGHT)
+        px(s, ox + x0 + 4, oy + 3, ROOF_LIGHT if not hall else GOLD_LIGHT)
+
+
+def roof_hip(s: Sprite, index: int, left: bool, hall: bool = False) -> None:
+    """Corner of the raised roof: verge plus a diagonal hip shadow."""
+    ox, oy = fill(s, index, ROOF_WARM)
+    roof_field(s, ox, oy, 7, TILE - 1, hall=hall)
+    roof_verge(s, index, hall=hall)
+    outer = range(0, 6) if left else range(TILE - 6, TILE)
+    for x in outer:
+        rect(s, ox, oy, x, 0, x, TILE - 1, ROOF_BLACK)
+    edge_x = 5 if left else TILE - 6
+    rect(s, ox, oy, edge_x, 7, edge_x, TILE - 1, ROOF_EDGE if not hall else GOLD)
+    x0, x1 = (6, 22) if left else (25, 9)
+    line(s, ox, oy, x0, 7, x1, TILE - 1, ROOF_BLACK)
+    line(s, ox, oy, x0 + 1, 7, x1 + 1, TILE - 1, ROOF_EDGE if not hall else ROOF)
+    line(s, ox, oy, x0 + 2, 8, x1 + 2, TILE - 1, ROOF_DARK)
+
+
+def roof_tile(
+    s: Sprite,
+    index: int,
+    part: str = "slope",
+    variant: int = 0,
+    hall: bool = False,
+) -> None:
+    ox, oy = fill(s, index, ROOF_WARM)
+    roof_field(s, ox, oy, variant=variant, hall=hall)
     if part == "ridge":
-        rect(s, ox, oy, 0, 0, TILE - 1, 0, ROOF_BLACK)
-        rect(s, ox, oy, 0, 1, TILE - 1, 1, ROOF_DARK)
-        rect(s, ox, oy, 0, 2, TILE - 1, 3, ROOF_EDGE)
-        rect(s, ox, oy, 0, 4, TILE - 1, 5, ROOF)
-        rect(s, ox, oy, 0, 6, TILE - 1, 6, ROOF_BLACK)
-        for x in range(3, TILE, 8):
-            px(s, ox + x, oy + 1, ROOF_EDGE)
-            px(s, ox + x, oy + 2, STONE_HIGHLIGHT)
-    elif part == "eave":
-        roof_field(s, ox, oy, 0, 17)
-        rect(s, ox, oy, 0, 18, TILE - 1, 18, ROOF_BLACK)
-        rect(s, ox, oy, 0, 19, TILE - 1, 20, ROOF_EDGE)
-        rect(s, ox, oy, 0, 21, TILE - 1, 22, ROOF_DARK)
-        for x in range(1, TILE, 8):
-            rect(s, ox, oy, x, 23, x + 5, 23, ROOF_BLACK)
-            s.circle(ox + x + 2, oy + 25, 1, ROOF_DARK, fill=True)
-            px(s, ox + x + 2, oy + 24, ROOF_EDGE)
-            rect(s, ox, oy, x + 1, 28, x + 3, 29, ROOF_DARK)
-            px(s, ox + x + 2, oy + 30, ROOF_EDGE)
+        rect(s, ox, oy, 0, 0, TILE - 1, 1, INK)
+        rect(s, ox, oy, 0, 2, TILE - 1, 3, ROOF_BLACK)
+        rect(s, ox, oy, 0, 4, TILE - 1, 4, ROOF_DARK)
+        rect(s, ox, oy, 0, 5, TILE - 1, 5, ROOF_LIGHT if not hall else GOLD_LIGHT)
+        rect(s, ox, oy, 0, 6, TILE - 1, 7, ROOF_DARK)
+        rect(s, ox, oy, 0, 8, TILE - 1, 8, ROOF_BLACK)
+        for x0 in range(0, TILE, 8):
+            rect(s, ox, oy, x0 + 2, 2, x0 + 5, 3, ROOF_DARK)
+            px(s, ox + x0 + 3, oy + 1, ROOF_EDGE if not hall else GOLD_LIGHT)
+            px(s, ox + x0 + 4, oy + 5, ROOF_LIGHT if not hall else GOLD_LIGHT)
+        if hall:
+            rect(s, ox, oy, 5, 4, TILE - 6, 4, GOLD)
+            px(s, ox + 8, oy + 3, GOLD_LIGHT)
+            px(s, ox + 23, oy + 3, GOLD_LIGHT)
+    elif part in ("eave", "door", "shop"):
+        roof_field(s, ox, oy, 0, 11, variant=variant, hall=hall)
+        eave_facade(s, ox, oy, variant, hall, part == "door", shop=part == "shop")
+    elif part == "verge":
+        roof_verge(s, index, hall=hall, variant=variant)
+    elif part == "hip_left":
+        roof_hip(s, index, True, hall=hall)
+    elif part == "hip_right":
+        roof_hip(s, index, False, hall=hall)
     elif part == "corner":
-        roof_field(s, ox, oy, 4, TILE - 1)
-        line(s, ox, oy, 2, 12, 19, 2, ROOF_DARK)
+        roof_field(s, ox, oy, 0, TILE - 1, variant=variant, hall=hall)
+        line(s, ox, oy, 2, 12, 19, 2, ROOF_BLACK)
         line(s, ox, oy, 3, 12, 20, 2, ROOF_EDGE)
-        line(s, ox, oy, 3, 13, 19, 3, ROOF_BLACK)
+        line(s, ox, oy, 3, 13, 19, 3, INK)
         rect(s, ox, oy, 1, 0, 5, 1, ROOF_BLACK)
         rect(s, ox, oy, 2, 1, 6, 2, ROOF_EDGE)
         px(s, ox + 3, oy + 0, STONE_HIGHLIGHT)
         line(s, ox, oy, 3, 3, 7, 1, ROOF_DARK)
+        rect(s, ox, oy, 0, 0, 1, TILE - 1, ROOF_BLACK)
+        rect(s, ox, oy, 0, 0, TILE - 1, 1, ROOF_BLACK)
 
 
 def gate_part(s: Sprite, index: int, part: str = "left", water: bool = False) -> None:
@@ -867,41 +1040,31 @@ def storefront(s: Sprite, index: int) -> None:
 
 def gable_wall(s: Sprite, index: int, flip: bool = False) -> None:
     ox, oy = origin(index)
+    roof_field(s, ox, oy)
 
     def R(x0: int, y0: int, x1: int, y1: int, color: int) -> None:
         if flip:
             x0, x1 = TILE - 1 - x1, TILE - 1 - x0
         rect(s, ox, oy, x0, y0, x1, y1, color)
 
-    steps = ((0, 18, 8), (9, 12, 18), (19, 6, 31))
-    for x0, top, x1 in steps:
-        R(x0, top, x1, 31, PLASTER)
-        R(x0, top, x0, 31, WOOD_DARK)
-        R(x1, top, x1, 31, WOOD_DARK)
-        R(x0, top + 3, x1, top + 3, SAND)
-    for x0, top, x1 in steps:
-        over0 = max(0, x0 - 1)
-        over1 = min(TILE - 1, x1 + 1)
-        R(over0, top, over1, top + 1, ROOF_DARK)
-        R(over0, top + 2, over1, top + 2, ROOF)
-        for x in range(x0 + 1, x1, 4):
-            R(x, top + 1, x, top + 1, ROOF_EDGE)
-            R(x, top + 2, x, top + 2, ROOF_DARK)
-        if x0:
-            R(x0, top + 2, x0, top + 8, STONE_SHADOW)
-    R(4, 20, 10, 27, WOOD_DARK)
-    R(5, 21, 9, 26, EARTH_LIGHT)
-    R(6, 22, 6, 25, WOOD)
-    R(8, 22, 8, 25, WOOD)
-    R(0, 27, 31, 28, WOOD_DARK)
-    R(0, 29, 31, 31, STONE_DARK)
-    R(0, 29, 31, 29, STONE)
-    R(11, 30, 12, 31, STONE_SHADOW)
-    R(24, 30, 25, 31, STONE_SHADOW)
+    # 侧立面收成 11px 白墙揭示面，其余仍是瓦坡；不再用整格白墙冒充街道。
+    R(0, 0, 2, TILE - 1, ROOF_BLACK)
+    R(3, 0, 3, TILE - 1, ROOF_EDGE)
+    R(4, 0, 14, TILE - 1, PLASTER)
+    R(4, 0, 5, TILE - 1, WOOD_DARK)
+    R(13, 0, 14, TILE - 1, WOOD_DARK)
+    R(5, 0, 5, TILE - 1, PLASTER_HI)
+    R(12, 0, 12, TILE - 1, EARTH_LIGHT)
+    R(15, 0, 17, TILE - 1, ROOF_BLACK)
+    R(18, 0, 18, TILE - 1, ROOF_DARK)
+    # 窗洞由渲染器按建筑种子稀疏布置；基础瓦片保持连续，避免白墙上
+    # 每 32px 出现一排机械重复的窗格。
+    R(6, 6, 6, 26, PLASTER_HI)
+    R(12, 6, 12, 26, EARTH_LIGHT)
 
 
 def build_architecture() -> Sprite:
-    s = atlas()
+    s = atlas(rows=6)
     stone_wall(s, 0, 0)
     stone_wall(s, 1, 1)
     stone_wall(s, 2, 2)
@@ -934,6 +1097,22 @@ def build_architecture() -> Sprite:
     gable_wall(s, 29, flip=False)
     gable_wall(s, 30, flip=True)
     wooden_railing(s, 31, vertical=True)
+    roof_tile(s, 32, "slope", variant=1)
+    roof_tile(s, 33, "slope", variant=2)
+    roof_tile(s, 34, "eave", variant=1)
+    roof_tile(s, 35, "door", variant=0)
+    roof_tile(s, 36, "ridge", hall=True)
+    roof_tile(s, 37, "slope", hall=True)
+    roof_tile(s, 38, "eave", hall=True)
+    roof_tile(s, 39, "corner", hall=True)
+    roof_tile(s, 40, "verge")
+    roof_tile(s, 41, "hip_left")
+    roof_tile(s, 42, "hip_right")
+    roof_tile(s, 43, "verge", hall=True)
+    roof_tile(s, 44, "hip_left", hall=True)
+    roof_tile(s, 45, "hip_right", hall=True)
+    roof_tile(s, 46, "shop")
+    roof_tile(s, 47, "verge", variant=2)
     return s
 
 
@@ -1094,6 +1273,43 @@ def prop_boat(s: Sprite, index: int) -> None:
     px(s, ox + 31, oy + 15, GOLD)
 
 
+def prop_mooring_post(s: Sprite, index: int) -> None:
+    ox, oy = origin(index)
+    rect(s, ox, oy, 7, 27, 25, 31, STONE_SHADOW)
+    rect(s, ox, oy, 9, 28, 23, 30, STONE_DARK)
+    rect(s, ox, oy, 11, 29, 21, 30, STONE)
+    rect(s, ox, oy, 13, 7, 19, 28, WOOD_DARK)
+    rect(s, ox, oy, 14, 8, 18, 28, WOOD)
+    rect(s, ox, oy, 15, 8, 16, 28, WOOD_LIGHT)
+    rect(s, ox, oy, 12, 5, 20, 8, WOOD_DARK)
+    rect(s, ox, oy, 13, 6, 19, 7, WOOD_LIGHT)
+    for center_y, radius, color in ((14, 5, REED_DARK), (19, 6, REED), (24, 5, REED_DARK)):
+        s.circle(ox + 16, oy + center_y, radius, color, fill=False)
+    line(s, ox, oy, 21, 23, 28, 28, REED)
+    px(s, ox + 28, oy + 28, REED_LIGHT)
+    px(s, ox + 15, oy + 5, GOLD_LIGHT)
+    px(s, ox + 17, oy + 27, STONE_HIGHLIGHT)
+
+
+def prop_wood_pile(s: Sprite, index: int) -> None:
+    ox, oy = origin(index)
+    rect(s, ox, oy, 4, 28, 29, 30, EARTH_DARKEST)
+    for x0, x1, y0, color in ((3, 28, 22, WOOD_DARK), (6, 27, 17, WOOD)):
+        rect(s, ox, oy, x0, y0, x1, y0 + 5, color)
+        rect(s, ox, oy, x0 + 1, y0 + 1, x1 - 1, y0 + 2, WOOD_LIGHT if color == WOOD else WOOD)
+        s.ellipse(ox + x0, oy + y0, ox + x0 + 5, oy + y0 + 5, WOOD_LIGHT, fill=True)
+        s.ellipse(ox + x0 + 1, oy + y0 + 1, ox + x0 + 4, oy + y0 + 4, GOLD, fill=False)
+    for x0, x1, y0 in ((8, 26, 12), (12, 24, 7)):
+        rect(s, ox, oy, x0, y0, x1, y0 + 4, WOOD_DARK)
+        rect(s, ox, oy, x0 + 1, y0 + 1, x1 - 1, y0 + 3, WOOD)
+        rect(s, ox, oy, x0 + 2, y0 + 1, x1 - 2, y0 + 1, WOOD_LIGHT)
+        s.ellipse(ox + x0, oy + y0, ox + x0 + 4, oy + y0 + 4, WOOD_LIGHT, fill=True)
+    rect(s, ox, oy, 8, 11, 9, 25, REED_DARK)
+    rect(s, ox, oy, 26, 16, 27, 27, REED_DARK)
+    px(s, ox + 5, oy + 27, WOOD_LIGHT)
+    px(s, ox + 28, oy + 26, WOOD)
+
+
 def prop_tent(s: Sprite, index: int) -> None:
     ox, oy = origin(index)
     s.polygon(
@@ -1193,8 +1409,80 @@ def prop_fence(s: Sprite, index: int) -> None:
         px(s, ox + x, oy + 24, WOOD_LIGHT)
 
 
+def prop_tree(s: Sprite, index: int, variant: int = 0) -> None:
+    ox, oy = origin(index)
+    rng = random.Random(5100 + variant)
+    trunk_x = 14 if variant == 0 else 18
+    rect(s, ox, oy, trunk_x, 18, trunk_x + 3, 31, WOOD_DARK)
+    rect(s, ox, oy, trunk_x + 1, 18, trunk_x + 2, 31, WOOD)
+    line(s, ox, oy, trunk_x, 23, trunk_x - 4, 19, WOOD_DARK)
+    line(s, ox, oy, trunk_x + 3, 21, trunk_x + 7, 17, WOOD_DARK)
+    clusters = (
+        ((7, 5, 19, 17), (12, 2, 27, 15), (2, 10, 14, 23), (16, 9, 30, 24)),
+        ((6, 3, 21, 16), (14, 5, 28, 19), (3, 12, 15, 25), (18, 12, 31, 26)),
+    )[variant]
+    for cx0, cy0, cx1, cy1 in clusters:
+        s.ellipse(ox + cx0, oy + cy0, ox + cx1, oy + cy1, REED_DARK, fill=True)
+    for _ in range(26):
+        x = rng.randrange(4, 29)
+        y = rng.randrange(3, 25)
+        if (x - 16) ** 2 + (y - 13) ** 2 > 150:
+            continue
+        color = REED_LIGHT if (x + y + variant) % 5 == 0 else REED
+        px(s, ox + x, oy + y, color)
+    for _ in range(8):
+        x = rng.randrange(6, 27)
+        y = rng.randrange(5, 22)
+        px(s, ox + x, oy + y, GOLD)
+    rect(s, ox, oy, 4, 28, 28, 30, REED_DARK)
+
+
+def prop_canopy(s: Sprite, index: int, variant: int = 0) -> None:
+    ox, oy = origin(index)
+    rng = random.Random(6100 + variant)
+    clusters = (
+        ((7, 5, 19, 17), (12, 2, 27, 15), (2, 10, 14, 23), (16, 9, 30, 24)),
+        ((6, 3, 21, 16), (14, 5, 28, 19), (3, 12, 15, 25), (18, 12, 31, 26)),
+    )[variant]
+    for cx0, cy0, cx1, cy1 in clusters:
+        s.ellipse(ox + cx0, oy + cy0, ox + cx1, oy + cy1, REED_DARK, fill=True)
+    for _ in range(30):
+        x = rng.randrange(3, 30)
+        y = rng.randrange(2, 25)
+        if (x - 16) ** 2 + (y - 13) ** 2 > 168:
+            continue
+        color = REED_LIGHT if (x + y + variant) % 5 == 0 else REED
+        px(s, ox + x, oy + y, color)
+    for _ in range(7):
+        px(s, ox + rng.randrange(6, 27), oy + rng.randrange(4, 22), GOLD)
+
+
+def prop_shrub(s: Sprite, index: int) -> None:
+    ox, oy = origin(index)
+    s.ellipse(ox + 4, oy + 16, ox + 28, oy + 29, REED_DARK, fill=True)
+    s.ellipse(ox + 7, oy + 13, ox + 24, oy + 26, REED, fill=True)
+    for x, y in ((9, 15), (14, 12), (20, 14), (24, 18), (12, 21), (18, 22)):
+        px(s, ox + x, oy + y, REED_LIGHT)
+    for x, y in ((7, 24), (27, 26), (16, 11)):
+        px(s, ox + x, oy + y, GOLD)
+
+
+def prop_bamboo(s: Sprite, index: int) -> None:
+    ox, oy = origin(index)
+    for x0, lean in ((7, -2), (14, 1), (22, 2), (27, -1)):
+        for y in range(3, 30, 5):
+            line(s, ox, oy, x0 + lean * y // 32, y, x0 + lean * (y + 5) // 32, y + 5,
+                 REED_DARK)
+            line(s, ox, oy, x0 + 1 + lean * y // 32, y, x0 + 1 + lean * (y + 5) // 32,
+                 y + 5, REED)
+        px(s, ox + x0 + lean, oy + 3, REED_LIGHT)
+    for x0, y0 in ((5, 6), (10, 11), (18, 5), (23, 13), (29, 8), (12, 19), (20, 22)):
+        line(s, ox, oy, x0, y0, x0 + 5, y0 - 3, REED)
+        px(s, ox + x0 + 5, oy + y0 - 3, REED_LIGHT)
+
+
 def build_props() -> Sprite:
-    s = atlas(rows=2)
+    s = atlas(rows=3)
     prop_reed(s, 0)
     prop_grass(s, 1)
     prop_lamp(s, 2)
@@ -1211,6 +1499,14 @@ def build_props() -> Sprite:
     prop_arrows(s, 13)
     prop_plaque(s, 14)
     prop_fence(s, 15)
+    prop_tree(s, 16, 0)
+    prop_tree(s, 17, 1)
+    prop_shrub(s, 18)
+    prop_bamboo(s, 19)
+    prop_canopy(s, 20, 0)
+    prop_canopy(s, 21, 1)
+    prop_mooring_post(s, 22)
+    prop_wood_pile(s, 23)
     return s
 
 
@@ -1505,7 +1801,7 @@ def main() -> None:
     shutil.copy2(out / "architecture_atlas_1x.png", runtime / "architecture_atlas.png")
     shutil.copy2(out / "props_atlas_1x.png", runtime / "props_atlas.png")
     shutil.copy2(out / "animated_props_1x.png", runtime / "animated_props.png")
-    print("tiles: terrain 40, architecture 32, props 16, animated clips 4x4")
+    print("tiles: terrain 40, architecture 48, props 24, animated clips 4x4")
     terrain.stats()
     architecture.stats()
     props.stats()

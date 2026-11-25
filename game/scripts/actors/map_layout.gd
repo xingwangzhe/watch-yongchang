@@ -20,14 +20,21 @@ var spawn_polylines: Array[PackedVector2Array] = []
 var spawn_points: PackedVector2Array = PackedVector2Array()
 var minimap_texture: ImageTexture
 var last_repair_count := 0
+var initial_blocked_points: Array[Vector2] = []
 
 var _solid_cells: Dictionary = {}
+var _solid_flags := PackedByteArray()
+var _open3x3_flags := PackedByteArray()
+var _walkable_summary_ready := false
 var _water_cells: Dictionary = {}
+var _water_flags := PackedByteArray()
 var _bridge_cells: Dictionary = {}
+var _bridge_flags := PackedByteArray()
 var _repaired_cells: Dictionary = {}
 var _minimap_colors := PackedColorArray()
 var _spawn_samples := PackedVector2Array()
 var _flow_distance := PackedInt32Array()
+var _flow_next_cells := PackedInt32Array()
 var _flow_target_cell := Vector2i(-1, -1)
 
 
@@ -38,12 +45,23 @@ func setup(map_key: String, definition: Dictionary) -> void:
 	_bridge_cells.clear()
 	_repaired_cells.clear()
 	_flow_distance.clear()
+	_flow_next_cells.clear()
 	_flow_target_cell = Vector2i(-1, -1)
 	minimap_texture = null
+	initial_blocked_points.clear()
 	var layout: Dictionary = definition.get("layout", {}) as Dictionary
 	var size_data: Array = layout.get("world_tiles", [120, 84]) as Array
 	world_tiles = Vector2i(int(size_data[0]), int(size_data[1]))
 	world_size = Vector2(world_tiles) * TILE_SIZE
+	_solid_flags.resize(world_tiles.x * world_tiles.y)
+	_solid_flags.fill(0)
+	_open3x3_flags.resize(world_tiles.x * world_tiles.y)
+	_open3x3_flags.fill(0)
+	_walkable_summary_ready = false
+	_water_flags.resize(world_tiles.x * world_tiles.y)
+	_water_flags.fill(0)
+	_bridge_flags.resize(world_tiles.x * world_tiles.y)
+	_bridge_flags.fill(0)
 	base_tile = str(layout.get("base_tile", "mud_a"))
 	areas = layout.get("areas", []) as Array
 	var start_tile: Array = layout.get("start_tile", [world_tiles.x / 2, world_tiles.y / 2]) as Array
@@ -61,41 +79,52 @@ func finalize() -> void:
 	# 连通性是硬约束：任何出生带如果到不了玩家出生点，现场开一条可走走廊，
 	# 并通过 connectivity_repaired 通知渲染器同步重画。正式地图应在报告里为 0。
 	last_repair_count = 0
-	if not connectivity_report().get("ok", true):
+	var report := connectivity_report()
+	if not report.get("ok", true):
+		initial_blocked_points.assign(report.get("blocked_points", []))
 		last_repair_count = repair_connectivity()
 		push_warning("Map %s connectivity repaired on %d lanes" % [map_id, last_repair_count])
+	_rebuild_walkable_summary()
 	_build_minimap_texture()
 
 
 func mark_solid_rect(rect: Rect2i) -> void:
 	for cell in _cells_in(rect):
 		_solid_cells[cell] = true
+		_solid_flags[cell.y * world_tiles.x + cell.x] = 1
+	_walkable_summary_ready = false
 
 
 func clear_solid_rect(rect: Rect2i) -> void:
 	for cell in _cells_in(rect):
 		_solid_cells.erase(cell)
+		_solid_flags[cell.y * world_tiles.x + cell.x] = 0
+	_walkable_summary_ready = false
 
 
 func mark_water_rect(rect: Rect2i) -> void:
 	for cell in _cells_in(rect):
 		_water_cells[cell] = true
+		_water_flags[cell.y * world_tiles.x + cell.x] = 1
 
 
 func clear_water_rect(rect: Rect2i) -> void:
 	for cell in _cells_in(rect):
 		_water_cells.erase(cell)
+		_water_flags[cell.y * world_tiles.x + cell.x] = 0
 
 
 func mark_bridge_rect(rect: Rect2i) -> void:
 	for cell in _cells_in(rect):
 		_bridge_cells[cell] = true
+		_bridge_flags[cell.y * world_tiles.x + cell.x] = 1
 		set_minimap_color(cell, MINIMAP_BRIDGE)
 
 
 func clear_bridge_rect(rect: Rect2i) -> void:
 	for cell in _cells_in(rect):
 		_bridge_cells.erase(cell)
+		_bridge_flags[cell.y * world_tiles.x + cell.x] = 0
 
 
 func set_minimap_color_rect(rect: Rect2i, color: Color) -> void:
@@ -110,21 +139,27 @@ func set_minimap_color(cell: Vector2i, color: Color) -> void:
 
 
 func is_solid_cell(cell: Vector2i) -> bool:
-	return _solid_cells.has(cell)
+	if not cell_in_bounds(cell):
+		return false
+	return _solid_flags[cell.y * world_tiles.x + cell.x] != 0
 
 
 func is_water_cell(cell: Vector2i) -> bool:
-	return _water_cells.has(cell)
+	if not cell_in_bounds(cell):
+		return false
+	return _water_flags[cell.y * world_tiles.x + cell.x] != 0
 
 
 func is_bridge_cell(cell: Vector2i) -> bool:
-	return _bridge_cells.has(cell)
+	if not cell_in_bounds(cell):
+		return false
+	return _bridge_flags[cell.y * world_tiles.x + cell.x] != 0
 
 
 func is_cell_walkable(cell: Vector2i) -> bool:
 	if not cell_in_bounds(cell):
 		return false
-	if _solid_cells.has(cell):
+	if _solid_flags[cell.y * world_tiles.x + cell.x] != 0:
 		return false
 	# 水面可以通行，但会减速并溅起水花；桥面不受涉水影响。
 	return true
@@ -133,7 +168,10 @@ func is_cell_walkable(cell: Vector2i) -> bool:
 ## 涉水判定：水面且不在桥上、不是实心障碍。涉水减速对所有单位生效。
 func is_wade_position(position: Vector2) -> bool:
 	var cell := world_to_cell(position)
-	return _water_cells.has(cell) and not _bridge_cells.has(cell) and not _solid_cells.has(cell)
+	if not cell_in_bounds(cell):
+		return false
+	var index := cell.y * world_tiles.x + cell.x
+	return _water_flags[index] != 0 and _bridge_flags[index] == 0 and _solid_flags[index] == 0
 
 
 func is_point_walkable(position: Vector2, radius: float = 18.0) -> bool:
@@ -143,6 +181,10 @@ func is_point_walkable(position: Vector2, radius: float = 18.0) -> bool:
 		return false
 	var min_cell := world_to_cell(position - Vector2.ONE * radius)
 	var max_cell := world_to_cell(position + Vector2.ONE * radius)
+	if _walkable_summary_ready and max_cell.x - min_cell.x <= 2 and max_cell.y - min_cell.y <= 2:
+		var center_cell := world_to_cell(position)
+		if _open3x3_flags[center_cell.y * world_tiles.x + center_cell.x] != 0:
+			return true
 	for cell_y in range(min_cell.y, max_cell.y + 1):
 		for cell_x in range(min_cell.x, max_cell.x + 1):
 			var cell := Vector2i(cell_x, cell_y)
@@ -156,6 +198,30 @@ func is_point_walkable(position: Vector2, radius: float = 18.0) -> bool:
 			if closest.distance_squared_to(position) <= radius * radius + 0.001:
 				return false
 	return true
+
+
+func _rebuild_walkable_summary() -> void:
+	var total := world_tiles.x * world_tiles.y
+	_open3x3_flags.resize(total)
+	_open3x3_flags.fill(0)
+	for y in range(world_tiles.y):
+		for x in range(world_tiles.x):
+			var index := y * world_tiles.x + x
+			var clear := true
+			for dy in range(-1, 2):
+				for dx in range(-1, 2):
+					var nx := x + dx
+					var ny := y + dy
+					if nx < 0 or ny < 0 or nx >= world_tiles.x or ny >= world_tiles.y:
+						clear = false
+						break
+					if _solid_flags[ny * world_tiles.x + nx] != 0:
+						clear = false
+						break
+				if not clear:
+					break
+			_open3x3_flags[index] = 1 if clear else 0
+	_walkable_summary_ready = true
 
 
 func is_segment_walkable(from: Vector2, to: Vector2, radius: float = 18.0) -> bool:
@@ -212,18 +278,22 @@ func connectivity_report() -> Dictionary:
 	var start_walkable := is_point_walkable(start_pos, 18.0)
 	var reachable := walkable_reachability(start_pos)
 	var blocked := 0
+	var blocked_points: Array[Vector2] = []
 	for point in _spawn_samples:
 		var cell := world_to_cell(point)
 		if not cell_in_bounds(cell) or not is_point_walkable(point, 14.0):
 			blocked += 1
+			blocked_points.append(point)
 			continue
 		if reachable[cell.y * world_tiles.x + cell.x] != 1:
 			blocked += 1
+			blocked_points.append(point)
 	return {
 		"ok": start_walkable and blocked == 0,
 		"samples": _spawn_samples.size(),
 		"blocked": blocked,
 		"start_walkable": start_walkable,
+		"blocked_points": blocked_points,
 	}
 
 
@@ -265,11 +335,14 @@ func _carve_corridor(from_cell: Vector2i, to_cell: Vector2i) -> void:
 				if not cell_in_bounds(cell):
 					continue
 				_solid_cells.erase(cell)
+				_solid_flags[cell.y * world_tiles.x + cell.x] = 0
 				if _water_cells.has(cell):
 					_bridge_cells[cell] = true
+					_bridge_flags[cell.y * world_tiles.x + cell.x] = 1
 					set_minimap_color(cell, MINIMAP_BRIDGE)
 				else:
 					_bridge_cells.erase(cell)
+					_bridge_flags[cell.y * world_tiles.x + cell.x] = 0
 					set_minimap_color(cell, minimap_color_for_tile("earth_road_a"))
 				_repaired_cells[cell] = true
 
@@ -290,34 +363,17 @@ func ensure_flow_field(target: Vector2) -> void:
 
 
 func flow_direction(position: Vector2) -> Vector2:
-	if _flow_distance.size() != world_tiles.x * world_tiles.y:
+	var total := world_tiles.x * world_tiles.y
+	if _flow_distance.size() != total or _flow_next_cells.size() != total:
 		return Vector2.ZERO
 	var cell := world_to_cell(position)
 	if not cell_in_bounds(cell):
 		return Vector2.ZERO
-	var best_distance := _flow_distance[cell.y * world_tiles.x + cell.x]
-	if best_distance < 0:
+	var next_index := _flow_next_cells[cell.y * world_tiles.x + cell.x]
+	if next_index < 0:
 		return Vector2.ZERO
-	var best_cell := cell
-	for dy in range(-1, 2):
-		for dx in range(-1, 2):
-			if dx == 0 and dy == 0:
-				continue
-			var next := Vector2i(cell.x + dx, cell.y + dy)
-			if not cell_in_bounds(next) or not is_cell_walkable(next):
-				continue
-			if dx != 0 and dy != 0:
-				if not is_cell_walkable(Vector2i(cell.x + dx, cell.y)):
-					continue
-				if not is_cell_walkable(Vector2i(cell.x, cell.y + dy)):
-					continue
-			var next_distance := _flow_distance[next.y * world_tiles.x + next.x]
-			if next_distance >= 0 and next_distance < best_distance:
-				best_distance = next_distance
-				best_cell = next
-	if best_cell == cell:
-		return Vector2.ZERO
-	return (_tile_center(best_cell) - position).normalized()
+	var next_cell := Vector2i(next_index % world_tiles.x, next_index / world_tiles.x)
+	return (_tile_center(next_cell) - position).normalized()
 
 
 func navigation_direction(from: Vector2, to: Vector2, direct_range: float = 190.0) -> Vector2:
@@ -351,6 +407,14 @@ func is_segment_wall_blocked(from: Vector2, to: Vector2, radius: float = 4.0) ->
 func move_circle(from: Vector2, to: Vector2, radius: float = 18.0) -> Vector2:
 	if not is_point_walkable(from, radius):
 		from = find_walkable_position(from, radius)
+	return move_circle_known_walkable(from, to, radius)
+
+
+## 调用方保证 from 可走时使用：先尝试直达，只有终点被挡才退化为轴向滑动。
+## 每帧位移远小于一格，直达检查不会让单位穿过 32px 实心格。
+func move_circle_known_walkable(from: Vector2, to: Vector2, radius: float = 18.0) -> Vector2:
+	if is_point_walkable(to, radius):
+		return to
 	var result := from
 	var x_candidate := Vector2(to.x, result.y)
 	if is_point_walkable(x_candidate, radius):
@@ -512,6 +576,8 @@ func _build_flow_field(target_cell: Vector2i) -> void:
 	var total := world_tiles.x * world_tiles.y
 	_flow_distance.resize(total)
 	_flow_distance.fill(-1)
+	_flow_next_cells.resize(total)
+	_flow_next_cells.fill(-1)
 	_flow_target_cell = target_cell
 	if not is_cell_walkable(target_cell):
 		return
@@ -534,6 +600,31 @@ func _build_flow_field(target_cell: Vector2i) -> void:
 				continue
 			_flow_distance[next_index] = distance
 			queue.append(next_index)
+	for index in range(total):
+		var current_distance := _flow_distance[index]
+		if current_distance <= 0:
+			continue
+		var cell := Vector2i(index % world_tiles.x, index / world_tiles.x)
+		var best_distance := current_distance
+		var best_index := -1
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				if dx == 0 and dy == 0:
+					continue
+				var next := Vector2i(cell.x + dx, cell.y + dy)
+				if not cell_in_bounds(next) or not is_cell_walkable(next):
+					continue
+				if dx != 0 and dy != 0:
+					if not is_cell_walkable(Vector2i(cell.x + dx, cell.y)):
+						continue
+					if not is_cell_walkable(Vector2i(cell.x, cell.y + dy)):
+						continue
+				var next_index := next.y * world_tiles.x + next.x
+				var next_distance := _flow_distance[next_index]
+				if next_distance >= 0 and next_distance < best_distance:
+					best_distance = next_distance
+					best_index = next_index
+		_flow_next_cells[index] = best_index
 
 
 func _build_minimap_texture() -> void:

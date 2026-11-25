@@ -264,8 +264,34 @@ func _build_roll() -> void:
 		_add_credit_links(entry)
 
 	_add_spacer(50)
-	var game_version := str(ProjectSettings.get_setting("application/config/version", "0.0.0"))
-	_add_line(Locale.t("about.version").format({"version": game_version}), 14, Color(MUTED, 0.62), 0)
+	_add_line(
+		Locale.t("about.version").format({"version": ProjectMeta.version}),
+		14,
+		Color(MUTED, 0.62),
+		0
+	)
+	var author_line := _add_line(
+		Locale.t("about.author").format({
+			"author": ProjectMeta.author,
+			"email": ProjectMeta.author_email,
+		}),
+		15,
+		Color(PAPER, 0.78),
+		0
+	)
+	author_line.name = "AboutAuthor"
+	if not ProjectMeta.repo_url.is_empty():
+		var repository_link := _add_link(
+			Locale.t("about.repository"),
+			ProjectMeta.repo_url,
+			15
+		)
+		if repository_link != null:
+			repository_link.name = "AboutRepositoryLink"
+	if not ProjectMeta.web_url.is_empty():
+		var web_link := _add_link(Locale.t("about.web"), ProjectMeta.web_url, 15)
+		if web_link != null:
+			web_link.name = "AboutWebLink"
 	_add_spacer(12)
 	_add_line(Locale.t("about.thanks_end"), 34, GOLD, 0)
 	_add_spacer(110)
@@ -338,7 +364,7 @@ func _build_chrome() -> void:
 
 	var brand := Label.new()
 	brand.name = "AboutBrand"
-	brand.text = "WATCH · YONGCHANG"
+	brand.text = ProjectMeta.game_name_en
 	brand.add_theme_font_override("font", UI_FONT)
 	brand.add_theme_font_size_override("font_size", 14)
 	brand.add_theme_color_override("font_color", Color(MUTED, 0.62))
@@ -536,9 +562,9 @@ func _add_line(text: String, font_size: int, color: Color, spacing_before: int =
 	return label
 
 
-func _add_link(text: String, url: String, font_size: int = 14) -> void:
+func _add_link(text: String, url: String, font_size: int = 14) -> LinkButton:
 	if url.is_empty():
-		return
+		return null
 	var link := LinkButton.new()
 	link.text = text
 	link.tooltip_text = url
@@ -550,6 +576,7 @@ func _add_link(text: String, url: String, font_size: int = 14) -> void:
 	link.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	link.pressed.connect(_open_url.bind(url))
 	_content.add_child(link)
+	return link
 
 
 func _add_credit_links(entry: Dictionary) -> void:

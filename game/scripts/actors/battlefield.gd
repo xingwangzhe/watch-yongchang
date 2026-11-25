@@ -17,6 +17,8 @@ const CELL_SIZE := 64.0
 const VIEW_HALF := Vector2(720.0, 430.0)
 const ENEMY_BATCH_CAPACITY := 512
 const HEALTH_BAR_INSTANCE_CAPACITY := 3000
+const ORB_BATCH_CAPACITY := 4096
+const PLAYER_SHOT_BATCH_CAPACITY := 4096
 const WADE_SPEED_FACTOR := 0.62
 const WADE_SPLASH_CAPACITY := 90
 const ENEMY_SPRITE_BASE_SIZE := 96.0
@@ -57,6 +59,11 @@ var _free_scale_drops: Array[Dictionary] = []
 var _free_effects: Array[Dictionary] = []
 var _free_wade_splashes: Array[Dictionary] = []
 var spatial: Dictionary = {}
+var _spatial_live_buckets: Array[Array] = []
+var _spatial_dirty := false
+var _query_arrays: Array = []
+var _draw_groups: Dictionary = {}
+var _draw_active_ids: Array[String] = []
 var player_pos := Vector2.ZERO
 var player_facing := Vector2.RIGHT
 var player_aim := Vector2.RIGHT
@@ -93,6 +100,13 @@ var _enemy_quad: QuadMesh
 var _health_bar_batch: MultiMesh
 var _health_bar_texture: Texture2D
 var _health_bar_count := 0
+var _orb_glow_batch: MultiMesh
+var _orb_core_batch: MultiMesh
+var _orb_circle_texture: Texture2D
+var _player_shot_batch: MultiMesh
+var _player_shot_texture: Texture2D
+var _enemy_shot_glow_batch: MultiMesh
+var _enemy_shot_core_batch: MultiMesh
 var _player_moving := false
 var _last_player_pos := Vector2.ZERO
 var _flow_timer := 0.0
@@ -130,6 +144,13 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 	var white_pixel := Image.create(1, 1, false, Image.FORMAT_RGBA8)
 	white_pixel.fill(Color.WHITE)
 	_health_bar_texture = ImageTexture.create_from_image(white_pixel)
+	_orb_circle_texture = _make_circle_texture(32)
+	_orb_glow_batch = _make_pickup_batch()
+	_orb_core_batch = _make_pickup_batch()
+	_player_shot_texture = _make_player_shot_texture()
+	_player_shot_batch = _make_pickup_batch(PLAYER_SHOT_BATCH_CAPACITY)
+	_enemy_shot_glow_batch = _make_pickup_batch()
+	_enemy_shot_core_batch = _make_pickup_batch()
 	enemy_data = GameData.get_enemies()
 	mercenary_data = GameData.get_mercenaries()
 	_load_towers()
@@ -142,6 +163,52 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 		textures[enemy_id] = frames[0] if not frames.is_empty() else null
 	z_index = 0
 	set_process(true)
+
+
+func _make_circle_texture(size: int) -> Texture2D:
+	var image := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var center := Vector2(size, size) * 0.5
+	var radius := float(size) * 0.5 - 0.5
+	for y in range(size):
+		for x in range(size):
+			var distance := Vector2(x + 0.5, y + 0.5).distance_to(center)
+			var alpha := clampf(radius - distance + 0.75, 0.0, 1.0)
+			if alpha > 0.0:
+				image.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))
+	return ImageTexture.create_from_image(image)
+
+
+func _make_pickup_batch(capacity: int = ORB_BATCH_CAPACITY) -> MultiMesh:
+	var batch := MultiMesh.new()
+	batch.transform_format = MultiMesh.TRANSFORM_2D
+	batch.use_colors = true
+	batch.mesh = _enemy_quad
+	batch.instance_count = capacity
+	batch.visible_instance_count = 0
+	batch.custom_aabb = AABB(Vector3(-4000, -3000, 0), Vector3(8000, 6000, 0))
+	return batch
+
+
+func _make_player_shot_texture() -> Texture2D:
+	var width := 24
+	var height := 10
+	var image := Image.create(width, height, false, Image.FORMAT_RGBA8)
+	image.fill(Color(0.0, 0.0, 0.0, 0.0))
+	var center_y := float(height) * 0.5
+	var shaft_end := 16.0
+	for y in range(height):
+		for x in range(width):
+			var alpha := 0.0
+			if float(x) < shaft_end:
+				alpha = clampf(1.25 - absf(float(y) + 0.5 - center_y), 0.0, 1.0)
+			else:
+				var t := clampf((float(x) - shaft_end) / float(width - 1 - int(shaft_end)), 0.0, 1.0)
+				var half_width := lerpf(3.5, 0.0, t)
+				alpha = clampf(half_width - absf(float(y) + 0.5 - center_y) + 0.75, 0.0, 1.0)
+			if alpha > 0.0:
+				image.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))
+	return ImageTexture.create_from_image(image)
 
 
 func _ensure_map_key(map_key: String) -> void:
@@ -487,7 +554,9 @@ func _update_tower_shots(delta: float) -> void:
 			continue
 		shot["pos"] = position
 		var hit_list: Array = shot["hit"] as Array
-		for index in query_circle(position, 38.0):
+		var candidates := _borrow_query_array()
+		_query_circle_into(position, 38.0, candidates)
+		for index in candidates:
 			if hit_list.has(index) or index < 0 or index >= enemies.size():
 				continue
 			var enemy := enemies[index]
@@ -530,6 +599,7 @@ func _update_tower_shots(delta: float) -> void:
 			if int(shot["pierce"]) <= 0:
 				shot["ttl"] = 0.0
 				break
+		_release_query_array(candidates)
 
 
 func _chain_tower_arrow(origin: Vector2, skip_index: int, damage: float, jumps: int, color: Color) -> void:
@@ -538,7 +608,9 @@ func _chain_tower_arrow(origin: Vector2, skip_index: int, damage: float, jumps: 
 	for i in range(jumps):
 		var best := -1
 		var best_dist := 190.0 * 190.0
-		for index in query_circle(current, 190.0):
+		var candidates := _borrow_query_array()
+		_query_circle_into(current, 190.0, candidates)
+		for index in candidates:
 			if visited.has(index) or index < 0 or index >= enemies.size():
 				continue
 			var enemy := enemies[index]
@@ -548,6 +620,7 @@ func _chain_tower_arrow(origin: Vector2, skip_index: int, damage: float, jumps: 
 			if dist < best_dist:
 				best_dist = dist
 				best = index
+		_release_query_array(candidates)
 		if best < 0:
 			return
 		visited.append(best)
@@ -653,7 +726,7 @@ func reset(seed_value: int = 20261123) -> void:
 	effects.clear()
 	jeff_effects.clear()
 	floaters.clear()
-	spatial.clear()
+	_reset_spatial()
 	time = 0.0
 	_contact_cd = 0.0
 	_dead_count = 0
@@ -790,9 +863,7 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 	}
 	enemies.append(enemy)
 	var key := Vector2i(floori(position.x / CELL_SIZE), floori(position.y / CELL_SIZE))
-	if not spatial.has(key):
-		spatial[key] = []
-	(spatial[key] as Array).append(enemies.size() - 1)
+	_append_spatial_index(enemies.size() - 1, key)
 	if is_boss:
 		boss_spawned.emit(enemy_id, hp)
 	return enemies.size() - 1
@@ -869,7 +940,8 @@ func player_spawn_position() -> Vector2:
 func nearest_enemy(origin: Vector2, max_range: float) -> Dictionary:
 	var best_index := -1
 	var best_dist := max_range * max_range
-	var candidates := query_circle(origin, max_range)
+	var candidates := _borrow_query_array()
+	_query_circle_into(origin, max_range, candidates)
 	for index in candidates:
 		if index < 0 or index >= enemies.size():
 			continue
@@ -880,6 +952,7 @@ func nearest_enemy(origin: Vector2, max_range: float) -> Dictionary:
 		if distance < best_dist:
 			best_dist = distance
 			best_index = index
+	_release_query_array(candidates)
 	return enemies[best_index] if best_index >= 0 else {}
 
 
@@ -899,6 +972,14 @@ func nearest_enemy_any(origin: Vector2) -> Dictionary:
 
 func query_circle(center: Vector2, radius: float) -> Array[int]:
 	var result: Array[int] = []
+	_query_circle_into(center, radius, result)
+	return result
+
+
+func _query_circle_into(center: Vector2, radius: float, result: Array) -> void:
+	if _spatial_dirty:
+		_rebuild_spatial()
+	result.clear()
 	var min_cell := Vector2i(
 		floori((center.x - radius) / CELL_SIZE),
 		floori((center.y - radius) / CELL_SIZE)
@@ -913,12 +994,26 @@ func query_circle(center: Vector2, radius: float) -> Array[int]:
 			if bucket is Array:
 				for index in bucket:
 					result.append(int(index))
-	return result
+
+
+func _borrow_query_array() -> Array:
+	if _query_arrays.is_empty():
+		return []
+	return _query_arrays.pop_back() as Array
+
+
+func _release_query_array(result: Array) -> void:
+	if _query_arrays.size() >= 16:
+		return
+	result.clear()
+	_query_arrays.append(result)
 
 
 func damage_circle(center: Vector2, radius: float, damage: float, knockback: float = 0.0, color: Color = GOLD) -> int:
 	var hits := 0
-	for index in query_circle(center, radius):
+	var candidates := _borrow_query_array()
+	_query_circle_into(center, radius, candidates)
+	for index in candidates:
 		if index < 0 or index >= enemies.size():
 			continue
 		var enemy := enemies[index]
@@ -930,6 +1025,7 @@ func damage_circle(center: Vector2, radius: float, damage: float, knockback: flo
 		var direction := (enemy_pos - center).normalized()
 		damage_enemy(index, damage, direction * knockback, color, false)
 		hits += 1
+	_release_query_array(candidates)
 	return hits
 
 
@@ -937,7 +1033,9 @@ func damage_cone(center: Vector2, direction: Vector2, radius: float, arc_degrees
 	var hits := 0
 	var half_arc := deg_to_rad(arc_degrees) * 0.5
 	var forward := direction.normalized()
-	for index in query_circle(center, radius):
+	var candidates := _borrow_query_array()
+	_query_circle_into(center, radius, candidates)
+	for index in candidates:
 		if index < 0 or index >= enemies.size():
 			continue
 		var enemy := enemies[index]
@@ -951,13 +1049,16 @@ func damage_cone(center: Vector2, direction: Vector2, radius: float, arc_degrees
 			continue
 		damage_enemy(index, damage, to_enemy * knockback, color, false)
 		hits += 1
+	_release_query_array(candidates)
 	return hits
 
 
 func damage_line(origin: Vector2, direction: Vector2, length: float, width: float, damage: float, knockback: float = 0.0, color: Color = GOLD) -> int:
 	var hits := 0
 	var forward := direction.normalized()
-	for index in query_circle(origin + forward * length * 0.5, length * 0.65 + width):
+	var candidates := _borrow_query_array()
+	_query_circle_into(origin + forward * length * 0.5, length * 0.65 + width, candidates)
+	for index in candidates:
 		if index < 0 or index >= enemies.size():
 			continue
 		var enemy := enemies[index]
@@ -971,12 +1072,15 @@ func damage_line(origin: Vector2, direction: Vector2, length: float, width: floa
 			continue
 		damage_enemy(index, damage, forward * knockback, color, false)
 		hits += 1
+	_release_query_array(candidates)
 	return hits
 
 
 func apply_slow(center: Vector2, radius: float, factor: float, duration: float) -> int:
 	var hits := 0
-	for index in query_circle(center, radius):
+	var candidates := _borrow_query_array()
+	_query_circle_into(center, radius, candidates)
+	for index in candidates:
 		if index < 0 or index >= enemies.size():
 			continue
 		var enemy := enemies[index]
@@ -987,12 +1091,15 @@ func apply_slow(center: Vector2, radius: float, factor: float, duration: float) 
 		enemy["slow_timer"] = maxf(float(enemy.get("slow_timer", 0.0)), duration)
 		enemy["slow_factor"] = minf(float(enemy.get("slow_factor", 1.0)), clampf(factor, 0.18, 1.0))
 		hits += 1
+	_release_query_array(candidates)
 	return hits
 
 
 func apply_burn(center: Vector2, radius: float, dps: float, duration: float) -> int:
 	var hits := 0
-	for index in query_circle(center, radius):
+	var candidates := _borrow_query_array()
+	_query_circle_into(center, radius, candidates)
+	for index in candidates:
 		if index < 0 or index >= enemies.size():
 			continue
 		var enemy := enemies[index]
@@ -1003,12 +1110,15 @@ func apply_burn(center: Vector2, radius: float, dps: float, duration: float) -> 
 		enemy["burn_timer"] = maxf(float(enemy.get("burn_timer", 0.0)), duration)
 		enemy["burn_dps"] = maxf(float(enemy.get("burn_dps", 0.0)), dps)
 		hits += 1
+	_release_query_array(candidates)
 	return hits
 
 
 func apply_stun(center: Vector2, radius: float, duration: float) -> int:
 	var hits := 0
-	for index in query_circle(center, radius):
+	var candidates := _borrow_query_array()
+	_query_circle_into(center, radius, candidates)
+	for index in candidates:
 		if index < 0 or index >= enemies.size():
 			continue
 		var enemy := enemies[index]
@@ -1018,12 +1128,15 @@ func apply_stun(center: Vector2, radius: float, duration: float) -> int:
 			continue
 		enemy["stun_timer"] = maxf(float(enemy.get("stun_timer", 0.0)), duration)
 		hits += 1
+	_release_query_array(candidates)
 	return hits
 
 
 func nearest_enemies(origin: Vector2, max_range: float, count: int) -> Array[Dictionary]:
 	var candidates: Array[Dictionary] = []
-	for index in query_circle(origin, max_range):
+	var indices := _borrow_query_array()
+	_query_circle_into(origin, max_range, indices)
+	for index in indices:
 		if index < 0 or index >= enemies.size():
 			continue
 		var enemy := enemies[index]
@@ -1032,6 +1145,7 @@ func nearest_enemies(origin: Vector2, max_range: float, count: int) -> Array[Dic
 		var distance := origin.distance_squared_to(enemy["pos"] as Vector2)
 		if distance <= max_range * max_range:
 			candidates.append({"enemy": enemy, "distance": distance})
+	_release_query_array(indices)
 	candidates.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return float(a["distance"]) < float(b["distance"])
 	)
@@ -1322,15 +1436,38 @@ func clear_all_effects() -> void:
 
 
 func _rebuild_spatial() -> void:
-	spatial.clear()
+	_clear_spatial_buckets()
 	for index in range(enemies.size()):
 		if not bool(enemies[index].get("alive", false)):
 			continue
 		var position := enemies[index]["pos"] as Vector2
 		var key := Vector2i(floori(position.x / CELL_SIZE), floori(position.y / CELL_SIZE))
-		if not spatial.has(key):
-			spatial[key] = []
-		(spatial[key] as Array).append(index)
+		_append_spatial_index(index, key)
+	_spatial_dirty = false
+
+
+func _append_spatial_index(index: int, key: Vector2i) -> void:
+	var bucket: Array
+	if spatial.has(key):
+		bucket = spatial[key] as Array
+	else:
+		bucket = []
+		spatial[key] = bucket
+	if bucket.is_empty():
+		_spatial_live_buckets.append(bucket)
+	bucket.append(index)
+
+
+func _clear_spatial_buckets() -> void:
+	for bucket in _spatial_live_buckets:
+		bucket.clear()
+	_spatial_live_buckets.clear()
+
+
+func _reset_spatial() -> void:
+	_clear_spatial_buckets()
+	spatial.clear()
+	_spatial_dirty = false
 
 
 func _update_allies(delta: float, player: Dictionary) -> void:
@@ -1370,7 +1507,7 @@ func _update_allies(delta: float, player: Dictionary) -> void:
 			if ally_speed < float(ally["speed"]) * 0.99 and rng.randf() < 0.18:
 				spawn_wade_splash(position, 0.8)
 			if map_layout != null:
-				position = map_layout.move_circle(
+				position = map_layout.move_circle_known_walkable(
 					previous,
 					position,
 					clampf(float(ally["radius"]) * 0.68, 8.0, 22.0)
@@ -1529,7 +1666,7 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 		position += knockback * delta
 		enemy["knockback"] = knockback.move_toward(Vector2.ZERO, 520.0 * delta)
 		if map_layout != null:
-			position = map_layout.move_circle(
+			position = map_layout.move_circle_known_walkable(
 				previous_position,
 				position,
 				clampf(float(enemy["radius"]) * 0.72, 9.0, 26.0)
@@ -1597,7 +1734,9 @@ func _update_player_shots(delta: float) -> void:
 			continue
 		shot["pos"] = position
 		var hit_list: Array = shot["hit"] as Array
-		for index in query_circle(position, 34.0):
+		var candidates := _borrow_query_array()
+		_query_circle_into(position, 34.0, candidates)
+		for index in candidates:
 			if hit_list.has(index):
 				continue
 			if index < 0 or index >= enemies.size():
@@ -1615,6 +1754,7 @@ func _update_player_shots(delta: float) -> void:
 			if int(shot["pierce"]) <= 0:
 				shot["ttl"] = 0.0
 				break
+		_release_query_array(candidates)
 
 
 func _update_enemy_shots(delta: float, player: Dictionary) -> void:
@@ -1650,48 +1790,52 @@ func _update_enemy_shots(delta: float, player: Dictionary) -> void:
 func _update_pickups(delta: float, player: Dictionary) -> void:
 	var target := player.get("pos", Vector2.ZERO) as Vector2
 	var pickup_radius := float(player.get("pickup_radius", 88.0))
+	var pickup_radius_sq := pickup_radius * pickup_radius
 	for orb in orbs:
 		if bool(orb.get("taken", false)):
 			continue
 		var position := orb["pos"] as Vector2
-		var distance := position.distance_to(target)
-		if bool(orb.get("magnet", false)) or distance < pickup_radius:
+		var distance_sq := position.distance_squared_to(target)
+		if bool(orb.get("magnet", false)) or distance_sq < pickup_radius_sq:
+			var distance := sqrt(distance_sq)
 			position = position.move_toward(target, maxf(260.0, 540.0 - distance))
 			orb["pos"] = position
-		if position.distance_to(target) < 22.0:
+		if position.distance_squared_to(target) < 22.0 * 22.0:
 			orb["taken"] = true
 			xp_collected.emit(float(orb["value"]))
-	_update_drop_array(oil_drops, target, pickup_radius, delta, _free_oil_drops, func(drop: Dictionary) -> void:
-		oil_collected.emit(int(drop.get("amount", 2)))
-	)
-	_update_drop_array(heal_drops, target, pickup_radius, delta, _free_heal_drops, func(drop: Dictionary) -> void:
-		heal_collected.emit(float(drop.get("amount", 9.0)))
-	)
-	_update_drop_array(scale_drops, target, pickup_radius, delta, _free_scale_drops, func(drop: Dictionary) -> void:
-		add_effect({
-			"type": "scale_burst",
-			"pos": drop["pos"],
-			"ttl": 0.5,
-			"max_ttl": 0.5,
-			"color": _scale_color(str(drop["color"])),
-		})
-		scale_collected.emit(str(drop["color"]))
-	)
+	_update_drop_array(oil_drops, target, pickup_radius, delta, _free_oil_drops, "oil")
+	_update_drop_array(heal_drops, target, pickup_radius, delta, _free_heal_drops, "heal")
+	_update_drop_array(scale_drops, target, pickup_radius, delta, _free_scale_drops, "scale")
 	for index in range(orbs.size() - 1, -1, -1):
 		if bool(orbs[index].get("taken", false)):
 			_return_pooled(_free_orbs, _swap_remove_at(orbs, index))
 
 
-func _update_drop_array(drops: Array[Dictionary], target: Vector2, pickup_radius: float, delta: float, free_list: Array[Dictionary], on_take: Callable) -> void:
+func _update_drop_array(drops: Array[Dictionary], target: Vector2, pickup_radius: float, delta: float, free_list: Array[Dictionary], kind: String) -> void:
+	var pickup_radius_sq := pickup_radius * pickup_radius
 	for index in range(drops.size() - 1, -1, -1):
 		var drop := drops[index]
 		var position := drop["pos"] as Vector2
-		var distance := position.distance_to(target)
-		if bool(drop.get("magnet", false)) or distance < pickup_radius:
+		var distance_sq := position.distance_squared_to(target)
+		if bool(drop.get("magnet", false)) or distance_sq < pickup_radius_sq:
+			var distance := sqrt(distance_sq)
 			position = position.move_toward(target, maxf(240.0, 520.0 - distance))
 			drop["pos"] = position
-		if position.distance_to(target) < 24.0:
-			on_take.call(drop)
+		if position.distance_squared_to(target) < 24.0 * 24.0:
+			match kind:
+				"oil":
+					oil_collected.emit(int(drop.get("amount", 2)))
+				"heal":
+					heal_collected.emit(float(drop.get("amount", 9.0)))
+				"scale":
+					add_effect({
+						"type": "scale_burst",
+						"pos": drop["pos"],
+						"ttl": 0.5,
+						"max_ttl": 0.5,
+						"color": _scale_color(str(drop["color"])),
+					})
+					scale_collected.emit(str(drop["color"]))
 			_return_pooled(free_list, _swap_remove_at(drops, index))
 
 
@@ -1724,12 +1868,16 @@ func _update_effects(delta: float) -> void:
 
 
 func _cleanup_dead() -> void:
-	var removed := 0
-	for index in range(enemies.size() - 1, -1, -1):
-		if bool(enemies[index].get("alive", false)):
+	var write_index := 0
+	for read_index in range(enemies.size()):
+		if not bool(enemies[read_index].get("alive", false)):
 			continue
-		enemies.remove_at(index)
-		removed += 1
+		if write_index != read_index:
+			enemies[write_index] = enemies[read_index]
+		write_index += 1
+	var removed := enemies.size() - write_index
+	if removed > 0:
+		enemies.resize(write_index)
 	# 未解锁重建的塔：残骸保留片刻后彻底移除
 	for index in range(towers.size() - 1, -1, -1):
 		var tower := towers[index]
@@ -1739,7 +1887,8 @@ func _cleanup_dead() -> void:
 			towers.remove_at(index)
 	_dead_count = 0
 	if removed > 0:
-		_rebuild_spatial()
+		# 下一帧 update_world() 会在任何查询前重建；若外部立即查询，query_circle 会惰性重建。
+		_spatial_dirty = true
 
 
 func _kill_enemy(index: int) -> void:
@@ -1949,10 +2098,24 @@ func _draw_light(center: Vector2) -> void:
 
 
 func _draw_pickups() -> void:
-	for orb in orbs:
-		var position := orb["pos"] as Vector2
-		draw_circle(position, 7.0, Color(0.94, 0.70, 0.27, 0.16))
-		draw_circle(position, 3.5, Color(0.98, 0.83, 0.44, 0.96))
+	var orb_count := mini(orbs.size(), ORB_BATCH_CAPACITY)
+	for index in range(orb_count):
+		var position := orbs[index]["pos"] as Vector2
+		_orb_glow_batch.set_instance_transform_2d(
+			index,
+			Transform2D(0.0, Vector2(14.0, 14.0), 0.0, position)
+		)
+		_orb_glow_batch.set_instance_color(index, Color(0.94, 0.70, 0.27, 0.16))
+		_orb_core_batch.set_instance_transform_2d(
+			index,
+			Transform2D(0.0, Vector2(7.0, 7.0), 0.0, position)
+		)
+		_orb_core_batch.set_instance_color(index, Color(0.98, 0.83, 0.44, 0.96))
+	_orb_glow_batch.visible_instance_count = orb_count
+	_orb_core_batch.visible_instance_count = orb_count
+	if orb_count > 0:
+		draw_multimesh(_orb_glow_batch, _orb_circle_texture)
+		draw_multimesh(_orb_core_batch, _orb_circle_texture)
 	for drop in oil_drops:
 		var position := drop["pos"] as Vector2
 		draw_circle(position, 11.0, Color(0.92, 0.64, 0.22, 0.20))
@@ -1975,7 +2138,9 @@ func _draw_pickups() -> void:
 func _draw_enemies() -> void:
 	if not bool(get_meta("draw_enemies", true)):
 		return
-	var groups: Dictionary = {}
+	for value in _draw_groups.values():
+		(value as Array).clear()
+	_draw_active_ids.clear()
 	for enemy in enemies:
 		if not bool(enemy.get("alive", false)):
 			continue
@@ -1985,13 +2150,16 @@ func _draw_enemies() -> void:
 		if absf(position.y - player_pos.y) > VIEW_HALF.y + 120.0:
 			continue
 		var batch_id := str(enemy.get("id", ""))
-		if not groups.has(batch_id):
-			groups[batch_id] = []
-		(groups[batch_id] as Array).append(enemy)
-	for batch_id in groups.keys():
-		_draw_enemy_batch(str(batch_id), groups[batch_id] as Array, true)
-	for batch_id in groups.keys():
-		_draw_enemy_batch(str(batch_id), groups[batch_id] as Array, false)
+		if not _draw_groups.has(batch_id):
+			_draw_groups[batch_id] = []
+		var batch := _draw_groups[batch_id] as Array
+		if batch.is_empty():
+			_draw_active_ids.append(batch_id)
+		batch.append(enemy)
+	for batch_id in _draw_active_ids:
+		_draw_enemy_batch(batch_id, _draw_groups[batch_id] as Array, true)
+	for batch_id in _draw_active_ids:
+		_draw_enemy_batch(batch_id, _draw_groups[batch_id] as Array, false)
 
 
 func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
@@ -2269,25 +2437,39 @@ func _draw_allies() -> void:
 
 
 func _draw_projectiles() -> void:
-	for shot in player_shots:
+	var shot_count := mini(player_shots.size(), PLAYER_SHOT_BATCH_CAPACITY)
+	for index in range(shot_count):
+		var shot := player_shots[index]
 		var position := shot["pos"] as Vector2
 		var direction := (shot["vel"] as Vector2).normalized()
-		var color := shot["color"] as Color
-		var side := Vector2(-direction.y, direction.x)
-		# 弹丸本体：短杆 + 弹头，不画贯穿式辅助线
-		draw_line(position - direction * 6.0, position, color, 2.5, true)
-		draw_colored_polygon(
-			PackedVector2Array([
-				position + direction * 5.0,
-				position + side * 3.0,
-				position - side * 3.0,
-			]),
-			color
+		if direction == Vector2.ZERO:
+			direction = Vector2.RIGHT
+		_player_shot_batch.set_instance_transform_2d(
+			index,
+			Transform2D(direction.angle(), Vector2(24.0, 10.0), 0.0, position)
 		)
-	for shot in enemy_shots:
-		var position := shot["pos"] as Vector2
-		draw_circle(position, 4.5, Color("#d65b45"))
-		draw_circle(position, 2.0, Color("#ffd9a8"))
+		_player_shot_batch.set_instance_color(index, shot["color"] as Color)
+	_player_shot_batch.visible_instance_count = shot_count
+	if shot_count > 0:
+		draw_multimesh(_player_shot_batch, _player_shot_texture)
+	var enemy_shot_count := mini(enemy_shots.size(), ORB_BATCH_CAPACITY)
+	for index in range(enemy_shot_count):
+		var position := enemy_shots[index]["pos"] as Vector2
+		_enemy_shot_glow_batch.set_instance_transform_2d(
+			index,
+			Transform2D(0.0, Vector2(9.0, 9.0), 0.0, position)
+		)
+		_enemy_shot_glow_batch.set_instance_color(index, Color("#d65b45"))
+		_enemy_shot_core_batch.set_instance_transform_2d(
+			index,
+			Transform2D(0.0, Vector2(4.0, 4.0), 0.0, position)
+		)
+		_enemy_shot_core_batch.set_instance_color(index, Color("#ffd9a8"))
+	_enemy_shot_glow_batch.visible_instance_count = enemy_shot_count
+	_enemy_shot_core_batch.visible_instance_count = enemy_shot_count
+	if enemy_shot_count > 0:
+		draw_multimesh(_enemy_shot_glow_batch, _orb_circle_texture)
+		draw_multimesh(_enemy_shot_core_batch, _orb_circle_texture)
 
 
 func _draw_jeff_fx() -> void:

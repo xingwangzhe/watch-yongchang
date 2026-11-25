@@ -1,7 +1,7 @@
 extends GutTest
 
 const TEST_SAVE := "user://test_tutorial_attack_controls_save.json"
-const CURSOR_PATH := "res://assets/ui/watch_cursor.png"
+const CURSOR_PATH := "res://assets/ui/watch_cursor.webp"
 const EXPECTED_ATTACK_BUFFER := 0.18
 
 

@@ -66,6 +66,7 @@ $RECYCLE.BIN/
 # OCR、缩略图、联系表、PDF/Office 文件等一律不进入公开仓库。
 docs/**
 !docs/README.md
+!docs/cloudflare-pages.md
 !docs/edgeone-deploy.md
 !docs/开发者日志-*.md
 !docs/文化来源.md
@@ -116,6 +117,7 @@ game/assets/units/*/attack/
 game/data/actors.json
 game/scenes/*preview.tscn
 game/scripts/dev/
+game/scenes/dev/
 pixel-art/actors/
 pixel-art/**/__pycache__/
 pixel-art/**/*.png
@@ -218,6 +220,8 @@ logs/
 # ----- 本地密钥、证书与环境变量 -----
 .env
 .env.*
+# 根 .env 只允许公开构建配置，作为唯一配置源提交；秘密请放 .env.local（仍忽略）。
+!/.env
 .envrc
 .direnv/
 *.key

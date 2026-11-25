@@ -17,6 +17,9 @@ var _enemy_count := 460
 var _debug := false
 var _debug_frames := 0
 var _perf_log: FileAccess
+var _capture_path := ""
+var _capture_done := false
+var _frame_count := 0
 
 
 func _ready() -> void:
@@ -24,6 +27,7 @@ func _ready() -> void:
 	var log_path := OS.get_environment("WATCH_STRESS_LOG")
 	if not log_path.is_empty():
 		_perf_log = FileAccess.open(log_path, FileAccess.WRITE)
+	_capture_path = OS.get_environment("WATCH_STRESS_CAPTURE")
 	var requested := OS.get_environment("WATCH_STRESS_COUNT")
 	if not requested.is_empty():
 		_enemy_count = clampi(int(requested), 1, 460)
@@ -32,6 +36,14 @@ func _ready() -> void:
 	add_child(field)
 	field.setup(20261123)
 	field.set_meta("draw_enemies", OS.get_environment("WATCH_STRESS_DRAW_ENEMIES") != "0")
+	if OS.get_environment("WATCH_STRESS_HIDE_OVERLAYS") == "1":
+		field.map_renderer.shade_layer.visible = false
+		field.map_renderer.elevation_layer.visible = false
+	if OS.get_environment("WATCH_STRESS_HIDE_TILEMAPS") == "1":
+		field.map_renderer.terrain_layer.visible = false
+		field.map_renderer.architecture_layer.visible = false
+		field.map_renderer.props_layer.visible = false
+		field.map_renderer.canopy_layer.visible = false
 	for i in range(_enemy_count):
 		var angle := TAU * float(i) / float(_enemy_count)
 		var ring := 120.0 + float(i % 7) * 72.0
@@ -39,6 +51,41 @@ func _ready() -> void:
 			"scout" if i % 5 else "ronin",
 			Vector2(cos(angle), sin(angle)) * ring
 		)
+	var pickup_count := clampi(int(OS.get_environment("WATCH_STRESS_PICKUPS")), 0, 2000)
+	for i in range(pickup_count):
+		var angle := TAU * float(i) / float(maxi(1, pickup_count))
+		var ring := 300.0 + float(i % 5) * 70.0
+		field.orbs.append({
+			"pos": Vector2(cos(angle), sin(angle)) * ring,
+			"value": 1.0,
+			"taken": false,
+			"magnet": false,
+		})
+	var shot_count := clampi(int(OS.get_environment("WATCH_STRESS_SHOTS")), 0, 2000)
+	for i in range(shot_count):
+		var angle := TAU * float(i) / float(maxi(1, shot_count))
+		var ring := 220.0 + float(i % 6) * 55.0
+		field.fire_player_projectile(
+			Vector2(cos(angle), sin(angle)) * ring,
+			Vector2.RIGHT.rotated(angle),
+			1.0,
+			1.0,
+			99,
+			Color("#e1b35a")
+		)
+		var shot := field.player_shots[field.player_shots.size() - 1]
+		shot["ttl"] = 999.0
+		shot["vel"] = Vector2.ZERO
+	var enemy_shot_count := clampi(int(OS.get_environment("WATCH_STRESS_ENEMY_SHOTS")), 0, 2000)
+	for i in range(enemy_shot_count):
+		var angle := TAU * float(i) / float(maxi(1, enemy_shot_count))
+		var ring := 250.0 + float(i % 5) * 60.0
+		field.enemy_shots.append({
+			"pos": Vector2(cos(angle), sin(angle)) * ring,
+			"vel": Vector2.ZERO,
+			"damage": 0.0,
+			"ttl": 999.0,
+		})
 	print("[stress] enemies=%d" % _enemy_count)
 	_log("[stress] enemies=%d" % _enemy_count)
 
@@ -62,18 +109,27 @@ func _process(delta: float) -> void:
 		print("[stress] process updated frame=%d" % _debug_frames)
 		_log("[stress] process updated frame=%d" % _debug_frames)
 		_debug_frames += 1
+	_frame_count += 1
+	if not _capture_done and not _capture_path.is_empty() and _frame_count >= 120:
+		_capture_done = true
+		var image := get_viewport().get_texture().get_image()
+		if image != null:
+			var error := image.save_png(_capture_path)
+			print("[stress] capture=%s error=%d" % [_capture_path, error])
+		get_tree().quit()
 	_sample_time += delta
 	_sample_frames += 1
 	if _sample_time >= 2.0 and _sample_wall_usec > 0:
 		var wall_ms := float(_sample_wall_usec) / 1000.0 / float(maxi(1, _sample_wall_frames))
 		var logic_ms := float(_sample_update_usec) / 1000.0 / float(maxi(1, _sample_frames))
-		var line := "[stress] wall_fps=%.1f wall_frame_ms=%.2f logic_ms=%.3f engine_fps=%.1f enemies=%d draw_calls=%d" % [
+		var line := "[stress] wall_fps=%.1f wall_frame_ms=%.2f logic_ms=%.3f engine_fps=%.1f enemies=%d draw_calls=%d primitives=%d" % [
 			float(_sample_wall_frames) * 1000000.0 / float(_sample_wall_usec),
 			wall_ms,
 			logic_ms,
 			Engine.get_frames_per_second(),
 			field.alive_count(),
 			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+			Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
 		]
 		print(line)
 		_log(line)

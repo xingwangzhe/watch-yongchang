@@ -28,6 +28,18 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Set up Bun for asset checks
+      uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      with:
+        bun-version: "1.4.5"
+
+    - name: Verify optimized runtime assets
+      shell: bash
+      run: |
+        set -euo pipefail
+        bun install --frozen-lockfile
+        bun run assets:check
+
     - name: Restore compiled Web template
       id: template-cache
       uses: actions/cache@v4
@@ -88,7 +100,7 @@ runs:
           CACHE_ARGS=("cache_path=$SCONS_CACHE")
         fi
         scons -j"$JOBS" platform=web target=template_release arch=wasm32 threads=no \
-          production=yes lto=thin optimize=size debug_symbols=no use_closure_compiler=yes \
+          production=yes lto=thin optimize=size_extra debug_symbols=no use_closure_compiler=yes \
           disable_3d=no disable_physics_2d=yes disable_physics_3d=yes \
           disable_navigation_2d=yes disable_navigation_3d=yes disable_xr=yes \
           module_godot_physics_2d_enabled=no module_godot_physics_3d_enabled=no \
@@ -101,6 +113,7 @@ runs:
           module_camera_enabled=no module_webrtc_enabled=no \
           module_websocket_enabled=no module_enet_enabled=no module_upnp_enabled=no \
           module_jsonrpc_enabled=no module_zip_enabled=no module_jpg_enabled=no \
+          module_regex_enabled=no \
           module_bmp_enabled=no module_tga_enabled=no module_hdr_enabled=no \
           module_ktx_enabled=no module_dds_enabled=no module_basis_universal_enabled=no \
           module_astcenc_enabled=no module_etcpak_enabled=no module_cvtt_enabled=no \

@@ -2,7 +2,7 @@
 
 《守望 · 永昌》是一款以明代沿海卫所文化为背景的 2D 割草生存 Roguelite，参加 2026 OSGJ 开源游戏开发大赛。玩家扮演虚构守灯乡勇王陆，在永昌堡度过 16 分钟守夜：移动、自动或手动攻击、升级三选一、管理灯火风险，并抵御敌兵与 Boss。
 
-当前游戏版本为 **`0.1.0`**；公开 Release 资产须按当前 `main` 重建后再用于赛事提交。
+当前游戏版本为 **`0.1.1`**；公开 Release 资产须按当前 `main` 重建后再用于赛事提交。
 
 当前版本包含三张地图、王陆六种守夜阵位、七种兵器与十二种被动、箭塔连发/并发、双堡图鉴、双语界面与字幕、首次游玩教程及完整结算流程。1386 年汤和序章与 1559 年王陆正篇分开叙事；六张选择卡是阵位，不是六名独立人物。
 
@@ -16,8 +16,9 @@
 - `pixel-art/`：可复现的像素素材构建脚本，不包含预览图和中间图。
 - `assets/`：仅保留原创音频源；运行字体的唯一副本在 `game/assets/fonts/`。
 - `dora/`：Dora 兼容入口与静态构建器。
-- `docs/`：仅保留三篇开发者日志、文化来源与 EdgeOne 部署说明。
+- `docs/`：仅保留三篇开发者日志、文化来源与 EdgeOne / Cloudflare Pages 部署说明。
 - `.github/`、根目录许可、授权清单、`README.md` 与 `DORA.md`。
+- 根 `.env`：仅公开构建配置与版本源，不含密钥。
 
 以下内容只在本地保留：
 
@@ -54,7 +55,27 @@
 - Linux / macOS：`./game/launch.sh`
 - Windows：`game\launch.bat`
 
-引擎锁定为 **Godot 4.7.2-stable**，版本来源是 `game/.godot-version`。直接运行 Godot 时，工程根目录为 `game/`，主场景为 `res://scenes/main_menu.tscn`。启动器支持 Vulkan / OpenGL 选择；不可用时回退 OpenGL Compatibility。
+引擎锁定为 **Godot 4.7.2-stable**。根 `.env` 的 `GODOT_VERSION` 是唯一版本源，
+`game/.godot-version`、`game/project.godot` 与导出预设由同步工具生成。直接运行 Godot 时，
+工程根目录为 `game/`，主场景为 `res://scenes/main_menu.tscn`。启动器支持 Vulkan / OpenGL
+选择；不可用时回退 OpenGL Compatibility。
+
+### 版本、元数据与 Web 退出
+
+根 `.env` 统一管理 `APP_VERSION`、`GODOT_VERSION`、中英文名称、作者、仓库、Web 地址、
+应用图标 `APP_ICON` 与 Cloudflare Pages 项目名。修改后运行：
+
+```bash
+bun run env:sync
+bun run env:check
+bun run env:test
+```
+
+`env:sync` 同步 `game/.godot-version`、`game/project.godot`、`game/export_presets.cfg`
+与运行时元数据 `game/data/project_meta.json`；`--check` 只校验，不写文件。关于页从生成
+元数据读取作者、邮箱、版本、仓库与 Web 链接。Web 版退出按钮会明确标记“返回浏览器”，
+先尝试关闭标签页；浏览器阻止关闭时显示可重新载入、打开项目主页或返回主菜单的提示层，
+不会调用无效的 `get_tree().quit()`。
 
 ### Dora SSR
 
@@ -84,16 +105,28 @@ Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路�
 
 ```bash
 "$GDA_GODOT" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+bun run verify:env
 ```
 
-测试框架为 GUT 9.7.1。当前 Linux 基线为 **161 tests / 161 passed / 41180 asserts**。CI 并行执行 Linux、Windows、macOS GUT 与 Web 构建；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
+测试框架为 GUT 9.7.1。当前 Linux 基线为 **172 tests / 172 passed / 47951 asserts**。CI 并行执行 Linux、Windows、macOS GUT 与 Web 构建；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
 
-`main` 分支的 Web 构建会以单线程模式导出并自动部署至 EdgeOne Makers 项目 `shouwang`：
-<https://2026shouwang.needhelp.icu>。Web 构建不要求 COOP/COEP 响应头。CI 用 Godot
-官方 SCons 参数裁剪 Emscripten 运行时，再用 Binaryen `wasm-opt -Oz` 优化；wasm 与
-PCK 不切分、不预压缩，由 EdgeOne 自动压缩传输。
+`main` 分支的 Web 构建会以单线程模式导出，并并行部署至 Cloudflare Pages 项目
+`shouwang` 与 EdgeOne Makers 镜像。自定义域名 <https://2026shouwang.needhelp.icu>
+由既有 DNSPod 海内外分流配置承接；不要由部署脚本改 DNS。境外流量使用 Cloudflare
+Pages，境内继续使用 EdgeOne 镜像。
+Web 构建不要求 COOP/COEP 响应头。CI 用 Godot 官方 SCons 参数裁剪 Emscripten
+运行时，再用 Binaryen `wasm-opt -Oz` 优化；wasm 与 PCK 不切分、不预压缩，由
+Cloudflare Pages 与 EdgeOne 自动压缩传输。
 
-推送 `v*.*.*` 标签会触发 `.github/workflows/release.yml`：工作流校验标签与 `game/project.godot` 的 `config/version` 一致，然后按操作系统并行执行 Linux、Windows、macOS、Web 四个构建作业，每个平台都运行 GUT 并导出原生产物。汇总作业执行 PCK/ZIP/许可证审计、Linux 发行版 smoke、Web 静态产物检查与 EdgeOne 部署，最后通过 GitHub CLI 创建 GitHub Release。发布包包含 Linux / Windows 可执行文件及外部 PCK、macOS ZIP、Web ZIP、完整源码 ZIP、`release-manifest.json` 和 `SHA256SUMS.txt`；Dora 源码包不随 Release 发布。
+推送 `v*.*.*` 标签会触发 `.github/workflows/release.yml`：工作流校验标签与根
+`.env` 的 `APP_VERSION` 一致；`game/project.godot` 等文件由该配置生成，提交前用
+`bun run env:check` 可提前发现版本漂移。随后按操作系统并行执行
+Linux、Windows、macOS、Web 四个构建作业，每个平台都运行 GUT 并导出原生产物。汇总作业
+执行 PCK/ZIP/许可证审计、Linux 发行版 smoke、Web 静态产物检查与 EdgeOne / Cloudflare
+Pages 并行部署，最后通过 GitHub CLI 创建 GitHub Release。发布包包含 Linux / Windows
+可执行文件及外部 PCK、macOS
+ZIP、Web ZIP、完整源码 ZIP、`release-manifest.json` 和 `SHA256SUMS.txt`；Dora 源码包不随
+Release 发布。
 
 ## 赛事提交媒体
 
@@ -103,6 +136,7 @@ PCK 不切分、不预压缩，由 EdgeOne 自动压缩传输。
 
 - [Godot 工程说明](game/README.md)
 - [Dora 适配说明](DORA.md)
+- [Cloudflare Pages Web 部署](docs/cloudflare-pages.md)
 - [EdgeOne Makers Web 部署](docs/edgeone-deploy.md)
 - [开发者日志 01：核心玩法与文化](docs/开发者日志-01-核心玩法与文化.md)
 - [开发者日志 02：战斗表现与操作手感](docs/开发者日志-02-战斗表现与操作手感.md)

@@ -9,7 +9,7 @@
 逐项追踪运行时音频、字体、图标、特效和文化素材后，采取了以下处理：
 
 - 三首运行时 BGM 均使用允许再分发的开放许可：菜单为 Maik Hoffmann（Majadroid）的《Samurai Nights》（CC BY 4.0），关于页为 Hitctrl 的《Views From Atop the Jade Kings Throne》（CC BY 3.0），战斗曲为 MintoDog 的《Hard Battle 1》（CC0 1.0）。两首 OpenGameArt 曲目于 2026-11-25 复核来源页后恢复，均不含 NC/ND 限制。
-- 20 个运行时 SFX 全部使用 CC0，来源包括 OpenGameArt 与 Kenney。
+- 18 个运行时 SFX 全部使用 CC0，来源包括 OpenGameArt 与 Kenney。
 - 删除 18 个输出授权未明确核实的 MOSS 生成语音 OGG；剧情保留双语字幕回退，生成器与模型权重均不随公开仓库分发。
 - 代码采用 AGPL-3.0-or-later，原创非代码资产采用 CC BY 4.0；第三方内容保留 CC0、CC BY 4.0、CC BY 3.0、OFL 1.1、MIT 等原许可并逐项署名。
 

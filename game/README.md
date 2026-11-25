@@ -1,13 +1,15 @@
 # game/ — Godot 工程
 
-状态（2026-11-25）：v0.1.0 表现与音频确权基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
+状态（2026-11-25）：v0.1.1 表现与音频确权基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
 3 张地图、7 兵器/12 被动、16 分钟完整胜利流程、双堡图鉴、结算解锁、灯火风险收益、
 龙鳞清屏、Boss 与双语定时字幕已接入；未核实输出授权的 MOSS-TTS-Nano 语音已停止分发。
 三选一卡池扩至 51 属性 / 38 技能 / 22 事件 / 32 箭塔，共 143 张来源可追溯的卡牌，并接入 101 个
 game-icons.net SVG。
 
-引擎版本锁定为 **Godot 4.7.2-stable**，唯一来源 `game/.godot-version`。
-启动器、CI 与 GUT 都读取/校验该文件；升级引擎必须先改此文件并重跑全平台测试。
+引擎版本锁定为 **Godot 4.7.2-stable**。唯一版本源是仓库根 `.env` 的
+`GODOT_VERSION`；`game/.godot-version`、`project.godot` 与导出预设由
+`bun run env:sync` 生成。启动器、CI 与 GUT 读取/校验生成后的
+`.godot-version`；升级引擎必须先改 `.env`，同步后重跑全平台测试。
 
 新玩法：Vampire Survivors-like 割草生存 Roguelite，16 分钟单局。
 设计稿与内部数值表只在本地保留，不随公开仓库分发。
@@ -20,7 +22,12 @@ game-icons.net SVG。
 - 设置层：BGM/音效滑杆、全屏开关、帧率/VSync、中英语言与 Vulkan/OpenGL
   渲染后端选择；渲染变更需重启，菜单内提供“立即重启”提示。渲染模式会额外写入
   ASCII 镜像配置，供 Linux 与 Windows 启动器读取。
-- `scripts/autoload/`：`GameSettings`、`Locale`、`SaveSystem`、`AudioBus`。
+- `scripts/autoload/`：`GameSettings`、`ProjectMeta`、`Locale`、`SaveSystem`、`AudioBus`。
+- 项目元数据：根 `.env` 同步生成 `data/project_meta.json`；关于页从 `ProjectMeta`
+  显示版本、作者、邮箱、开源仓库与在线游玩链接。
+- Web 退出：检测 `OS.has_feature("web")`，先尝试关闭标签页并聚焦 opener；
+  浏览器阻止关闭时显示可重新载入、打开项目主页或返回主菜单的提示层，不调用无效
+  的原生 `quit()`。
 - 自动存档：菜单、设置变化、开局、退出与每 20 秒写入 `user://savegame.json`。
 - 双语：`data/i18n/zh.json` 与 `en.json`，切换后即时刷新界面。
 - 菜单 BGM：`assets/audio/bgm_watch.ogg`，
@@ -30,7 +37,7 @@ game-icons.net SVG。
   进入正篇时切换，返回菜单恢复 `bgm_watch.ogg`。
 - 音效：全局按钮点击、确认与返回，以及经验/灯油/治疗/龙鳞拾取、事件卡、敌兵受击、
   普通/精英击杀、升级、冲刺与 Boss 提示；OpenGameArt 多作者与 Kenney UI Audio /
-  Impact Sounds，共 20 个运行时 SFX，全部 **CC0 1.0**。
+  Impact Sounds，共 18 个运行时 SFX，全部 **CC0 1.0**。
 - 关于页 BGM：`assets/audio/bgm_about.ogg`，
   **Views From Atop the Jade Kings Throne · Hitctrl · CC BY 3.0**；
   来源 https://opengameart.org/content/views-from-atop-the-jade-kings-throne；
@@ -122,11 +129,11 @@ game\launch.bat
   BGM 循环与音量、菜单构建/设置层、语言热切换、Vulkan/OpenGL 自动选择、渲染镜像与重启参数、
   关于页自动滚幕/滚轮接管/来源与许可链接、玩法数据完整性、波次到 Boss/黎明、
   空间哈希伤害与经验掉落、叙事分类与来源、双堡图鉴边界、MOSS 语音关闭与字幕时长回退、
-  3 首开放许可 BGM（CC BY 4.0 / CC BY 3.0 / CC0）与 20 个 CC0 SFX 的完整署名覆盖、王陆六阵位与解锁、3 地图修正、局内图鉴暂停/返回、经验曲线、
+  3 首开放许可 BGM（CC BY 4.0 / CC BY 3.0 / CC0）与 18 个 CC0 SFX 的完整署名覆盖、王陆六阵位与解锁、3 地图修正、局内图鉴暂停/返回、经验曲线、
   角色图集与瓦片图集、143 张卡的双语/来源/图标完整性、149+ 条目规模、
   三选一唯一性、减速/灼烧/眩晕/收魂、选项卡渲染、事件结算、
   触屏巡灯语言、敌兵组合配方与批渲染方向、引擎补丁版本与 `.godot-version` 一致性。
-- 最近一次 Linux 基线：**161 tests / 161 passed / 41180 asserts**（Godot 4.7.2-stable）。
+- 最近一次 Linux 基线：**172 tests / 172 passed / 47951 asserts**（Godot 4.7.2-stable）。
   Windows 原生 GUT 与启动器 smoke test 仍由 CI 复验。
 - 敌兵外观由 `game/data/enemies.json` 的 `character_recipe` 驱动，
   `pixel-art/character_forge/bake_battle_sprites.py` 从裸体基底、服装、头饰、
@@ -140,6 +147,7 @@ game\launch.bat
   Godot win64，不使用 Wine。本地 Wine 11 + Godot 4.7.2-stable 仅作额外预检，
   已验证 `auto`、`opengl` 与镜像配置读取。
 - 数据与平衡模拟走 Bun + TypeScript，不启动引擎。
+- 版本与元数据漂移检查：`bun run verify:env`。
 
 ## 截图
 
@@ -156,7 +164,7 @@ game\launch.bat
 - `assets/icons/game_icons/`：101 个 game-icons.net SVG，CC BY 3.0；
   逐项作者与来源见 `ATTRIBUTION.md`，完整许可见 `LICENSE-CC-BY-3.0.txt`。
 - BGM、音效与字体署名数据在 `data/credits.json`；音频逐文件 TASL（作者、来源、许可链接、
-  用途、修改与 BGM 哈希）见 `assets/audio/LICENSES.md`。运行时 BGM 为 CC BY 4.0、CC BY 3.0 与 CC0 1.0 各一首；20 个 SFX 全部为 CC0 1.0。
+  用途、修改与 BGM 哈希）见 `assets/audio/LICENSES.md`。运行时 BGM 为 CC BY 4.0、CC BY 3.0 与 CC0 1.0 各一首；18 个 SFX 全部为 CC0 1.0。
 - 文化背景与赛事创作方向来源：
   [2026 OSGJ 开源游戏开发大赛官网](https://2026gamejam.osgame.org/)。
 - 新像素素材用 `skills/pixel-art-studio/` 生成，源文件放 `../pixel-art/<slug>/build.py`。
@@ -175,7 +183,7 @@ game\launch.bat
 ## 导出
 
 四平台预设已写入 `export_presets.cfg`。2026-11-23 的旧忽略产物早于音频/许可整改，
-在重新导出与复查前不得分发。当前版本为 `0.1.0`；重建与审计结果记录在
+在重新导出与复查前不得分发。当前版本为 `0.1.1`；重建与审计结果记录在
 GitHub Actions 的 `release.yml` 构建报告中。GitHub Release 只由 `v*.*.*` 标签触发
 `.github/workflows/release.yml` 生成。
 历史验收记录：

@@ -4,10 +4,11 @@ const FIXED_STEP := 1.0 / 60.0
 const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
 const ATTACK_BUFFER_DURATION := 0.18
-const GAMEPLAY_CURSOR_PATH := "res://assets/ui/watch_cursor.png"
+const HUD_REFRESH_INTERVAL := 0.05
+const GAMEPLAY_CURSOR_PATH := "res://assets/ui/watch_cursor.webp"
 const GAMEPLAY_CURSOR_HOTSPOT := Vector2(3, 0)
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
-const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
+const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const ICON_KATANA := "res://assets/icons/game_icons/wpn_katana.svg"
 const ICON_BOW := "res://assets/icons/game_icons/wpn_bow.svg"
 const ICON_DRAGON := "res://assets/icons/game_icons/wpn_dragon_lantern.svg"
@@ -106,6 +107,7 @@ var _move_trail_timer := 0.0
 var _event_enemy_speed_mult := 1.0
 var _accum := 0.0
 var _spawn_accum := 0.0
+var _hud_refresh_accum := 0.0
 var _event_line_index := 0
 var _scale_event_index := 0
 var _boss_spawned := false
@@ -160,7 +162,10 @@ func _process(delta: float) -> void:
 		_accum -= FIXED_STEP
 		steps += 1
 	_update_camera(delta)
-	hud.update_hud(_hud_state())
+	_hud_refresh_accum += delta
+	if _hud_refresh_accum >= HUD_REFRESH_INTERVAL:
+		_hud_refresh_accum = 0.0
+		hud.update_hud(_hud_state())
 
 
 func _unhandled_input(event: InputEvent) -> void:

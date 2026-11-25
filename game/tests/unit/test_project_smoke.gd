@@ -5,8 +5,18 @@ func test_project_smoke_config() -> void:
 	assert_eq(Engine.get_version_info().major, 4, "must run on Godot 4")
 	assert_eq(
 		ProjectSettings.get_setting("application/config/name"),
-		"守望·永昌",
-		"project name must match the game"
+		ProjectMeta.game_name_zh,
+		"project name must match generated metadata"
+	)
+	assert_eq(
+		ProjectSettings.get_setting("application/config/version"),
+		ProjectMeta.version,
+		"project version must match generated metadata"
+	)
+	assert_eq(
+		ProjectSettings.get_setting("application/config/icon"),
+		ProjectMeta.icon_path,
+		"project icon must match generated metadata"
 	)
 	assert_eq(
 		ProjectSettings.get_setting("display/window/size/viewport_width"),
@@ -57,14 +67,34 @@ func test_export_presets_cover_linux_windows_macos_and_web() -> void:
 		text,
 		'progressive_web_app/ensure_cross_origin_isolation_headers=false'
 	)
-	assert_string_contains(text, 'exclude_filter="build/*,export/*,tests/*,addons/gut/*,addons/gda_harness/*')
+	assert_string_contains(text, 'exclude_filter="build/*,export/*,*.import,')
+	assert_string_contains(text, "tests/*,addons/gut/*,addons/gda_harness/*")
 	assert_string_contains(text, 'assets/character_forge/*')
 	assert_string_contains(text, 'assets/fonts/LXGWWenKai-Regular.ttf')
+	assert_string_contains(text, 'scenes/dev/*')
 	assert_string_contains(
 		project,
 		'theme/custom_font="res://assets/fonts/LXGWWenKai-Regular.woff2"'
 	)
 	assert_string_contains(text, 'application/copyright="Code AGPL-3.0-or-later;')
+	assert_string_contains(
+		text,
+		'application/product_name="%s"' % ProjectMeta.game_name_zh
+	)
+	assert_string_contains(
+		text,
+		'application/company_name="%s"' % ProjectMeta.author
+	)
+	assert_string_contains(
+		text,
+		'application/bundle_identifier="%s"' % ProjectMeta.bundle_identifier
+	)
+	assert_string_contains(text, 'application/short_version="%s"' % ProjectMeta.version)
+	assert_string_contains(
+		text,
+		'application/version="%s"' % ProjectMeta.version
+	)
+	assert_string_contains(text, ProjectMeta.repo_url)
 	assert_false(text.contains("Code GPL-3.0-or-later"), "export metadata must use AGPL")
 	assert_string_contains(text, 'include_filter="LICENSE,NOTICE,LICENSE-CC-BY-4.0.txt,')
 	var code_license := FileAccess.get_file_as_string("res://LICENSE")

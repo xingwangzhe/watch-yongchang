@@ -3,7 +3,7 @@ extends Control
 signal closed
 
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
-const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.png")
+const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const PAPER := Color("#efe1c2")
 const MUTED := Color("#baa98a")
 const GOLD := Color("#e1b35a")

@@ -8,7 +8,7 @@
 		"watchtower": {
 			"name_zh": "望楼",
 			"name_en": "Watchtower",
-			"texture": "res://assets/units/towers/watchtower.png",
+			"texture": "res://assets/units/towers/watchtower.webp",
 			"sprite_scale": 1.0,
 			"hp": 3400.0,
 			"radius": 36.0,
@@ -27,7 +27,7 @@
 		"arrow_tower": {
 			"name_zh": "箭楼",
 			"name_en": "Arrow Tower",
-			"texture": "res://assets/units/towers/arrow_tower.png",
+			"texture": "res://assets/units/towers/arrow_tower.webp",
 			"sprite_scale": 1.06,
 			"hp": 5600.0,
 			"radius": 40.0,
@@ -46,7 +46,7 @@
 		"dragon_tower": {
 			"name_zh": "龙首箭楼",
 			"name_en": "Dragon-Head Tower",
-			"texture": "res://assets/units/towers/dragon_tower.png",
+			"texture": "res://assets/units/towers/dragon_tower.webp",
 			"sprite_scale": 1.12,
 			"hp": 8200.0,
 			"radius": 44.0,

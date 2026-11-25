@@ -59,6 +59,9 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
   `character_recipe` 烘焙；战斗、选择页与序章只使用这些文件。
 - `game/assets/tiles/yongchang/`：原创明式抗倭瓦片与环境动效。
 - `game/assets/ui/menu_*.png`、`watch_cursor.png`：原创主菜单分层夜景与游戏光标。
+- `game/assets/**/*.webp`：由 `tools/optimize_runtime_images.ts` 从对应 PNG
+  源图确定性派生的运行时纹理；像素画使用无损 WebP，面板底图使用近无损 WebP。
+  源 PNG 保留用于编辑与复跑，导出预设排除未引用的源副本。
 - `game/assets/icons/game_icons/`：第三方 game-icons.net SVG，不是 AI 生成；
   运行时仅着色，不改变图形。
 
@@ -107,11 +110,11 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 | GUT 9.7.1 | Bitwes 与贡献者 | MIT | 仅测试，不进入发行包 |
 | Pixel Art Studio | Gamezxz | MIT | 开发期像素工具；不进入发行包 |
 | game-icons.net SVG 101 个 | Delapouite、Lorc、Skoll、Willdabeast、Faithtoken、Caro Asercion | CC BY 3.0 | UI 与卡牌图标；运行时着色，图形未改；逐项来源见 `ATTRIBUTION.md` |
-| LXGW WenKai / 霞鹜文楷 | LXGW / Klee Project | SIL OFL 1.1 | 全局字体；TTF 转为 WOFF2 以缩小 Web 包，字形未改 |
+| LXGW WenKai / 霞鹜文楷 | LXGW / Klee Project | SIL OFL 1.1 | 全局字体；按运行时文案子集化为 WOFF2 以缩小包体，依据 OFL 附加许可仅作游戏内嵌，不提供可安装字体 |
 | Samurai Nights | Maik Hoffmann (Majadroid) | CC BY 4.0 | 主菜单/选择页 BGM；MP3 转 OGG |
 | Views From Atop the Jade Kings Throne | Hitctrl | CC BY 3.0 | 关于页 BGM；原始 OGG |
 | Hard Battle 1 | MintoDog | CC0 1.0 | 正篇战斗 BGM；原始 OGG |
-| OpenGameArt 与 Kenney 音效 | 逐项见 `game/assets/audio/LICENSES.md` | CC0 1.0 | 20 个运行时 SFX；响度归一化、截短与 OGG 转码 |
+| OpenGameArt 与 Kenney 音效 | 逐项见 `game/assets/audio/LICENSES.md` | CC0 1.0 | 18 个运行时 SFX；响度归一化、截短与 OGG 转码 |
 | Jeff-FX-forge 1.1 | Jeff Studio | 代码 MIT；预设特效 CC0 1.0 | 战斗特效图集；帧矩形和锚点接入项目数据 |
 | golden-ui / Free UI Asset Pack 1 | buch / ctatz | CC0 1.0 | 面板裁切与符号染色 |
 | 2026 OSGJ 组委会文化资料 | 各原作者 | 原权利保留 | 仅本地考据；原始包、OCR、图片和主题密钥不进入仓库、发行包或演示视频 |

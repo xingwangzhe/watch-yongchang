@@ -10,7 +10,7 @@
 	"animations": {
 		"slash_basic": {
 			"name": "基础刀光",
-			"texture": "res://assets/fx/jeff_fx/slash_basic.png",
+			"texture": "res://assets/fx/jeff_fx/slash_basic.webp",
 			"frames": 9,
 			"fps": 20,
 			"loop": false,
@@ -89,7 +89,7 @@
 		},
 		"slash_fire": {
 			"name": "火焰斩",
-			"texture": "res://assets/fx/jeff_fx/slash_fire.png",
+			"texture": "res://assets/fx/jeff_fx/slash_fire.webp",
 			"frames": 10,
 			"fps": 20,
 			"loop": false,
@@ -175,7 +175,7 @@
 		},
 		"slash_ice": {
 			"name": "寒冰斩",
-			"texture": "res://assets/fx/jeff_fx/slash_ice.png",
+			"texture": "res://assets/fx/jeff_fx/slash_ice.webp",
 			"frames": 9,
 			"fps": 20,
 			"loop": false,
@@ -254,7 +254,7 @@
 		},
 		"slash_shadow": {
 			"name": "暗影斩",
-			"texture": "res://assets/fx/jeff_fx/slash_shadow.png",
+			"texture": "res://assets/fx/jeff_fx/slash_shadow.webp",
 			"frames": 11,
 			"fps": 20,
 			"loop": false,
@@ -347,7 +347,7 @@
 		},
 		"slash_ink": {
 			"name": "墨刃",
-			"texture": "res://assets/fx/jeff_fx/slash_ink.png",
+			"texture": "res://assets/fx/jeff_fx/slash_ink.webp",
 			"frames": 9,
 			"fps": 20,
 			"loop": false,
@@ -426,7 +426,7 @@
 		},
 		"slash_spin": {
 			"name": "回旋斩",
-			"texture": "res://assets/fx/jeff_fx/slash_spin.png",
+			"texture": "res://assets/fx/jeff_fx/slash_spin.webp",
 			"frames": 12,
 			"fps": 20,
 			"loop": false,
@@ -526,7 +526,7 @@
 		},
 		"thrust": {
 			"name": "突刺",
-			"texture": "res://assets/fx/jeff_fx/thrust.png",
+			"texture": "res://assets/fx/jeff_fx/thrust.webp",
 			"frames": 8,
 			"fps": 20,
 			"loop": false,
@@ -598,7 +598,7 @@
 		},
 		"hit_basic": {
 			"name": "普通打击",
-			"texture": "res://assets/fx/jeff_fx/hit_basic.png",
+			"texture": "res://assets/fx/jeff_fx/hit_basic.webp",
 			"frames": 7,
 			"fps": 20,
 			"loop": false,
@@ -663,7 +663,7 @@
 		},
 		"hit_heavy": {
 			"name": "重击",
-			"texture": "res://assets/fx/jeff_fx/hit_heavy.png",
+			"texture": "res://assets/fx/jeff_fx/hit_heavy.webp",
 			"frames": 9,
 			"fps": 20,
 			"loop": false,
@@ -742,7 +742,7 @@
 		},
 		"hit_crit": {
 			"name": "暴击",
-			"texture": "res://assets/fx/jeff_fx/hit_crit.png",
+			"texture": "res://assets/fx/jeff_fx/hit_crit.webp",
 			"frames": 9,
 			"fps": 20,
 			"loop": false,
@@ -821,7 +821,7 @@
 		},
 		"block_sparks": {
 			"name": "格挡火花",
-			"texture": "res://assets/fx/jeff_fx/block_sparks.png",
+			"texture": "res://assets/fx/jeff_fx/block_sparks.webp",
 			"frames": 10,
 			"fps": 20,
 			"loop": false,
@@ -907,7 +907,7 @@
 		},
 		"ground_shockwave": {
 			"name": "地面冲击波",
-			"texture": "res://assets/fx/jeff_fx/ground_shockwave.png",
+			"texture": "res://assets/fx/jeff_fx/ground_shockwave.webp",
 			"frames": 10,
 			"fps": 20,
 			"loop": false,
@@ -993,7 +993,7 @@
 		},
 		"energy_ring": {
 			"name": "能量冲击环",
-			"texture": "res://assets/fx/jeff_fx/energy_ring.png",
+			"texture": "res://assets/fx/jeff_fx/energy_ring.webp",
 			"frames": 12,
 			"fps": 20,
 			"loop": false,
@@ -1093,7 +1093,7 @@
 		},
 		"explosion_small": {
 			"name": "小型爆炸",
-			"texture": "res://assets/fx/jeff_fx/explosion_small.png",
+			"texture": "res://assets/fx/jeff_fx/explosion_small.webp",
 			"frames": 10,
 			"fps": 15,
 			"loop": false,
@@ -1179,7 +1179,7 @@
 		},
 		"explosion_big": {
 			"name": "大型爆炸",
-			"texture": "res://assets/fx/jeff_fx/explosion_big.png",
+			"texture": "res://assets/fx/jeff_fx/explosion_big.webp",
 			"frames": 14,
 			"fps": 15,
 			"loop": false,
@@ -1293,7 +1293,7 @@
 		},
 		"explosion_poison": {
 			"name": "毒气爆炸",
-			"texture": "res://assets/fx/jeff_fx/explosion_poison.png",
+			"texture": "res://assets/fx/jeff_fx/explosion_poison.webp",
 			"frames": 12,
 			"fps": 12,
 			"loop": false,
