@@ -2,7 +2,7 @@
 
 《守望 · 永昌》是一款以明代沿海卫所文化为背景的 2D 割草生存 Roguelite，参加 2026 OSGJ 开源游戏开发大赛。玩家扮演虚构守灯乡勇王陆，在永昌堡度过 16 分钟守夜：移动、自动或手动攻击、升级三选一、管理灯火风险，并抵御敌兵与 Boss。
 
-当前游戏版本为 **`0.1.1`**；公开 Release 资产须按当前 `main` 重建后再用于赛事提交。
+当前游戏版本为 **`0.1.2`**；公开 Release 资产须按当前 `main` 重建后再用于赛事提交。
 
 当前版本包含三张地图、王陆六种守夜阵位、七种兵器与十二种被动、箭塔连发/并发、双堡图鉴、双语界面与字幕、首次游玩教程及完整结算流程。1386 年汤和序章与 1559 年王陆正篇分开叙事；六张选择卡是阵位，不是六名独立人物。
 
@@ -108,7 +108,7 @@ Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路�
 bun run verify:env
 ```
 
-测试框架为 GUT 9.7.1。当前 Linux 基线为 **174 tests / 174 passed / 50418 asserts**。CI 并行执行 Linux、Windows、macOS GUT 与 Web 构建；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
+测试框架为 GUT 9.7.1。当前 Linux 基线为 **189 tests / 189 passed / 50518 asserts**。CI 并行执行 Linux、Windows、macOS GUT 与 Web 构建；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
 
 `main` 分支的 Web 构建会以单线程模式导出，并并行部署至 Cloudflare Pages 项目
 `shouwang` 与 EdgeOne Makers 镜像。自定义域名 <https://2026shouwang.needhelp.icu>

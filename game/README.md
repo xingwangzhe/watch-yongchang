@@ -1,6 +1,6 @@
 # game/ — Godot 工程
 
-状态（2026-11-25）：v0.1.1 表现与音频确权基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
+状态（2026-11-25）：v0.1.2 Web 性能与音频确权基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
 3 张地图、7 兵器/12 被动、16 分钟完整胜利流程、双堡图鉴、结算解锁、灯火风险收益、
 龙鳞清屏、Boss 与双语定时字幕已接入；未核实输出授权的 MOSS-TTS-Nano 语音已停止分发。
 三选一卡池扩至 51 属性 / 38 技能 / 22 事件 / 32 箭塔，共 143 张来源可追溯的卡牌，并接入 101 个
@@ -133,7 +133,7 @@ game\launch.bat
   角色图集与瓦片图集、143 张卡的双语/来源/图标完整性、149+ 条目规模、
   三选一唯一性、减速/灼烧/眩晕/收魂、选项卡渲染、事件结算、
   触屏巡灯语言、敌兵组合配方与批渲染方向、引擎补丁版本与 `.godot-version` 一致性。
-- 最近一次 Linux 基线：**174 tests / 174 passed / 50418 asserts**（Godot 4.7.2-stable）。
+- 最近一次 Linux 基线：**189 tests / 189 passed / 50518 asserts**（Godot 4.7.2-stable）。
   Windows 原生 GUT 与启动器 smoke test 仍由 CI 复验。
 - 敌兵外观由 `game/data/enemies.json` 的 `character_recipe` 驱动，
   `pixel-art/character_forge/bake_battle_sprites.py` 从裸体基底、服装、头饰、
@@ -183,7 +183,7 @@ game\launch.bat
 ## 导出
 
 四平台预设已写入 `export_presets.cfg`。2026-11-23 的旧忽略产物早于音频/许可整改，
-在重新导出与复查前不得分发。当前版本为 `0.1.1`；重建与审计结果记录在
+在重新导出与复查前不得分发。当前版本为 `0.1.2`；重建与审计结果记录在
 GitHub Actions 的 `release.yml` 构建报告中。GitHub Release 只由 `v*.*.*` 标签触发
 `.github/workflows/release.yml` 生成。
 历史验收记录：
