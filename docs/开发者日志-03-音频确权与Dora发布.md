@@ -26,7 +26,7 @@
 ## 当前结果与边界
 
 Linux、Windows、macOS 原生 GUT 与 Web 构建已在
-[Verify #45593232677](https://github.com/xingwangzhe/watch-yongchang/actions/runs/45593232677)
+[Verify #45594130561](https://github.com/xingwangzhe/watch-yongchang/actions/runs/45594130561)
 全部通过；Dora 静态检查、源码 ZIP、Linux/Windows/macOS ZIP 与 PCK 审计通过。
 真实 Dora、macOS 发行包实机验收、AtomGit 提交与赛事平台操作仍未完成。构建证据见
 GitHub Actions 的 `release.yml` 报告，运行说明见 [Dora 运行说明](../DORA.md)。

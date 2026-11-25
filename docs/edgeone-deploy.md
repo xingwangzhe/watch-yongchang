@@ -102,9 +102,9 @@ bunx -y edgeone@1.7.7 makers deploy game/build/web \
 ## 已验收状态（2026-11-25）
 
 - 项目：`shouwang`，Project ID `makers-hmgmargzbiuc`，Zone ID `zone-3kfm4dogb99e`。
-- 最近 CI 部署：`Web build and EdgeOne deploy` 成功，Deployment ID
+- 已核验 CI 部署：`Web build and EdgeOne deploy` 成功，Deployment ID
   `dp0x63yipejk`；对应四平台全绿 run
-  <https://github.com/xingwangzhe/watch-yongchang/actions/runs/45593232677>。
+  <https://github.com/xingwangzhe/watch-yongchang/actions/runs/45594130561>。
   原始目录直传，不再使用 `web-edgeone` 分片目录，也不再有
   `edgeone-manifest.json` 或 `*.part*` 文件。
 - CNAME：`2026shouwang.needhelp.icu -> 2026shouwang.needhelp.icu.pages.dnsoe6.com`，

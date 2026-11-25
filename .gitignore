@@ -1,11 +1,16 @@
 # ============================================================
 # 《守望 · 永昌》公开仓库忽略规则
 #
-# 原则：
-# 1. 只跟踪可公开再分发的源码、运行资产、构建说明与授权材料。
-# 2. 开发助手工作区、赛事原始研究、第三方未授权语料、内部草稿、
-#    本地生成物和一次性脚本一律不入库。
-# 3. 正式游戏资产仍在 game/assets/ 内；本文件不忽略其中的运行文件。
+# 公开仓库只跟踪：
+# - Godot 源码、场景、运行必需资产与可复现构建脚本
+# - README、运行说明、开发者日志、文化来源与授权清单
+#
+# 默认只在本地保留：
+# - 设计稿、数值表、赛事原始资料、主题载荷/密钥、OCR 与研究档案
+# - Agent 工作区、临时脚本、截图、录屏、导出包、第三方参考包
+# - 本机缓存、构建中间件与一次性验证产物
+#
+# 新增公开文件时，先确认可再分发与许可，再用 ! 显式放行。
 # ============================================================
 
 # ----- 开发助手 / Agent 工作区（含记忆、技能缓存、会话草稿）-----
@@ -23,66 +28,142 @@
 .aider*
 .agents/
 AGENTS.md
+AGENTS.*.md
 AGENTS.local.md
+CLAUDE.md
 CLAUDE.local.md
+GEMINI.md
 .mcp.json
 mcp.json
 
-# ----- 编辑器与操作系统噪声 -----
+# ----- 编辑器、操作系统与本地工作区噪声 -----
 .idea/
 .vscode/
+.fleet/
+.zed/
+.history/
+.settings/
+.project
+.classpath
+.metadata/
+*.code-workspace
 *.swp
 *.swo
 *~
 .DS_Store
+._*
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 desktop.ini
+*.lnk
+$RECYCLE.BIN/
+.Trash/
+.Trashes/
 
 # ----- 文档目录默认仅本地：只显式公开构建说明、开发者日志和文化来源 -----
 # 赛事原始资料、主题载荷/密钥、设计稿、内部数值、调研草稿、截图、视频、
 # OCR、缩略图、联系表、PDF/Office 文件等一律不进入公开仓库。
 docs/**
+!docs/README.md
 !docs/edgeone-deploy.md
 !docs/开发者日志-*.md
 !docs/文化来源.md
-
 design/
+research/
+notes/
+drafts/
+internal/
+private/
+local/
+scratch/
+experiments/
+playground/
 *.drawio
+*.excalidraw
 *.mm
 *.xmind
 *.odt
 *.ods
 *.odp
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.pages
+*.numbers
+*.keynote
+*.epub
 
 # ----- 本地研究、生成候选与第三方参考实现 -----
+third_party/
 assets/third_party/
-third_party/reference-games/
-third_party/moss-tts-nano/
-generated/game_icons/
-generated/tileset_candidates/
-generated/character_candidates/
-generated/battle_redesign/
-generated/forge_hd/
+generated/
+assets/units/
+assets/buildings/
+assets/预览-*.jpg
+game/assets/actors/
+game/assets/buildings/
+game/assets/tiles/dcss/
+game/assets/tiles/hardvacuum/
+game/assets/tiles/atlas_geology.png
+game/assets/units/*/static.png
+game/assets/units/*/run/
+game/assets/units/*/attack/
+game/data/actors.json
+game/scenes/*preview.tscn
+game/scripts/dev/
+pixel-art/actors/
+pixel-art/**/__pycache__/
+pixel-art/**/*.png
+pixel-art/**/*.gif
+pixel-art/**/*.jpg
+pixel-art/**/*.jpeg
+pixel-art/**/*_study/
+pixel-art/**/study/
+pixel-art/**/CRITIQUE.md
+pixel-art/character_forge/REFERENCE.md
+skills/pixel-art-studio/docs/
+skills/pixel-art-studio/examples/
 
 # ----- Godot 缓存、工具 harness、导出与打包产物 -----
 game/.godot/
+game/.import/
 game/addons/gda_harness/
 game/export/
 game/build/
 game/android/build/
 game/ios/build/
-.codegraph/
 .sconsign.dblite
 .scons-cache/
 scons-cache/
 web-engine-dist/
 godot-src/
 *.pck
+*.wasm
+*.wasm.map
+*.data
 *.exe
+*.msi
 *.x86_64
 *.dmg
+*.AppImage
+*.deb
+*.rpm
 *.app/
+*.apk
+*.aab
+*.ipa
+*.pdb
 *.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
 
 # ----- 截图、调试日志、演示视频与本地验收产物 -----
 docs/screenshots/
@@ -92,30 +173,34 @@ artifacts/
 reports/
 out/
 output/
-tmp/
-temp/
-.tmp/
-.temp/
-scratch/
-local/
-private/
-tools/__pycache__/
-dora/__pycache__/
-__pycache__/
-.playwright-cli/
-playwright-report/
-test-results/
-*.pyc
+dist/
+build/
+release/
+release-assets/
+ci-artifacts/
+coverage/
+captures/
+renders/
+preview/
+previews/
+logs/
 *.log
 *.tmp
 *.temp
 *.bak
 *.orig
 *.rej
+*.old
+*.backup
+*.copy
 *.mp4
 *.mkv
 *.mov
+*.avi
 *.webm
+*.m4v
+*.wmv
+*.flv
 *.wav
 *.flac
 *.mp3
@@ -129,55 +214,6 @@ test-results/
 *.sqlite
 *.sqlite3
 *.db
-*.blend
-*.blend1
-*.psd
-*.psb
-*.kra
-*.xcf
-*.aseprite
-*.clip
-*.ai
-*.sketch
-*.fig
-*.docx
-*.xlsx
-*.pptx
-*.rtf
-*.epub
-*.patch
-*.diff
-*.onnx
-*.safetensors
-*.ckpt
-*.pt
-*.pth
-*.bin
-*.gguf
-
-# ----- 开发预览与旧角色实验，不得进入正式运行资产 -----
-game/assets/actors/
-game/assets/buildings/
-game/assets/units/xiangyong/
-game/assets/units/gongshou/
-game/assets/units/longdeng/
-game/assets/units/tengpai/
-game/assets/units/huochong/
-game/assets/units/jinshi/
-game/assets/units/wokou_scout/
-game/assets/units/wokou_gun/
-game/assets/units/wokou_ronin/
-game/assets/units/wokou_shield/
-game/assets/units/wokou_chief/
-game/data/actors.json
-game/scenes/*preview.tscn
-game/scripts/dev/
-pixel-art/actors/
-
-# ----- 根目录旧兵种/建筑副本（正式运行资产仅在 game/assets/）-----
-/assets/units/
-/assets/buildings/
-/assets/预览-*.jpg
 
 # ----- 本地密钥、证书与环境变量 -----
 .env
@@ -196,54 +232,101 @@ pixel-art/actors/
 *.gpg
 *.age
 *.asc
+*.ovpn
+*.mobileconfig
+*.kubeconfig
+secrets/
+credentials/
 secrets.*
 secret.*
 *.secret
 *.token
 id_rsa
+id_rsa.*
 id_ed25519
+id_ed25519.*
 credentials.json
 .npmrc
 .pypirc
 .netrc
+.aws/
+.ssh/
+.gnupg/
 
-# ----- 一次性迁移脚本与临时脚本（保留可复现构建工具）-----
-tools/append_icon_credits.ts
-scripts/_*
-tools/_*
-scripts/*.tmp.*
-tools/*.tmp.*
-scripts/tmp-*
-tools/tmp-*
-scripts/scratch-*
-tools/scratch-*
-
-# ----- 像素素材中间图与验收图（构建脚本可重建，正式导出走 game/assets/）-----
-pixel-art/**/*.png
-pixel-art/**/*.gif
-pixel-art/**/*.jpg
-pixel-art/**/*.jpeg
-pixel-art/**/*_study/
-pixel-art/**/study/
-pixel-art/**/CRITIQUE.md
-pixel-art/character_forge/REFERENCE.md
-skills/pixel-art-studio/docs/
-skills/pixel-art-studio/examples/
-
-# ----- 根目录字体副本；运行时唯一字体位于 game/assets/fonts/ -----
-assets/fonts/
-game/assets/fonts/LXGWWenKai-Regular.ttf
-game/assets/fonts/LXGWWenKai-Regular.ttf.import
-
-# ----- CI 工具与包管理器缓存 -----
-.tools/
-.edgeone/
-ci-artifacts/
-release-assets/
-.venv/
+# ----- 软件包、运行时与工具缓存 -----
 node_modules/
+.bun/
+.pnpm-store/
+.venv/
+.tox/
+.nox/
 .cache/
 .turbo/
 .parcel-cache/
 .eslintcache
 .stylelintcache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.nyc_output/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.tsbuildinfo
+playwright-report/
+test-results/
+.playwright-cli/
+
+# EdgeOne CLI 本地项目凭据与部署状态
+.edgeone/
+
+# ----- 一次性迁移脚本、临时脚本与本地配置 -----
+scripts/_*
+scripts/*.tmp.*
+scripts/*.scratch.*
+scripts/local-*
+scripts/oneoff-*
+scripts/experiments-*
+tools/_*
+tools/*.tmp.*
+tools/*.scratch.*
+tools/local-*
+tools/oneoff-*
+tools/experiments-*
+tools/append_icon_credits.ts
+*.tmp.*
+*.scratch.*
+*.local.*
+*.patch
+*.diff
+
+# ----- 设计、绘画与 3D 源文件（运行时导出另放 game/assets/）-----
+*.blend
+*.blend1
+*.psd
+*.psb
+*.kra
+*.xcf
+*.aseprite
+*.clip
+*.ai
+*.sketch
+*.fig
+*.procreate
+*.sai
+*.sai2
+*.csp
+
+# ----- 根目录临时图；正式图必须放进 game/assets/ -----
+/*.png
+/*.jpg
+/*.jpeg
+/*.gif
+/*.webp
+/*.svg
+
+# ----- 根目录字体副本；运行时唯一字体位于 game/assets/fonts/ -----
+assets/fonts/
+game/assets/fonts/LXGWWenKai-Regular.ttf
+game/assets/fonts/LXGWWenKai-Regular.ttf.import
