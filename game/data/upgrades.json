@@ -12,7 +12,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:283",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "armor",
@@ -31,7 +31,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "armor",
@@ -54,7 +54,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "max_hp_mult",
@@ -73,7 +73,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "shield_max",
@@ -96,7 +96,7 @@
 			"max_level": 4,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:10.1",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "oil_max",
@@ -115,7 +115,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "regen",
@@ -134,7 +134,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
+			"source_ref": "《汤和信俗·抵御倭患第一人》",
 			"effects": [
 				{
 					"stat": "regen",
@@ -153,7 +153,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:4",
+			"source_ref": "《汤和信俗·抵御倭患第一人》",
 			"effects": [
 				{
 					"stat": "max_hp_flat",
@@ -172,7 +172,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "max_hp_flat",
@@ -195,7 +195,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "max_hp_mult",
@@ -218,7 +218,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "speed_mult",
@@ -237,7 +237,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "speed_mult",
@@ -260,7 +260,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:3",
+			"source_ref": "《汤和信俗·抵御倭患第一人》",
 			"effects": [
 				{
 					"stat": "speed_mult",
@@ -279,7 +279,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "演绎：《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "speed_mult",
@@ -302,7 +302,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "pickup_mult",
@@ -321,7 +321,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "pickup_mult",
@@ -340,7 +340,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "pickup_mult",
@@ -363,7 +363,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:283",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "xp_mult",
@@ -382,7 +382,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "xp_mult",
@@ -405,7 +405,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15038",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "xp_mult",
@@ -428,7 +428,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "damage_mult",
@@ -447,7 +447,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "damage_mult",
@@ -466,7 +466,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "area_mult",
@@ -489,7 +489,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "crit",
@@ -508,7 +508,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "crit",
@@ -531,7 +531,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "projectile_speed_mult",
@@ -554,7 +554,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "damage_mult",
@@ -577,7 +577,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
+			"source_ref": "宁村拼字龙灯与汤和信俗文化节",
 			"effects": [
 				{
 					"stat": "luck",
@@ -600,7 +600,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
+			"source_ref": "宁村拼字龙灯与汤和信俗文化节",
 			"effects": [
 				{
 					"stat": "area_mult",
@@ -619,7 +619,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
+			"source_ref": "宁村拼字龙灯与汤和信俗文化节",
 			"effects": [
 				{
 					"stat": "area_mult",
@@ -642,7 +642,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "damage_mult",
@@ -665,7 +665,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "dodge",
@@ -688,7 +688,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
+			"source_ref": "《汤和信俗·抵御倭患第一人》",
 			"effects": [
 				{
 					"stat": "dodge",
@@ -711,7 +711,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "cooldown_mult",
@@ -730,7 +730,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "cooldown_mult",
@@ -753,7 +753,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "cooldown_mult",
@@ -776,7 +776,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "luck",
@@ -799,7 +799,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "armor",
@@ -822,7 +822,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "thorns",
@@ -841,7 +841,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "演绎：《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "lifesteal",
@@ -860,7 +860,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "damage_mult",
@@ -883,7 +883,7 @@
 			"max_level": 1,
 			"rarity": "legendary",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "revive",
@@ -902,7 +902,7 @@
 			"max_level": 1,
 			"rarity": "legendary",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
+			"source_ref": "《汤和信俗·抵御倭患第一人》",
 			"effects": [
 				{
 					"stat": "revive",
@@ -925,7 +925,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "luck",
@@ -948,7 +948,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "xp_mult",
@@ -971,7 +971,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "gold_mult",
@@ -990,7 +990,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "damage_mult",
@@ -1013,7 +1013,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "演绎：《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "gold_mult",
@@ -1036,7 +1036,7 @@
 			"max_level": 4,
 			"rarity": "uncommon",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "oil_max",
@@ -1059,7 +1059,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "area_mult",
@@ -1082,7 +1082,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/地图空间资料索引.md:23",
+			"source_ref": "《永昌堡与宁村所地图空间资料索引》",
 			"effects": [
 				{
 					"stat": "wade_speed",
@@ -1103,7 +1103,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "skill_volley",
@@ -1122,7 +1122,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_volley",
@@ -1145,7 +1145,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_volley",
@@ -1168,7 +1168,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_volley",
@@ -1191,7 +1191,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:10.1",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_nova",
@@ -1210,7 +1210,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
+			"source_ref": "宁村拼字龙灯与汤和信俗文化节",
 			"effects": [
 				{
 					"stat": "skill_nova",
@@ -1233,7 +1233,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
+			"source_ref": "宁村拼字龙灯与汤和信俗文化节",
 			"effects": [
 				{
 					"stat": "skill_nova",
@@ -1256,7 +1256,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_nova",
@@ -1279,7 +1279,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_slow",
@@ -1298,7 +1298,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_slow",
@@ -1321,7 +1321,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
+			"source_ref": "《汤和信俗·抵御倭患第一人》",
 			"effects": [
 				{
 					"stat": "skill_slow",
@@ -1344,7 +1344,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
+			"source_ref": "《汤和信俗·抵御倭患第一人》",
 			"effects": [
 				{
 					"stat": "skill_slow",
@@ -1367,7 +1367,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "skill_burn",
@@ -1386,7 +1386,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_burn",
@@ -1409,7 +1409,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
+			"source_ref": "宁村拼字龙灯与汤和信俗文化节",
 			"effects": [
 				{
 					"stat": "skill_burn",
@@ -1432,7 +1432,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_burn",
@@ -1455,7 +1455,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_stun",
@@ -1474,7 +1474,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_stun",
@@ -1497,7 +1497,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_stun",
@@ -1520,7 +1520,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_chain",
@@ -1539,7 +1539,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "演绎：《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_chain",
@@ -1562,7 +1562,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_heal",
@@ -1585,7 +1585,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_heal",
@@ -1608,7 +1608,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:10.1",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_heal",
@@ -1631,7 +1631,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_shield",
@@ -1658,7 +1658,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "skill_shield",
@@ -1685,7 +1685,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_magnet",
@@ -1704,7 +1704,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_magnet",
@@ -1727,7 +1727,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15050",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_thorns",
@@ -1750,7 +1750,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_thorns",
@@ -1777,7 +1777,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "演绎：《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_lifesteal",
@@ -1800,7 +1800,7 @@
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:10.1",
+			"source_ref": "演绎：《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_lifesteal",
@@ -1827,7 +1827,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:10.1",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_dash",
@@ -1850,7 +1850,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_aura",
@@ -1877,7 +1877,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:269",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_aura",
@@ -1904,7 +1904,7 @@
 			"max_level": 5,
 			"rarity": "common",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "skill_aura",
@@ -1931,7 +1931,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
+			"source_ref": "《汤和信俗·抵御倭患第一人》",
 			"effects": [
 				{
 					"stat": "skill_aura",
@@ -1958,7 +1958,7 @@
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "skill_aura",
@@ -1987,7 +1987,7 @@
 			"max_level": 1,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:2",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "event_hp_pct",
@@ -2010,7 +2010,7 @@
 			"max_level": 1,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17",
+			"source_ref": "《汤和信俗·抵御倭患第一人》",
 			"effects": [
 				{
 					"stat": "event_hp_pct",
@@ -2033,7 +2033,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "演绎：《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "event_merit",
@@ -2056,7 +2056,7 @@
 			"max_level": 1,
 			"rarity": "common",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "event_oil",
@@ -2079,7 +2079,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "max_hp_mult",
@@ -2102,7 +2102,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15545",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "oil_max",
@@ -2125,7 +2125,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:10.1",
+			"source_ref": "演绎：《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "event_full_heal",
@@ -2148,7 +2148,7 @@
 			"max_level": 1,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3",
+			"source_ref": "宁村拼字龙灯与汤和信俗文化节",
 			"effects": [
 				{
 					"stat": "luck",
@@ -2171,7 +2171,7 @@
 			"max_level": 1,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "revive",
@@ -2194,7 +2194,7 @@
 			"max_level": 1,
 			"rarity": "rare",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "event_spawn_elite",
@@ -2217,7 +2217,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "event_enemy_speed",
@@ -2240,7 +2240,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "max_hp_mult",
@@ -2263,7 +2263,7 @@
 			"max_level": 1,
 			"rarity": "rare",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:6",
+			"source_ref": "演绎：《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "gold_mult",
@@ -2286,7 +2286,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "area_mult",
@@ -2309,7 +2309,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "演绎",
-			"source_ref": "演绎：docs/06-资料文本化/堡与汤和关系索引.md:2",
+			"source_ref": "演绎：《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "damage_mult",
@@ -2332,7 +2332,7 @@
 			"max_level": 1,
 			"rarity": "rare",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:283",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "armor",
@@ -2355,7 +2355,7 @@
 			"max_level": 1,
 			"rarity": "legendary",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:38",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "event_oil",
@@ -2378,7 +2378,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:312",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "pickup_mult",
@@ -2401,7 +2401,7 @@
 			"max_level": 1,
 			"rarity": "rare",
 			"category": "史实",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:544",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "damage_mult",
@@ -2424,7 +2424,7 @@
 			"max_level": 1,
 			"rarity": "rare",
 			"category": "制度",
-			"source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:5",
+			"source_ref": "《永昌堡与汤和关系索引》",
 			"effects": [
 				{
 					"stat": "xp_mult",
@@ -2447,7 +2447,7 @@
 			"max_level": 1,
 			"rarity": "uncommon",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/永昌堡-十三进士与抗倭纪略-全文.txt:15545",
+			"source_ref": "《永昌堡：十三进士与抗倭纪略》",
 			"effects": [
 				{
 					"stat": "regen",
@@ -2470,7 +2470,7 @@
 			"max_level": 1,
 			"rarity": "rare",
 			"category": "民俗",
-			"source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4",
+			"source_ref": "汤和庙基地介绍·汤和信俗",
 			"effects": [
 				{
 					"stat": "max_hp_mult",

@@ -141,8 +141,8 @@
 					{
 						"title_zh": "永昌堡资料与汤和信俗素材包",
 						"title_en": "Yongchang Fort records and the Tang He tradition package",
-						"note_zh": "官网题解入口；公开整理见 docs/06-资料文本化 顶层索引。",
-						"note_en": "Linked from the official theme brief; public notes live in the top-level docs/06-资料文本化 indexes.",
+						"note_zh": "官网题解入口；公开整理见 docs/文化来源.md。",
+						"note_en": "Linked from the official theme brief; public notes live in the top-level docs/文化来源.md.",
 						"url": "https://2026gamejam.osgame.org/"
 					},
 					{
@@ -188,21 +188,21 @@
 				"lines_zh": [
 					"文化不是贴图：阵法、灯火、龙灯拼字与百家宴士气进入玩法。",
 					"赛事创作方向取自官网题解：抗倭叙事、城堡防御、家族传承、节庆巡游、水乡生活、未来想象。",
-					"公开资料索引：docs/06-资料文本化/堡与汤和关系索引.md。",
+					"公开资料索引：《永昌堡与汤和关系索引》。",
 					"玩法与数值取舍：项目原创设计（演绎）。"
 				],
 				"lines_en": [
 					"Culture is not wallpaper: formations, lantern light, dragon-lantern characters, and feast morale shape the rules.",
 					"The event brief's creative directions: coastal resistance, castle defense, family heritage, festival processions, water-town life, and future imaginings.",
-					"Public index: docs/06-资料文本化/堡与汤和关系索引.md.",
+					"Public index: 《永昌堡与汤和关系索引》.",
 					"Gameplay and balance choices: original project design (interpretive)."
 				],
 				"entries": [
 					{
 						"title_zh": "永昌堡城防与抗倭地方史",
 						"title_en": "Yongchang Fort defenses and coastal resistance",
-						"note_zh": "公开整理见 docs/06-资料文本化 顶层索引。",
-						"note_en": "Public notes live in the top-level docs/06-资料文本化 indexes.",
+						"note_zh": "公开整理见 docs/文化来源.md。",
+						"note_en": "Public notes live in the top-level docs/文化来源.md.",
 						"url": "https://2026gamejam.osgame.org/"
 					},
 					{
@@ -228,13 +228,13 @@
 					"2026-11-24 核查 OpenMOSS 官方仓库、LICENSE 与 Hugging Face 模型卡：代码和模型产物标注 Apache-2.0，但没有找到明确授权生成语音录音输出的条款。",
 					"为避免把代码/模型许可误当作音频输出许可，原先生成的 9 条中文 + 9 条英文 OGG 已全部从成品和仓库运行时目录移除；模型权重从未入包。",
 					"剧情不静默跳过：VoiceLinePlayer 按字幕文本以约 4.35 音节/秒计算展示时长，保留完整中英字幕、角色、史实/制度/民俗/演绎分类和 source_ref。",
-					"game/data/voice_lines.json 显式设置 audio_enabled=false、distribution=subtitles_only；scripts/generate_voice.ts 默认拒绝再生成可分发语音，须先核实输出授权并显式 opt-in。"
+					"game/data/voice_lines.json 显式设置 audio_enabled=false、distribution=subtitles_only；生成器与模型权重均不随仓库分发。"
 				],
 				"lines_en": [
 					"On 2026-11-24 the official OpenMOSS repository, LICENSE, and Hugging Face model cards were reviewed: code and model artifacts are marked Apache-2.0, but no explicit grant for generated voice recordings was found.",
 					"To avoid treating a code/model license as an audio-output grant, all 18 former OGG files (nine Chinese and nine English lines) were removed from the runtime and repository; model weights were never shipped.",
 					"Narrative is not silently skipped: VoiceLinePlayer times subtitles from the text at roughly 4.35 syllables per second and preserves bilingual subtitles, speakers, source categories, and source_ref metadata.",
-					"game/data/voice_lines.json explicitly sets audio_enabled=false and distribution=subtitles_only; scripts/generate_voice.ts refuses generation by default until output rights are verified and an explicit opt-in is supplied."
+					"game/data/voice_lines.json explicitly sets audio_enabled=false and distribution=subtitles_only; the generator and model weights are not distributed."
 				],
 				"entries": [
 					{

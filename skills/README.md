@@ -11,11 +11,9 @@
 ## 使用
 
 ```bash
-# 在其自带示例目录外运行，输出落在当前目录
-python3 skills/pixel-art-studio/examples/slime-build.py
-
-# 新素材：pixel-art/<slug>/build.py
+# 新素材统一走项目构建脚本
 python3 pixel-art/<slug>/build.py
 ```
 
-开发助手工作区（`.workbuddy/`）不随项目分发，项目只保留本目录中的可复现 skill。
+上游示例和展示图不随项目分发；本目录只保留 `SKILL.md`、许可、参考文档与运行脚本。
+开发助手工作区（`.workbuddy/`）不随项目分发。

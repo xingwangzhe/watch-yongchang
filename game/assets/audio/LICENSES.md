@@ -132,9 +132,8 @@ The project therefore keeps only timed subtitles. Reviewed sources:
 - https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX/raw/main/README.md
 
 See `game/data/voice_lines.json` for the explicit `audio_enabled: false` flag and
-`AI使用与素材声明.md` for the decision record. `scripts/generate_voice.ts` refuses
-to generate distributable voice unless output rights are verified and an explicit
-environment opt-in is supplied.
+`AI使用与素材声明.md` for the decision record. The local generator and model
+weights are not distributed with the project.
 
 ## Rights review / 许可复核
 

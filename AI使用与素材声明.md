@@ -114,7 +114,6 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 | OpenGameArt 与 Kenney 音效 | 逐项见 `game/assets/audio/LICENSES.md` | CC0 1.0 | 20 个运行时 SFX；响度归一化、截短与 OGG 转码 |
 | Jeff-FX-forge 1.1 | Jeff Studio | 代码 MIT；预设特效 CC0 1.0 | 战斗特效图集；帧矩形和锚点接入项目数据 |
 | golden-ui / Free UI Asset Pack 1 | buch / ctatz | CC0 1.0 | 面板裁切与符号染色 |
-| Dungeon Crawl Stone Soup 图块 106 张 | DCSS contributors | CC0 1.0 | 保留作历史参考；当前地图使用项目原创瓦片 |
 | 2026 OSGJ 组委会文化资料 | 各原作者 | 原权利保留 | 仅本地考据；原始包、OCR、图片和主题密钥不进入仓库、发行包或演示视频 |
 
 完整来源链接、修改说明、逐文件许可和是否入包见

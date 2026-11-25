@@ -52,8 +52,7 @@ game-icons.net SVG。
 - 剧情：`data/narrative.json` 与 `data/voice_lines.json` 保留完整双语字幕、说话人、
   叙事分类与 `source_ref`。MOSS 官方 Apache-2.0 代码/模型许可未明确覆盖生成音频输出，
   因此 18 个 OGG 已删除，`audio_enabled=false`、`distribution=subtitles_only`；
-  `VoiceLinePlayer` 按约 4.35 音节/秒提供定时字幕回退。`../scripts/generate_voice.ts`
-  默认拒绝生成，须先取得可验证输出授权、更新清单并显式设置 `MOSS_OUTPUT_RIGHTS_VERIFIED=1`。
+  `VoiceLinePlayer` 按约 4.35 音节/秒提供定时字幕回退；生成器与模型权重均不随仓库分发。
 - 历史边界：1386 汤和只做序章；1559 正篇始终是虚构守灯乡勇王陆，
   六张选择卡是兵器/站法阵位，不是六名独立人物。王沛、王德只作前史。
 - 主菜单与开局页：接入 game-icons.net 的灯火、望楼、藤牌、百家宴、图鉴与
@@ -153,7 +152,6 @@ game\launch.bat
 
 - `assets/units/forge/`：CharacterForge 烘焙的正式角色/敌兵条带；
   旧 11 组 64×64 兵种序列已删除，不得复用。
-- `assets/tiles/dcss/`：CC0 地形图块 106 张。
 - `assets/ui/`、`assets/audio/`、`assets/fonts/`：已登记素材。
 - `assets/icons/game_icons/`：101 个 game-icons.net SVG，CC BY 3.0；
   逐项作者与来源见 `ATTRIBUTION.md`，完整许可见 `LICENSE-CC-BY-3.0.txt`。

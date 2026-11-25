@@ -48,10 +48,7 @@ FORBIDDEN_SOURCE_PARTS = (
     "docs/04-结构化数据/",
     "docs/05-页面原文/",
     "docs/source-manifest.json",
-    "docs/06-资料文本化/文档文本/",
-    "docs/06-资料文本化/图片OCR/",
-    "docs/06-资料文本化/缩略图/",
-    "docs/06-资料文本化/联系表/",
+    "docs/06-资料文本化/",
     "third_party/",
 )
 LEGACY_UNITS = (
@@ -446,6 +443,7 @@ def legal_entries(output: Path) -> list[tuple[str, Path]]:
         "AI使用与素材声明.md",
         "素材授权清单.csv",
         "docs/edgeone-deploy.md",
+        "docs/文化来源.md",
         "game/LICENSE",
         "game/NOTICE",
         "game/LICENSE-CC-BY-4.0.txt",

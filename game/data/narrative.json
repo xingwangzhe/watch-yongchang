@@ -7,7 +7,7 @@
       "zh": "洪武十九年，东海未靖。汤和奉命巡海，筑宁村所，列五十九城。",
       "en": "In the nineteenth year of Hongwu, the eastern sea was still unsettled. Tang He inspected the coast, built Ningcun garrison, and linked fifty-nine coastal posts.",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:6"
+      "source_ref": "《汤和信俗·抵御倭患第一人》"
     },
     {
       "id": "narr_1386_02",
@@ -16,7 +16,7 @@
       "zh": "海防不能只靠官军。寓兵于民，所城才守得久。",
       "en": "Coastal defence cannot rest on soldiers alone. Let the people share the watch, and the garrison will endure.",
       "category": "制度",
-      "source_ref": "docs/06-资料文本化/文档文本/意绘抗倭英雄汤和-漫画全文.txt:706"
+      "source_ref": "《意绘抗倭英雄汤和》"
     },
     {
       "id": "narr_1386_03",
@@ -25,7 +25,7 @@
       "zh": "先点望海灯。灯照到的地方，乡勇才知道该往哪里聚。",
       "en": "Light the sea-watch lamp first. Where its light reaches, the militia will know where to gather.",
       "category": "演绎",
-      "source_ref": "游戏化交互；制度依据见 docs/06-资料文本化/文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:6"
+      "source_ref": "游戏化交互；制度依据见 《汤和信俗·抵御倭患第一人》"
     },
     {
       "id": "narr_1386_04",
@@ -34,7 +34,7 @@
       "zh": "再定所城界桩。城不必大，水道、马道、烽堠要彼此接应。",
       "en": "Next set the garrison boundary. The fort need not be large, but its waterways, horse roads, and beacon posts must answer one another.",
       "category": "演绎",
-      "source_ref": "制度依据见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:15038"
+      "source_ref": "制度依据见 《永昌堡：十三进士与抗倭纪略》"
     },
     {
       "id": "narr_1386_05",
@@ -43,7 +43,7 @@
       "zh": "最后立乡兵旗。农时种田，警时执械；旗一响，各家都要应。",
       "en": "Finally raise the militia banner. Farm in peace, take up arms in alarm; when the banner sounds, every household answers.",
       "category": "制度",
-      "source_ref": "docs/06-资料文本化/文档文本/意绘抗倭英雄汤和-漫画全文.txt:706"
+      "source_ref": "《意绘抗倭英雄汤和》"
     },
     {
       "id": "narr_1386_06",
@@ -52,7 +52,7 @@
       "zh": "洪武二十年，宁村所城成。汤和布下的不是一座孤城，是一张海防的网。",
       "en": "In the twentieth year of Hongwu, Ningcun garrison was completed. Tang He had laid not one isolated fort, but a net across the coast.",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:6"
+      "source_ref": "《汤和信俗·抵御倭患第一人》"
     }
   ],
   "main_intro": [
@@ -63,7 +63,7 @@
       "zh": "嘉靖三十七年四月十九日，王德为解温州府城之围，移师宁村策应。",
       "en": "On the nineteenth day of the fourth month, 1558, Wang De moved his troops to Ningcun to relieve the siege of Wenzhou.",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:13760"
+      "source_ref": "《永昌堡：十三进士与抗倭纪略》"
     },
     {
       "id": "narr_1558_02",
@@ -72,7 +72,7 @@
       "zh": "次日，王德从宁村方向驰援，在金岙遭伏殉国。",
       "en": "The next day Wang De rode out from Ningcun and was ambushed and killed at Jin'ao.",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:16301"
+      "source_ref": "《永昌堡：十三进士与抗倭纪略》"
     },
     {
       "id": "narr_1559_01",
@@ -81,7 +81,7 @@
       "zh": "王沛、王德死后，王氏筑永昌堡。嘉靖三十八年，堡成。",
       "en": "After Wang Pei and Wang De died, the Wang clan built Yongchang Fort. It was completed in 1559.",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283"
+      "source_ref": "《永昌堡：十三进士与抗倭纪略》"
     },
     {
       "id": "narr_1559_02",
@@ -90,7 +90,7 @@
       "zh": "我叫王陆，乳名阿六。今夜，我是城外最后一盏灯。",
       "en": "I am Wang Lu, called A-Liu at home. Tonight I am the last lamp outside the fort.",
       "category": "演绎",
-      "source_ref": "虚构守灯乡勇，代表嘉靖三十八年守堡民众；堡史见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283-306"
+      "source_ref": "虚构守灯乡勇，代表嘉靖三十八年守堡民众；堡史见 《永昌堡：十三进士与抗倭纪略》"
     }
   ],
   "field_notes": [
@@ -101,7 +101,7 @@
       "zh": "汤和筑宁村所在前，王氏筑永昌堡在后。两座城隔着百七十年，共用同一条海防线。",
       "en": "Tang He built Ningcun garrison first; the Wang clan built Yongchang Fort generations later. Two walls, one coastal line.",
       "category": "制度",
-      "source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:5"
+      "source_ref": "《永昌堡与汤和关系索引》"
     },
     {
       "id": "narr_1559_04",
@@ -110,7 +110,7 @@
       "zh": "灯市里，五色龙灯沿街旋绕。纸鳞下没有神兵，只有一排排不肯熄的灯。",
       "en": "Through the festival streets, five-colour dragon lanterns wind their way. Beneath the paper scales are no gods, only lamps refusing to go out.",
       "category": "民俗",
-      "source_ref": "docs/06-资料文本化/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3"
+      "source_ref": "宁村拼字龙灯与汤和信俗文化节"
     },
     {
       "id": "narr_main_02",
@@ -119,7 +119,7 @@
       "zh": "潮声里有人摸上滩涂。灯不能灭，灭了就分不清乡勇和倭寇。",
       "en": "Someone is crawling up the tidal flats under the surf. The lamp must not go out, or I cannot tell militia from raiders.",
       "category": "演绎",
-      "source_ref": "滩涂夜袭为游戏情境；永昌堡抗倭背景见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:279-306"
+      "source_ref": "滩涂夜袭为游戏情境；永昌堡抗倭背景见 《永昌堡：十三进士与抗倭纪略》"
     },
     {
       "id": "narr_main_03",
@@ -128,7 +128,7 @@
       "zh": "灯油只剩这些。亮一点，看得远，也把更多刀引过来。",
       "en": "This is all the oil left. A brighter flame sees farther, and draws more blades.",
       "category": "演绎",
-      "source_ref": "灯火风险收益为玩法设计；望楼灯民俗见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:279"
+      "source_ref": "灯火风险收益为玩法设计；望楼灯民俗见 《永昌堡：十三进士与抗倭纪略》"
     },
     {
       "id": "narr_main_04",
@@ -137,7 +137,7 @@
       "zh": "五色龙鳞是龙灯会的旧例。集齐五色，老人说能拼出“天下太平”。",
       "en": "Five-coloured dragon scales follow the old lantern-fair custom. With all five, the elders say the lanterns can spell 'peace under heaven'.",
       "category": "民俗",
-      "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3"
+      "source_ref": "宁村拼字龙灯与汤和信俗文化节"
     },
     {
       "id": "narr_main_05",
@@ -155,7 +155,7 @@
       "zh": "夜将尽。滩涂尽头，大名先锋的火铳已经排开。",
       "en": "The night is almost over. At the edge of the flats, the Daimyo's gunners have formed their line.",
       "category": "演绎",
-      "source_ref": "游戏情境；倭寇火器与围城背景见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:279-312"
+      "source_ref": "游戏情境；倭寇火器与围城背景见 《永昌堡：十三进士与抗倭纪略》"
     },
     {
       "id": "narr_main_07",
@@ -164,7 +164,7 @@
       "zh": "守住这一阵。天亮之前，永昌堡不能熄灯。",
       "en": "Hold this line. Before dawn, the lamps of Yongchang must not go out.",
       "category": "演绎",
-      "source_ref": "永昌堡守城背景见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283-312"
+      "source_ref": "永昌堡守城背景见 《永昌堡：十三进士与抗倭纪略》"
     },
     {
       "id": "narr_main_08",
@@ -173,7 +173,7 @@
       "zh": "百家宴的灶火还没灭。一家端一碗，守城的人就还能再撑一阵。",
       "en": "The hundred-family feast stove still burns. One bowl from each home, and the defenders can hold another watch.",
       "category": "民俗",
-      "source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:6"
+      "source_ref": "《永昌堡与汤和关系索引》"
     },
     {
       "id": "narr_main_09",
@@ -182,7 +182,7 @@
       "zh": "七月十五的灯是给亡魂照路的。守夜人把王沛、王德的名字写在灯纸上，不敢写错一笔。",
       "en": "Lamps on the fifteenth of the seventh month light the dead's road. Keepers write Wang Pei and Wang De on the paper, afraid of one wrong stroke.",
       "category": "民俗",
-      "source_ref": "docs/06-资料文本化/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:17"
+      "source_ref": "《汤和信俗·抵御倭患第一人》"
     },
     {
       "id": "narr_main_10",
@@ -191,7 +191,7 @@
       "zh": "汤和庙的钟声穿过海雾。天边泛白，城墙上的人终于敢把刀放下。",
       "en": "The bell of the Tang He temple crosses the sea fog. The horizon pales, and the defenders dare to lower their blades.",
       "category": "民俗",
-      "source_ref": "docs/06-资料文本化/汤和信俗(11.18)__汤和庙基地介绍.txt:4"
+      "source_ref": "汤和庙基地介绍·汤和信俗"
     }
   ],
   "epilogue": [
@@ -202,7 +202,7 @@
       "zh": "天亮了。永昌堡的灯从嘉靖三十八年，一直传到今天。",
       "en": "Dawn came. The lamps of Yongchang have passed from 1559 to this day.",
       "category": "演绎",
-      "source_ref": "永昌堡筑成于嘉靖三十八年，见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283-306"
+      "source_ref": "永昌堡筑成于嘉靖三十八年，见 《永昌堡：十三进士与抗倭纪略》"
     },
     {
       "id": "epilogue_02",
@@ -211,7 +211,7 @@
       "zh": "2026 年，汤和诞辰七百周年。五支龙灯队拼出“天下太平”。",
       "en": "In 2026, the seven-hundredth anniversary of Tang He's birth, five dragon-lantern teams spell out 'peace under heaven'.",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3"
+      "source_ref": "宁村拼字龙灯与汤和信俗文化节"
     },
     {
       "id": "epilogue_03",
@@ -220,7 +220,7 @@
       "zh": "汤和布网，王德过桥，王叔杲筑堡，守灯人点灯。",
       "en": "Tang He cast the net, Wang De crossed the bridge, Wang Shugao built the fort, and the lamp-watch lit the flame.",
       "category": "演绎",
-      "source_ref": "docs/06-资料文本化/堡与汤和关系索引.md:1"
+      "source_ref": "《永昌堡与汤和关系索引》"
     }
   ]
 }

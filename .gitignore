@@ -12,6 +12,12 @@
 .workbuddy/
 .codex/
 .claude/
+.windsurf/
+.roo/
+.kiro/
+.trae/
+.gemini/
+.junie/
 .cursor/
 .continue/
 .aider*
@@ -19,6 +25,8 @@
 AGENTS.md
 AGENTS.local.md
 CLAUDE.local.md
+.mcp.json
+mcp.json
 
 # ----- 编辑器与操作系统噪声 -----
 .idea/
@@ -30,14 +38,13 @@ CLAUDE.local.md
 Thumbs.db
 desktop.ini
 
-# ----- 文档目录默认仅本地：只显式公开构建说明、开发者日志和文化索引 -----
+# ----- 文档目录默认仅本地：只显式公开构建说明、开发者日志和文化来源 -----
 # 赛事原始资料、主题载荷/密钥、设计稿、内部数值、调研草稿、截图、视频、
 # OCR、缩略图、联系表、PDF/Office 文件等一律不进入公开仓库。
 docs/**
 !docs/edgeone-deploy.md
 !docs/开发者日志-*.md
-!docs/06-资料文本化/
-!docs/06-资料文本化/*.md
+!docs/文化来源.md
 
 design/
 *.drawio
@@ -111,6 +118,11 @@ test-results/
 *.webm
 *.wav
 *.flac
+*.mp3
+*.m4a
+*.aif
+*.aiff
+*.opus
 *.har
 *.trace
 *.pcap
@@ -128,6 +140,20 @@ test-results/
 *.ai
 *.sketch
 *.fig
+*.docx
+*.xlsx
+*.pptx
+*.rtf
+*.epub
+*.patch
+*.diff
+*.onnx
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.bin
+*.gguf
 
 # ----- 开发预览与旧角色实验，不得进入正式运行资产 -----
 game/assets/actors/
@@ -201,6 +227,8 @@ pixel-art/**/*_study/
 pixel-art/**/study/
 pixel-art/**/CRITIQUE.md
 pixel-art/character_forge/REFERENCE.md
+skills/pixel-art-studio/docs/
+skills/pixel-art-studio/examples/
 
 # ----- 根目录字体副本；运行时唯一字体位于 game/assets/fonts/ -----
 assets/fonts/

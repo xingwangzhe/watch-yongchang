@@ -26,7 +26,7 @@
       "audio": "",
       "audio_en": "",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:6"
+      "source_ref": "《汤和信俗·抵御倭患第一人》"
     },
     "narr_1386_02": {
       "speaker": "tanghe",
@@ -34,7 +34,7 @@
       "audio": "",
       "audio_en": "",
       "category": "制度",
-      "source_ref": "docs/06-资料文本化/文档文本/意绘抗倭英雄汤和-漫画全文.txt:706"
+      "source_ref": "《意绘抗倭英雄汤和》"
     },
     "narr_1558_01": {
       "speaker": "narrator",
@@ -42,7 +42,7 @@
       "audio": "",
       "audio_en": "",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:13760"
+      "source_ref": "《永昌堡：十三进士与抗倭纪略》"
     },
     "narr_1558_02": {
       "speaker": "narrator",
@@ -50,7 +50,7 @@
       "audio": "",
       "audio_en": "",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:16301"
+      "source_ref": "《永昌堡：十三进士与抗倭纪略》"
     },
     "narr_1559_01": {
       "speaker": "narrator",
@@ -58,7 +58,7 @@
       "audio": "",
       "audio_en": "",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283"
+      "source_ref": "《永昌堡：十三进士与抗倭纪略》"
     },
     "narr_1559_02": {
       "speaker": "wanglu",
@@ -66,7 +66,7 @@
       "audio": "",
       "audio_en": "",
       "category": "演绎",
-      "source_ref": "虚构守灯乡勇，代表嘉靖三十八年守堡民众；堡史见 docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283-306"
+      "source_ref": "虚构守灯乡勇，代表嘉靖三十八年守堡民众；堡史见 《永昌堡：十三进士与抗倭纪略》"
     },
     "narr_main_04": {
       "speaker": "wanglu",
@@ -74,7 +74,7 @@
       "audio": "",
       "audio_en": "",
       "category": "民俗",
-      "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3"
+      "source_ref": "宁村拼字龙灯与汤和信俗文化节"
     },
     "epilogue_02": {
       "speaker": "narrator",
@@ -82,7 +82,7 @@
       "audio": "",
       "audio_en": "",
       "category": "史实",
-      "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__龙湾汤和信俗文化节启幕在即 拼字龙灯邀您共同祈愿“天下太平”(3)(1).txt:3"
+      "source_ref": "宁村拼字龙灯与汤和信俗文化节"
     },
     "epilogue_03": {
       "speaker": "narrator",
@@ -90,7 +90,7 @@
       "audio": "",
       "audio_en": "",
       "category": "演绎",
-      "source_ref": "堡与汤和关系索引.md:1"
+      "source_ref": "《永昌堡与汤和关系索引》"
     }
   }
 }

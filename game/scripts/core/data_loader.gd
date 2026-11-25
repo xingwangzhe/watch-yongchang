@@ -53,7 +53,7 @@ static func source_label(entry: Dictionary) -> String:
 			names,
 			"清《永嘉县志·岁时》" if chinese else "Qing Yongjia County Gazetteer · Seasonal Customs"
 		)
-	if reference.contains("永昌堡-十三进士与抗倭纪略"):
+	if reference.contains("十三进士与抗倭纪略"):
 		_append_source_name(
 			names,
 			"《永昌堡：十三进士与抗倭纪略》" if chinese else "Yongchang Fort: Thirteen Jinshi and the Anti-Wokou Chronicle"
@@ -73,7 +73,7 @@ static func source_label(entry: Dictionary) -> String:
 			names,
 			"宁村汤和庙 · 汤和信俗" if chinese else "Ningcun Tang He Temple · Tang He tradition"
 		)
-	if reference.contains("拼字龙灯邀您"):
+	if reference.contains("拼字龙灯"):
 		_append_source_name(
 			names,
 			"宁村拼字龙灯" if chinese else "Ningcun dragon-lantern tradition"
@@ -95,7 +95,7 @@ static func source_label(entry: Dictionary) -> String:
 		or reference.contains("游戏")
 		or reference.contains("玩法设计")
 	)
-	if names.is_empty() and not dramatized and not reference.contains("design/"):
+	if names.is_empty() and not dramatized:
 		_append_source_name(names, "永昌地方文献" if chinese else "Yongchang local records")
 	if dramatized or names.is_empty():
 		_append_source_name(names, dramatization)

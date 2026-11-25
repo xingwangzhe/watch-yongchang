@@ -28,14 +28,14 @@
       "The 'soldiers among the people' system linked militia, farmland, and coastal defence.",
       "Ningcun's Tang He temple was originally the Dong'ou Xiangwu Wang Tang Gong temple; it is not Yongchang's Dong'ou King temple."
     ],
-    "source_ref": "docs/06-资料文本化/文档文本/汤和信俗(11.18)__抵御倭患第一人+汤和(1)(1).txt:3-7；docs/06-资料文本化/文档文本/意绘抗倭英雄汤和-漫画全文.txt:706"
+    "source_ref": "《汤和信俗·抵御倭患第一人》；《意绘抗倭英雄汤和》"
   },
   "bridge": {
     "title_zh": "王德移师宁村 · 1558",
     "title_en": "Wang De Moves to Ningcun · 1558",
     "body_zh": "嘉靖三十七年四月十九日，王德为解温州府城之围，移师宁村策应。四月二十日，他从宁村方向驰援，在金岙遭伏殉国。",
     "body_en": "On 19 April 1558 Wang De moved to Ningcun to relieve Wenzhou. On 20 April he rode out from Ningcun and was ambushed and killed at Jin'ao.",
-    "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:13760；:16301"
+    "source_ref": "《永昌堡：十三进士与抗倭纪略》"
   },
   "right": {
     "title_zh": "永昌堡 · 1559",
@@ -52,7 +52,7 @@
       "Wang Shugao's 'Coastal Affairs' assessed Ningcun's ferry, horse road, and early-Ming garrison layout.",
       "In 1648 Ningcun fell while Yongchang held out for over eighty days, a contrast between official and civic forts."
     ],
-    "source_ref": "docs/06-资料文本化/文档文本/永昌堡-十三进士与抗倭纪略-全文.txt:283；:15038；:312"
+    "source_ref": "《永昌堡：十三进士与抗倭纪略》"
   },
   "timeline": [
     {"year": "1386", "zh": "汤和筑宁村所", "en": "Tang He builds Ningcun garrison"},
