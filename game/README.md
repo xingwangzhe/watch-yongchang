@@ -16,24 +16,25 @@ game-icons.net SVG。
 
 - `scenes/main_menu.tscn`：夜城望楼主菜单，开始/继续游戏、设置、关于、语言、退出。
 - `scenes/about.tscn`：电影滚幕式关于页；自动上滚，滚轮/方向键接管，
-  专用 CC0 BGM；来源与许可链接直接内嵌在音乐、音效、字体、图标、工具与文化参考条目。
+  专用 CC BY 3.0 BGM；来源与许可链接直接内嵌在音乐、音效、字体、图标、工具与文化参考条目。
 - 设置层：BGM/音效滑杆、全屏开关、帧率/VSync、中英语言与 Vulkan/OpenGL
   渲染后端选择；渲染变更需重启，菜单内提供“立即重启”提示。渲染模式会额外写入
   ASCII 镜像配置，供 Linux 与 Windows 启动器读取。
 - `scripts/autoload/`：`GameSettings`、`Locale`、`SaveSystem`、`AudioBus`。
 - 自动存档：菜单、设置变化、开局、退出与每 20 秒写入 `user://savegame.json`。
 - 双语：`data/i18n/zh.json` 与 `en.json`，切换后即时刷新界面。
-- BGM：`assets/audio/bgm_watch.ogg`，**Yongchang Watch / 永昌守望 · xingwangzhe · CC0 1.0**。
-  根目录 `../assets/audio/bgm_watch.ogg` 保留字节级原始母版，运行时文件与其 SHA-256 一致；
-  由 `../tools/generate_audio.py --legacy` 可再生成。
+- 菜单 BGM：`assets/audio/bgm_watch.ogg`，
+  **Samurai Nights · Maik Hoffmann (Majadroid) · CC BY 4.0**。
+  来源 https://opengameart.org/content/samurai-nights；原 Demo MP3 转码为 OGG。
 - 战斗 BGM：`assets/audio/bgm_battle.ogg`，**Hard Battle 1 · MintoDog · CC0 1.0**；
   进入正篇时切换，返回菜单恢复 `bgm_watch.ogg`。
 - 音效：全局按钮点击、确认与返回，以及经验/灯油/治疗/龙鳞拾取、事件卡、敌兵受击、
   普通/精英击杀、升级、冲刺与 Boss 提示；OpenGameArt 多作者与 Kenney UI Audio /
   Impact Sounds，共 20 个运行时 SFX，全部 **CC0 1.0**。
 - 关于页 BGM：`assets/audio/bgm_about.ogg`，
-  **Watchfires of Credits / 守灯致意 · xingwangzhe · CC0 1.0**；72 秒独立原创程序化合成，
-  无采样、无第三方旋律、无模型输出，由 `python3 ../tools/generate_audio.py` 生成。
+  **Views From Atop the Jade Kings Throne · Hitctrl · CC BY 3.0**；
+  来源 https://opengameart.org/content/views-from-atop-the-jade-kings-throne；
+  原始 OGG，循环播放。
 - 默认 BGM 音量：**0.42**（`GameSettings.DEFAULT_BGM_VOLUME`）。已有存档中的用户设置仍被尊重；
   关于页音量为全局 BGM 的 90%。
 - `scenes/prologue.tscn`：1386 宁村所序章，操作汤和点望海灯、定界桩、立乡兵旗。
@@ -122,11 +123,11 @@ game\launch.bat
   BGM 循环与音量、菜单构建/设置层、语言热切换、Vulkan/OpenGL 自动选择、渲染镜像与重启参数、
   关于页自动滚幕/滚轮接管/来源与许可链接、玩法数据完整性、波次到 Boss/黎明、
   空间哈希伤害与经验掉落、叙事分类与来源、双堡图鉴边界、MOSS 语音关闭与字幕时长回退、
-  3 首 CC0 BGM 与 20 个 CC0 SFX 的完整署名覆盖、王陆六阵位与解锁、3 地图修正、局内图鉴暂停/返回、经验曲线、
+  3 首开放许可 BGM（CC BY 4.0 / CC BY 3.0 / CC0）与 20 个 CC0 SFX 的完整署名覆盖、王陆六阵位与解锁、3 地图修正、局内图鉴暂停/返回、经验曲线、
   角色图集与瓦片图集、143 张卡的双语/来源/图标完整性、149+ 条目规模、
   三选一唯一性、减速/灼烧/眩晕/收魂、选项卡渲染、事件结算、
   触屏巡灯语言、敌兵组合配方与批渲染方向、引擎补丁版本与 `.godot-version` 一致性。
-- 最近一次 Linux 基线：**165 tests / 165 passed / 41204 asserts**（Godot 4.7.2-stable）。
+- 最近一次 Linux 基线：**165 tests / 165 passed / 41201 asserts**（Godot 4.7.2-stable）。
   Windows 原生 GUT 与启动器 smoke test 仍由 CI 复验。
 - 敌兵外观由 `game/data/enemies.json` 的 `character_recipe` 驱动，
   `pixel-art/character_forge/bake_battle_sprites.py` 从裸体基底、服装、头饰、
@@ -157,7 +158,7 @@ game\launch.bat
 - `assets/icons/game_icons/`：101 个 game-icons.net SVG，CC BY 3.0；
   逐项作者与来源见 `ATTRIBUTION.md`，完整许可见 `LICENSE-CC-BY-3.0.txt`。
 - BGM、音效与字体署名数据在 `data/credits.json`；音频逐文件 TASL（作者、来源、许可链接、
-  用途、修改与 BGM 哈希）见 `assets/audio/LICENSES.md`。3 首运行时 BGM 与 20 个 SFX 全部为 CC0 1.0。
+  用途、修改与 BGM 哈希）见 `assets/audio/LICENSES.md`。运行时 BGM 为 CC BY 4.0、CC BY 3.0 与 CC0 1.0 各一首；20 个 SFX 全部为 CC0 1.0。
 - 文化背景与赛事创作方向来源：
   [2026 OSGJ 开源游戏开发大赛官网](https://2026gamejam.osgame.org/)。
 - 新像素素材用 `skills/pixel-art-studio/` 生成，源文件放 `../pixel-art/<slug>/build.py`。

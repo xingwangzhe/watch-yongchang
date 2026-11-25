@@ -103,15 +103,16 @@ find assets -maxdepth 3 -type f \( -name '*.png' -o -name '预览-*.jpg' \)
   2026-11-24 因生成音频输出授权无法核实，已移除 18 个 MOSS-TTS-Nano 语音
   文件并保留双语字幕回退；不得在权利核实前恢复语音分发。
   角色、敌兵、选择页与序章外观已统一到 `units/forge/`，旧兵种目录已删除。
-  3 首 BGM 与 20 个运行时 SFX 均为 CC0；默认 BGM 音量为 `0.42`。
+  3 首 BGM 均为开放许可（Samurai Nights CC BY 4.0、Jade Kings Throne CC BY 3.0、
+  Hard Battle 1 CC0），20 个运行时 SFX 均为 CC0；默认 BGM 音量为 `0.42`。
   Linux/Windows/macOS 构建已产出，但 `game/build/` 中 2026-11-23 的旧导出
-  仍可能含已退役 BGM 与 MOSS 语音，重新导出并核验前不得分发。
+  仍可能含与当前运行时不同的 BGM 与 MOSS 语音，重新导出并核验前不得分发。
   Linux smoke 已通过；历史 Windows Wine 预检通过，但本次发行版 Wine smoke
   未通过，原生 Windows CI 复验仍待跑。
 - 运行时：Godot **4.7.2-stable**；唯一版本源 `game/.godot-version`；工程根 `game/`；
   主场景 `game/scenes/main_menu.tscn`。
 - 字体：**全局默认字体固定为霞鹜文楷 / LXGW WenKai（OFL 1.1）**，资产在 `game/assets/fonts/`。
-- 许可：**代码 AGPL-3.0-or-later**；原创非代码资产 CC BY 4.0（明确标注的原创 BGM 为 CC0）；第三方保留原许可；字体 OFL 1.1。范围见根 `NOTICE`。
+- 许可：**代码 AGPL-3.0-or-later**；原创非代码资产 CC BY 4.0（原创 BGM 母版可另选 CC0）；第三方保留原许可（含 CC BY 4.0 / CC BY 3.0）；字体 OFL 1.1。范围见根 `NOTICE`。
 
 ## 目录
 
@@ -292,7 +293,7 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
 
 ## 素材与版权
 
-- 原创非代码资产：CC BY 4.0（明确标注的原创 BGM 为 CC0）；**代码：AGPL-3.0-or-later**；第三方保留原许可；字体 OFL 1.1。代码与资产范围见根 `NOTICE`。
+- 原创非代码资产：CC BY 4.0（原创 BGM 母版可另选 CC0）；**代码：AGPL-3.0-or-later**；第三方保留原许可（含 CC BY 4.0 / CC BY 3.0）；字体 OFL 1.1。代码与资产范围见根 `NOTICE`。
 - 所有新增素材必须在 `素材授权清单.csv` 登记来源、工具、许可、是否入包。
 - 第三方参考资料包（约 1.2GB）不纳入版本库，不进入成品。
 - AI 生成内容须在 `AI使用与素材声明.md` 如实披露工具、用途与人工修改。
@@ -311,7 +312,7 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
 - GUT 9.7.1 验证通过：`game/tests/unit/` 覆盖工程基线、双语、存档、设置、BGM、
   主菜单/关于页、王陆阵位、3 地图、16 分钟波次、空间哈希、双堡图鉴、叙事来源
   与结算解锁、三平台导出预设；当前 Linux 基线
-  **165 tests / 165 passed / 41204 asserts**；运行命令见
+  **165 tests / 165 passed / 41201 asserts**；运行命令见
   「Godot / gda CLI 约定」。
 - GUT 的 `test_engine_version_matches_pinned_version` 校验实际引擎补丁版本与
   `game/.godot-version` 一致；升级引擎必须先改该文件并跑 Linux + Windows 测试。

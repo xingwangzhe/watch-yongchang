@@ -263,7 +263,7 @@ func _build_watch_panel() -> void:
 	_register_label(_make_label("MusicHeading", "", 15, MUTED), "panel.music")
 	column.add_child(_i18n_labels[-1]["node"])
 
-	var music_title := _make_label("MusicTitle", "Yongchang Watch · 永昌守望", 22, PAPER)
+	var music_title := _make_label("MusicTitle", "Samurai Nights · Majadroid", 22, PAPER)
 	column.add_child(music_title)
 
 	_build_night_anchors(column)

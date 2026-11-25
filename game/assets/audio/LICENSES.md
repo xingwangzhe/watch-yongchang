@@ -1,47 +1,41 @@
 # Audio licenses and TASL / 音频许可与逐文件溯源
 
-Last verified: 2026-11-24. This is the complete rights manifest for audio shipped
-in `game/assets/audio/`. Every shipped BGM and SFX is CC0 1.0. The project-original
-menu/about BGM and repository-only original SFX are additionally offered under
-CC BY 4.0 at the recipient's option, to satisfy the competition's original-asset
-licensing requirement; the earlier CC0 dedication remains irrevocable. Third-party
-CC0 works retain their original dedication.
+Last verified: 2026-11-25. This is the complete rights manifest for audio shipped
+in `game/assets/audio/`. All three runtime BGM tracks and all 20 SFX use open
+licenses that permit redistribution: CC BY 4.0, CC BY 3.0, or CC0 1.0. Project
+originals retained only as source masters keep their existing CC0 / CC BY 4.0
+terms.
 
 CC0 1.0 Universal: https://creativecommons.org/publicdomain/zero/1.0/
 CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
-Credit for the dual-licensed original audio: xingwangzhe.
+CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
 
-## Original BGM / 原创背景音乐
+## Runtime BGM / 运行时背景音乐
 
-### Yongchang Watch / 永昌守望
+### Samurai Nights
 
-- Title: Yongchang Watch / 永昌守望
-- Author: xingwangzhe
-- Source: https://github.com/xingwangzhe/watch-yongchang
-- Preserved source: `assets/audio/bgm_watch.ogg`
+- Title: Samurai Nights
+- Author: Maik Hoffmann (Majadroid)
+- Source: https://opengameart.org/content/samurai-nights
+- Original file: `samurai-nights-demo_majadroid_CC-BY.mp3`
 - Runtime file: `game/assets/audio/bgm_watch.ogg`
-- Reproducible source: `tools/generate_audio.py` (`--legacy`)
-- License: CC0 1.0, https://creativecommons.org/publicdomain/zero/1.0/
+- License: CC BY 4.0, https://creativecommons.org/licenses/by/4.0/
 - Use: main menu, character select, and pre-run scenes; looped in game.
-- Changes: none. The runtime OGG is a byte-identical copy of the preserved source.
-- SHA-256 (source and runtime): `d7bd9024cf30e6fdf75d6a12f33eed7d08c9181fb9934cc4668987487703dd51`
-- Provenance: original sample-free additive synthesis from the project's initial
-  CC0 audio batch; no third-party melody, recording, or sample is used.
+- Changes: original demo MP3 re-encoded to Ogg Vorbis; audio content unchanged.
+- SHA-256: `5351dd48614a513cd805dc10e9aefcd6690868d9f0c5b31a5aabc9fedeefa25a`
+- Rights note: the official page also offers CC BY 3.0 and OGA-BY 3.0; this
+  project elects CC BY 4.0. No samples or edits beyond container re-encoding.
 
-### Watchfires of Credits / 守灯致意
+### Views From Atop the Jade Kings Throne
 
-- Title: Watchfires of Credits / 守灯致意
-- Author: xingwangzhe
-- Source: https://github.com/xingwangzhe/watch-yongchang
+- Title: Views From Atop the Jade Kings Throne
+- Author: Hitctrl
+- Source: https://opengameart.org/content/views-from-atop-the-jade-kings-throne
 - Runtime file: `game/assets/audio/bgm_about.ogg`
-- Reproducible source: `tools/generate_audio.py` (default command)
-- License: CC0 1.0, https://creativecommons.org/publicdomain/zero/1.0/
-- Use: distinct about-page credits music; 72-second stereo cue looped in game.
-- Changes: newly composed and synthesized for this project on 2026-11-24. Slow
-  pads, bass roots, plucks, and bells use deterministic additive synthesis only;
-  no samples, model outputs, or third-party compositions. PCM was encoded to Ogg
-  Vorbis with ffmpeg. The global BGM setting scales this cue to 90%.
-- SHA-256: `576cba4e52c4f373661c7592b2f2153a2e276800ab9b518ca9a1713eff136fdb`
+- License: CC BY 3.0, https://creativecommons.org/licenses/by/3.0/
+- Use: about-page credits music; looped in game.
+- Changes: original OGG data retained; no audio-data modification.
+- SHA-256: `21af784efac14e8a168ee1992cb002b521172a2ff39dc68ab603218c215d6335`
 
 ### Hard Battle 1
 
@@ -107,6 +101,16 @@ https://creativecommons.org/publicdomain/zero/1.0/
 
 ## Repository-only original audio sources / 仅源码仓库保留
 
+`assets/audio/bgm_watch.ogg` is the project's original 45.6-second menu cue.
+It was removed from the runtime on 2026-11-25 when the licensed OpenGameArt menu
+track was restored; it is not an alias for the current runtime BGM. Author:
+xingwangzhe. License: CC0 1.0. Reproducible source:
+`tools/generate_audio.py --legacy`.
+
+`tools/generate_audio.py` still generates the project-original 72-second
+`bgm_about.ogg` cue under `assets/audio/` by default. It does not overwrite the
+third-party runtime about cue. Author: xingwangzhe. License: CC0 1.0.
+
 `assets/audio/sfx_alarm.ogg`, `sfx_build.ogg`, `sfx_fire.ogg`, `sfx_hit.ogg`,
 `sfx_lose.ogg`, `sfx_merge.ogg`, `sfx_spawn.ogg`, `sfx_wave.ogg`, and
 `sfx_win.ogg` are the project's original sample-free CC0 synthesis outputs. They
@@ -132,9 +136,11 @@ See `game/data/voice_lines.json` for the explicit `audio_enabled: false` flag an
 to generate distributable voice unless output rights are verified and an explicit
 environment opt-in is supplied.
 
-## Retired music / 已停用音乐
+## Rights review / 许可复核
 
-Samurai Nights by Maik Hoffmann (majadroid), CC BY 3.0, and Views From Atop the
-Jade Kings Throne by Hitctrl, CC BY 3.0, are no longer shipped or referenced by the
-runtime. Their historical records remain in `素材授权清单.csv` and
-`AI使用与素材声明.md`; they must not be restored without a new rights review.
+The OpenGameArt source pages were rechecked on 2026-11-25. Samurai Nights offers
+CC BY 4.0, CC BY 3.0, and OGA-BY 3.0; Views From Atop the Jade Kings Throne is
+CC BY 3.0. Neither license is NC or ND. Both permit redistribution and adaptation
+with attribution, so they are acceptable third-party assets under the 2026 OSGJ
+rules. Credits and change notes are supplied in the in-game about roll, this
+manifest, `素材授权清单.csv`, and `AI使用与素材声明.md`.

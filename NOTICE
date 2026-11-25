@@ -23,13 +23,12 @@ LICENSE SCOPE / 授权范围
    License: https://creativecommons.org/licenses/by/4.0/
 
    Specific original audio: assets/audio/bgm_watch.ogg (the preserved
-   menu-music source), game/assets/audio/bgm_watch.ogg, and
-   game/assets/audio/bgm_about.ogg are dedicated under CC0 1.0 by their creator.
-   To the extent copyright or related rights subsist in these works, they are
-   additionally licensed under CC BY 4.0 at the recipient's option. The prior
-   CC0 dedication remains irrevocable. The repository-only original development
-   SFX under assets/audio/sfx_*.ogg receive the same CC0 / CC BY 4.0 choice; they
-   are not aliases for the shipped third-party SFX.
+   menu-music source) is dedicated under CC0 1.0 by its creator. To the extent
+   copyright or related rights subsist in this work, it is additionally licensed
+   under CC BY 4.0 at the recipient's option. The prior CC0 dedication remains
+   irrevocable. The repository-only original development SFX under
+   assets/audio/sfx_*.ogg receive the same CC0 / CC BY 4.0 choice. These source
+   masters are not aliases for the shipped third-party runtime audio.
    CC0: https://creativecommons.org/publicdomain/zero/1.0/
    CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
    Credit: xingwangzhe. Changes: procedural synthesis, normalization and encoding
@@ -39,6 +38,8 @@ LICENSE SCOPE / 授权范围
 3. Third-party content / 第三方内容
    Third-party assets retain their original licenses; this NOTICE does not
    relicense them. In particular:
+   - Samurai Nights by Maik Hoffmann (Majadroid): CC BY 4.0.
+   - Views From Atop the Jade Kings Throne by Hitctrl: CC BY 3.0.
    - Hard Battle 1 by MintoDog: CC0 1.0.
    - Shipped OpenGameArt and Kenney sound effects: CC0 1.0.
    - game-icons.net icons: CC BY 3.0, with per-icon authors and sources.
