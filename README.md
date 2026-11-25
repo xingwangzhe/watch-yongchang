@@ -108,7 +108,7 @@ Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路�
 bun run verify:env
 ```
 
-测试框架为 GUT 9.7.1。当前 Linux 基线为 **172 tests / 172 passed / 47951 asserts**。CI 并行执行 Linux、Windows、macOS GUT 与 Web 构建；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
+测试框架为 GUT 9.7.1。当前 Linux 基线为 **174 tests / 174 passed / 50418 asserts**。CI 并行执行 Linux、Windows、macOS GUT 与 Web 构建；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
 
 `main` 分支的 Web 构建会以单线程模式导出，并并行部署至 Cloudflare Pages 项目
 `shouwang` 与 EdgeOne Makers 镜像。自定义域名 <https://2026shouwang.needhelp.icu>
