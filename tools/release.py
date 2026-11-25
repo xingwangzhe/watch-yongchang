@@ -68,6 +68,14 @@ def now() -> str:
     return dt.datetime.now().astimezone().isoformat()
 
 
+def project_version() -> str:
+    text = (GAME / "project.godot").read_text(encoding="utf-8")
+    match = re.search(r'(?m)^config/version="([^"]+)"$', text)
+    if not match:
+        raise RuntimeError("game/project.godot is missing application config/version")
+    return match.group(1)
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -458,16 +466,18 @@ def process_snapshot() -> list[str]:
     return rows
 
 
-def release_readme(output: Path, commit: str, godot_version: str) -> None:
+def release_readme(output: Path, commit: str, godot_version: str, game_version: str) -> None:
     run_url = os.environ.get("GITHUB_SERVER_URL", "https://github.com")
     repository = os.environ.get("GITHUB_REPOSITORY", "xingwangzhe/watch-yongchang")
     run_id = os.environ.get("GITHUB_RUN_ID", "")
     ci_link = f"{run_url}/{repository}/actions/runs/{run_id}" if run_id else "GitHub Actions release.yml"
+    ci_line = f"- 构建证据：[{ci_link}]({ci_link})" if run_id else "- 构建证据：GitHub Actions `release.yml`"
     text = f"""# 《守望 · 永昌》发布包
 
+- 版本：`v{game_version}`
 - 提交：`{commit}`
 - Godot：`{godot_version}`
-- 构建证据：[{ci_link}]({ci_link})
+{ci_line}
 
 ## 桌面运行
 
@@ -475,11 +485,11 @@ def release_readme(output: Path, commit: str, godot_version: str) -> None:
 - Windows：解压后执行 `watch-yongchang.exe`。
 - macOS：解压 ZIP 后运行 `.app`；本包未签名，首次打开可能需要系统允许。
 
-Linux / Windows 的可执行文件和同名 `.pck` 必须放在同一目录。完整说明见 `README.md` 与 `DORA.md`。
+Linux / Windows 的可执行文件和同名 `.pck` 必须放在同一目录。完整说明见 `README.md`。
 
-## Dora SSR
+## Dora SSR 兼容
 
-`watch-yongchang-dora.zip` 的根目录入口是 `init.lua`，内部 Godot 工程目录是 `watch-yongchang/`。需要支持 `GodotNode` 且 Godot 4 ABI 匹配的 Dora SSR 运行库；第三方运行库不随源码包分发。
+Dora 适配入口与构建器保留在源码中，发布前只做静态兼容检查。本 GitHub Release 不发布 Dora 运行时包，发布路径为 Godot 原生三平台导出。
 
 ## 文件
 
@@ -487,7 +497,6 @@ Linux / Windows 的可执行文件和同名 `.pck` 必须放在同一目录。�
 - `watch-yongchang-windows.exe` / `.pck`
 - `watch-yongchang-macos.zip`
 - `watch-yongchang-linux.zip` / `watch-yongchang-windows.zip`
-- `watch-yongchang-dora.zip`
 - `watch-yongchang-source.zip`
 - `release-manifest.json`、`SHA256SUMS.txt`、`CI-BUILD-REPORT.md`
 
@@ -498,10 +507,16 @@ Linux / Windows 的可执行文件和同名 `.pck` 必须放在同一目录。�
     (output / "RELEASE-README.md").write_text(text, encoding="utf-8")
 
 
-def build_report(output: Path, tests: dict, commit: str) -> None:
-    rows = ["# CI 发布构建报告", "", f"- 提交：`{commit}`", f"- Godot：`{(GAME / '.godot-version').read_text(encoding='utf-8').strip()}`"]
+def build_report(output: Path, tests: dict, commit: str, game_version: str) -> None:
+    rows = [
+        "# CI 发布构建报告",
+        "",
+        f"- 版本：`v{game_version}`",
+        f"- 提交：`{commit}`",
+        f"- Godot：`{(GAME / '.godot-version').read_text(encoding='utf-8').strip()}`",
+    ]
     if tests:
-        rows.append(f"- GUT：**{tests['passed']} / {tests['tests']} passed / {tests['asserts']} asserts**")
+        rows.append(f"- GUT：**{tests['tests']} / {tests['tests']} passed / {tests['asserts']} asserts**")
     rows.extend(["", "| 检查 | 结果 |", "|---|---|"])
     for name, value in RESULTS["checks"].items():
         rows.append(f"| `{name}` | {'PASS' if value.get('passed') else 'FAIL'} |")
@@ -509,7 +524,7 @@ def build_report(output: Path, tests: dict, commit: str) -> None:
         [
             "",
             "本工作流完成三平台导出、PCK v4 内容/MD5/法律文件审计、ZIP CRC/路径/敏感文件名审计、Linux 发行版启动 smoke 与哈希清单。",
-            "原生 Windows GUT 由独立 `verify.yml` 验证；macOS 仅做结构与内嵌 PCK 审计，未在 macOS 实机运行；Dora 真实运行由独立 CI 预览任务验证，预览不覆盖键盘、鼠标和完整游玩交互。",
+            "原生 Windows GUT 由独立 `verify.yml` 验证；macOS 仅做结构与内嵌 PCK 审计，未在 macOS 实机运行；Dora 适配仅做静态兼容检查，不作为 GitHub Release 发布路径。",
             "",
         ]
     )
@@ -527,7 +542,13 @@ def main() -> int:
 
     commit = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.strip()
     godot_version = (GAME / ".godot-version").read_text(encoding="utf-8").strip()
-    run("asset-guard", ["python3", "dora/build.py", "--check"], output)
+    game_version = project_version()
+    tag = os.environ.get("GITHUB_REF_NAME", "")
+    if os.environ.get("GITHUB_REF_TYPE") == "tag" and tag != f"v{game_version}":
+        raise RuntimeError(f"release tag {tag} does not match game version v{game_version}")
+    RESULTS["game_version"] = game_version
+    save_results(output)
+    run("dora-static-check", ["python3", "dora/build.py", "--check"], output)
     run("import", [godot, "--headless", "--path", "game", "--import"], output, timeout=300)
     gut = run(
         "gut-full",
@@ -557,7 +578,6 @@ def main() -> int:
             raise RuntimeError(f"export did not create {source}")
         shutil.copy2(source, output / name)
 
-    run("dora-build", ["python3", "dora/build.py", "--output", str(output / "watch-yongchang-dora.zip")], output)
     audit_pck("pck:linux", (output / "watch-yongchang-linux.pck").read_bytes(), output)
     audit_pck("pck:windows", (output / "watch-yongchang-windows.pck").read_bytes(), output)
 
@@ -610,34 +630,8 @@ def main() -> int:
         },
     )
 
-    dora_audit = zip_audit(
-        output / "watch-yongchang-dora.zip",
-        False,
-        output,
-        (
-            "init.lua",
-            "watch-yongchang/project.godot",
-            "DORA.md",
-            "LICENSE",
-            "NOTICE",
-            "LICENSE-CC-BY-4.0.txt",
-            "AI使用与素材声明.md",
-            "素材授权清单.csv",
-        ),
-    )
-    with zipfile.ZipFile(output / "watch-yongchang-dora.zip") as archive:
-        sidecars = [name for name in archive.namelist() if name.endswith(".import")]
-        missing_sources = [name[:-7] for name in sidecars if name[:-7] not in archive.namelist()]
-    dora_audit["import_sidecars"] = len(sidecars)
-    dora_audit["sidecars_missing_source"] = missing_sources
-    dora_audit["passed"] = dora_audit["passed"] and not missing_sources
-    RESULTS["checks"]["zip:watch-yongchang-dora.zip"] = dora_audit
-    save_results(output)
-    if not dora_audit["passed"]:
-        raise RuntimeError("Dora import sidecar audit failed")
-
-    release_readme(output, commit, godot_version)
-    build_report(output, tests, commit)
+    release_readme(output, commit, godot_version, game_version)
+    build_report(output, tests, commit, game_version)
     legal = legal_entries(output)
     stored = {".exe", ".x86_64", ".pck", ".zip", ".png", ".jpg", ".jpeg", ".ogg", ".ttf", ".woff2"}
     common_required = (
@@ -682,7 +676,7 @@ def main() -> int:
         source_package=True,
         required=("watch-yongchang/README.md", "watch-yongchang/LICENSE", "watch-yongchang/dora/init.lua"),
     )
-    build_report(output, tests, commit)
+    build_report(output, tests, commit, game_version)
 
     RESULTS["processes_after_cleanup"] = process_snapshot()
     RESULTS["finished_at"] = now()
@@ -696,7 +690,6 @@ def main() -> int:
         "watch-yongchang-windows.exe",
         "watch-yongchang-windows.pck",
         "watch-yongchang-macos.zip",
-        "watch-yongchang-dora.zip",
         "watch-yongchang-linux.zip",
         "watch-yongchang-windows.zip",
         "watch-yongchang-source.zip",
@@ -705,10 +698,11 @@ def main() -> int:
     ]
     records = [artifact_record(output / name, "release") for name in artifact_names]
     manifest = {
-        "schema_version": 1,
+        "schema_version": 2,
         "project": "守望 · 永昌 / Watch of Yongchang",
         "generated_at": RESULTS["finished_at"],
         "commit": commit,
+        "game_version": game_version,
         "godot_version": godot_version,
         "tests": tests,
         "artifacts": records,
@@ -717,9 +711,7 @@ def main() -> int:
         "pending_external_acceptance": [
             "native Windows release execution",
             "macOS hardware run",
-            "Dora keyboard/mouse/full gameplay interaction",
             "AtomGit mirror",
-            "Dora submission",
             "Bilibili upload with competition tag",
             "原子派 publication and 20 likes",
             "competition submission",

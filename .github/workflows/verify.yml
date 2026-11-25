@@ -2,6 +2,10 @@ name: Godot Verify
 
 on:
   push:
+    branches:
+      - "**"
+    tags:
+      - "v*.*.*"
   pull_request:
   workflow_dispatch:
 
@@ -64,8 +68,19 @@ jobs:
           set -euo pipefail
           python3 dora/build.py --check
           echo "Dora adapter static checks passed."
+
+      - name: Verify tag matches game version
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          set -euo pipefail
+          GAME_VERSION="$(sed -n 's/^config\/version="\([^"]*\)"/\1/p' game/project.godot | head -n1)"
+          test -n "$GAME_VERSION"
+          test "v${GAME_VERSION}" = "${GITHUB_REF_NAME}"
+          echo "Tag ${GITHUB_REF_NAME} matches game version ${GAME_VERSION}."
+
   linux-gut:
-    name: Linux GUT (165 tests)
+    name: Linux GUT
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -103,12 +118,7 @@ jobs:
           fi
 
       - name: Import project
-        run: timeout 180 "$GODOT_BIN" --headless --path game --import
-
-      - name: Build Dora source ZIP without export or upload
-        run: |
-          set -euo pipefail
-          python3 dora/build.py --output "$RUNNER_TEMP/watch-yongchang-dora.zip"
+        run: timeout 300 "$GODOT_BIN" --headless --path game --import
 
       - name: Run GUT
         run: |
@@ -120,7 +130,7 @@ jobs:
             timeout 60 ./game/launch.sh --headless --quit-after 2
 
   windows-gut:
-    name: Windows GUT (native, 165 tests)
+    name: Windows GUT (native)
     runs-on: windows-latest
     timeout-minutes: 20
     steps:

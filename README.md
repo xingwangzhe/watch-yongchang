@@ -2,6 +2,8 @@
 
 《守望 · 永昌》是一款以明代沿海卫所文化为背景的 2D 割草生存 Roguelite，参加 2026 OSGJ 开源游戏开发大赛。玩家扮演虚构守灯乡勇王陆，在永昌堡度过 16 分钟守夜：移动、自动或手动攻击、升级三选一、管理灯火风险，并抵御敌兵与 Boss。
 
+当前游戏版本为 **`0.1.0`**，对应 Git 标签 `v0.1.0`。
+
 当前版本包含三张地图、王陆六种守夜阵位、七种兵器与十二种被动、箭塔连发/并发、双堡图鉴、双语界面与字幕、首次游玩教程及完整结算流程。1386 年汤和序章与 1559 年王陆正篇分开叙事；六张选择卡是阵位，不是六名独立人物。
 
 ## 快速运行
@@ -24,6 +26,8 @@ python3 dora/build.py
 
 生成 `artifacts/watch-yongchang-dora.zip`。Web IDE / Go Mode / CLI 的导入步骤、异步启动检查与 PCK 可选路线见 [DORA.md](DORA.md)。本机尚未安装 Dora CLI，真实 Dora 运行仍需验收。
 
+Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路径。
+
 ## 操作
 
 - `WASD` / 方向键：八向移动。
@@ -41,16 +45,16 @@ python3 dora/build.py
 "$GDA_GODOT" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
 
-测试框架为 GUT 9.7.1。当前 Linux 基线为 **165 tests / 165 passed / 41201 asserts**。CI 同时包含 Linux 与原生 Windows GUT；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
+测试框架为 GUT 9.7.1。当前 Linux 基线为 **165 tests / 165 passed / 41214 asserts**。CI 同时包含 Linux 与原生 Windows GUT；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
 
-发布包由本地构建产生，包含 Linux / Windows 可执行文件及外部 PCK、macOS ZIP、Dora 源码 ZIP、完整源码 ZIP 和 `release-manifest.json`。PCK 内容、ZIP CRC、哈希、法律文件与禁用路径审计见 [docs/build_2026-11-25.md](docs/build_2026-11-25.md)。
+推送 `v*.*.*` 标签会触发 `.github/workflows/release.yml`：工作流校验标签与 `game/project.godot` 的 `config/version` 一致，随后运行 GUT、三平台 Godot 导出、PCK/ZIP/许可证审计与 Linux 发行版 smoke，最后通过 GitHub CLI 创建 GitHub Release。发布包包含 Linux / Windows 可执行文件及外部 PCK、macOS ZIP、完整源码 ZIP、`release-manifest.json` 和 `SHA256SUMS.txt`；Dora 源码包不随 Release 发布。
 
 ## 赛事提交媒体
 
 - [赛事封面：1920×1080 PNG](artifacts/watch-yongchang-cover.png)
 - [演示视频：91 秒，1920×1080，30 fps，H.264 / AAC](artifacts/watch-yongchang-demo-2026-11-25.mp4)
 
-演示片使用已验收游戏截图、原创字幕/排版与项目原创 CC0 BGM `bgm_watch.ogg`，不是连续实机录屏。完整解码、音视频等长、2730 帧、实际末帧与响度检查均已通过；Bilibili 上传及「2026 开源游戏开发大赛」标签仍待完成。
+演示片使用已验收游戏截图、原创字幕/排版与制作时保留的项目原创 CC0 菜单母版 `assets/audio/bgm_watch.ogg`，不是连续实机录屏；它不代表当前运行时菜单 BGM。完整解码、音视频等长、2730 帧、实际末帧与响度检查均已通过；Bilibili 上传及「2026 开源游戏开发大赛」标签仍待完成。
 
 ## 文档
 
@@ -75,6 +79,6 @@ python3 dora/build.py
 
 ## 尚未完成的外部验收
 
-原生 Windows CI、macOS 实机运行、真实 Dora 运行、公开仓库发布、Dora 提交、原子派社区 20 个点赞及赛事互评需要对应账号、平台或硬件环境，不能由本地构建结果推定完成。
+原生 Windows CI、macOS 实机运行、公开仓库 Release 页面、原子派社区 20 个点赞及赛事互评需要对应账号、平台或硬件环境，不能由本地构建结果推定完成。Dora 兼容运行不再是发版门槛。
 
 赛事官网：<https://2026gamejam.osgame.org/>

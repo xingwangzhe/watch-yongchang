@@ -1,10 +1,12 @@
-name: Release Build
+name: Release
 
 on:
-  workflow_dispatch:
+  push:
+    tags:
+      - "v*.*.*"
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: release-${{ github.ref }}
@@ -12,7 +14,7 @@ concurrency:
 
 jobs:
   release:
-    name: Build and audit release assets
+    name: Build, test, export, and publish
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -20,6 +22,14 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Verify tag matches game version
+        run: |
+          set -euo pipefail
+          GAME_VERSION="$(sed -n 's/^config\/version="\([^"]*\)"/\1/p' game/project.godot | head -n1)"
+          test -n "$GAME_VERSION"
+          test "v${GAME_VERSION}" = "${GITHUB_REF_NAME}"
+          echo "GAME_VERSION=$GAME_VERSION" >> "$GITHUB_ENV"
 
       - name: Read pinned Godot version
         run: |
@@ -68,11 +78,11 @@ jobs:
             --godot "$GODOT_BIN" \
             --output "$RUNNER_TEMP/release-assets"
 
-      - name: Upload release assets
+      - name: Upload workflow artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: release-assets
+          name: release-assets-${{ github.ref_name }}
           path: ${{ runner.temp }}/release-assets
           if-no-files-found: warn
           retention-days: 14
@@ -89,84 +99,53 @@ jobs:
             exit 0
           fi
           {
-            echo "## Release assets"
+            echo "## Release ${GITHUB_REF_NAME}"
             echo ""
+            echo "- Game: \`$(jq -r .game_version "$REPORT")\`"
             echo "- Commit: \`$(jq -r .commit "$REPORT")\`"
             echo "- Godot: \`$(jq -r .godot_version "$REPORT")\`"
-            echo "- GUT: \`$(jq -r '.tests.passed') / $(jq -r '.tests.tests') passed, $(jq -r '.tests.asserts') asserts\`"
+            echo "- GUT: \`$(jq -r '.tests.tests') / $(jq -r '.tests.tests') passed, $(jq -r '.tests.asserts') asserts\`"
             echo ""
             echo "| Artifact | Bytes | SHA-256 |"
             echo "|---|---:|---|"
             jq -r '.artifacts[] | "| `\(.name)` | \(.size_bytes) | `\(.sha256)` |"' "$REPORT"
-            echo ""
-            echo "Dora runtime preview is a separate job in this workflow."
           } >> "$GITHUB_STEP_SUMMARY"
 
-  dora-preview:
-    name: Dora SSR 1.10.2 runtime preview
-    needs: release
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-
-      - name: Download audited Dora source package
-        uses: actions/download-artifact@v4
-        with:
-          name: release-assets
-          path: ${{ runner.temp }}/release-assets
-
-      - name: Install preview runtime dependencies
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri libegl1 libgles2
-
-      - name: Download official Dora SSR AppImage
-        run: |
-          set -euo pipefail
-          curl -fL --retry 3 \
-            -o "$RUNNER_TEMP/dora.AppImage" \
-            "https://github.com/IppClub/Dora-SSR/releases/download/v1.10.2/dora-ssr-v1.10.2-linux-x86_64.AppImage"
-          echo "6726c68b3714c5ee937d0e5573f21895ef9eddd278fada65761a0e253e650725  $RUNNER_TEMP/dora.AppImage" | sha256sum --check -
-
-      - name: Run isolated Dora preview
-        run: |
-          set -euo pipefail
-          python3 dora/ci_preview.py \
-            --appimage "$RUNNER_TEMP/dora.AppImage" \
-            --project-zip "$RUNNER_TEMP/release-assets/watch-yongchang-dora.zip" \
-            --work "$RUNNER_TEMP/dora-runtime" \
-            --output "$RUNNER_TEMP/dora-preview"
-
-      - name: Upload Dora preview evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dora-preview
-          path: ${{ runner.temp }}/dora-preview
-          if-no-files-found: warn
-          retention-days: 14
-          compression-level: 6
-
-      - name: Publish Dora preview summary
-        if: always()
+      - name: Publish GitHub Release
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          RESULT="$RUNNER_TEMP/dora-preview/preview-result.json"
-          if [ ! -f "$RESULT" ]; then
-            echo "Dora preview did not produce a result." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+          OUTPUT="$RUNNER_TEMP/release-assets"
+          FILES=(
+            "$OUTPUT/watch-yongchang-linux.zip"
+            "$OUTPUT/watch-yongchang-windows.zip"
+            "$OUTPUT/watch-yongchang-macos.zip"
+            "$OUTPUT/watch-yongchang-source.zip"
+            "$OUTPUT/watch-yongchang-linux.x86_64"
+            "$OUTPUT/watch-yongchang-linux.pck"
+            "$OUTPUT/watch-yongchang-windows.exe"
+            "$OUTPUT/watch-yongchang-windows.pck"
+            "$OUTPUT/release-manifest.json"
+            "$OUTPUT/SHA256SUMS.txt"
+            "$OUTPUT/CI-BUILD-REPORT.md"
+            "$OUTPUT/RELEASE-README.md"
+          )
+          for file in "${FILES[@]}"; do
+            test -f "$file"
+          done
+          NOTES="$(printf '%s\n' \
+            "《守望 · 永昌》${GITHUB_REF_NAME}。" \
+            "" \
+            "Godot ${GODOT_VERSION} 三平台导出、GUT、PCK/ZIP 审计与 Linux 发行版 smoke 均在 GitHub Actions 完成。Dora 兼容保留静态检查，不作为本 Release 的发布路径。")"
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "${FILES[@]}" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" "${FILES[@]}" \
+              --verify-tag \
+              --latest \
+              --title "守望 · 永昌 ${GITHUB_REF_NAME}" \
+              --notes "$NOTES" \
+              --generate-notes
           fi
-          {
-            echo "## Dora SSR preview"
-            echo ""
-            echo "- Result: \`$(jq -r .passed "$RESULT")\`"
-            echo "- Frames: \`$(jq -r .frame_count "$RESULT")\`"
-            echo "- Processes cleaned: \`$(jq -r .processes_cleaned "$RESULT")\`"
-            echo "- Official shader header restored in CI: \`$(jq -r '.package.official_shader_header_restored // false' "$RESULT")\`"
-            echo ""
-            echo "This offscreen preview proves Dora/Godot startup and rendering only; it does not prove keyboard, mouse, upgrade selection, audio, saves, or full gameplay interaction."
-          } >> "$GITHUB_STEP_SUMMARY"

@@ -4,6 +4,23 @@
 		"zh": "2026 OSGJ 开源游戏开发大赛参赛作品",
 		"en": "A 2026 OSGJ open-source game development entry"
 	},
+	"free_software": {
+		"title_zh": "自由软件",
+		"title_en": "Free Software",
+		"lines_zh": [
+			"《守望 · 永昌》是自由软件：你可以自由运行、研究、修改和再分发。",
+			"代码采用 GNU AGPL-3.0-or-later；原创非代码资产采用 CC BY 4.0；第三方内容保留原许可。",
+			"完整源码、许可证与逐项署名均随项目公开，欢迎学习、修改与再分发。"
+		],
+		"lines_en": [
+			"Watch of Yongchang is free software: you may run, study, modify, and redistribute it.",
+			"Code is licensed GNU AGPL-3.0-or-later; original non-code assets are CC BY 4.0; third-party works keep their licenses.",
+			"Complete source, licenses, and itemized credits are published with the project."
+		],
+		"link_zh": "查看源代码与许可证",
+		"link_en": "Source code and licenses",
+		"url": "https://github.com/xingwangzhe/watch-yongchang"
+	},
 	"about": {
 		"sections": [
 			{
@@ -14,7 +31,6 @@
 					"Vampire Survivors-like 割草生存 Roguelite",
 					"主题：守 · 望 / 永昌堡与明代抗倭记忆",
 					"2026 OSGJ 开源游戏开发大赛参赛作品",
-					"当前版本：v0.5 · 军市与义师",
 					"已完成：序章 1386 宁村所、正篇 1559 永昌堡割草生存、双堡图鉴、灯火风险收益、龙鳞清屏、剧情字幕（输出授权未核实的 MOSS 语音已下架）、局内军市与 CharacterForge 佣兵",
 					"玩法：16 分钟单局、鼠标瞄准、长按左键攻击、六兵器进化、升级三选一、每 120 秒军市、最多 3 名佣兵、五色龙鳞与 Boss；操作 W/A/S/D 移动，Space 冲刺，Esc 暂停",
 					"历史边界：汤和只做 1386 序章主角；1559 正篇主角为虚构守灯乡勇王陆/阿六",
@@ -25,7 +41,6 @@
 					"A Vampire Survivors-like survival roguelite",
 					"Theme: Guard · Gaze / Yongchang Fort and Ming-era coastal defense",
 					"A 2026 OSGJ open-source game development entry",
-					"Current build: v0.5 · Lantern Market and Righteous Company",
 					"Done: the 1386 Ningcun prologue, the 1559 Yongchang survival run, the two-forts codex, lantern risk/reward, dragon-scale clears, narrative subtitles (MOSS voice removed because output rights were unverified), an in-run market, and CharacterForge retinue",
 					"Gameplay: a 16-minute run with mouse aiming and hold-to-attack, six evolving weapons, one-of-three upgrades, a market every 120 seconds, up to three retinue units, five-colour dragon scales, and a boss; W/A/S/D moves, Space dashes, and Esc pauses",
 					"Historical boundary: Tang He is the prologue protagonist only in 1386; the 1559 protagonist is the fictional lamp-watch militia Wang Lu / A-Liu",
@@ -263,7 +278,7 @@
 					"佣兵外观：义师枪兵、义师弓手、藤牌乡兵、鸟铳手、令旗手、戚家军客兵、王沛英魂、王德英魂共 8 类；每类 4 帧待机 + 8 帧行走，128×128，导出到 game/assets/units/forge/allies/；配装校验限定明军阵营，前史人物只作英魂香火演绎。验收合图为 pixel-art/character_forge/mercenary_roster.png，授权原创非代码资产 CC BY 4.0。",
 					"倭寇类型按明代抗倭史料与 GDD 设计为反派；日式阵笠、胴丸、铁炮等仅用于敌方识别，不用于明军与主角。",
 					"UI 面板与控件素材：面板底板由 WorkBuddy ImageGen 生成；按钮、下拉、滑条、开关、滚动条与提示框由 pixel-art/ui_kit/build.py 程序化重绘（漆面底板 + 描金带 + 四角卷角），原创非代码资产 CC BY 4.0，详见《AI 使用与素材声明》。",
-					"第三方音乐、字体、音效保留原许可；署名与来源见上方条目。",
+					"第三方音乐、字体、音效保留原许可；署名与来源见下方音频、字体与图标条目。",
 					"Godot、GUT、Pixel Art Studio、Pillow、Bun 与 ffmpeg 的使用许可见下方工具条目。",
 					"霞鹜文楷：OFL 1.1，版权归 LXGW 与 Klee Project Authors，全文见 game/assets/fonts/OFL.txt。",
 					"本作与永昌堡、汤和信俗相关机构无隶属关系；历史资料仅用于文化考据与创作。"
@@ -281,7 +296,7 @@
 					"Retinue art: eight classes of Righteous spearmen, archers, rattan-shield militia, bird-gun hands, standard-bearers, Qi-family guest soldiers, and the incense spirits of Wang Pei and Wang De; each has four idle and eight walk frames at 128×128, exported to game/assets/units/forge/allies/. Recipes are Ming-only; earlier historical figures appear only as incense-spirit drama. Acceptance sheet: pixel-art/character_forge/mercenary_roster.png, original non-code assets under CC BY 4.0.",
 					"Wokou types follow Ming-era coastal-defense records and the GDD as antagonists; Japanese-style hats, armour, and matchlocks identify the enemy only and are not used for the Ming hero or allies.",
 					"UI panels and controls: the panel base is generated with WorkBuddy ImageGen; buttons, dropdowns, sliders, toggles, scrollbars, and tooltips are redrawn procedurally by pixel-art/ui_kit/build.py (lacquer field with a gilt band and corner flourishes); original non-code assets under CC BY 4.0. See the AI Use & Asset Statement.",
-					"Third-party music, fonts, and sound effects keep their original licenses; see the entries above.",
+					"Third-party music, fonts, and sound effects keep their original licenses; see the audio, font, and icon entries below.",
 					"Godot, GUT, Pixel Art Studio, Pillow, Bun, and ffmpeg keep their own licenses; see the tool entries below.",
 					"LXGW WenKai: OFL 1.1, copyright LXGW and the Klee Project Authors; full text in game/assets/fonts/OFL.txt.",
 					"This work is not affiliated with Yongchang Fort or Tang He tradition institutions; historical material is used for cultural research and creative work."

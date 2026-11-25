@@ -266,11 +266,16 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
 - 目标平台为 Linux、Windows、macOS；其中 **Windows 是必测平台**，不能只靠 Linux/Wine 推断。
 - **Godot 版本锁定**：`game/.godot-version` 是唯一版本源（当前 `4.7.2-stable`）。
   CI、`launch.sh`、`launch.bat` 必须读取该文件；文档可注明当前值，但升级时以该文件为准。
-- CI 唯一配置为 `.github/workflows/verify.yml`，必须同时包含：
+- CI 配置为 `.github/workflows/verify.yml` 与 `.github/workflows/release.yml`：
   - Linux GUT：`ubuntu-latest`，从 `game/.godot-version` 读取版本并下载 Linux Godot。
   - Windows GUT：`windows-latest`，从 `game/.godot-version` 读取版本并下载
     `Godot_v${GODOT_VERSION}_win64.exe.zip`，
     使用 `_console.exe` 运行 `--headless --path game --import` 与 GUT。
+  - `verify.yml` 在分支、PR、手工触发与 `v*.*.*` 标签上运行；标签必须与
+    `game/project.godot` 的 `config/version` 一致。
+  - `release.yml` 只由 `v*.*.*` 标签触发，运行 GUT、三平台 Godot 导出与资产审计，
+    再用 `gh release create` 创建 GitHub Release。Dora 仅保留静态兼容检查，
+    不作为 Release 发布路径或发版门槛。
 - **CI 不使用 Wine**：Windows 任务必须直接在 `windows-latest` 上运行原生 Windows Godot；
   本地 Linux 的 Wine 验证只能作为额外预检，不能替代 CI 的原生 Windows 任务。
 - Windows 启动器 smoke test 使用临时 `WATCH_SETTINGS_PATH`，不读取/写入真实 `%APPDATA%`；
@@ -312,7 +317,7 @@ pixel-art/    新像素素材的 build.py 与导出（按需创建）
 - GUT 9.7.1 验证通过：`game/tests/unit/` 覆盖工程基线、双语、存档、设置、BGM、
   主菜单/关于页、王陆阵位、3 地图、16 分钟波次、空间哈希、双堡图鉴、叙事来源
   与结算解锁、三平台导出预设；当前 Linux 基线
-  **165 tests / 165 passed / 41201 asserts**；运行命令见
+  **165 tests / 165 passed / 41214 asserts**；运行命令见
   「Godot / gda CLI 约定」。
 - GUT 的 `test_engine_version_matches_pinned_version` 校验实际引擎补丁版本与
   `game/.godot-version` 一致；升级引擎必须先改该文件并跑 Linux + Windows 测试。
