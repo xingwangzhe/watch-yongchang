@@ -42,6 +42,10 @@ var _move_hint: Label
 var _attack_mode_label: Label
 var _attack_toggle_label: Label
 var _minimap: RunMinimap
+var _slot_style_normal: StyleBoxFlat
+var _slot_style_evolved: StyleBoxFlat
+var _weapon_signature := ""
+var _last_boss_visible := false
 
 
 func _ready() -> void:
@@ -52,26 +56,30 @@ func _ready() -> void:
 func update_hud(state: Dictionary) -> void:
 	var hp := float(state.get("hp", 0.0))
 	var max_hp := maxf(1.0, float(state.get("max_hp", 100.0)))
-	_hp_bar.max_value = max_hp
-	_hp_bar.value = hp
-	_hp_label.text = "%d / %d" % [ceili(hp), ceili(max_hp)]
+	if not is_equal_approx(_hp_bar.max_value, max_hp):
+		_hp_bar.max_value = max_hp
+	if not is_equal_approx(_hp_bar.value, hp):
+		_hp_bar.value = hp
+	_set_label_text(_hp_label, "%d / %d" % [ceili(hp), ceili(max_hp)])
 	var shield := float(state.get("shield", 0.0))
 	_shield_label.visible = shield > 0.1
-	_shield_label.text = Locale.t("hud.shield", {"value": "%d" % ceili(shield)})
+	_set_label_text(_shield_label, Locale.t("hud.shield", {"value": "%d" % ceili(shield)}))
 	var xp := float(state.get("xp", 0.0))
 	var xp_need := maxf(1.0, float(state.get("xp_need", 1.0)))
-	_xp_bar.max_value = xp_need
-	_xp_bar.value = xp
-	_level_label.text = Locale.t("hud.level", {"level": int(state.get("level", 1))})
-	_timer_label.text = _clock_text(float(state.get("elapsed", 0.0)), float(state.get("duration", 960.0)))
-	_clock_label.text = Locale.t("hud.dawn_in", {"time": _clock_text(maxf(0.0, float(state.get("duration", 960.0)) - float(state.get("elapsed", 0.0))), 960.0)})
-	_kill_label.text = Locale.t("hud.kills", {"count": int(state.get("kills", 0))})
-	_merit_label.text = Locale.t("hud.merit", {"count": int(state.get("merit", 0))})
-	_coin_label.text = Locale.t("hud.coin", {"count": int(state.get("coin", 0))})
+	if not is_equal_approx(_xp_bar.max_value, xp_need):
+		_xp_bar.max_value = xp_need
+	if not is_equal_approx(_xp_bar.value, xp):
+		_xp_bar.value = xp
+	_set_label_text(_level_label, Locale.t("hud.level", {"level": int(state.get("level", 1))}))
+	_set_label_text(_timer_label, _clock_text(float(state.get("elapsed", 0.0)), float(state.get("duration", 960.0))))
+	_set_label_text(_clock_label, Locale.t("hud.dawn_in", {"time": _clock_text(maxf(0.0, float(state.get("duration", 960.0)) - float(state.get("elapsed", 0.0))), 960.0)}))
+	_set_label_text(_kill_label, Locale.t("hud.kills", {"count": int(state.get("kills", 0))}))
+	_set_label_text(_merit_label, Locale.t("hud.merit", {"count": int(state.get("merit", 0))}))
+	_set_label_text(_coin_label, Locale.t("hud.coin", {"count": int(state.get("coin", 0))}))
 	_oil_meter.set_values(int(state.get("oil", 0)), int(state.get("oil_max", 6)), bool(state.get("dark", false)))
-	_oil_label.text = Locale.t("hud.dark" if bool(state.get("dark", false)) else "hud.oil", {"current": int(state.get("oil", 0)), "max": int(state.get("oil_max", 6))})
+	_set_label_text(_oil_label, Locale.t("hud.dark" if bool(state.get("dark", false)) else "hud.oil", {"current": int(state.get("oil", 0)), "max": int(state.get("oil_max", 6))}))
 	_scale_meter.set_scales(state.get("scales", []) as Array)
-	_scale_label.text = Locale.t("hud.scales", {"count": (state.get("scales", []) as Array).size()})
+	_set_label_text(_scale_label, Locale.t("hud.scales", {"count": (state.get("scales", []) as Array).size()}))
 	_update_weapons(state.get("weapons", []) as Array)
 	var mercenary_summary := str(state.get("mercenary_summary", ""))
 	var passive_text := str(state.get("passive_summary", ""))
@@ -82,25 +90,27 @@ func update_hud(state: Dictionary) -> void:
 			"names": mercenary_summary,
 		})
 		passive_text = "%s · %s" % [passive_text, mercenary_text]
-	_passive_label.text = passive_text
-	_build_label.text = "%s · %s" % [
+	_set_label_text(_passive_label, passive_text)
+	_set_label_text(_build_label, "%s · %s" % [
 		str(state.get("build_label", "")),
 		Locale.t("hud.build_extra", {
 			"skills": int(state.get("skills", 0)),
 			"cards": int(state.get("cards", 0)),
 		}),
-	]
-	_move_hint.text = str(state.get("move_hint", ""))
+	])
+	_set_label_text(_move_hint, str(state.get("move_hint", "")))
 	var auto_attack := bool(state.get("auto_attack", false))
-	_attack_mode_label.text = str(state.get("attack_mode", Locale.t("hud.attack_auto" if auto_attack else "hud.attack_manual")))
+	_set_label_text(_attack_mode_label, str(state.get("attack_mode", Locale.t("hud.attack_auto" if auto_attack else "hud.attack_manual"))))
 	_attack_mode_label.add_theme_color_override("font_color", JADE if auto_attack else GOLD)
-	_attack_toggle_label.text = str(state.get("attack_toggle", ""))
+	_set_label_text(_attack_toggle_label, str(state.get("attack_toggle", "")))
 	var boss_active := bool(state.get("boss_active", false))
-	_boss_panel.visible = boss_active
+	if _last_boss_visible != boss_active:
+		_boss_panel.visible = boss_active
+		_last_boss_visible = boss_active
 	if boss_active:
 		_boss_bar.max_value = maxf(1.0, float(state.get("boss_max_hp", 1.0)))
 		_boss_bar.value = maxf(0.0, float(state.get("boss_hp", 0.0)))
-		_boss_name.text = str(state.get("boss_name", ""))
+		_set_label_text(_boss_name, str(state.get("boss_name", "")))
 
 
 func bind_world(field: Battlefield, definition: Dictionary, camera: Camera2D) -> void:
@@ -360,6 +370,19 @@ func _build_weapon_slot(index: int) -> Dictionary:
 
 
 func _update_weapons(weapons: Array) -> void:
+	var signature_parts: Array[String] = []
+	for weapon in weapons:
+		var item := weapon as Dictionary
+		signature_parts.append("%s:%s:%s:%s" % [
+			str(item.get("id", "")),
+			str(item.get("icon", "")),
+			int(item.get("level", 1)),
+			bool(item.get("evolved", false)),
+		])
+	var signature := "|".join(signature_parts)
+	if signature == _weapon_signature:
+		return
+	_weapon_signature = signature
 	for i in range(_weapon_slots.size()):
 		var slot := _weapon_slots[i]
 		var panel := slot["root"] as PanelContainer
@@ -377,6 +400,11 @@ func _update_weapons(weapons: Array) -> void:
 		var max_level := int(weapon.get("max_level", 5))
 		(slot["level"] as Label).text = Locale.t("hud.max") if bool(weapon.get("evolved", false)) else "Lv %d/%d" % [level, max_level]
 		panel.add_theme_stylebox_override("panel", _slot_style(bool(weapon.get("evolved", false))))
+
+
+func _set_label_text(label: Label, text: String) -> void:
+	if label.text != text:
+		label.text = text
 
 
 func _clock_text(seconds: float, _duration: float) -> String:
@@ -419,6 +447,9 @@ func _make_progress(node_name: String, position: Vector2, size_value: Vector2, f
 
 
 func _slot_style(evolved: bool) -> StyleBoxFlat:
+	var cached := _slot_style_evolved if evolved else _slot_style_normal
+	if cached != null:
+		return cached
 	var box := StyleBoxFlat.new()
 	box.bg_color = Color(0.035, 0.048, 0.045, 0.72)
 	box.border_color = Color(GOLD, 0.62 if evolved else 0.20)
@@ -434,6 +465,10 @@ func _slot_style(evolved: bool) -> StyleBoxFlat:
 	box.content_margin_right = 4.0
 	box.content_margin_top = 3.0
 	box.content_margin_bottom = 3.0
+	if evolved:
+		_slot_style_evolved = box
+	else:
+		_slot_style_normal = box
 	return box
 
 

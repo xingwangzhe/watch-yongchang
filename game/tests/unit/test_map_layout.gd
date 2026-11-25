@@ -746,6 +746,63 @@ func test_flow_field_routes_outer_spawns_through_fort_gates() -> void:
 		)
 
 
+func test_incremental_flow_field_matches_synchronous_build() -> void:
+	var definition: Dictionary = (GameData.get_maps()["watergate"] as Dictionary).duplicate(true)
+	var synchronous: MapLayout = MapLayout.new()
+	synchronous.setup("watergate", definition)
+	synchronous.finalize()
+	var incremental: MapLayout = MapLayout.new()
+	incremental.setup("watergate", definition)
+	incremental.finalize()
+	var target := synchronous.start_pos + Vector2(320.0, -160.0)
+	synchronous.ensure_flow_field(target)
+	incremental.request_flow_field(target)
+	var completed := false
+	for _frame in range(256):
+		if incremental.advance_flow_field(256):
+			completed = true
+			break
+	assert_true(completed, "incremental flow field must finish within its cell budget")
+	assert_eq(
+		incremental._flow_next_cells,
+		synchronous._flow_next_cells,
+		"incremental 8-neighbor BFS must match the synchronous reference"
+	)
+	assert_eq(incremental.flow_direction(incremental.start_pos), synchronous.flow_direction(synchronous.start_pos))
+
+
+func test_flow_request_during_build_starts_after_swap() -> void:
+	var built := _build_map("crossstreet")
+	var layout: MapLayout = built["layout"] as MapLayout
+	layout.request_flow_field(layout.start_pos + Vector2(320.0, -160.0))
+	assert_true(layout._flow_build_active, "the first flow build must be active")
+	var second_target := layout.start_pos + Vector2(640.0, 320.0)
+	var second_cell := layout.world_to_cell(layout.find_walkable_position(second_target))
+	layout.request_flow_field(second_target)
+	var completed := 0
+	for _frame in range(2048):
+		if not layout.advance_flow_field(256):
+			continue
+		completed += 1
+		if completed == 1:
+			assert_true(layout._flow_build_active, "the latest target must start immediately")
+			assert_eq(layout._flow_build_target_cell, second_cell)
+		elif completed >= 2:
+			break
+	assert_eq(completed, 2, "both queued flow builds must complete")
+	assert_eq(layout._flow_target_cell, second_cell)
+
+
+func test_spawn_candidates_remain_available_during_incremental_build() -> void:
+	var built := _build_map("crossstreet")
+	var layout: MapLayout = built["layout"] as MapLayout
+	layout.request_flow_field(layout.start_pos + Vector2(480.0, 320.0))
+	assert_true(layout._flow_build_active, "the incremental build must be active")
+	var candidates := layout.spawn_candidates(layout.start_pos, 300.0, 1400.0)
+	assert_gt(candidates.size(), 0, "spawning must not wait for the next flow-field build")
+	assert_true(layout._flow_build_active, "spawning must not force the incremental build to finish")
+
+
 func test_run_camera_is_bounded_and_minimap_avoids_score_panels() -> void:
 	SaveSystem.data["total_merit"] = 2000
 	SaveSystem.data["selected_map"] = "watergate"
@@ -757,6 +814,19 @@ func test_run_camera_is_bounded_and_minimap_avoids_score_panels() -> void:
 	assert_eq(run.camera.limit_top, 0)
 	assert_eq(run.camera.limit_right, int(world_size.x))
 	assert_eq(run.camera.limit_bottom, int(world_size.y))
+	assert_false(
+		run.camera.position_smoothing_enabled,
+		"the run camera must use the single explicit smoothing path"
+	)
+	GameSettings.web_platform_override = 1
+	assert_eq(
+		run.max_catchup_steps(),
+		2,
+		"Web must catch up to real time down to 30 FPS without unbounded step spikes"
+	)
+	GameSettings.web_platform_override = 0
+	assert_eq(run.max_catchup_steps(), 6, "native builds keep the existing catch-up budget")
+	GameSettings.web_platform_override = -1
 	var minimap := run.hud.find_child("Minimap", true, false) as RunMinimap
 	assert_not_null(minimap, "HUD must expose the live minimap")
 	assert_not_null(minimap.layout)
@@ -771,6 +841,16 @@ func test_run_camera_is_bounded_and_minimap_avoids_score_panels() -> void:
 			Rect2(label.position, label.size).intersects(minimap_rect),
 			"%s must not overlap the minimap" % label_name
 		)
+
+
+func test_minimap_camera_window_tracks_expanded_viewport_and_zoom() -> void:
+	var minimap := RunMinimap.new()
+	assert_eq(minimap.camera_half_view(Vector2(1526.0, 720.0)), Vector2(763.0, 360.0))
+	assert_eq(
+		minimap.camera_half_view(Vector2(1526.0, 720.0), Vector2(2.0, 2.0)),
+		Vector2(381.5, 180.0)
+	)
+	minimap.free()
 
 
 func _build_map(map_id: String) -> Dictionary:

@@ -243,6 +243,10 @@ func test_enemy_rendering_is_multimesh_batched() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/actors/battlefield.gd")
 	assert_true(source.contains("MultiMesh.new()"), "enemy rendering must use MultiMesh batching")
 	assert_true(source.contains("ENEMY_BATCH_CAPACITY"), "enemy batches need a fixed capacity")
+	assert_true(
+		source.contains("multimesh.visible_instance_count = batch.size()"),
+		"enemy batches must skip unused instances"
+	)
 	assert_false(source.contains("PackedScene.instantiate"), "enemies must not be node instances")
 
 

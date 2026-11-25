@@ -34,6 +34,8 @@ const GOLD := Color("#e1b35a")
 const TOWER_REBUILD_DELAY := 26.0
 const TOWER_BURST_INTERVAL := 0.12
 const TOWER_MAX_BURST_LANES := 2
+const FLOW_REQUEST_INTERVAL_WEB := 0.50
+const FLOW_REQUEST_INTERVAL_NATIVE := 0.30
 
 var enemies: Array[Dictionary] = []
 var allies: Array[Dictionary] = []
@@ -741,9 +743,14 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	time += delta
 	player_pos = player.get("pos", Vector2.ZERO) as Vector2
 	_flow_timer -= delta
-	if map_layout != null and _flow_timer <= 0.0:
-		_flow_timer = 0.30
-		map_layout.ensure_flow_field(player_pos)
+	if map_layout != null:
+		if _flow_timer <= 0.0:
+			_flow_timer = (
+				FLOW_REQUEST_INTERVAL_WEB
+				if GameSettings.is_web_platform()
+				else FLOW_REQUEST_INTERVAL_NATIVE
+			)
+			map_layout.request_flow_field(player_pos)
 	player_facing = player.get("facing", player_facing) as Vector2
 	_player_moving = player_pos.distance_squared_to(_last_player_pos) > 0.25
 	_last_player_pos = player_pos
@@ -764,6 +771,13 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	_update_wade_splashes(delta)
 	_cleanup_dead()
 	queue_redraw()
+
+
+## 流场只在渲染帧推进一次，避免低帧补两步时把 BFS 成本翻倍。
+func advance_flow_field(max_cells: int = 256) -> bool:
+	if map_layout == null:
+		return false
+	return map_layout.advance_flow_field(max_cells)
 
 
 ## 涉水减速：水面且非桥面时生效；wade_bonus 为玩家“涉水”卡牌的减免。
@@ -2018,6 +2032,13 @@ func _draw_towers() -> void:
 		# 血条统一在 _draw_health_bars() 中绘制，避免与敌兵/佣兵血条层叠错位。
 
 
+func _world_position_visible(position: Vector2, margin: float = 160.0) -> bool:
+	return (
+		absf(position.x - player_pos.x) <= VIEW_HALF.x + margin
+		and absf(position.y - player_pos.y) <= VIEW_HALF.y + margin
+	)
+
+
 func _draw_tower_weapon(tower: Dictionary, pivot: Vector2, size: float) -> void:
 	var angle := float(tower.get("aim_angle", -PI * 0.5))
 	var aim_dir := tower.get("aim_dir", Vector2.UP) as Vector2
@@ -2098,19 +2119,24 @@ func _draw_light(center: Vector2) -> void:
 
 
 func _draw_pickups() -> void:
-	var orb_count := mini(orbs.size(), ORB_BATCH_CAPACITY)
-	for index in range(orb_count):
-		var position := orbs[index]["pos"] as Vector2
+	var orb_count := 0
+	for orb in orbs:
+		if orb_count >= ORB_BATCH_CAPACITY:
+			break
+		var position := orb["pos"] as Vector2
+		if not _world_position_visible(position, 40.0):
+			continue
 		_orb_glow_batch.set_instance_transform_2d(
-			index,
+			orb_count,
 			Transform2D(0.0, Vector2(14.0, 14.0), 0.0, position)
 		)
-		_orb_glow_batch.set_instance_color(index, Color(0.94, 0.70, 0.27, 0.16))
+		_orb_glow_batch.set_instance_color(orb_count, Color(0.94, 0.70, 0.27, 0.16))
 		_orb_core_batch.set_instance_transform_2d(
-			index,
+			orb_count,
 			Transform2D(0.0, Vector2(7.0, 7.0), 0.0, position)
 		)
-		_orb_core_batch.set_instance_color(index, Color(0.98, 0.83, 0.44, 0.96))
+		_orb_core_batch.set_instance_color(orb_count, Color(0.98, 0.83, 0.44, 0.96))
+		orb_count += 1
 	_orb_glow_batch.visible_instance_count = orb_count
 	_orb_core_batch.visible_instance_count = orb_count
 	if orb_count > 0:
@@ -2118,17 +2144,23 @@ func _draw_pickups() -> void:
 		draw_multimesh(_orb_core_batch, _orb_circle_texture)
 	for drop in oil_drops:
 		var position := drop["pos"] as Vector2
+		if not _world_position_visible(position, 40.0):
+			continue
 		draw_circle(position, 11.0, Color(0.92, 0.64, 0.22, 0.20))
 		draw_rect(Rect2(position - Vector2(5, 8), Vector2(10, 16)), Color("#d5a242"))
 		draw_rect(Rect2(position - Vector2(3, 5), Vector2(6, 5)), Color("#f0d078"))
 	for drop in heal_drops:
 		var position := drop["pos"] as Vector2
+		if not _world_position_visible(position, 40.0):
+			continue
 		var bob := sin(time * 5.0 + float(drop["phase"])) * 2.0
 		draw_circle(position + Vector2(0, bob), 10.0, Color(0.24, 0.42, 0.24, 0.24))
 		draw_rect(Rect2(position + Vector2(-7, -2 + bob), Vector2(14, 4)), Color("#9bc27e"))
 		draw_rect(Rect2(position + Vector2(-2, -7 + bob), Vector2(4, 14)), Color("#9bc27e"))
 	for scale in scale_drops:
 		var position := scale["pos"] as Vector2
+		if not _world_position_visible(position, 40.0):
+			continue
 		var color := _scale_color(str(scale["color"]))
 		var bob := sin(time * 4.0 + float(scale["phase"])) * 4.0
 		draw_circle(position + Vector2(0, bob), 13.0, Color(color, 0.18))
@@ -2225,6 +2257,7 @@ func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
 		multimesh.set_instance_color(i, color)
 	for i in range(batch.size(), previous_count):
 		multimesh.set_instance_transform_2d(i, Transform2D(0.0, Vector2.ZERO, 0.0, Vector2.ZERO))
+	multimesh.visible_instance_count = batch.size()
 	_enemy_batch_counts[cache_key] = batch.size()
 	draw_multimesh(multimesh, tex)
 
@@ -2332,6 +2365,12 @@ func _draw_health_bars() -> void:
 			continue
 		var is_boss := bool(enemy.get("boss", false))
 		var is_elite := bool(enemy.get("elite", false))
+		if (
+			not is_boss
+			and not is_elite
+			and float(enemy["hp"]) >= float(enemy["max_hp"]) - 0.01
+		):
+			continue
 		var size := ENEMY_SPRITE_BASE_SIZE * float(enemy.get("scale", 1.0))
 		var width := 96.0 if is_boss else (46.0 if is_elite else maxf(20.0, float(enemy["radius"]) * 0.92))
 		var height := 6.0 if is_boss else (4.0 if is_elite else 3.0)

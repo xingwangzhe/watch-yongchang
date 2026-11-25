@@ -6,6 +6,7 @@ const PAPER := Color("#efe1c2")
 const MUTED := Color("#baa98a")
 const GOLD := Color("#e1b35a")
 const VERMILION := Color("#c05a41")
+const STAGE_WIDTH := 1280.0
 
 var story: StoryOverlay
 var narrative: NarrativePlayer
@@ -13,6 +14,7 @@ var _overlay_layer: CanvasLayer
 var _narrative_data: Dictionary = {}
 var _lines_by_id: Dictionary = {}
 var _player_pos := Vector2(640.0, 480.0)
+var _stage_offset_cache := 0.0
 var _last_move := Vector2.RIGHT
 var _active := false
 var _complete := false
@@ -31,6 +33,8 @@ var _narrative_timer: Timer
 
 
 func _ready() -> void:
+	_stage_offset_cache = stage_offset_for_width(get_viewport_rect().size.x)
+	_player_pos = Vector2(_stage_offset_cache + STAGE_WIDTH * 0.5, 480.0)
 	_ground = GROUND_TEXTURE.make(1386)
 	_load_forge_actors()
 	InputSetup.ensure_defaults()
@@ -61,12 +65,26 @@ func _load_forge_actors() -> void:
 
 func _process(delta: float) -> void:
 	_time += delta
+	var stage_offset := _stage_offset_x()
+	if not is_equal_approx(stage_offset, _stage_offset_cache):
+		_player_pos.x = shift_player_x_for_view_change(
+			_player_pos.x,
+			_stage_offset_cache + STAGE_WIDTH,
+			stage_offset + STAGE_WIDTH
+		)
+		_stage_offset_cache = stage_offset
+		_player_pos.x = clampf(
+			_player_pos.x,
+			stage_offset + 70.0,
+			stage_offset + STAGE_WIDTH - 70.0
+		)
 	if _active and not story.visible and not _complete:
 		var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 		if input_vector.length_squared() > 0.001:
 			_last_move = input_vector.normalized()
 			_player_pos += input_vector * 150.0 * delta
-			_player_pos.x = clampf(_player_pos.x, 70.0, 1210.0)
+			var offset := _stage_offset_x()
+			_player_pos.x = clampf(_player_pos.x, offset + 70.0, offset + STAGE_WIDTH - 70.0)
 			_player_pos.y = clampf(_player_pos.y, 150.0, 630.0)
 	queue_redraw()
 
@@ -198,13 +216,14 @@ func _build_ui() -> void:
 
 
 func _draw() -> void:
-	draw_rect(Rect2(0, 0, 1280, 720), Color("#0b1517"))
+	var view_size := get_viewport_rect().size
+	draw_rect(Rect2(Vector2.ZERO, view_size), Color("#0b1517"))
 	_draw_ground()
 	_draw_water()
 	_draw_fort_outline()
-	_draw_marker("lamp", Vector2(886, 218), Color("#e2b85c"))
-	_draw_marker("stake", Vector2(1058, 410), Color("#b99660"))
-	_draw_marker("banner", Vector2(504, 486), Color("#b54f3d"))
+	_draw_marker("lamp", _marker_position("lamp"), Color("#e2b85c"))
+	_draw_marker("stake", _marker_position("stake"), Color("#b99660"))
+	_draw_marker("banner", _marker_position("banner"), Color("#b54f3d"))
 	_draw_militia()
 	_draw_tanghe()
 	_draw_vignette()
@@ -215,34 +234,49 @@ func _draw_ground() -> void:
 		return
 	draw_texture_rect(
 		_ground,
-		Rect2(Vector2(0, 128), Vector2(1280, 592)),
+		ground_rect(get_viewport_rect().size),
 		true,
 		Color(0.82, 0.86, 0.72, 1.0)
 	)
 
 
+func ground_rect(view_size: Vector2) -> Rect2:
+	return Rect2(
+		Vector2(0, 128),
+		Vector2(view_size.x, maxf(592.0, view_size.y - 128.0))
+	)
+
+
 func _draw_water() -> void:
-	draw_rect(Rect2(0, 0, 1280, 136), Color("#15313a"))
+	var view_size := get_viewport_rect().size
+	draw_rect(water_rect(view_size), Color("#15313a"))
 	for i in range(16):
 		var y := float(i) * 9.0 + sin(_time * 1.2 + i) * 2.5
-		draw_line(Vector2(0, y + 10), Vector2(1280, y + 4), Color(0.30, 0.50, 0.50, 0.11), 1.0)
-	draw_line(Vector2(0, 133), Vector2(1280, 128), Color("#7e8068"), 5.0)
+		draw_line(Vector2(0, y + 10), Vector2(view_size.x, y + 4), Color(0.30, 0.50, 0.50, 0.11), 1.0)
+	draw_line(Vector2(0, 133), Vector2(view_size.x, 128), Color("#7e8068"), 5.0)
 	for i in range(24):
-		var x := float(i) * 56.0 + fmod(_time * 9.0 + i * 13.0, 1280.0)
-		draw_line(Vector2(x, 31), Vector2(1180.0, 31), Color(0.72, 0.65, 0.45, 0.16), 1.0)
+		var x := float(i) * 56.0 + fmod(_time * 9.0 + i * 13.0, view_size.x)
+		draw_line(Vector2(x, 31), Vector2(view_size.x - 100.0, 31), Color(0.72, 0.65, 0.45, 0.16), 1.0)
+
+
+func water_rect(view_size: Vector2) -> Rect2:
+	return Rect2(0, 0, view_size.x, 136)
 
 
 func _draw_fort_outline() -> void:
 	if not bool(_done["stake"]):
 		return
 	var color := Color(0.90, 0.74, 0.42, 0.48)
+	var offset := _stage_offset_x()
 	var points := [
-		Vector2(748, 310), Vector2(1148, 310), Vector2(1148, 590), Vector2(748, 590), Vector2(748, 310),
+		Vector2(748 + offset, 310), Vector2(1148 + offset, 310),
+		Vector2(1148 + offset, 590), Vector2(748 + offset, 590),
+		Vector2(748 + offset, 310),
 	]
 	for i in range(points.size() - 1):
 		draw_dashed_line(points[i], points[i + 1], color, 2.0, 8.0)
 	for i in range(8):
-		var x := 748.0 + float(i) * 50.0
+		var x := 748.0 + offset + float(i) * 50.0
 		draw_line(Vector2(x, 310), Vector2(x, 298), color, 2.0)
 
 
@@ -280,7 +314,13 @@ func _draw_marker(marker_id: String, position: Vector2, color: Color) -> void:
 func _draw_militia() -> void:
 	if not bool(_done["banner"]):
 		return
-	var positions: Array[Vector2] = [Vector2(420, 548), Vector2(474, 574), Vector2(540, 552), Vector2(602, 584)]
+	var offset := _stage_offset_x()
+	var positions: Array[Vector2] = [
+		Vector2(420 + offset, 548),
+		Vector2(474 + offset, 574),
+		Vector2(540 + offset, 552),
+		Vector2(602 + offset, 584),
+	]
 	for i in range(positions.size()):
 		var pos: Vector2 = positions[i] + Vector2(0, sin(_time * 2.0 + i) * 2.0)
 		draw_circle(pos + Vector2(0, 18), 15.0, Color(0, 0, 0, 0.20))
@@ -329,19 +369,37 @@ func _draw_forge_frame(
 
 
 func _draw_vignette() -> void:
-	draw_rect(Rect2(0, 0, 1280, 22), Color(0, 0, 0, 0.55))
-	draw_rect(Rect2(0, 698, 1280, 22), Color(0, 0, 0, 0.62))
+	var view_size := get_viewport_rect().size
+	draw_rect(Rect2(0, 0, view_size.x, 22), Color(0, 0, 0, 0.55))
+	draw_rect(Rect2(0, view_size.y - 22.0, view_size.x, 22), Color(0, 0, 0, 0.62))
 
 
 func _marker_position(marker_id: String) -> Vector2:
+	return marker_position(marker_id, get_viewport_rect().size.x)
+
+
+func marker_position(marker_id: String, view_width: float) -> Vector2:
+	var offset := stage_offset_for_width(view_width)
 	match marker_id:
 		"lamp":
-			return Vector2(886, 218)
+			return Vector2(886.0 + offset, 218)
 		"stake":
-			return Vector2(1058, 410)
+			return Vector2(1058.0 + offset, 410)
 		"banner":
-			return Vector2(504, 486)
+			return Vector2(504.0 + offset, 486)
 	return Vector2.ZERO
+
+
+func _stage_offset_x() -> float:
+	return stage_offset_for_width(get_viewport_rect().size.x)
+
+
+func stage_offset_for_width(view_width: float) -> float:
+	return maxf(0.0, (view_width - STAGE_WIDTH) * 0.5)
+
+
+func shift_player_x_for_view_change(player_x: float, previous_width: float, current_width: float) -> float:
+	return player_x + stage_offset_for_width(current_width) - stage_offset_for_width(previous_width)
 
 
 func _play_sfx(path: String) -> void:

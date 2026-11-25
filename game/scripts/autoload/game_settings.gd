@@ -7,6 +7,7 @@ const DEFAULT_LANGUAGE := "zh"
 const LANGUAGE_CODES := ["zh", "en"]
 const FPS_LIMITS := [30, 60, 90, 120, 144, 240, 0]
 const DEFAULT_FPS_LIMIT := 60
+const DEFAULT_FPS_LIMIT_WEB := 0
 const DEFAULT_BGM_VOLUME := 0.42
 const RENDERER_AUTO := "auto"
 const RENDERER_VULKAN := "vulkan"
@@ -23,17 +24,27 @@ var fps_limit: int = DEFAULT_FPS_LIMIT
 var vsync: bool = true
 var renderer_mode: String = RENDERER_AUTO
 var vulkan_probe_override: int = -1
+var web_platform_override: int = -1
 var active_renderer_override: String = ""
 var renderer_mirror_override: String = ""
 var restart_enabled: bool = true
 var bindings: Dictionary = {}
+var web_capabilities: Dictionary = {
+	"webgl2": true,
+	"renderer": "",
+	"webgpu_api": false,
+}
 
 var _config := ConfigFile.new()
 var _vulkan_available := -1
 
 
 func _ready() -> void:
+	fps_limit = default_fps_limit()
 	load_settings()
+	if is_web_platform():
+		renderer_mode = RENDERER_OPENGL
+	_probe_web_capabilities()
 	_apply_display()
 	_apply_performance()
 	InputSetup.ensure_defaults()
@@ -168,7 +179,7 @@ func set_vsync(enabled: bool) -> void:
 
 
 func set_renderer_mode(mode: String) -> void:
-	var next := _valid_renderer_mode(mode)
+	var next := RENDERER_OPENGL if is_web_platform() else _valid_renderer_mode(mode)
 	if renderer_mode == next:
 		return
 	renderer_mode = next
@@ -176,6 +187,8 @@ func set_renderer_mode(mode: String) -> void:
 
 
 func resolved_renderer() -> String:
+	if is_web_platform():
+		return RENDERER_OPENGL
 	match renderer_mode:
 		RENDERER_OPENGL:
 			return RENDERER_OPENGL
@@ -196,13 +209,68 @@ func active_renderer() -> String:
 	return ""
 
 
+func is_web_platform() -> bool:
+	if web_platform_override >= 0:
+		return web_platform_override == 1
+	return OS.has_feature("web")
+
+
+func default_fps_limit() -> int:
+	return DEFAULT_FPS_LIMIT_WEB if is_web_platform() else DEFAULT_FPS_LIMIT
+
+
+func renderer_modes_for_ui() -> Array:
+	if is_web_platform():
+		return [RENDERER_OPENGL, RENDERER_VULKAN]
+	return RENDERER_MODES.duplicate()
+
+
 func vulkan_supported() -> bool:
+	if is_web_platform():
+		return false
 	if vulkan_probe_override >= 0:
 		return vulkan_probe_override == 1
 	if _vulkan_available >= 0:
 		return _vulkan_available == 1
 	_vulkan_available = 1 if _probe_vulkan() else 0
 	return _vulkan_available == 1
+
+
+func webgl_supported() -> bool:
+	return bool(web_capabilities.get("webgl2", true))
+
+
+func webgl_renderer() -> String:
+	return str(web_capabilities.get("renderer", ""))
+
+
+func webgpu_api_available() -> bool:
+	return bool(web_capabilities.get("webgpu_api", false))
+
+
+func _probe_web_capabilities() -> void:
+	if not OS.has_feature("web"):
+		return
+	var raw := str(JavaScriptBridge.eval("""
+(() => {
+  const caps = { webgl2: false, renderer: "", webgpu_api: !!navigator.gpu };
+  try {
+    const canvas = document.createElement("canvas");
+    const gl = canvas.getContext("webgl2");
+    caps.webgl2 = !!gl;
+    if (gl) {
+      const debug = gl.getExtension("WEBGL_debug_renderer_info");
+      caps.renderer = debug ? String(gl.getParameter(debug.UNMASKED_RENDERER_WEBGL)) : "";
+    }
+  } catch (error) {
+    caps.renderer = String(error);
+  }
+  return JSON.stringify(caps);
+})()
+""", true))
+	var parsed: Variant = JSON.parse_string(raw)
+	if parsed is Dictionary:
+		web_capabilities.merge(parsed, true)
 
 
 func reset_vulkan_probe() -> void:
@@ -230,6 +298,8 @@ func renderer_mirror_path() -> String:
 
 
 func renderer_requires_restart() -> bool:
+	if is_web_platform():
+		return false
 	return resolved_renderer() != active_renderer()
 
 
@@ -247,7 +317,7 @@ func renderer_restart_args() -> PackedStringArray:
 
 
 func restart_with_renderer() -> bool:
-	if not restart_enabled:
+	if is_web_platform() or not restart_enabled:
 		return false
 	var pid := OS.create_process(OS.get_executable_path(), renderer_restart_args())
 	if pid <= 0:

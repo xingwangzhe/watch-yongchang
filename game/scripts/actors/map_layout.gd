@@ -3,6 +3,7 @@ extends RefCounted
 
 const TILE_SIZE := 32.0
 const CARDINAL_DIRECTIONS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
+const FLOW_MIN_REQUEST_CELLS := 2
 const MINIMAP_BRIDGE := Color("#c4a06b")
 const MINIMAP_BRIDGE_RAILING := Color("#4e3527")
 
@@ -35,7 +36,16 @@ var _minimap_colors := PackedColorArray()
 var _spawn_samples := PackedVector2Array()
 var _flow_distance := PackedInt32Array()
 var _flow_next_cells := PackedInt32Array()
+var _flow_queue := PackedInt32Array()
 var _flow_target_cell := Vector2i(-1, -1)
+var _flow_build_distance := PackedInt32Array()
+var _flow_build_next_cells := PackedInt32Array()
+var _flow_build_queue := PackedInt32Array()
+var _flow_build_target_cell := Vector2i(-1, -1)
+var _flow_pending_target_cell := Vector2i(-1, -1)
+var _flow_build_head := 0
+var _flow_build_tail := 0
+var _flow_build_active := false
 
 
 func setup(map_key: String, definition: Dictionary) -> void:
@@ -46,7 +56,12 @@ func setup(map_key: String, definition: Dictionary) -> void:
 	_repaired_cells.clear()
 	_flow_distance.clear()
 	_flow_next_cells.clear()
+	_flow_build_distance.clear()
+	_flow_build_next_cells.clear()
+	_flow_build_active = false
 	_flow_target_cell = Vector2i(-1, -1)
+	_flow_build_target_cell = Vector2i(-1, -1)
+	_flow_pending_target_cell = Vector2i(-1, -1)
 	minimap_texture = null
 	initial_blocked_points.clear()
 	var layout: Dictionary = definition.get("layout", {}) as Dictionary
@@ -348,6 +363,8 @@ func _carve_corridor(from_cell: Vector2i, to_cell: Vector2i) -> void:
 
 
 func ensure_flow_field(target: Vector2) -> void:
+	_flow_build_active = false
+	_flow_pending_target_cell = Vector2i(-1, -1)
 	var cell := world_to_cell(target)
 	if not cell_in_bounds(cell):
 		return
@@ -360,6 +377,114 @@ func ensure_flow_field(target: Vector2) -> void:
 	if _flow_target_cell == cell:
 		return
 	_build_flow_field(cell)
+
+
+## 请求在后台增量更新流场。旧流场在构建完成前继续可用，避免移动穿格时卡顿。
+## 目标只跨一格时不重建，单格误差由敌人朝向与碰撞滑动吸收。
+func request_flow_field(target: Vector2) -> void:
+	var cell := world_to_cell(target)
+	if not cell_in_bounds(cell):
+		return
+	if not is_cell_walkable(cell):
+		cell = world_to_cell(find_walkable_position(target))
+	if _flow_build_active:
+		_flow_pending_target_cell = (
+			Vector2i(-1, -1)
+			if _cell_near(cell, _flow_build_target_cell)
+			else cell
+		)
+		return
+	if (
+		_flow_target_cell.x >= 0
+		and _cell_near(cell, _flow_target_cell)
+	):
+		return
+	_start_flow_build(cell)
+
+
+func _cell_near(left: Vector2i, right: Vector2i) -> bool:
+	return (
+		absi(left.x - right.x) < FLOW_MIN_REQUEST_CELLS
+		and absi(left.y - right.y) < FLOW_MIN_REQUEST_CELLS
+	)
+
+
+func _start_flow_build(cell: Vector2i) -> void:
+	_flow_build_active = false
+	var width := world_tiles.x
+	var total := width * world_tiles.y
+	_flow_build_distance.resize(total)
+	_flow_build_distance.fill(-1)
+	_flow_build_next_cells.resize(total)
+	_flow_build_next_cells.fill(-1)
+	_flow_build_queue.resize(total)
+	_flow_build_target_cell = cell
+	_flow_pending_target_cell = Vector2i(-1, -1)
+	_flow_build_head = 0
+	_flow_build_tail = 0
+	var start_index := cell.y * width + cell.x
+	if _solid_flags[start_index] != 0:
+		return
+	_flow_build_distance[start_index] = 0
+	_flow_build_queue[0] = start_index
+	_flow_build_tail = 1
+	_flow_build_active = true
+
+
+## 每帧推进固定格数；完成后交换双缓冲。返回值表示本轮是否完成一次构建。
+func advance_flow_field(max_cells: int = 256) -> bool:
+	if not _flow_build_active:
+		return false
+	var width := world_tiles.x
+	var height := world_tiles.y
+	var processed := 0
+	while _flow_build_head < _flow_build_tail and processed < max_cells:
+		var index := _flow_build_queue[_flow_build_head]
+		_flow_build_head += 1
+		processed += 1
+		var cell_x := index % width
+		var cell_y := index / width
+		var distance := _flow_build_distance[index] + 1
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				if dx == 0 and dy == 0:
+					continue
+				var next_x := cell_x + dx
+				var next_y := cell_y + dy
+				if next_x < 0 or next_y < 0 or next_x >= width or next_y >= height:
+					continue
+				var next_index := next_y * width + next_x
+				if _solid_flags[next_index] != 0 or _flow_build_distance[next_index] >= 0:
+					continue
+				if dx != 0 and dy != 0:
+					if _solid_flags[cell_y * width + next_x] != 0:
+						continue
+					if _solid_flags[next_y * width + cell_x] != 0:
+						continue
+				_flow_build_distance[next_index] = distance
+				_flow_build_next_cells[next_index] = index
+				_flow_build_queue[_flow_build_tail] = next_index
+				_flow_build_tail += 1
+	if _flow_build_head < _flow_build_tail:
+		return false
+	var old_distance := _flow_distance
+	var old_next := _flow_next_cells
+	var old_queue := _flow_queue
+	_flow_distance = _flow_build_distance
+	_flow_next_cells = _flow_build_next_cells
+	_flow_queue = _flow_build_queue
+	_flow_target_cell = _flow_build_target_cell
+	_flow_build_distance = old_distance
+	_flow_build_next_cells = old_next
+	_flow_build_queue = old_queue
+	_flow_build_active = false
+	_flow_build_head = 0
+	_flow_build_tail = 0
+	var pending := _flow_pending_target_cell
+	_flow_pending_target_cell = Vector2i(-1, -1)
+	if pending.x >= 0 and not _cell_near(pending, _flow_target_cell):
+		_start_flow_build(pending)
+	return true
 
 
 func flow_direction(position: Vector2) -> Vector2:
@@ -446,7 +571,7 @@ func find_walkable_position(origin: Vector2, radius: float = 18.0) -> Vector2:
 
 
 func spawn_candidates(player_position: Vector2, min_distance: float = 720.0, max_distance: float = 1500.0) -> Array[Vector2]:
-	ensure_flow_field(player_position)
+	request_flow_field(player_position)
 	var near: Array[Vector2] = []
 	var far: Array[Vector2] = []
 	for point in _spawn_samples:
@@ -573,58 +698,49 @@ func _parse_spawn_lanes(entries: Array) -> void:
 
 
 func _build_flow_field(target_cell: Vector2i) -> void:
-	var total := world_tiles.x * world_tiles.y
+	_flow_build_active = false
+	var width := world_tiles.x
+	var height := world_tiles.y
+	var total := width * height
 	_flow_distance.resize(total)
 	_flow_distance.fill(-1)
 	_flow_next_cells.resize(total)
 	_flow_next_cells.fill(-1)
+	_flow_queue.resize(total)
 	_flow_target_cell = target_cell
-	if not is_cell_walkable(target_cell):
+	var start_index := target_cell.y * width + target_cell.x
+	if start_index < 0 or start_index >= total or _solid_flags[start_index] != 0:
 		return
-	var queue := PackedInt32Array()
-	var start_index := target_cell.y * world_tiles.x + target_cell.x
 	_flow_distance[start_index] = 0
-	queue.append(start_index)
+	_flow_queue[0] = start_index
 	var head := 0
-	while head < queue.size():
-		var index := queue[head]
+	var tail := 1
+	while head < tail:
+		var index := _flow_queue[head]
 		head += 1
-		var cell := Vector2i(index % world_tiles.x, index / world_tiles.x)
+		var cell_x := index % width
+		var cell_y := index / width
 		var distance := _flow_distance[index] + 1
-		for direction in CARDINAL_DIRECTIONS:
-			var next := cell + (direction as Vector2i)
-			if not cell_in_bounds(next) or not is_cell_walkable(next):
-				continue
-			var next_index := next.y * world_tiles.x + next.x
-			if _flow_distance[next_index] >= 0:
-				continue
-			_flow_distance[next_index] = distance
-			queue.append(next_index)
-	for index in range(total):
-		var current_distance := _flow_distance[index]
-		if current_distance <= 0:
-			continue
-		var cell := Vector2i(index % world_tiles.x, index / world_tiles.x)
-		var best_distance := current_distance
-		var best_index := -1
 		for dy in range(-1, 2):
 			for dx in range(-1, 2):
 				if dx == 0 and dy == 0:
 					continue
-				var next := Vector2i(cell.x + dx, cell.y + dy)
-				if not cell_in_bounds(next) or not is_cell_walkable(next):
+				var next_x := cell_x + dx
+				var next_y := cell_y + dy
+				if next_x < 0 or next_y < 0 or next_x >= width or next_y >= height:
+					continue
+				var next_index := next_y * width + next_x
+				if _solid_flags[next_index] != 0 or _flow_distance[next_index] >= 0:
 					continue
 				if dx != 0 and dy != 0:
-					if not is_cell_walkable(Vector2i(cell.x + dx, cell.y)):
+					if _solid_flags[cell_y * width + next_x] != 0:
 						continue
-					if not is_cell_walkable(Vector2i(cell.x, cell.y + dy)):
+					if _solid_flags[next_y * width + cell_x] != 0:
 						continue
-				var next_index := next.y * world_tiles.x + next.x
-				var next_distance := _flow_distance[next_index]
-				if next_distance >= 0 and next_distance < best_distance:
-					best_distance = next_distance
-					best_index = next_index
-		_flow_next_cells[index] = best_index
+				_flow_distance[next_index] = distance
+				_flow_next_cells[next_index] = index
+				_flow_queue[tail] = next_index
+				tail += 1
 
 
 func _build_minimap_texture() -> void:

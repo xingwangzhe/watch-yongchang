@@ -4,7 +4,11 @@ const FIXED_STEP := 1.0 / 60.0
 const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
 const ATTACK_BUFFER_DURATION := 0.18
-const HUD_REFRESH_INTERVAL := 0.05
+const HUD_REFRESH_INTERVAL := 0.10
+const MAX_CATCHUP_STEPS_NATIVE := 6
+const MAX_CATCHUP_STEPS_WEB := 2
+const FLOW_CELLS_PER_FRAME_WEB := 320
+const FLOW_CELLS_PER_FRAME_NATIVE := 384
 const GAMEPLAY_CURSOR_PATH := "res://assets/ui/watch_cursor.webp"
 const GAMEPLAY_CURSOR_HOTSPOT := Vector2(3, 0)
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
@@ -108,6 +112,13 @@ var _event_enemy_speed_mult := 1.0
 var _accum := 0.0
 var _spawn_accum := 0.0
 var _hud_refresh_accum := 0.0
+var _web_perf_probe := false
+var _web_perf_timer := 0.0
+var _last_steps := 0
+var _last_step_usec := 0
+var _last_world_usec := 0
+var _last_hud_usec := 0
+var _last_flow_usec := 0
 var _event_line_index := 0
 var _scale_event_index := 0
 var _boss_spawned := false
@@ -149,23 +160,74 @@ func _ready() -> void:
 	_setup_player()
 	AudioBus.play_battle_bgm()
 	_schedule_intro()
+	_enable_web_perf_probe()
 
 
 func _process(delta: float) -> void:
 	_sync_gameplay_cursor()
 	if _paused or _game_over:
 		return
-	_accum = minf(_accum + delta, 0.20)
+	var max_steps := max_catchup_steps()
+	_accum = minf(_accum + delta, FIXED_STEP * float(max_steps))
 	var steps := 0
-	while _accum >= FIXED_STEP and steps < 6:
+	while _accum >= FIXED_STEP and steps < max_steps:
 		_step(FIXED_STEP)
 		_accum -= FIXED_STEP
 		steps += 1
+	_last_steps = steps
+	var flow_started := Time.get_ticks_usec()
+	var flow_cells := (
+		FLOW_CELLS_PER_FRAME_WEB
+		if GameSettings.is_web_platform()
+		else FLOW_CELLS_PER_FRAME_NATIVE
+	)
+	battlefield.advance_flow_field(flow_cells)
+	_last_flow_usec = Time.get_ticks_usec() - flow_started
 	_update_camera(delta)
 	_hud_refresh_accum += delta
 	if _hud_refresh_accum >= HUD_REFRESH_INTERVAL:
 		_hud_refresh_accum = 0.0
+		var hud_started := Time.get_ticks_usec()
 		hud.update_hud(_hud_state())
+		_last_hud_usec = Time.get_ticks_usec() - hud_started
+	_publish_web_perf(delta)
+
+
+func max_catchup_steps() -> int:
+	return MAX_CATCHUP_STEPS_WEB if GameSettings.is_web_platform() else MAX_CATCHUP_STEPS_NATIVE
+
+
+func _enable_web_perf_probe() -> void:
+	if not OS.has_feature("web"):
+		return
+	_web_perf_probe = bool(JavaScriptBridge.eval(
+		"new URLSearchParams(location.search).has('perf')",
+		true
+	))
+
+
+func _publish_web_perf(delta: float) -> void:
+	if not _web_perf_probe:
+		return
+	_web_perf_timer -= delta
+	if _web_perf_timer > 0.0:
+		return
+	_web_perf_timer = 1.0
+	var payload := {
+		"fps": Engine.get_frames_per_second(),
+		"steps": _last_steps,
+		"max_steps": max_catchup_steps(),
+		"step_ms": snappedf(float(_last_step_usec) / 1000.0, 0.01),
+		"world_ms": snappedf(float(_last_world_usec) / 1000.0, 0.01),
+		"flow_ms": snappedf(float(_last_flow_usec) / 1000.0, 0.01),
+		"hud_ms": snappedf(float(_last_hud_usec) / 1000.0, 0.01),
+		"enemies": battlefield.alive_count(),
+		"draw_calls": Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+		"primitives": Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
+		"objects": Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+		"elapsed": snappedf(elapsed, 0.1),
+	}
+	JavaScriptBridge.eval("window.__watchPerf = %s;" % JSON.stringify(payload), true)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -297,8 +359,7 @@ func _build_world() -> void:
 
 	camera = Camera2D.new()
 	camera.name = "RunCamera"
-	camera.position_smoothing_enabled = true
-	camera.position_smoothing_speed = 7.0
+	camera.position_smoothing_enabled = false
 	camera.limit_left = 0
 	camera.limit_top = 0
 	camera.limit_right = int(battlefield.map_layout.world_size.x)
@@ -511,6 +572,7 @@ func _start_gameplay() -> void:
 
 
 func _step(delta: float) -> void:
+	var step_started := Time.get_ticks_usec()
 	elapsed += delta
 	_update_player(delta)
 	_update_oil(delta)
@@ -519,11 +581,13 @@ func _step(delta: float) -> void:
 	battlefield.set_meta("light_radius", float(player["light_radius"]))
 	battlefield.set_difficulty(elapsed / maxf(1.0, duration), _difficulty_curve)
 	var map_speed := float(map_def.get("enemy_speed_mult", 1.0))
+	var world_started := Time.get_ticks_usec()
 	battlefield.update_world(
 		delta,
 		player,
 		(1.20 if bool(player["dark"]) else 1.0) * map_speed * _event_enemy_speed_mult
 	)
+	_last_world_usec = Time.get_ticks_usec() - world_started
 	_update_spawning(delta)
 	_update_timeline_events()
 	_update_boss_state()
@@ -531,6 +595,7 @@ func _step(delta: float) -> void:
 		_begin_victory()
 	elif not _victory_started:
 		_maybe_open_shop()
+	_last_step_usec = Time.get_ticks_usec() - step_started
 
 
 func _update_player(delta: float) -> void:
@@ -2107,7 +2172,11 @@ func _exit_tree() -> void:
 func _update_camera(delta: float) -> void:
 	if not is_instance_valid(camera):
 		return
-	camera.position = camera.position.lerp(player["pos"] as Vector2, clampf(delta * 8.0, 0.0, 1.0))
+	var target := player["pos"] as Vector2
+	var blend := 1.0 - exp(-12.0 * delta)
+	camera.position = camera.position.lerp(target, clampf(blend, 0.0, 1.0))
+	if camera.position.distance_squared_to(target) > 320.0 * 320.0:
+		camera.position = target
 
 
 func debug_prepare_capture(mode: String, page: int = 0) -> Dictionary:

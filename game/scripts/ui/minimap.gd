@@ -6,6 +6,9 @@ const INK := Color(0.018, 0.028, 0.031, 0.94)
 const PAPER := Color("#efe1c2")
 const GOLD := Color("#e1b35a")
 const MUTED := Color("#baa98a")
+const DOT_CAPACITY := 2048
+const WEB_REFRESH_INTERVAL := 0.20
+const NATIVE_REFRESH_INTERVAL := 0.075
 
 var battlefield: Battlefield
 var map_def: Dictionary = {}
@@ -15,6 +18,9 @@ var layout: MapLayout
 var _base_texture: Texture2D
 var _refresh_accum := 0.0
 var _map_rect := Rect2()
+var _dot_batch: MultiMesh
+var _dot_texture: Texture2D
+var _dot_count := 0
 
 
 func _ready() -> void:
@@ -23,6 +29,7 @@ func _ready() -> void:
 		size = custom_minimum_size
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_build_dot_batch()
 	set_process(true)
 
 
@@ -39,9 +46,27 @@ func _process(delta: float) -> void:
 	if battlefield == null or layout == null:
 		return
 	_refresh_accum += delta
-	if _refresh_accum >= 0.075:
+	if _refresh_accum >= refresh_interval():
 		_refresh_accum = 0.0
 		queue_redraw()
+
+
+func refresh_interval() -> float:
+	return WEB_REFRESH_INTERVAL if GameSettings.is_web_platform() else NATIVE_REFRESH_INTERVAL
+
+
+func _build_dot_batch() -> void:
+	var image := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+	image.fill(Color.WHITE)
+	_dot_texture = ImageTexture.create_from_image(image)
+	var quad := QuadMesh.new()
+	quad.size = Vector2.ONE
+	_dot_batch = MultiMesh.new()
+	_dot_batch.transform_format = MultiMesh.TRANSFORM_2D
+	_dot_batch.use_colors = true
+	_dot_batch.mesh = quad
+	_dot_batch.instance_count = DOT_CAPACITY
+	_dot_batch.visible_instance_count = 0
 
 
 func _draw() -> void:
@@ -53,8 +78,7 @@ func _draw() -> void:
 		draw_texture_rect(_base_texture, _map_rect, false, Color.WHITE)
 	draw_rect(_map_rect, Color(GOLD, 0.24), false, 1.0)
 	_draw_landmarks()
-	_draw_pickups()
-	_draw_enemies()
+	_draw_entities()
 	_draw_camera_window()
 	_draw_player()
 	_draw_compass()
@@ -117,42 +141,54 @@ func _draw_landmarks() -> void:
 			draw_circle(point, 2.2, Color(color, 0.82))
 
 
-func _draw_enemies() -> void:
+func _draw_entities() -> void:
+	_dot_count = 0
 	for enemy in battlefield.enemies:
 		if not bool(enemy.get("alive", false)):
 			continue
-		var point := world_to_map(enemy["pos"] as Vector2)
-		if not _map_rect.has_point(point):
-			continue
 		if bool(enemy.get("boss", false)):
-			draw_circle(point, 3.0, Color("#f0a050"))
+			_append_dot(enemy["pos"] as Vector2, 6.0, Color("#f0a050"))
 		elif bool(enemy.get("elite", false)):
-			draw_rect(Rect2(point - Vector2(1.6, 1.6), Vector2(3.2, 3.2)), Color("#e08055"))
+			_append_dot(enemy["pos"] as Vector2, 3.6, Color("#e08055"))
 		else:
-			draw_rect(Rect2(point - Vector2(1.0, 1.0), Vector2(2.0, 2.0)), Color("#c95a48"))
-
-
-func _draw_pickups() -> void:
+			_append_dot(enemy["pos"] as Vector2, 2.2, Color("#c95a48"))
 	for orb in battlefield.orbs:
-		_draw_pickup_point(orb["pos"] as Vector2, Color("#e8c45f"), 1.0)
+		_append_pickup_point(orb["pos"] as Vector2, Color("#e8c45f"), 1.0)
 	for drop in battlefield.oil_drops:
-		_draw_pickup_point(drop["pos"] as Vector2, Color("#e6a642"), 1.4)
+		_append_pickup_point(drop["pos"] as Vector2, Color("#e6a642"), 1.4)
 	for drop in battlefield.heal_drops:
-		_draw_pickup_point(drop["pos"] as Vector2, Color("#88b978"), 1.2)
+		_append_pickup_point(drop["pos"] as Vector2, Color("#88b978"), 1.2)
 	for drop in battlefield.scale_drops:
-		_draw_pickup_point(drop["pos"] as Vector2, battlefield._scale_color(str(drop.get("color", ""))), 1.6)
+		_append_pickup_point(drop["pos"] as Vector2, battlefield._scale_color(str(drop.get("color", ""))), 1.6)
+	_dot_batch.visible_instance_count = _dot_count
+	if _dot_count > 0:
+		draw_multimesh(_dot_batch, _dot_texture)
 
 
-func _draw_pickup_point(world_position: Vector2, color: Color, radius: float) -> void:
+func _append_pickup_point(world_position: Vector2, color: Color, radius: float) -> void:
 	var point := world_to_map(world_position)
 	if _map_rect.has_point(point):
-		draw_circle(point, radius, Color(color, 0.78))
+		_append_dot(world_position, radius * 2.0, Color(color, 0.78))
+
+
+func _append_dot(world_position: Vector2, size: float, color: Color) -> void:
+	if _dot_count >= DOT_CAPACITY:
+		return
+	var point := world_to_map(world_position)
+	if not _map_rect.has_point(point):
+		return
+	_dot_batch.set_instance_transform_2d(
+		_dot_count,
+		Transform2D(0.0, Vector2(size, size), 0.0, point)
+	)
+	_dot_batch.set_instance_color(_dot_count, color)
+	_dot_count += 1
 
 
 func _draw_camera_window() -> void:
 	if camera == null:
 		return
-	var half_view := Vector2(640, 360)
+	var half_view := camera_half_view(get_viewport_rect().size, camera.zoom)
 	var top_left := world_to_map(camera.position - half_view)
 	var bottom_right := world_to_map(camera.position + half_view)
 	draw_rect(
@@ -160,6 +196,13 @@ func _draw_camera_window() -> void:
 		Color(0.92, 0.82, 0.54, 0.46),
 		false,
 		1.0
+	)
+
+
+func camera_half_view(view_size: Vector2, camera_zoom: Vector2 = Vector2.ONE) -> Vector2:
+	return Vector2(
+		view_size.x / maxf(0.01, camera_zoom.x * 2.0),
+		view_size.y / maxf(0.01, camera_zoom.y * 2.0)
 	)
 
 
