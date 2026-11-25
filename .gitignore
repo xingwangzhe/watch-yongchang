@@ -48,6 +48,27 @@ design/
 docs/build_*.md
 docs/perf_*.md
 docs/比赛规则与主题归纳.md
+docs/内部*/
+docs/评审*/
+docs/提交*/
+docs/赛事*/
+docs/调研*/
+docs/草稿*/
+docs/数值*/
+docs/方案*/
+docs/存档*/
+docs/临时*/
+docs/**/*.pdf
+docs/**/*.doc
+docs/**/*.docx
+docs/**/*.ppt
+docs/**/*.pptx
+docs/**/*.xls
+docs/**/*.xlsx
+docs/**/*.csv
+docs/**/*.drawio
+docs/**/*.mm
+docs/**/*.xmind
 
 # ----- 本地研究、生成候选与第三方参考实现 -----
 assets/third_party/
@@ -67,6 +88,11 @@ game/build/
 game/android/build/
 game/ios/build/
 .codegraph/
+.sconsign.dblite
+.scons-cache/
+scons-cache/
+web-engine-dist/
+godot-src/
 *.pck
 *.exe
 *.x86_64
@@ -82,6 +108,9 @@ artifacts/
 tools/__pycache__/
 dora/__pycache__/
 __pycache__/
+.playwright-cli/
+playwright-report/
+test-results/
 *.pyc
 *.log
 *.tmp
@@ -91,6 +120,23 @@ __pycache__/
 *.rej
 *.mp4
 *.mkv
+*.mov
+*.webm
+*.wav
+*.flac
+*.har
+*.trace
+*.blend
+*.blend1
+*.psd
+*.psb
+*.kra
+*.xcf
+*.aseprite
+*.clip
+*.ai
+*.sketch
+*.fig
 
 # ----- 开发预览与旧角色实验，不得进入正式运行资产 -----
 game/assets/actors/
@@ -131,6 +177,8 @@ pixel-art/character_forge/REFERENCE.md
 
 # ----- 根目录字体副本；运行时唯一字体位于 game/assets/fonts/ -----
 assets/fonts/
+game/assets/fonts/LXGWWenKai-Regular.ttf
+game/assets/fonts/LXGWWenKai-Regular.ttf.import
 
 # ----- CI 工具与包管理器缓存 -----
 .tools/
