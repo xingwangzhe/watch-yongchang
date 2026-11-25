@@ -277,7 +277,13 @@ func _build_watch_panel() -> void:
 
 	var version_row := HBoxContainer.new()
 	column.add_child(version_row)
-	var version := _make_label("Version", "v0.4 · M3", 12, Color(MUTED, 0.54))
+	var game_version := str(ProjectSettings.get_setting("application/config/version", "0.0.0"))
+	var version := _make_label(
+		"Version",
+		Locale.t("panel.version").format({"version": game_version}),
+		12,
+		Color(MUTED, 0.54)
+	)
 	version_row.add_child(version)
 	var version_spacer := Control.new()
 	version_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL

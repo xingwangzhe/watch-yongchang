@@ -175,6 +175,9 @@ func test_main_menu_moves_codex_to_menu_and_opens_controls() -> void:
 	assert_not_null(controls_overlay)
 	assert_false(controls_overlay.visible, "the controls panel must start closed")
 	assert_not_null(menu.find_child("ControlsButton", true, false), "settings must expose a controls button")
+	var version_label := menu.find_child("Version", true, false) as Label
+	assert_not_null(version_label)
+	assert_eq(version_label.text, "v0.1.0")
 	var music_title := menu.find_child("MusicTitle", true, false) as Label
 	assert_not_null(music_title)
 	assert_string_contains(str(music_title.text), "Samurai Nights")
@@ -311,6 +314,12 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	assert_ne(about.about_stream().resource_path, AudioBus.menu_stream.resource_path, "about music must be distinct")
 
 	var credits: Dictionary = about.credits_data()
+	assert_eq(str(ProjectSettings.get_setting("application/config/version", "")), "0.1.0")
+	var free_software: Dictionary = credits.get("free_software", {})
+	assert_false(free_software.is_empty(), "the roll must open with a free-software statement")
+	assert_string_contains(str(free_software.get("lines_zh", [""])[0]), "自由软件")
+	assert_string_contains(str(free_software.get("lines_zh", [""])[1]), "AGPL-3.0-or-later")
+	assert_string_contains(str(free_software.get("lines_zh", [""])[1]), "CC BY 4.0")
 	var music_entries: Array = credits.get("music", [])
 	assert_eq(music_entries.size(), 3)
 	var allowed_music_licenses := {
@@ -389,6 +398,21 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	assert_true(found_official, "inline sources must include the official OSGJ site")
 	assert_false(credits.has("references"), "sources must not be split into a separate block")
 	assert_false(Locale.table("zh").has("about.references"))
+	var content := about.find_child("CreditsContent", true, false) as VBoxContainer
+	assert_not_null(content)
+	var content_labels: Array[String] = []
+	for child in content.get_children():
+		if child is Label:
+			content_labels.append(str((child as Label).text))
+	var free_index := content_labels.find(str(free_software.get("title_zh", "")))
+	var thanks_index := content_labels.find("致谢")
+	var license_index := content_labels.find("版权与许可")
+	var game_index := content_labels.find("作品与当前进度")
+	assert_true(free_index >= 0, "free-software statement must be rendered")
+	assert_true(free_index < thanks_index, "free-software statement must precede thanks")
+	assert_true(thanks_index < license_index, "thanks must precede copyright and licenses")
+	assert_true(license_index < game_index, "thanks and licenses must precede the remaining sections")
+	assert_eq(content_labels[-1], Locale.t("about.thanks_end"), "the roll must end with thanks to judges and players")
 	var renderer_section: Dictionary = {}
 	var nightscape_section: Dictionary = {}
 	for section in about_sections:

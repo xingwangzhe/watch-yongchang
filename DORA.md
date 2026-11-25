@@ -5,6 +5,10 @@
 场景预检；**本机没有 Dora CLI，尚未执行真实 Dora 运行验收**。桌面 PCK 已随发布包导出，
 但没有制成 Dora PCK 专用包，也未上传或发布。
 
+Dora 是默认保留的兼容目标，不是 GitHub Release 的发布方式。`v*.*.*` 标签由
+`.github/workflows/release.yml` 使用 Godot 原生导出并创建 GitHub Release；CI 仅对
+Dora 适配执行 `python3 dora/build.py --check`，不构建、不上传 Dora 运行时包。
+
 ## 1. 当前工程与包结构
 
 - Godot 版本：`game/.godot-version`，当前为 `4.7.2-stable`。

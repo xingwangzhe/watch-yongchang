@@ -14,6 +14,7 @@ const INK := Color("#06090c")
 
 const SCROLL_SPEED := 38.0
 const START_DELAY := 1.0
+const PRIORITY_SECTION_TITLES := ["致谢", "版权与许可"]
 
 var _credits: Dictionary = {}
 var _scroll: ScrollContainer
@@ -174,29 +175,15 @@ func _build_roll() -> void:
 	_add_line(_pick(_credits.get("subtitle", {})), 18, Color(MUTED, 0.88), 0)
 	_add_rule()
 
+	_render_free_software(_credits.get("free_software", {}))
 	var about: Dictionary = _credits.get("about", {})
-	for section in _array_value(about.get("sections", [])):
-		if not section is Dictionary:
-			continue
-		_add_heading(_bi(section, "title"))
-		for line in _lines(section):
-			_add_line(str(line), 18, Color(PAPER, 0.90), 0)
-		for entry in _array_value(section.get("entries", [])):
-			if not entry is Dictionary:
-				continue
-			var entry_title := _bi(entry, "title")
-			if entry_title.is_empty():
-				continue
-			var entry_url := str(entry.get("url", ""))
-			if entry_url.is_empty():
-				_add_line(entry_title, 18, PAPER, 0)
-			else:
-				_add_link(entry_title, entry_url, 18)
-			var entry_note := _bi(entry, "note")
-			if not entry_note.is_empty():
-				_add_line(entry_note, 14, Color(MUTED, 0.78), 0)
-			_add_credit_links(entry)
-			_add_spacer(10)
+	var sections := _array_value(about.get("sections", []))
+	for section in sections:
+		if section is Dictionary and _is_priority_section(section):
+			_render_section(section)
+	for section in sections:
+		if section is Dictionary and not _is_priority_section(section):
+			_render_section(section)
 
 	_add_heading(Locale.t("about.music"))
 	for entry in _array_value(_credits.get("music", [])):
@@ -277,10 +264,50 @@ func _build_roll() -> void:
 		_add_credit_links(entry)
 
 	_add_spacer(50)
+	var game_version := str(ProjectSettings.get_setting("application/config/version", "0.0.0"))
+	_add_line(Locale.t("about.version").format({"version": game_version}), 14, Color(MUTED, 0.62), 0)
+	_add_spacer(12)
 	_add_line(Locale.t("about.thanks_end"), 34, GOLD, 0)
-	_add_line(Locale.t("about.version"), 14, Color(MUTED, 0.62), 0)
-	_add_line(Locale.t("about.hint"), 14, Color(MUTED, 0.58), 0)
 	_add_spacer(110)
+
+
+func _render_free_software(free_software: Dictionary) -> void:
+	if free_software.is_empty():
+		return
+	_add_heading(_bi(free_software, "title"))
+	for line in _lines(free_software):
+		_add_line(str(line), 18, Color(PAPER, 0.90), 0)
+	var source_url := str(free_software.get("url", ""))
+	var source_label := _bi(free_software, "link")
+	if not source_url.is_empty() and not source_label.is_empty():
+		_add_spacer(6)
+		_add_link(source_label, source_url, 16)
+
+
+func _render_section(section: Dictionary) -> void:
+	_add_heading(_bi(section, "title"))
+	for line in _lines(section):
+		_add_line(str(line), 18, Color(PAPER, 0.90), 0)
+	for entry in _array_value(section.get("entries", [])):
+		if not entry is Dictionary:
+			continue
+		var entry_title := _bi(entry, "title")
+		if entry_title.is_empty():
+			continue
+		var entry_url := str(entry.get("url", ""))
+		if entry_url.is_empty():
+			_add_line(entry_title, 18, PAPER, 0)
+		else:
+			_add_link(entry_title, entry_url, 18)
+		var entry_note := _bi(entry, "note")
+		if not entry_note.is_empty():
+			_add_line(entry_note, 14, Color(MUTED, 0.78), 0)
+		_add_credit_links(entry)
+		_add_spacer(10)
+
+
+func _is_priority_section(section: Dictionary) -> bool:
+	return str(section.get("title_zh", "")) in PRIORITY_SECTION_TITLES
 
 
 func _build_chrome() -> void:
