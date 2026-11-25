@@ -14,6 +14,7 @@ import signal
 import stat
 import struct
 import subprocess
+import sys
 import time
 import zipfile
 from collections import Counter
@@ -143,6 +144,8 @@ def run(
     RESULTS["checks"][name] = result
     save_results(output)
     if not result["passed"]:
+        print(f"--- {name} log (last 160 lines) ---", file=sys.stderr)
+        print("\n".join(text.splitlines()[-160:]), file=sys.stderr)
         raise RuntimeError(f"{name} failed; see {log_path}")
     return result
 
