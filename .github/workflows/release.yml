@@ -121,7 +121,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri libegl1
+          sudo apt-get install -y --no-install-recommends xvfb libgl1-mesa-dri libegl1 libgles2
 
       - name: Download official Dora SSR AppImage
         run: |
