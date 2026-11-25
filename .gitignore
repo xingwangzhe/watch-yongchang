@@ -119,6 +119,9 @@ pixel-art/**/CRITIQUE.md
 
 # ----- CI 工具与包管理器缓存 -----
 .tools/
+.edgeone/
+ci-artifacts/
+release-assets/
 .venv/
 node_modules/
 .cache/

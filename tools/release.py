@@ -445,6 +445,7 @@ def legal_entries(output: Path) -> list[tuple[str, Path]]:
         "LICENSE-CC-BY-4.0.txt",
         "AI使用与素材声明.md",
         "素材授权清单.csv",
+        "docs/edgeone-deploy.md",
         "docs/build_2026-11-25.md",
         "game/LICENSE",
         "game/NOTICE",

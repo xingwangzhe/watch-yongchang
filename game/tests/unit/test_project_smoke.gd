@@ -38,7 +38,7 @@ func test_engine_version_matches_pinned_version() -> void:
 		)
 
 
-func test_export_presets_cover_linux_windows_and_macos() -> void:
+func test_export_presets_cover_linux_windows_macos_and_web() -> void:
 	var text := FileAccess.get_file_as_string("res://export_presets.cfg")
 	assert_false(text.is_empty(), "export_presets.cfg must exist")
 	var project := FileAccess.get_file_as_string("res://project.godot")
@@ -46,10 +46,16 @@ func test_export_presets_cover_linux_windows_and_macos() -> void:
 	assert_string_contains(text, 'platform="Linux"')
 	assert_string_contains(text, 'platform="Windows Desktop"')
 	assert_string_contains(text, 'platform="macOS"')
+	assert_string_contains(text, 'platform="Web"')
 	assert_eq(
 		text.count('binary_format/embed_pck=false'),
 		3,
 		'all desktop presets must use an external PCK'
+	)
+	assert_string_contains(text, 'variant/thread_support=false')
+	assert_string_contains(
+		text,
+		'progressive_web_app/ensure_cross_origin_isolation_headers=false'
 	)
 	assert_string_contains(text, 'exclude_filter="build/*,export/*,tests/*,addons/gut/*,addons/gda_harness/*"')
 	assert_string_contains(text, 'application/copyright="Code AGPL-3.0-or-later;')

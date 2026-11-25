@@ -206,3 +206,144 @@ jobs:
           if ($joined -notmatch "\[launch\] renderer=opengl") {
             throw "Windows launcher did not select OpenGL."
           }
+
+  macos-gut:
+    name: macOS GUT (native)
+    runs-on: macos-latest
+    timeout-minutes: 20
+    env:
+      GODOT_BIN: ${{ github.workspace }}/.tools/Godot.app/Contents/MacOS/Godot
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          if [ -z "$VERSION" ]; then
+            echo "game/.godot-version is empty" >&2
+            exit 1
+          fi
+          echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Godot
+        run: |
+          set -euo pipefail
+          mkdir -p .tools
+          curl -fL --retry 3 \
+            -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
+          chmod +x "$GODOT_BIN"
+          ACTUAL="$("$GODOT_BIN" --version)"
+          EXPECTED_BASE="${GODOT_VERSION%-*}"
+          EXPECTED_STATUS="${GODOT_VERSION#*-}"
+          echo "expected=${GODOT_VERSION} actual=${ACTUAL}"
+          if [[ "$ACTUAL" != "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]; then
+            echo "Godot binary does not match game/.godot-version" >&2
+            exit 1
+          fi
+
+      - name: Import project
+        run: timeout 300 "$GODOT_BIN" --headless --path game --import
+
+      - name: Run GUT
+        run: |
+          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+
+  web-build:
+    name: Web build and EdgeOne deploy
+    needs: asset-guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      GODOT_BIN: ${{ github.workspace }}/.tools/godot
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          if [ -z "$VERSION" ]; then
+            echo "game/.godot-version is empty" >&2
+            exit 1
+          fi
+          echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Godot and export templates
+        run: |
+          set -euo pipefail
+          mkdir -p .tools
+          curl -fL --retry 3 \
+            -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
+          mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          curl -fL --retry 3 \
+            -o "$RUNNER_TEMP/godot-templates.tpz" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          TEMPLATE_VERSION="${GODOT_VERSION/-/.}"
+          unzip -q "$RUNNER_TEMP/godot-templates.tpz" -d "$RUNNER_TEMP/godot-templates"
+          TEMPLATE_ROOT="$(find "$RUNNER_TEMP/godot-templates" -mindepth 1 -maxdepth 1 -type d -name templates -print -quit)"
+          test -n "$TEMPLATE_ROOT"
+          mkdir -p "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION"
+          cp -a "$TEMPLATE_ROOT/." "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/"
+          test -f "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/web_nothreads_release.zip"
+          ACTUAL="$("$GODOT_BIN" --version)"
+          EXPECTED_BASE="${GODOT_VERSION%-*}"
+          EXPECTED_STATUS="${GODOT_VERSION#*-}"
+          echo "expected=${GODOT_VERSION} actual=${ACTUAL}"
+          if [[ "$ACTUAL" != "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]; then
+            echo "Godot binary does not match game/.godot-version" >&2
+            exit 1
+          fi
+
+      - name: Import project
+        run: timeout 300 "$GODOT_BIN" --headless --path game --import
+
+      - name: Run GUT
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit \
+            2>&1 | tee "$RUNNER_TEMP/gut-web.log"
+
+      - name: Export Web
+        run: |
+          set -euo pipefail
+          mkdir -p game/build/web
+          "$GODOT_BIN" --headless --path game --export-release Web
+          for file in index.html index.js index.wasm index.pck; do
+            test -s "game/build/web/$file"
+          done
+          grep -q 'const GODOT_THREADS_ENABLED = false;' game/build/web/index.html
+          grep -q '"ensureCrossOriginIsolationHeaders":false' game/build/web/index.html
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build-${{ github.sha }}
+          path: game/build/web
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Deploy to EdgeOne Makers
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        env:
+          EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$EDGEONE_API_TOKEN"
+          bunx -y edgeone@1.7.7 makers deploy game/build/web \
+            -n shouwang \
+            -t "$EDGEONE_API_TOKEN" \
+            --area global \
+            --skip-ai-gateway-sync \
+            --json \
+            2>&1 | tee "$RUNNER_TEMP/edgeone-deploy.log"

@@ -57,9 +57,12 @@ Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路�
 "$GDA_GODOT" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
 ```
 
-测试框架为 GUT 9.7.1。当前 Linux 基线为 **165 tests / 165 passed / 41214 asserts**。CI 同时包含 Linux 与原生 Windows GUT；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
+测试框架为 GUT 9.7.1。当前 Linux 基线为 **165 tests / 165 passed / 41217 asserts**。CI 并行执行 Linux、Windows 与 macOS 原生 GUT；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
 
-推送 `v*.*.*` 标签会触发 `.github/workflows/release.yml`：工作流校验标签与 `game/project.godot` 的 `config/version` 一致，随后运行 GUT、三平台 Godot 导出、PCK/ZIP/许可证审计与 Linux 发行版 smoke，最后通过 GitHub CLI 创建 GitHub Release。发布包包含 Linux / Windows 可执行文件及外部 PCK、macOS ZIP、完整源码 ZIP、`release-manifest.json` 和 `SHA256SUMS.txt`；Dora 源码包不随 Release 发布。
+`main` 分支的 Web 构建会以单线程模式导出并自动部署至 EdgeOne Makers 项目 `shouwang`：
+<https://2026shouwang.needhelp.icu>。Web 构建不要求 COOP/COEP 响应头。
+
+推送 `v*.*.*` 标签会触发 `.github/workflows/release.yml`：工作流校验标签与 `game/project.godot` 的 `config/version` 一致，然后按操作系统并行执行 Linux、Windows、macOS、Web 四个构建作业，每个平台都运行 GUT 并导出原生产物。汇总作业执行 PCK/ZIP/许可证审计、Linux 发行版 smoke、Web 静态产物检查与 EdgeOne 部署，最后通过 GitHub CLI 创建 GitHub Release。发布包包含 Linux / Windows 可执行文件及外部 PCK、macOS ZIP、Web ZIP、完整源码 ZIP、`release-manifest.json` 和 `SHA256SUMS.txt`；Dora 源码包不随 Release 发布。
 
 ## 赛事提交媒体
 
@@ -70,6 +73,7 @@ Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路�
 - [游戏设计文档](design/游戏设计文档-GDD.md)
 - [Godot 工程说明](game/README.md)
 - [Dora 适配说明](DORA.md)
+- [EdgeOne Makers Web 部署](docs/edgeone-deploy.md)
 - [构建与审计报告](docs/build_2026-11-25.md)
 - [开发者日志 01：核心玩法与文化](docs/开发者日志-01-核心玩法与文化.md)
 - [开发者日志 02：战斗表现与操作手感](docs/开发者日志-02-战斗表现与操作手感.md)

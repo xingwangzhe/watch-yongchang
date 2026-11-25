@@ -13,12 +13,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
-    name: Build, test, export, and publish
+  validate:
+    name: Validate release
     runs-on: ubuntu-latest
-    timeout-minutes: 45
-    env:
-      GODOT_BIN: ${{ github.workspace }}/.tools/godot
+    timeout-minutes: 10
     steps:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -29,16 +27,50 @@ jobs:
           GAME_VERSION="$(sed -n 's/^config\/version="\([^"]*\)"/\1/p' game/project.godot | head -n1)"
           test -n "$GAME_VERSION"
           test "v${GAME_VERSION}" = "${GITHUB_REF_NAME}"
-          echo "GAME_VERSION=$GAME_VERSION" >> "$GITHUB_ENV"
+          echo "Release tag ${GITHUB_REF_NAME} matches game version ${GAME_VERSION}."
+
+      - name: Asset red lines
+        shell: bash
+        run: |
+          set -euo pipefail
+          fail=0
+          check_empty() {
+            local label="$1"; shift
+            local out
+            out="$("$@" || true)"
+            if [ -n "$out" ]; then
+              echo "::error title=Asset red line: $label"
+              echo "$out"
+              fail=1
+            fi
+          }
+          check_empty "static.png references" grep -R -n -E 'static\.png' game/scripts game/data game/scenes
+          check_empty "retired unit directories" grep -R -n -E 'assets/units/(xiangyong|gongshou|longdeng|tengpai|huochong|jinshi|wokou_scout|wokou_gun|wokou_ronin|wokou_shield|wokou_chief)' game/scripts game/data game/scenes
+          check_empty "legacy texture field in characters.json" grep -n '"texture"' game/data/characters.json
+          check_empty "non-forge unit directories" find game/assets/units -maxdepth 1 -mindepth 1 -type d ! -name forge ! -name towers
+          check_empty "legacy unit art at repo root" find assets -maxdepth 3 -type f \( -name '*.png' -o -name '预览-*.jpg' \)
+          if [ "$fail" -ne 0 ]; then
+            exit 1
+          fi
+
+      - name: Dora compatibility check
+        run: python3 dora/build.py --check
+
+  linux:
+    name: Linux export
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GODOT_BIN: ${{ github.workspace }}/.tools/godot
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Read pinned Godot version
         run: |
-          set -euo pipefail
           VERSION="$(tr -d '[:space:]' < game/.godot-version)"
-          if [ -z "$VERSION" ]; then
-            echo "game/.godot-version is empty" >&2
-            exit 1
-          fi
+          test -n "$VERSION"
           echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Install Godot and export templates
@@ -61,7 +93,6 @@ jobs:
           mkdir -p "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION"
           cp -a "$TEMPLATE_ROOT/." "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/"
           test -f "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/linux_release.x86_64"
-          test -f "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/windows_release_x86_64.exe"
           ACTUAL="$("$GODOT_BIN" --version)"
           EXPECTED_BASE="${GODOT_VERSION%-*}"
           EXPECTED_STATUS="${GODOT_VERSION#*-}"
@@ -71,19 +102,346 @@ jobs:
             exit 1
           fi
 
-      - name: Build, test, export, and audit
+      - name: Import project
+        run: timeout 300 "$GODOT_BIN" --headless --path game --import
+
+      - name: Run GUT
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit \
+            2>&1 | tee "$RUNNER_TEMP/gut-linux.log"
+
+      - name: Export Linux
         run: |
           set -euo pipefail
-          python3 tools/release.py \
-            --godot "$GODOT_BIN" \
-            --output "$RUNNER_TEMP/release-assets"
+          mkdir -p game/build/linux ci-artifacts/linux
+          "$GODOT_BIN" --headless --path game --export-release Linux
+          cp game/build/linux/watch-yongchang.x86_64 ci-artifacts/linux/watch-yongchang-linux.x86_64
+          cp game/build/linux/watch-yongchang.pck ci-artifacts/linux/watch-yongchang-linux.pck
+          cp "$RUNNER_TEMP/gut-linux.log" ci-artifacts/linux/gut.log
 
-      - name: Upload workflow artifacts
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: ci-artifacts/linux
+          if-no-files-found: error
+          retention-days: 14
+
+  windows:
+    name: Windows export
+    needs: validate
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        shell: pwsh
+        run: |
+          $version = (Get-Content game/.godot-version -Raw).Trim()
+          if (-not $version) {
+            throw "game/.godot-version is empty."
+          }
+          "GODOT_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Install Godot and export templates
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path .tools | Out-Null
+          $zip = Join-Path $env:RUNNER_TEMP "godot-win64.zip"
+          $url = "https://github.com/godotengine/godot/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_win64.exe.zip"
+          curl.exe -fL --retry 3 -o $zip $url
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Expand-Archive -Path $zip -DestinationPath .tools -Force
+          $console = Get-ChildItem ".tools" -Filter "Godot_v*_win64_console.exe" | Select-Object -First 1
+          if (-not $console) {
+            throw "Godot Windows console executable was not found."
+          }
+          "GODOT_BIN=$($console.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+          $tpz = Join-Path $env:RUNNER_TEMP "godot-templates.tpz"
+          $templateZip = Join-Path $env:RUNNER_TEMP "godot-templates.zip"
+          $templateUrl = "https://github.com/godotengine/godot/releases/download/$($env:GODOT_VERSION)/Godot_v$($env:GODOT_VERSION)_export_templates.tpz"
+          curl.exe -fL --retry 3 -o $tpz $templateUrl
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item $tpz $templateZip -Force
+          $extract = Join-Path $env:RUNNER_TEMP "godot-templates"
+          Expand-Archive -Path $templateZip -DestinationPath $extract -Force
+          $templateRoot = Join-Path $extract "templates"
+          if (-not (Test-Path $templateRoot)) {
+            throw "Export template root was not found."
+          }
+          $templateVersion = $env:GODOT_VERSION.Replace("-", ".")
+          $templateDestination = Join-Path $env:APPDATA "Godot\export_templates\$templateVersion"
+          New-Item -ItemType Directory -Force -Path $templateDestination | Out-Null
+          Copy-Item (Join-Path $templateRoot "*") $templateDestination -Recurse -Force
+          if (-not (Test-Path (Join-Path $templateDestination "windows_release_x86_64.exe"))) {
+            throw "Windows export template was not installed."
+          }
+
+          $actual = (& $console.FullName --version | Out-String).Trim()
+          $parts = $env:GODOT_VERSION -split "-", 2
+          $expectedPrefix = "$($parts[0]).$($parts[1])."
+          Write-Output "expected=$env:GODOT_VERSION actual=$actual"
+          if (-not $actual.StartsWith($expectedPrefix)) {
+            throw "Godot binary does not match game/.godot-version."
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Import project
+        shell: pwsh
+        run: |
+          & $env:GODOT_BIN --headless --path game --import
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Run GUT
+        shell: pwsh
+        run: |
+          $output = & $env:GODOT_BIN --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit 2>&1
+          $exitCode = $LASTEXITCODE
+          $output | Tee-Object -FilePath "$env:RUNNER_TEMP\gut-windows.log"
+          if ($exitCode -ne 0) { exit $exitCode }
+
+      - name: Export Windows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force -Path game/build/windows, ci-artifacts/windows | Out-Null
+          & $env:GODOT_BIN --headless --path game --export-release Windows
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item game/build/windows/watch-yongchang.exe ci-artifacts/windows/watch-yongchang-windows.exe -Force
+          Copy-Item game/build/windows/watch-yongchang.pck ci-artifacts/windows/watch-yongchang-windows.pck -Force
+          Copy-Item "$env:RUNNER_TEMP\gut-windows.log" ci-artifacts/windows/gut.log -Force
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: ci-artifacts/windows
+          if-no-files-found: error
+          retention-days: 14
+
+  macos:
+    name: macOS export
+    needs: validate
+    runs-on: macos-latest
+    timeout-minutes: 45
+    env:
+      GODOT_BIN: ${{ github.workspace }}/.tools/Godot.app/Contents/MacOS/Godot
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          test -n "$VERSION"
+          echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Godot and export templates
+        run: |
+          set -euo pipefail
+          mkdir -p .tools
+          curl -fL --retry 3 \
+            -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_macos.universal.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
+          chmod +x "$GODOT_BIN"
+          xattr -dr com.apple.quarantine .tools/Godot.app || true
+          curl -fL --retry 3 \
+            -o "$RUNNER_TEMP/godot-templates.tpz" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          TEMPLATE_VERSION="${GODOT_VERSION/-/.}"
+          unzip -q "$RUNNER_TEMP/godot-templates.tpz" -d "$RUNNER_TEMP/godot-templates"
+          TEMPLATE_ROOT="$(find "$RUNNER_TEMP/godot-templates" -mindepth 1 -maxdepth 1 -type d -name templates -print -quit)"
+          test -n "$TEMPLATE_ROOT"
+          TEMPLATE_DEST="$HOME/Library/Application Support/Godot/export_templates/$TEMPLATE_VERSION"
+          mkdir -p "$TEMPLATE_DEST"
+          cp -a "$TEMPLATE_ROOT/." "$TEMPLATE_DEST/"
+          test -f "$TEMPLATE_DEST/macos.zip"
+          ACTUAL="$("$GODOT_BIN" --version)"
+          EXPECTED_BASE="${GODOT_VERSION%-*}"
+          EXPECTED_STATUS="${GODOT_VERSION#*-}"
+          echo "expected=${GODOT_VERSION} actual=${ACTUAL}"
+          if [[ "$ACTUAL" != "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]; then
+            echo "Godot binary does not match game/.godot-version" >&2
+            exit 1
+          fi
+
+      - name: Import project
+        run: timeout 300 "$GODOT_BIN" --headless --path game --import
+
+      - name: Run GUT
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit \
+            2>&1 | tee "$RUNNER_TEMP/gut-macos.log"
+
+      - name: Export macOS
+        run: |
+          set -euo pipefail
+          mkdir -p game/build/macos ci-artifacts/macos
+          "$GODOT_BIN" --headless --path game --export-release macOS
+          cp game/build/macos/watch-yongchang.zip ci-artifacts/macos/watch-yongchang.zip
+          cp "$RUNNER_TEMP/gut-macos.log" ci-artifacts/macos/gut.log
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: ci-artifacts/macos
+          if-no-files-found: error
+          retention-days: 14
+
+  web:
+    name: Web export
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GODOT_BIN: ${{ github.workspace }}/.tools/godot
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          test -n "$VERSION"
+          echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Godot and export templates
+        run: |
+          set -euo pipefail
+          mkdir -p .tools
+          curl -fL --retry 3 \
+            -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
+          mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          curl -fL --retry 3 \
+            -o "$RUNNER_TEMP/godot-templates.tpz" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          TEMPLATE_VERSION="${GODOT_VERSION/-/.}"
+          unzip -q "$RUNNER_TEMP/godot-templates.tpz" -d "$RUNNER_TEMP/godot-templates"
+          TEMPLATE_ROOT="$(find "$RUNNER_TEMP/godot-templates" -mindepth 1 -maxdepth 1 -type d -name templates -print -quit)"
+          test -n "$TEMPLATE_ROOT"
+          mkdir -p "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION"
+          cp -a "$TEMPLATE_ROOT/." "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/"
+          test -f "$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION/web_nothreads_release.zip"
+          ACTUAL="$("$GODOT_BIN" --version)"
+          EXPECTED_BASE="${GODOT_VERSION%-*}"
+          EXPECTED_STATUS="${GODOT_VERSION#*-}"
+          echo "expected=${GODOT_VERSION} actual=${ACTUAL}"
+          if [[ "$ACTUAL" != "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]; then
+            echo "Godot binary does not match game/.godot-version" >&2
+            exit 1
+          fi
+
+      - name: Import project
+        run: timeout 300 "$GODOT_BIN" --headless --path game --import
+
+      - name: Run GUT
+        run: |
+          set -o pipefail
+          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit \
+            2>&1 | tee "$RUNNER_TEMP/gut-web.log"
+
+      - name: Export Web
+        run: |
+          set -euo pipefail
+          mkdir -p game/build/web ci-artifacts/web/site
+          "$GODOT_BIN" --headless --path game --export-release Web
+          for file in index.html index.js index.wasm index.pck; do
+            test -s "game/build/web/$file"
+          done
+          grep -q 'const GODOT_THREADS_ENABLED = false;' game/build/web/index.html
+          grep -q '"ensureCrossOriginIsolationHeaders":false' game/build/web/index.html
+          cp -a game/build/web/. ci-artifacts/web/site/
+          cp "$RUNNER_TEMP/gut-web.log" ci-artifacts/web/gut.log
+
+      - name: Upload Web artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-web
+          path: ci-artifacts/web
+          if-no-files-found: error
+          retention-days: 14
+
+  publish:
+    name: Audit, deploy, and publish
+    needs:
+      - linux
+      - windows
+      - macos
+      - web
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-linux
+          path: ci-artifacts/linux
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-windows
+          path: ci-artifacts/windows
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-macos
+          path: ci-artifacts/macos
+
+      - name: Download Web artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-web
+          path: ci-artifacts/web
+
+      - name: Package and audit release
+        run: |
+          set -euo pipefail
+          chmod +x ci-artifacts/linux/watch-yongchang-linux.x86_64
+          python3 tools/package_release.py \
+            --input ci-artifacts \
+            --output release-assets
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Deploy Web to EdgeOne Makers
+        env:
+          EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$EDGEONE_API_TOKEN"
+          bunx -y edgeone@1.7.7 makers deploy ci-artifacts/web/site \
+            -n shouwang \
+            -t "$EDGEONE_API_TOKEN" \
+            --area global \
+            --skip-ai-gateway-sync \
+            --json \
+            2>&1 | tee "$RUNNER_TEMP/edgeone-deploy.log"
+
+      - name: Upload release artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: release-assets-${{ github.ref_name }}
-          path: ${{ runner.temp }}/release-assets
+          path: release-assets
           if-no-files-found: warn
           retention-days: 14
           compression-level: 0
@@ -93,7 +451,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          REPORT="$RUNNER_TEMP/release-assets/release-manifest.json"
+          REPORT="release-assets/release-manifest.json"
           if [ ! -f "$REPORT" ]; then
             echo "Release manifest was not produced." >> "$GITHUB_STEP_SUMMARY"
             exit 0
@@ -105,6 +463,7 @@ jobs:
             echo "- Commit: \`$(jq -r .commit "$REPORT")\`"
             echo "- Godot: \`$(jq -r .godot_version "$REPORT")\`"
             echo "- GUT: \`$(jq -r '.tests.tests') / $(jq -r '.tests.tests') passed, $(jq -r '.tests.asserts') asserts\`"
+            echo "- Web: $(jq -r '.web.url' "$REPORT")"
             echo ""
             echo "| Artifact | Bytes | SHA-256 |"
             echo "|---|---:|---|"
@@ -117,11 +476,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          OUTPUT="$RUNNER_TEMP/release-assets"
+          OUTPUT="release-assets"
           FILES=(
             "$OUTPUT/watch-yongchang-linux.zip"
             "$OUTPUT/watch-yongchang-windows.zip"
             "$OUTPUT/watch-yongchang-macos.zip"
+            "$OUTPUT/watch-yongchang-web.zip"
             "$OUTPUT/watch-yongchang-source.zip"
             "$OUTPUT/watch-yongchang-linux.x86_64"
             "$OUTPUT/watch-yongchang-linux.pck"
@@ -138,7 +498,8 @@ jobs:
           NOTES="$(printf '%s\n' \
             "《守望 · 永昌》${GITHUB_REF_NAME}。" \
             "" \
-            "Godot ${GODOT_VERSION} 三平台导出、GUT、PCK/ZIP 审计与 Linux 发行版 smoke 均在 GitHub Actions 完成。Dora 兼容保留静态检查，不作为本 Release 的发布路径。")"
+            "Linux、Windows、macOS 与 Web 在 GitHub Actions 上按操作系统并行构建，完成 GUT、PCK/ZIP 审计、Linux 发行版 smoke 与 Web 静态产物检查。" \
+            "Web 版已部署至 EdgeOne Makers 项目 \`shouwang\`：https://2026shouwang.needhelp.icu")"
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${FILES[@]}" --clobber
           else
