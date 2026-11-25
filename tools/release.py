@@ -74,6 +74,22 @@ LEGAL_SOURCES = {
     "assets/icons/game_icons/LICENSE-CC-BY-3.0.txt": GAME / "assets/icons/game_icons/LICENSE-CC-BY-3.0.txt",
     "assets/fx/jeff_fx/LICENSE.txt": GAME / "assets/fx/jeff_fx/LICENSE.txt",
 }
+PUBLIC_ENV_KEYS = {
+    "APP_BUNDLE_ID",
+    "APP_ICON",
+    "APP_VERSION",
+    "AUTHOR",
+    "AUTHOR_EMAIL",
+    "CF_PAGES_DOMAIN",
+    "CF_PAGES_PROJECT",
+    "COPYRIGHT_NOTICE",
+    "GAME_NAME_EN",
+    "GAME_NAME_ZH",
+    "GAME_SLUG",
+    "GODOT_VERSION",
+    "REPO_URL",
+    "WEB_URL",
+}
 RESULTS: dict = {"started_at": dt.datetime.now().astimezone().isoformat(), "checks": {}}
 
 
@@ -346,11 +362,31 @@ def audit_pck(label: str, data: bytes, output: Path) -> dict:
     return result
 
 
-def sensitive_names(entries: list[tuple[str, Path]]) -> list[str]:
+def public_env_error(data: bytes) -> str:
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        return f"not UTF-8: {error}"
+    for line_number, raw_line in enumerate(text.splitlines(), 1):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if "=" not in line:
+            return f"line {line_number} is not KEY=VALUE"
+        key = line.split("=", 1)[0].strip()
+        if key not in PUBLIC_ENV_KEYS:
+            return f"line {line_number} has non-public key {key!r}"
+    return ""
+
+
+def sensitive_names(entries: list[tuple[str, Path]], source_package: bool = False) -> list[str]:
     bad = []
     for name, _ in entries:
         base = PurePosixPath(name).name.lower()
-        if base == ".env" or base.startswith(".env.") or base in {"id_rsa", "id_ed25519", "credentials.json"}:
+        public_source_env = source_package and name == "watch-yongchang/.env"
+        if base == ".env" and not public_source_env:
+            bad.append(name)
+        elif base.startswith(".env.") or base in {"id_rsa", "id_ed25519", "credentials.json"}:
             bad.append(name)
         elif base.endswith((".pem", ".key", ".p12", ".pfx")):
             bad.append(name)
@@ -368,7 +404,10 @@ def zip_audit(path: Path, source_package: bool, output: Path, required: tuple[st
         ]
         forbidden = [name for name in names if forbidden_runtime_path(name, source_package)]
         entries = [(name, Path(name)) for name in names]
-        sensitive = sensitive_names(entries)
+        sensitive = sensitive_names(entries, source_package)
+        public_env = ""
+        if source_package and "watch-yongchang/.env" in names:
+            public_env = public_env_error(archive.read("watch-yongchang/.env"))
         harness = False
         if "watch-yongchang/project.godot" in names:
             harness = b"GdaHarness=" in archive.read("watch-yongchang/project.godot")
@@ -378,6 +417,7 @@ def zip_audit(path: Path, source_package: bool, output: Path, required: tuple[st
             and not unsafe
             and not forbidden
             and not sensitive
+            and not public_env
             and not [name for name in required if name not in names]
             and not harness,
             "file_count": len(names),
@@ -386,6 +426,7 @@ def zip_audit(path: Path, source_package: bool, output: Path, required: tuple[st
             "unsafe_names": unsafe,
             "forbidden": forbidden,
             "sensitive_filenames": sensitive,
+            "public_env_error": public_env,
             "missing_required": [name for name in required if name not in names],
             "packaged_gda_harness": harness,
         }
