@@ -2,14 +2,18 @@ extends Node
 
 const MENU_BGM_PATH := "res://assets/audio/bgm_watch.ogg"
 const BATTLE_BGM_PATH := "res://assets/audio/bgm_battle.ogg"
+const ABOUT_BGM_PATH := "res://assets/audio/bgm_about.ogg"
 const UI_CLICK_STREAM := preload("res://assets/audio/ui_click.ogg")
 const UI_CONFIRM_STREAM := preload("res://assets/audio/ui_confirm.ogg")
 const UI_BACK_STREAM := preload("res://assets/audio/ui_back.ogg")
+const ABOUT_WARM_VOLUME_DB := -60.0
 
 var player: AudioStreamPlayer
+var about_player: AudioStreamPlayer
 var stream: AudioStream
 var menu_stream: AudioStream
 var battle_stream: AudioStream
+var about_stream: AudioStream
 var menu_enabled := true
 var current_bgm := "menu"
 var _ui_players: Array[AudioStreamPlayer] = []
@@ -20,8 +24,10 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	menu_stream = load(MENU_BGM_PATH)
 	battle_stream = load(BATTLE_BGM_PATH)
+	about_stream = load(ABOUT_BGM_PATH)
 	_set_loop(menu_stream)
 	_set_loop(battle_stream)
+	_set_loop(about_stream)
 	stream = menu_stream
 	player = AudioStreamPlayer.new()
 	player.name = "BgmPlayer"
@@ -38,6 +44,20 @@ func _ready() -> void:
 	_bind_existing_buttons.call_deferred()
 	GameSettings.changed.connect(_sync_volume)
 	_sync_volume()
+	if OS.has_feature("web"):
+		_prepare_about_player.call_deferred()
+
+
+func _prepare_about_player() -> void:
+	if about_stream == null:
+		return
+	about_player = AudioStreamPlayer.new()
+	about_player.name = "AboutBgmPlayer"
+	about_player.stream = about_stream
+	about_player.volume_db = _about_warm_volume_db()
+	add_child(about_player)
+	if about_player.volume_db > -80.0:
+		about_player.play()
 
 
 func restart() -> void:
@@ -61,11 +81,29 @@ func resume_bgm() -> void:
 
 func play_battle_bgm() -> void:
 	menu_enabled = true
+	pause_about_bgm()
 	_set_bgm(battle_stream, "battle")
 	if DisplayServer.get_name() == "headless":
 		return
 	if GameSettings.bgm_volume > 0.001 and not player.playing:
 		player.play()
+
+
+func warm_about_bgm() -> void:
+	if not is_instance_valid(about_player):
+		return
+	about_player.volume_db = _about_warm_volume_db()
+	if about_player.volume_db <= -80.0:
+		about_player.stream_paused = true
+	elif about_player.stream_paused:
+		about_player.stream_paused = false
+	elif not about_player.playing:
+		about_player.play()
+
+
+func pause_about_bgm() -> void:
+	if is_instance_valid(about_player):
+		about_player.stream_paused = true
 
 
 func play_click() -> void:
@@ -137,6 +175,10 @@ func _set_loop(bgm_stream: AudioStream) -> void:
 		(bgm_stream as AudioStreamOggVorbis).loop = true
 
 
+func _about_warm_volume_db() -> float:
+	return ABOUT_WARM_VOLUME_DB if GameSettings.bgm_volume > 0.001 else -80.0
+
+
 func _sync_volume() -> void:
 	var volume := clampf(GameSettings.bgm_volume, 0.0, 1.0)
 	player.volume_db = -80.0 if volume <= 0.001 else linear_to_db(volume)
@@ -144,3 +186,11 @@ func _sync_volume() -> void:
 		return
 	if volume > 0.001 and not player.playing:
 		player.play()
+	if is_instance_valid(about_player):
+		about_player.volume_db = _about_warm_volume_db()
+		if about_player.volume_db <= -80.0:
+			about_player.stream_paused = true
+		elif about_player.stream_paused:
+			about_player.stream_paused = false
+		elif not about_player.playing:
+			about_player.play()

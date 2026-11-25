@@ -82,6 +82,7 @@
 					"OpenGL 启动参数：--rendering-method gl_compatibility --rendering-driver opengl3。",
 					"自动检测：Linux 读取 vulkaninfo --summary；Windows 检查 System32/SysWOW64 的 vulkan-1.dll；发现 Vulkan 时默认 Vulkan。",
 					"安全回退：检测不到 Vulkan 时默认 OpenGL；project.godot 仍保留 GL Compatibility 作为兜底。",
+					"Web 版当前使用浏览器提供的 WebGL 2.0 / OpenGL ES 3.0 Compatibility 渲染。",
 					"渲染镜像：Windows 写入 %APPDATA%\\WatchYongchang\\renderer.cfg；Linux/macOS 写入对应的用户配置目录，避免中文项目名影响批处理。",
 					"渲染后端只能在进程启动时选择；设置变更写入 user://settings.cfg，重启后由启动参数应用。",
 					"主菜单夜景的分层绘制、粒子与纹理滚动会同时受 GPU 后端与帧率设置影响。"
@@ -92,6 +93,7 @@
 					"OpenGL flags: --rendering-method gl_compatibility --rendering-driver opengl3.",
 					"Detection: Linux reads vulkaninfo --summary; Windows checks vulkan-1.dll in System32/SysWOW64; Vulkan is the default when found.",
 					"Safe fallback: OpenGL when Vulkan is unavailable; project.godot keeps GL Compatibility as the final fallback.",
+					"The web build currently renders through the browser's WebGL 2.0 / OpenGL ES 3.0 Compatibility backend.",
 					"Renderer mirror: Windows writes %APPDATA%\\WatchYongchang\\renderer.cfg; Linux/macOS use their user config directories so the Chinese project name cannot break batch parsing.",
 					"Renderers are selected at process start; the setting is written to user://settings.cfg and applied by the next launch.",
 					"Layered drawing, particles, and texture scrolling in the menu nightscape all depend on the GPU backend and frame limit."

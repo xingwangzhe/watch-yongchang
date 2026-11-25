@@ -4,6 +4,7 @@ const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
 const IconChips := preload("res://scripts/ui/icon_chip.gd")
 const WebExitBridge := preload("res://scripts/ui/web_exit.gd")
+const ABOUT_SCENE := preload("res://scenes/about.tscn")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const ICON_LANTERN := preload("res://assets/icons/game_icons/ui_lantern.svg")
@@ -46,6 +47,7 @@ var _vsync_toggle: CheckButton
 var _renderer_option: OptionButton
 var _renderer_status: Label
 var _renderer_restart_button: Button
+var _settings_note: Label
 var _language_option: OptionButton
 var _back_button: Button
 var _controls_overlay: Control
@@ -62,6 +64,8 @@ var _web_exit_body: Label
 var _web_exit_reload_button: Button
 var _web_exit_repo_button: Button
 var _web_exit_dismiss_button: Button
+var _about_overlay: Control
+var _about_prewarm_timer: Timer
 var _binding_labels: Dictionary = {}
 var _capture_action := ""
 var web_platform_override := -1
@@ -87,6 +91,7 @@ func _ready() -> void:
 	SaveSystem.autosave({"last_mode": "menu"})
 	AudioBus.resume_bgm()
 	_start_button.grab_focus()
+	_schedule_about_prewarm()
 
 
 func open_settings() -> void:
@@ -139,6 +144,14 @@ func _notification(what: int) -> void:
 		if is_instance_valid(_settings_overlay) and _settings_overlay.visible:
 			mode = "settings"
 		SaveSystem.autosave({"last_mode": mode})
+
+
+func _exit_tree() -> void:
+	AudioBus.pause_about_bgm()
+	if is_instance_valid(_about_overlay) and bool(_about_overlay.prewarm_mode):
+		_about_overlay.queue_free()
+	_about_overlay = null
+	_about_prewarm_timer = null
 
 
 func _build_theme() -> void:
@@ -436,8 +449,7 @@ func _build_settings_overlay() -> void:
 	_renderer_option = OptionButton.new()
 	_renderer_option.name = "RendererOption"
 	_renderer_option.custom_minimum_size = Vector2(206.0, 36.0)
-	for mode in GameSettings.RENDERER_MODES:
-		_renderer_option.add_item(_renderer_option_text(str(mode)))
+	_sync_renderer_option_items()
 	_renderer_option.item_selected.connect(_on_renderer_selected)
 	UIControls.apply_option(_renderer_option)
 	_setting_row(column, "settings.renderer", _renderer_option)
@@ -469,8 +481,9 @@ func _build_settings_overlay() -> void:
 	_setting_row(column, "settings.language", _language_option)
 
 	column.add_child(_rule())
-	_register_label(_make_label("SettingsNote", "", 12, Color(MUTED, 0.54)), "settings.note")
-	column.add_child(_i18n_labels[-1]["node"])
+	_settings_note = _make_label("SettingsNote", "", 12, Color(MUTED, 0.54))
+	_register_label(_settings_note, "settings.note")
+	column.add_child(_settings_note)
 
 	var grow := Control.new()
 	grow.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -800,9 +813,70 @@ func _on_language_pressed() -> void:
 
 
 func _on_about_pressed() -> void:
+	if WebExitBridge.is_web_platform(web_platform_override):
+		_open_about_overlay()
+		return
 	AudioBus.stop_bgm()
 	SaveSystem.autosave({"last_mode": "about"})
 	get_tree().change_scene_to_file("res://scenes/about.tscn")
+
+
+func _open_about_overlay() -> void:
+	if is_instance_valid(_about_overlay):
+		_hide_menu_for_about()
+		get_tree().root.move_child(_about_overlay, -1)
+		_about_overlay.activate()
+		return
+	SaveSystem.autosave({"last_mode": "about"})
+	_about_overlay = ABOUT_SCENE.instantiate()
+	_about_overlay.overlay_mode = true
+	_about_overlay.closed.connect(_close_about_overlay)
+	_hide_menu_for_about()
+	get_tree().root.add_child(_about_overlay)
+
+
+func _hide_menu_for_about() -> void:
+	visible = false
+	process_mode = Node.PROCESS_MODE_DISABLED
+
+
+func _schedule_about_prewarm() -> void:
+	if not WebExitBridge.is_web_platform(web_platform_override):
+		return
+	if is_instance_valid(_about_overlay) or is_instance_valid(_about_prewarm_timer):
+		return
+	_about_prewarm_timer = Timer.new()
+	_about_prewarm_timer.one_shot = true
+	_about_prewarm_timer.wait_time = 0.5
+	_about_prewarm_timer.timeout.connect(_prewarm_about_overlay)
+	add_child(_about_prewarm_timer)
+	_about_prewarm_timer.start()
+
+
+func _prewarm_about_overlay() -> void:
+	_about_prewarm_timer = null
+	if not is_inside_tree() or is_instance_valid(_about_overlay):
+		return
+	if not WebExitBridge.is_web_platform(web_platform_override):
+		return
+	AudioBus.warm_about_bgm()
+	_about_overlay = ABOUT_SCENE.instantiate()
+	_about_overlay.overlay_mode = true
+	_about_overlay.prewarm_mode = true
+	_about_overlay.visible = true
+	_about_overlay.modulate = Color.WHITE
+	_about_overlay.closed.connect(_close_about_overlay)
+	var menu_index := get_index()
+	get_tree().root.add_child(_about_overlay)
+	get_tree().root.move_child(_about_overlay, menu_index)
+
+
+func _close_about_overlay() -> void:
+	_about_overlay = null
+	visible = true
+	process_mode = Node.PROCESS_MODE_INHERIT
+	_start_button.grab_focus()
+	_schedule_about_prewarm()
 
 
 func _on_codex_pressed() -> void:
@@ -861,6 +935,10 @@ func _refresh_web_exit_texts() -> void:
 
 
 func _on_language_changed(_code: String) -> void:
+	if is_instance_valid(_about_overlay) and bool(_about_overlay.prewarm_mode):
+		_about_overlay.queue_free()
+		_about_overlay = null
+		_schedule_about_prewarm()
 	_refresh_texts()
 	_update_stats()
 	_sync_settings_controls()
@@ -907,9 +985,10 @@ func _on_vsync_toggled(enabled: bool) -> void:
 
 
 func _on_renderer_selected(index: int) -> void:
-	if index < 0 or index >= GameSettings.RENDERER_MODES.size():
+	var mode := _renderer_mode_at(index)
+	if mode.is_empty():
 		return
-	GameSettings.set_renderer_mode(str(GameSettings.RENDERER_MODES[index]))
+	GameSettings.set_renderer_mode(mode)
 	_update_renderer_status()
 	SaveSystem.autosave({"settings": GameSettings.to_dict()})
 
@@ -944,6 +1023,7 @@ func _refresh_texts() -> void:
 	if is_instance_valid(_controls_done):
 		_controls_done.text = Locale.t("controls.done")
 	_refresh_controls_texts()
+	_refresh_settings_note()
 	_fullscreen_toggle.text = Locale.t("settings.on" if GameSettings.fullscreen else "settings.off")
 	for index in range(GameSettings.FPS_LIMITS.size()):
 		_fps_option.set_item_text(index, _fps_option_text(int(GameSettings.FPS_LIMITS[index])))
@@ -965,9 +1045,12 @@ func _sync_settings_controls() -> void:
 	_fps_option.selected = fps_index if fps_index >= 0 else GameSettings.FPS_LIMITS.find(GameSettings.DEFAULT_FPS_LIMIT)
 	_vsync_toggle.set_pressed_no_signal(GameSettings.vsync)
 	_vsync_toggle.text = Locale.t("settings.on" if GameSettings.vsync else "settings.off")
-	_renderer_option.selected = GameSettings.RENDERER_MODES.find(GameSettings.renderer_mode)
+	_sync_renderer_option_items()
+	var renderer_index := _renderer_mode_index(GameSettings.renderer_mode)
+	_renderer_option.selected = renderer_index if renderer_index >= 0 else 0
 	_refresh_renderer_texts()
 	_update_renderer_status()
+	_refresh_settings_note()
 	_language_option.selected = 0 if Locale.current == "zh" else 1
 
 
@@ -1085,6 +1168,8 @@ func _make_slider(value: float) -> HSlider:
 
 
 func _renderer_option_text(mode: String) -> String:
+	if GameSettings.is_web_platform() and mode == GameSettings.RENDERER_VULKAN:
+		return Locale.t("settings.renderer_vulkan_web")
 	if mode == GameSettings.RENDERER_AUTO:
 		var detected := (
 			GameSettings.RENDERER_VULKAN
@@ -1092,7 +1177,7 @@ func _renderer_option_text(mode: String) -> String:
 			else GameSettings.RENDERER_OPENGL
 		)
 		return Locale.t("settings.renderer_auto", {"name": _renderer_display_name(detected)})
-	return Locale.t("settings.renderer_%s" % mode)
+	return _renderer_display_name(mode)
 
 
 func _renderer_display_name(renderer: String) -> String:
@@ -1100,17 +1185,56 @@ func _renderer_display_name(renderer: String) -> String:
 		GameSettings.RENDERER_VULKAN:
 			return "Vulkan"
 		GameSettings.RENDERER_OPENGL:
+			if GameSettings.is_web_platform():
+				return Locale.t("settings.renderer_webgl")
 			return "OpenGL"
 		_:
 			return Locale.t("settings.renderer_unknown")
+
+
+func _sync_renderer_option_items() -> void:
+	if not is_instance_valid(_renderer_option):
+		return
+	var modes := GameSettings.renderer_modes_for_ui()
+	var matches := modes.size() == _renderer_option.item_count
+	if matches:
+		for index in range(modes.size()):
+			if _renderer_mode_at(index) != str(modes[index]):
+				matches = false
+				break
+	if matches:
+		return
+	_renderer_option.clear()
+	for mode in modes:
+		var index := _renderer_option.item_count
+		_renderer_option.add_item(_renderer_option_text(str(mode)))
+		_renderer_option.set_item_metadata(index, str(mode))
+
+
+func _renderer_mode_at(index: int) -> String:
+	if not is_instance_valid(_renderer_option):
+		return ""
+	if index < 0 or index >= _renderer_option.item_count:
+		return ""
+	var mode: Variant = _renderer_option.get_item_metadata(index)
+	return "" if mode == null else str(mode)
+
+
+func _renderer_mode_index(mode: String) -> int:
+	if not is_instance_valid(_renderer_option):
+		return -1
+	for index in range(_renderer_option.item_count):
+		if _renderer_mode_at(index) == mode:
+			return index
+	return -1
 
 
 func _refresh_renderer_texts() -> void:
 	if not is_instance_valid(_renderer_option):
 		return
 	var vulkan_available := GameSettings.vulkan_supported()
-	for index in range(GameSettings.RENDERER_MODES.size()):
-		var mode := str(GameSettings.RENDERER_MODES[index])
+	for index in range(_renderer_option.item_count):
+		var mode := _renderer_mode_at(index)
 		_renderer_option.set_item_text(index, _renderer_option_text(mode))
 		_renderer_option.set_item_disabled(
 			index,
@@ -1118,11 +1242,27 @@ func _refresh_renderer_texts() -> void:
 		)
 
 
+func _refresh_settings_note() -> void:
+	if not is_instance_valid(_settings_note):
+		return
+	var text := Locale.t(
+		"settings.note_web" if GameSettings.is_web_platform() else "settings.note"
+	)
+	if GameSettings.is_web_platform() and not GameSettings.webgl_renderer().is_empty():
+		text += "\n" + Locale.t(
+			"settings.webgl_renderer",
+			{"renderer": GameSettings.webgl_renderer()}
+		)
+	_settings_note.text = text
+
+
 func _update_renderer_status() -> void:
 	if not is_instance_valid(_renderer_status):
 		return
 	var selected := _renderer_display_name(GameSettings.resolved_renderer())
 	var active := _renderer_display_name(GameSettings.active_renderer())
+	if active == Locale.t("settings.renderer_unknown"):
+		active = selected
 	var requires_restart := GameSettings.renderer_requires_restart()
 	_renderer_restart_button.visible = requires_restart
 	if requires_restart:
@@ -1132,7 +1272,9 @@ func _update_renderer_status() -> void:
 		)
 		_renderer_status.add_theme_color_override("font_color", Color(GOLD, 0.92))
 		return
-	if not GameSettings.vulkan_supported():
+	if GameSettings.is_web_platform():
+		_renderer_status.text = Locale.t("settings.renderer_active", {"name": active})
+	elif not GameSettings.vulkan_supported():
 		_renderer_status.text = Locale.t(
 			"settings.renderer_fallback",
 			{"active": active}

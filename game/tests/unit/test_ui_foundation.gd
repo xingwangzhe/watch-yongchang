@@ -18,6 +18,12 @@ func before_each() -> void:
 	GameSettings.vsync = true
 	GameSettings.renderer_mode = GameSettings.RENDERER_AUTO
 	GameSettings.vulkan_probe_override = 1
+	GameSettings.web_platform_override = -1
+	GameSettings.web_capabilities = {
+		"webgl2": true,
+		"renderer": "",
+		"webgpu_api": false,
+	}
 	GameSettings.active_renderer_override = GameSettings.RENDERER_VULKAN
 	GameSettings.restart_enabled = false
 	GameSettings.bindings.clear()
@@ -39,6 +45,12 @@ func after_each() -> void:
 	GameSettings.vsync = true
 	GameSettings.renderer_mode = GameSettings.RENDERER_AUTO
 	GameSettings.vulkan_probe_override = -1
+	GameSettings.web_platform_override = -1
+	GameSettings.web_capabilities = {
+		"webgl2": true,
+		"renderer": "",
+		"webgpu_api": false,
+	}
 	GameSettings.active_renderer_override = ""
 	GameSettings.restart_enabled = true
 	GameSettings.bindings.clear()
@@ -135,6 +147,13 @@ func test_settings_file_persists_fps_and_vsync() -> void:
 	assert_eq(int(config.get_value("display", "fps_limit", -1)), 0)
 	assert_false(bool(config.get_value("display", "vsync", true)))
 	assert_eq(Engine.max_fps, 0, "unlimited frame limit must clear the engine cap")
+
+
+func test_platform_default_frame_limit_is_unlimited_only_on_web() -> void:
+	GameSettings.web_platform_override = 1
+	assert_eq(GameSettings.default_fps_limit(), 0)
+	GameSettings.web_platform_override = 0
+	assert_eq(GameSettings.default_fps_limit(), GameSettings.DEFAULT_FPS_LIMIT)
 
 
 func test_settings_file_persists_custom_bindings() -> void:
@@ -465,6 +484,113 @@ func test_about_scroll_container_wheel_takeover() -> void:
 	assert_string_contains(status.text, "滚轮已接管")
 
 
+func test_about_web_builds_credits_incrementally() -> void:
+	GameSettings.web_platform_override = 1
+	var about := (load("res://scenes/about.tscn") as PackedScene).instantiate()
+	add_child_autofree(about)
+	await wait_process_frames(1)
+	assert_false(about.is_content_ready(), "web credits must not block the first frame")
+	var status: Label = about.find_child("ScrollStatus", true, false)
+	assert_not_null(status)
+	assert_string_contains(status.text, "加载署名")
+	for _frame in range(240):
+		if about.is_content_ready():
+			break
+		await wait_process_frames(1)
+	assert_true(about.is_content_ready(), "web credits must finish building incrementally")
+	var content := about.find_child("CreditsContent", true, false) as VBoxContainer
+	assert_not_null(content)
+	assert_gt(content.get_child_count(), 100, "incremental build must populate the full roll")
+
+
+func test_about_web_prewarms_without_taking_over_menu_audio() -> void:
+	GameSettings.web_platform_override = 1
+	AudioBus.resume_bgm()
+	var about := (load("res://scenes/about.tscn") as PackedScene).instantiate()
+	about.prewarm_mode = true
+	add_child_autofree(about)
+	await wait_process_frames(2)
+	assert_true(about.visible, "prewarm must render behind the opaque menu")
+	assert_eq(about.modulate.a, 1.0, "prewarm must complete layout before the first reveal")
+	for _frame in range(240):
+		if about.is_content_ready():
+			break
+		await wait_process_frames(1)
+	assert_true(about.is_content_ready(), "prewarm must finish layout while hidden")
+	assert_false(about.is_auto_scrolling(), "prewarm must not start scrolling behind the menu")
+	assert_true(AudioBus.menu_enabled, "prewarm must not stop the menu BGM")
+	assert_null(about.about_player(), "prewarm must not create the about audio player")
+	about.activate()
+	await wait_process_frames(2)
+	assert_true(about.visible, "activation must reveal the prewarmed overlay")
+	assert_eq(about.modulate.a, 1.0, "activation must restore full opacity")
+	assert_true(about.is_auto_scrolling(), "activation must enable scrolling")
+	assert_false(AudioBus.menu_enabled, "activation must stop the menu BGM")
+	assert_not_null(about.about_player(), "activation must start the dedicated about audio player")
+
+
+func test_about_prewarm_does_not_save_about_as_the_last_mode() -> void:
+	GameSettings.web_platform_override = 1
+	var about := (load("res://scenes/about.tscn") as PackedScene).instantiate()
+	about.prewarm_mode = true
+	add_child_autofree(about)
+	await wait_process_frames(1)
+	SaveSystem.data["last_mode"] = "menu"
+	about._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	assert_eq(SaveSystem.data.get("last_mode"), "menu")
+	about.activate()
+	about._notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	assert_eq(SaveSystem.data.get("last_mode"), "about")
+
+
+func test_web_about_opens_as_overlay_without_scene_change() -> void:
+	GameSettings.web_platform_override = 1
+	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
+	menu.web_platform_override = 1
+	add_child_autofree(menu)
+	await wait_process_frames(3)
+	menu._on_about_pressed()
+	await wait_process_frames(2)
+	var about: Control = menu._about_overlay
+	assert_not_null(about, "web about must open as an in-tree overlay")
+	assert_true(bool(about.overlay_mode))
+	assert_false(menu.visible, "the menu must pause behind the about overlay")
+	assert_eq(menu.process_mode, Node.PROCESS_MODE_DISABLED)
+	about._return_to_menu()
+	await wait_process_frames(2)
+	assert_true(menu.visible)
+	assert_ne(menu.process_mode, Node.PROCESS_MODE_DISABLED)
+	assert_null(menu._about_overlay)
+
+
+func test_web_about_prewarm_rebuilds_after_language_change() -> void:
+	GameSettings.web_platform_override = 1
+	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
+	menu.web_platform_override = 1
+	add_child_autofree(menu)
+	await wait_process_frames(1)
+	if is_instance_valid(menu._about_prewarm_timer):
+		menu._about_prewarm_timer.queue_free()
+		menu._about_prewarm_timer = null
+	menu._prewarm_about_overlay()
+	await wait_process_frames(1)
+	var old_overlay: Control = menu._about_overlay
+	assert_not_null(old_overlay, "prewarm must create the About overlay")
+
+	Locale.set_language("en", false)
+	await wait_process_frames(2)
+	assert_false(is_instance_valid(old_overlay), "language changes must discard stale prewarmed copy")
+	assert_null(menu._about_overlay)
+	assert_not_null(menu._about_prewarm_timer, "language changes must schedule a fresh prewarm")
+
+	menu._about_prewarm_timer.queue_free()
+	menu._about_prewarm_timer = null
+	menu._prewarm_about_overlay()
+	await wait_process_frames(1)
+	assert_not_null(menu._about_overlay, "the rebuilt About overlay must be reusable")
+	assert_ne(menu._about_overlay, old_overlay)
+
+
 func test_main_menu_builds_and_opens_settings() -> void:
 	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
 	add_child_autofree(menu)
@@ -494,7 +620,18 @@ func test_main_menu_builds_and_opens_settings() -> void:
 	assert_eq(about.text, Locale.t("menu.about"))
 	assert_eq(fps_option.get_item_text(fps_option.selected), "60 FPS")
 	assert_eq(vsync_toggle.text, Locale.t("settings.on"))
-	assert_eq(renderer_option.selected, GameSettings.RENDERER_MODES.find(GameSettings.RENDERER_AUTO))
+	var renderer_modes := GameSettings.renderer_modes_for_ui()
+	assert_eq(renderer_option.item_count, renderer_modes.size())
+	for index in range(renderer_modes.size()):
+		assert_eq(
+			str(renderer_option.get_item_metadata(index)),
+			str(renderer_modes[index]),
+			"renderer options must expose their mode as item metadata"
+		)
+	assert_eq(
+		str(renderer_option.get_item_metadata(renderer_option.selected)),
+		GameSettings.RENDERER_AUTO
+	)
 	assert_string_contains(renderer_status.text, "Vulkan")
 	assert_false(restart_button.visible, "matching renderer must not require a restart")
 	menu.open_settings()
@@ -509,7 +646,12 @@ func test_main_menu_builds_and_opens_settings() -> void:
 	assert_eq(GameSettings.fps_limit, 0, "unlimited option must reach GameSettings")
 	assert_false(GameSettings.vsync, "VSync toggle must reach GameSettings")
 	assert_eq(Engine.max_fps, 0)
-	var opengl_index := GameSettings.RENDERER_MODES.find(GameSettings.RENDERER_OPENGL)
+	var opengl_index := -1
+	for index in range(renderer_option.item_count):
+		if str(renderer_option.get_item_metadata(index)) == GameSettings.RENDERER_OPENGL:
+			opengl_index = index
+			break
+	assert_true(opengl_index >= 0, "OpenGL must remain selectable on desktop")
 	renderer_option.select(opengl_index)
 	renderer_option.item_selected.emit(opengl_index)
 	await wait_process_frames(1)
@@ -519,6 +661,43 @@ func test_main_menu_builds_and_opens_settings() -> void:
 	menu.close_settings()
 	await wait_process_frames(1)
 	assert_false(overlay.visible, "close_settings must hide the overlay")
+
+
+func test_web_renderer_ui_disables_vulkan_and_reports_webgl() -> void:
+	GameSettings.web_platform_override = 1
+	GameSettings.renderer_mode = GameSettings.RENDERER_OPENGL
+	GameSettings.active_renderer_override = GameSettings.RENDERER_OPENGL
+	GameSettings.web_capabilities = {
+		"webgl2": true,
+		"renderer": "ANGLE (Test GPU)",
+		"webgpu_api": true,
+	}
+	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
+	add_child_autofree(menu)
+	await wait_process_frames(3)
+	var option := menu.find_child("RendererOption", true, false) as OptionButton
+	var status := menu.find_child("RendererStatus", true, false) as Label
+	var restart := menu.find_child("RestartRendererButton", true, false) as Button
+	var note := menu.find_child("SettingsNote", true, false) as Label
+	assert_not_null(option)
+	assert_eq(option.item_count, 2)
+	assert_eq(
+		str(option.get_item_metadata(0)),
+		GameSettings.RENDERER_OPENGL
+	)
+	assert_eq(
+		str(option.get_item_metadata(1)),
+		GameSettings.RENDERER_VULKAN
+	)
+	assert_true(option.is_item_disabled(1))
+	assert_string_contains(option.get_item_text(1), "Web")
+	assert_string_contains(option.get_item_text(0), "WebGL 2.0")
+	assert_string_contains(status.text, "WebGL 2.0")
+	assert_false(restart.visible, "web cannot restart into another renderer")
+	assert_string_contains(note.text, "ANGLE (Test GPU)")
+	option.item_selected.emit(1)
+	await wait_process_frames(1)
+	assert_eq(GameSettings.renderer_mode, GameSettings.RENDERER_OPENGL)
 
 
 func test_main_menu_exposes_night_anchor_icons() -> void:

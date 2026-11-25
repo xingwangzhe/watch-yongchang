@@ -3,6 +3,7 @@ extends Control
 const BackdropScript := preload("res://scripts/ui/menu_backdrop.gd")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
+const ABOUT_BACKDROP := preload("res://assets/ui/menu_backdrop.webp")
 const CREDITS_PATH := "res://data/credits.json"
 const ABOUT_BGM_PATH := "res://assets/audio/bgm_about.ogg"
 
@@ -14,11 +15,19 @@ const INK := Color("#06090c")
 
 const SCROLL_SPEED := 38.0
 const START_DELAY := 1.0
+const WEB_SCROLL_INTERVAL := 0.0
+const WEB_NODES_PER_FRAME := 8
+const WEB_PREWARM_NODES_PER_FRAME := 3
+const RICH_ENTRIES_PER_BLOCK := 12
 const PRIORITY_SECTION_TITLES := ["致谢", "版权与许可"]
+
+signal content_ready
+signal closed
 
 var _credits: Dictionary = {}
 var _scroll: ScrollContainer
 var _content: VBoxContainer
+var _backdrop: Control
 var _status: Label
 var _progress_fill: ColorRect
 var _about_player: AudioStreamPlayer
@@ -26,21 +35,62 @@ var _about_stream: AudioStream
 var _auto_scroll := true
 var _delay_left := START_DELAY
 var _scroll_accum := 0.0
+var _web_scroll_accum := 0.0
+var _progress_ratio := -1.0
 var _end_reached := false
+var _build_queue: Array[Dictionary] = []
+var _build_index := 0
+var _building := false
+var _ready_for_scroll := false
+var _pending_content := false
+var _activated := false
+var overlay_mode := false
+var prewarm_mode := false
 
 
 func _ready() -> void:
 	_build_theme()
-	_credits = _load_credits()
 	_build_background()
-	_build_roll()
+	_build_roll_shell()
 	_build_chrome()
-	AudioBus.stop_bgm()
-	_start_about_music()
 	GameSettings.changed.connect(_sync_about_volume)
+	if GameSettings.is_web_platform():
+		_pending_content = true
+		_building = true
+		_status.text = Locale.t("about.loading", {"percent": 0})
+		call_deferred("_start_web_roll_build")
+	else:
+		_load_roll_content()
+		while _build_index < _build_queue.size():
+			_instantiate_spec(_build_queue[_build_index])
+			_build_index += 1
+		_finish_build()
+	if prewarm_mode:
+		visible = true
+		modulate = Color.WHITE
+		_auto_scroll = false
+	else:
+		activate()
+
+
+func activate() -> void:
+	if _activated:
+		return
+	_activated = true
+	prewarm_mode = false
+	visible = true
+	modulate = Color.WHITE
+	AudioBus.stop_bgm()
+	call_deferred("_start_about_music")
 	SaveSystem.autosave({"last_mode": "about"})
 	_scroll.scroll_vertical = 0
 	_scroll.grab_focus()
+	_auto_scroll = true
+	_delay_left = START_DELAY
+	if _pending_content or _building:
+		_update_build_status()
+	elif _ready_for_scroll:
+		_status.text = Locale.t("about.auto")
 
 
 func is_auto_scrolling() -> bool:
@@ -59,8 +109,19 @@ func about_player() -> AudioStreamPlayer:
 	return _about_player
 
 
+func is_content_ready() -> bool:
+	return _ready_for_scroll
+
+
 func _process(delta: float) -> void:
-	if not _auto_scroll:
+	if _pending_content:
+		return
+	if _building:
+		_build_chunk()
+		if _building:
+			return
+		_finish_build()
+	if not _auto_scroll or not _ready_for_scroll:
 		return
 	if _delay_left > 0.0:
 		_delay_left -= delta
@@ -72,7 +133,14 @@ func _process(delta: float) -> void:
 	if _scroll.scroll_vertical >= max_scroll:
 		_finish_roll()
 		return
-	_scroll_accum += SCROLL_SPEED * delta
+	if GameSettings.is_web_platform():
+		_web_scroll_accum += delta
+		if _web_scroll_accum < WEB_SCROLL_INTERVAL:
+			return
+		_scroll_accum += SCROLL_SPEED * _web_scroll_accum
+		_web_scroll_accum = 0.0
+	else:
+		_scroll_accum += SCROLL_SPEED * delta
 	var step := int(_scroll_accum)
 	if step > 0:
 		_scroll.scroll_vertical = mini(_scroll.scroll_vertical + step, max_scroll)
@@ -80,7 +148,41 @@ func _process(delta: float) -> void:
 	_update_progress(max_scroll)
 
 
+func _build_chunk() -> void:
+	var budget := WEB_PREWARM_NODES_PER_FRAME if prewarm_mode else WEB_NODES_PER_FRAME
+	while _build_index < _build_queue.size() and budget > 0:
+		_instantiate_spec(_build_queue[_build_index])
+		_build_index += 1
+		budget -= 1
+	if _build_index >= _build_queue.size():
+		_building = false
+		return
+	_update_build_status()
+
+
+func _update_build_status() -> void:
+	if not is_instance_valid(_status) or not _auto_scroll:
+		return
+	var total := maxi(1, _build_queue.size())
+	var percent := int(round(float(_build_index) / float(total) * 100.0))
+	_status.text = Locale.t("about.loading", {"percent": percent})
+
+
+func _finish_build() -> void:
+	_building = false
+	_build_queue.clear()
+	_build_index = 0
+	_ready_for_scroll = true
+	_delay_left = START_DELAY
+	if is_instance_valid(_status) and _auto_scroll:
+		_status.text = Locale.t("about.auto")
+		_status.add_theme_color_override("font_color", Color(GOLD, 0.80))
+	content_ready.emit()
+
+
 func _input(event: InputEvent) -> void:
+	if prewarm_mode or not _activated:
+		return
 	if event is InputEventMouseButton:
 		var mouse_event := event as InputEventMouseButton
 		if mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_WHEEL_UP:
@@ -104,6 +206,8 @@ func _on_scroll_gui_input(event: InputEvent) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if prewarm_mode or not _activated:
+		return
 	if event.is_action_pressed("ui_cancel"):
 		_return_to_menu()
 		get_viewport().set_input_as_handled()
@@ -116,6 +220,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
+	if prewarm_mode or not _activated:
+		return
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		SaveSystem.autosave({"last_mode": "about"})
 	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
@@ -130,11 +236,22 @@ func _build_theme() -> void:
 
 
 func _build_background() -> void:
-	var backdrop := BackdropScript.new()
-	backdrop.name = "Backdrop"
-	backdrop.modulate = Color(1.0, 1.0, 1.0, 0.28)
-	add_child(backdrop)
-	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if GameSettings.is_web_platform():
+		var static_backdrop := TextureRect.new()
+		static_backdrop.name = "Backdrop"
+		static_backdrop.texture = ABOUT_BACKDROP
+		static_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		static_backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		static_backdrop.modulate = Color(1.0, 1.0, 1.0, 0.28)
+		static_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(static_backdrop)
+		static_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	else:
+		_backdrop = BackdropScript.new()
+		_backdrop.name = "Backdrop"
+		_backdrop.modulate = Color(1.0, 1.0, 1.0, 0.28)
+		add_child(_backdrop)
+		_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	var shade := ColorRect.new()
 	shade.name = "Shade"
@@ -144,7 +261,7 @@ func _build_background() -> void:
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 
-func _build_roll() -> void:
+func _build_roll_shell() -> void:
 	_scroll = ScrollContainer.new()
 	_scroll.name = "CreditsScroll"
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -169,7 +286,24 @@ func _build_roll() -> void:
 	_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_content.add_theme_constant_override("separation", 8)
 	page_margin.add_child(_content)
+	_build_queue.clear()
+	_build_index = 0
+	_building = false
+	_ready_for_scroll = false
 
+
+func _start_web_roll_build() -> void:
+	_pending_content = false
+	_load_roll_content()
+	_building = not _build_queue.is_empty()
+	if _building:
+		_update_build_status()
+	else:
+		_finish_build()
+
+
+func _load_roll_content() -> void:
+	_credits = _load_credits()
 	_add_spacer(16)
 	_add_line(str(_credits.get("title", "守望·永昌")), 62, GOLD, 0)
 	_add_line(_pick(_credits.get("subtitle", {})), 18, Color(MUTED, 0.88), 0)
@@ -186,82 +320,47 @@ func _build_roll() -> void:
 			_render_section(section)
 
 	_add_heading(Locale.t("about.music"))
-	for entry in _array_value(_credits.get("music", [])):
-		if not entry is Dictionary:
-			continue
-		_add_link(str(entry.get("title", "")), str(entry.get("url", "")), 22)
-		_add_line(
-			"%s · %s" % [str(entry.get("artist", "")), str(entry.get("license", ""))],
-			15,
-			Color(MUTED, 0.92),
-			0
-		)
-		_add_line(_bi(entry, "usage"), 15, Color(PAPER, 0.82), 0)
-		_add_line(_bi(entry, "changes"), 14, Color(MUTED, 0.72), 0)
-		_add_credit_links(entry)
-		_add_spacer(10)
+	_render_link_entries(
+		_array_value(_credits.get("music", [])),
+		"usage",
+		"changes",
+		22,
+		15,
+		14
+	)
 
 	_add_heading(Locale.t("about.sfx"))
-	for entry in _array_value(_credits.get("sfx", [])):
-		if not entry is Dictionary:
-			continue
-		_add_link(str(entry.get("title", "")), str(entry.get("url", "")), 22)
-		_add_line(
-			"%s · %s" % [str(entry.get("artist", "")), str(entry.get("license", ""))],
-			15,
-			Color(MUTED, 0.92),
-			0
-		)
-		_add_line(_bi(entry, "usage"), 15, Color(PAPER, 0.82), 0)
-		_add_line(_bi(entry, "changes"), 14, Color(MUTED, 0.72), 0)
-		_add_credit_links(entry)
-		_add_spacer(10)
+	_render_link_entries(
+		_array_value(_credits.get("sfx", [])),
+		"usage",
+		"changes",
+		22,
+		15,
+		14
+	)
 
 	_add_heading(Locale.t("about.fonts"))
-	for entry in _array_value(_credits.get("fonts", [])):
-		if not entry is Dictionary:
-			continue
-		_add_link(str(entry.get("title", "")), str(entry.get("url", "")), 22)
-		_add_line(
-			"%s · %s" % [str(entry.get("artist", "")), str(entry.get("license", ""))],
-			15,
-			Color(MUTED, 0.92),
-			0
-		)
-		_add_line(_bi(entry, "notice"), 14, Color(MUTED, 0.72), 0)
-		_add_credit_links(entry)
-		_add_spacer(10)
+	_render_link_entries(
+		_array_value(_credits.get("fonts", [])),
+		"notice",
+		"",
+		22,
+		15,
+		14
+	)
 
 	_add_heading(Locale.t("about.icons"))
-	for entry in _array_value(_credits.get("icons", [])):
-		if not entry is Dictionary:
-			continue
-		_add_link(str(entry.get("title", "")), str(entry.get("url", "")), 19)
-		_add_line(
-			"%s · %s" % [str(entry.get("artist", "")), str(entry.get("license", ""))],
-			14,
-			Color(MUTED, 0.92),
-			0
-		)
-		_add_line(_bi(entry, "usage"), 14, Color(PAPER, 0.82), 0)
-		_add_line(_bi(entry, "changes"), 13, Color(MUTED, 0.72), 0)
-		_add_credit_links(entry)
-		_add_spacer(7)
+	_render_link_entries(
+		_array_value(_credits.get("icons", [])),
+		"usage",
+		"changes",
+		19,
+		14,
+		13
+	)
 
 	_add_heading(Locale.t("about.tools"))
-	for entry in _array_value(_credits.get("tools", [])):
-		if not entry is Dictionary:
-			continue
-		var tool_label := "%s · %s" % [
-			str(entry.get("title", "")),
-			str(entry.get("license", "")),
-		]
-		var tool_url := str(entry.get("url", ""))
-		if tool_url.is_empty():
-			_add_line(tool_label, 17, Color(PAPER, 0.86), 0)
-		else:
-			_add_link(tool_label, tool_url, 17)
-		_add_credit_links(entry)
+	_render_tools(_array_value(_credits.get("tools", [])))
 
 	_add_spacer(50)
 	_add_line(
@@ -279,19 +378,19 @@ func _build_roll() -> void:
 		Color(PAPER, 0.78),
 		0
 	)
-	author_line.name = "AboutAuthor"
+	author_line["name"] = "AboutAuthor"
 	if not ProjectMeta.repo_url.is_empty():
 		var repository_link := _add_link(
 			Locale.t("about.repository"),
 			ProjectMeta.repo_url,
 			15
 		)
-		if repository_link != null:
-			repository_link.name = "AboutRepositoryLink"
+		if not repository_link.is_empty():
+			repository_link["name"] = "AboutRepositoryLink"
 	if not ProjectMeta.web_url.is_empty():
 		var web_link := _add_link(Locale.t("about.web"), ProjectMeta.web_url, 15)
-		if web_link != null:
-			web_link.name = "AboutWebLink"
+		if not web_link.is_empty():
+			web_link["name"] = "AboutWebLink"
 	_add_spacer(12)
 	_add_line(Locale.t("about.thanks_end"), 34, GOLD, 0)
 	_add_spacer(110)
@@ -330,6 +429,140 @@ func _render_section(section: Dictionary) -> void:
 			_add_line(entry_note, 14, Color(MUTED, 0.78), 0)
 		_add_credit_links(entry)
 		_add_spacer(10)
+
+
+func _render_link_entries(
+	entries: Array,
+	body_field: String,
+	changes_field: String,
+	title_size: int,
+	meta_size: int,
+	body_size: int
+) -> void:
+	var block := ""
+	var block_entries := 0
+	for entry in entries:
+		if not entry is Dictionary:
+			continue
+		block += _entry_bbcode(
+			entry,
+			body_field,
+			changes_field,
+			title_size,
+			meta_size,
+			body_size
+		)
+		block_entries += 1
+		if block_entries >= RICH_ENTRIES_PER_BLOCK:
+			_add_rich_block(block)
+			block = ""
+			block_entries = 0
+	if not block.is_empty():
+		_add_rich_block(block)
+
+
+func _entry_bbcode(
+	entry: Dictionary,
+	body_field: String,
+	changes_field: String,
+	title_size: int,
+	meta_size: int,
+	body_size: int
+) -> String:
+	var title := _bb_escape(str(entry.get("title", "")))
+	var title_url := str(entry.get("url", ""))
+	var lines := PackedStringArray()
+	lines.append(_bb_center(
+		_bb_url(title, title_url, title_size, GOLD)
+	))
+	lines.append(_bb_center(_bb_color(
+		"%s · %s" % [
+			str(entry.get("artist", "")),
+			str(entry.get("license", "")),
+		],
+		meta_size,
+		Color(MUTED, 0.92)
+	)))
+	var body := _bi(entry, body_field)
+	if not body.is_empty():
+		lines.append(_bb_center(_bb_color(body, body_size, Color(PAPER, 0.84))))
+	if not changes_field.is_empty():
+		var changes := _bi(entry, changes_field)
+		if not changes.is_empty():
+			lines.append(_bb_center(_bb_color(
+				changes,
+				maxi(12, body_size - 1),
+				Color(MUTED, 0.72)
+			)))
+	var links := _credit_links_bbcode(entry)
+	if not links.is_empty():
+		lines.append(_bb_center(links))
+	return "\n".join(lines) + "\n\n"
+
+
+func _render_tools(entries: Array) -> void:
+	var block := ""
+	var block_entries := 0
+	for entry in entries:
+		if not entry is Dictionary:
+			continue
+		var label := "%s · %s" % [
+			str(entry.get("title", "")),
+			str(entry.get("license", "")),
+		]
+		var url := str(entry.get("url", ""))
+		block += _bb_center(_bb_url(label, url, 17, Color(PAPER, 0.86)))
+		var links := _credit_links_bbcode(entry)
+		if not links.is_empty():
+			block += "\n" + _bb_center(links)
+		block += "\n\n"
+		block_entries += 1
+		if block_entries >= RICH_ENTRIES_PER_BLOCK:
+			_add_rich_block(block)
+			block = ""
+			block_entries = 0
+	if not block.is_empty():
+		_add_rich_block(block)
+
+
+func _credit_links_bbcode(entry: Dictionary) -> String:
+	var links := PackedStringArray()
+	var source_url := str(entry.get("url", ""))
+	var license_url := str(entry.get("license_url", ""))
+	if not source_url.is_empty():
+		links.append(_bb_url("来源 / Source", source_url, 12, GOLD))
+	if not license_url.is_empty():
+		links.append(_bb_url("许可 / License", license_url, 12, GOLD))
+	var alternate_license_url := str(entry.get("license_alt_url", ""))
+	if not alternate_license_url.is_empty() and alternate_license_url != license_url:
+		links.append(_bb_url("备选许可 / Alternate License", alternate_license_url, 12, GOLD))
+	var art_license_url := str(entry.get("art_license_url", ""))
+	if not art_license_url.is_empty():
+		links.append(_bb_url("素材许可 / Asset License", art_license_url, 12, GOLD))
+	return " · ".join(links)
+
+
+func _bb_url(text: String, url: String, font_size: int, color: Color) -> String:
+	var styled := _bb_color(_bb_escape(text), font_size, color)
+	if url.is_empty():
+		return styled
+	return "[url=%s]%s[/url]" % [url, styled]
+
+
+func _bb_color(text: String, font_size: int, color: Color) -> String:
+	return "[font_size=%d][color=#%s]%s[/color][/font_size]" % [
+		font_size,
+		color.to_html(false),
+		_bb_escape(text),
+	]
+
+
+func _bb_center(text: String) -> String:
+	return "[center]%s[/center]" % text
+
+
+func _bb_escape(text: String) -> String:
+	return text.replace("[", "[lb]")
 
 
 func _is_priority_section(section: Dictionary) -> bool:
@@ -437,9 +670,15 @@ func _build_chrome() -> void:
 
 
 func _start_about_music() -> void:
-	_about_stream = load(ABOUT_BGM_PATH)
+	_about_stream = AudioBus.about_stream
+	if _about_stream == null:
+		_about_stream = load(ABOUT_BGM_PATH)
 	if _about_stream is AudioStreamOggVorbis:
 		(_about_stream as AudioStreamOggVorbis).loop = true
+	if OS.has_feature("web") and is_instance_valid(AudioBus.about_player):
+		_about_player = AudioBus.about_player
+		_sync_about_volume()
+		return
 	_about_player = AudioStreamPlayer.new()
 	_about_player.name = "AboutBgmPlayer"
 	_about_player.stream = _about_stream
@@ -457,7 +696,9 @@ func _sync_about_volume() -> void:
 	_about_player.volume_db = -80.0 if volume <= 0.001 else linear_to_db(volume)
 	if DisplayServer.get_name() == "headless" or volume <= 0.001:
 		return
-	if not _about_player.playing:
+	if _about_player.stream_paused:
+		_about_player.stream_paused = false
+	elif not _about_player.playing:
 		_about_player.play()
 
 
@@ -484,14 +725,24 @@ func _update_progress(max_scroll: int) -> void:
 	if max_scroll <= 0:
 		return
 	var ratio := clampf(float(_scroll.scroll_vertical) / float(max_scroll), 0.0, 1.0)
+	if absf(ratio - _progress_ratio) < 0.002:
+		return
+	_progress_ratio = ratio
 	UILayout.set_size(_progress_fill, size.x * ratio, 2.0)
 
 
 func _return_to_menu() -> void:
 	if is_instance_valid(_about_player):
-		_about_player.stop()
+		if OS.has_feature("web") and _about_player == AudioBus.about_player:
+			_about_player.stream_paused = true
+		else:
+			_about_player.stop()
 	SaveSystem.autosave({"last_mode": "menu"})
 	AudioBus.resume_bgm()
+	if overlay_mode:
+		closed.emit()
+		queue_free()
+		return
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 
@@ -546,37 +797,32 @@ func _add_heading(text: String) -> void:
 	_add_spacer(4)
 
 
-func _add_line(text: String, font_size: int, color: Color, spacing_before: int = 0) -> Label:
+func _add_line(text: String, font_size: int, color: Color, spacing_before: int = 0) -> Dictionary:
 	if spacing_before > 0:
 		_add_spacer(float(spacing_before))
-	var label := Label.new()
-	label.text = text
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.add_theme_font_override("font", UI_FONT)
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
-	_content.add_child(label)
-	return label
+	var spec := {
+		"type": "line",
+		"text": text,
+		"font_size": font_size,
+		"color": color,
+		"name": "",
+	}
+	_build_queue.append(spec)
+	return spec
 
 
-func _add_link(text: String, url: String, font_size: int = 14) -> LinkButton:
+func _add_link(text: String, url: String, font_size: int = 14) -> Dictionary:
 	if url.is_empty():
-		return null
-	var link := LinkButton.new()
-	link.text = text
-	link.tooltip_text = url
-	link.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	link.add_theme_font_override("font", UI_FONT)
-	link.add_theme_font_size_override("font_size", font_size)
-	link.add_theme_color_override("font_color", Color(GOLD, 0.76))
-	link.add_theme_color_override("font_hover_color", GOLD)
-	link.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-	link.pressed.connect(_open_url.bind(url))
-	_content.add_child(link)
-	return link
+		return {}
+	var spec := {
+		"type": "link",
+		"text": text,
+		"url": url,
+		"font_size": font_size,
+		"name": "",
+	}
+	_build_queue.append(spec)
+	return spec
 
 
 func _add_credit_links(entry: Dictionary) -> void:
@@ -595,14 +841,70 @@ func _add_credit_links(entry: Dictionary) -> void:
 
 
 func _add_rule() -> void:
-	var rule := ColorRect.new()
-	rule.custom_minimum_size = Vector2(0.0, 1.0)
-	rule.color = Color(GOLD, 0.28)
-	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_content.add_child(rule)
+	_build_queue.append({"type": "rule"})
 
 
 func _add_spacer(height: float) -> void:
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0.0, height)
-	_content.add_child(spacer)
+	_build_queue.append({"type": "spacer", "height": height})
+
+
+func _add_rich_block(bbcode: String) -> void:
+	_build_queue.append({"type": "rich", "bbcode": bbcode})
+
+
+func _instantiate_spec(spec: Dictionary) -> void:
+	match str(spec.get("type", "")):
+		"line":
+			var label := Label.new()
+			label.text = str(spec.get("text", ""))
+			label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			label.add_theme_font_override("font", UI_FONT)
+			label.add_theme_font_size_override("font_size", int(spec.get("font_size", 18)))
+			label.add_theme_color_override("font_color", spec.get("color", PAPER) as Color)
+			var label_name := str(spec.get("name", ""))
+			if not label_name.is_empty():
+				label.name = label_name
+			_content.add_child(label)
+		"link":
+			var link := LinkButton.new()
+			link.text = str(spec.get("text", ""))
+			var url := str(spec.get("url", ""))
+			link.tooltip_text = url
+			link.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			link.add_theme_font_override("font", UI_FONT)
+			link.add_theme_font_size_override("font_size", int(spec.get("font_size", 14)))
+			link.add_theme_color_override("font_color", Color(GOLD, 0.76))
+			link.add_theme_color_override("font_hover_color", GOLD)
+			link.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+			link.pressed.connect(_open_url.bind(url))
+			var link_name := str(spec.get("name", ""))
+			if not link_name.is_empty():
+				link.name = link_name
+			_content.add_child(link)
+		"rule":
+			var rule := ColorRect.new()
+			rule.custom_minimum_size = Vector2(0.0, 1.0)
+			rule.color = Color(GOLD, 0.28)
+			rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			_content.add_child(rule)
+		"spacer":
+			var spacer := Control.new()
+			spacer.custom_minimum_size = Vector2(0.0, float(spec.get("height", 0.0)))
+			_content.add_child(spacer)
+		"rich":
+			var rich := RichTextLabel.new()
+			rich.bbcode_enabled = true
+			rich.fit_content = true
+			rich.scroll_active = false
+			rich.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			rich.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			rich.mouse_filter = Control.MOUSE_FILTER_PASS
+			rich.add_theme_font_override("normal_font", UI_FONT)
+			rich.add_theme_font_size_override("normal_font_size", 16)
+			rich.add_theme_color_override("default_color", PAPER)
+			rich.meta_clicked.connect(_open_url)
+			rich.text = str(spec.get("bbcode", ""))
+			_content.add_child(rich)
