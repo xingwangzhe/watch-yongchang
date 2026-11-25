@@ -393,7 +393,19 @@ def source_entries() -> tuple[list[tuple[str, Path]], list[str]]:
     for name in sorted(set(names)):
         path = ROOT / name
         if path.is_symlink():
-            raise RuntimeError(f"symlink in source package: {name}")
+            target = path.resolve(strict=True)
+            if not target.is_relative_to(ROOT):
+                raise RuntimeError(f"external symlink in source package: {name}")
+            target_name = target.relative_to(ROOT).as_posix()
+            target_packaged = target.is_file() or any(
+                tracked == target_name or tracked.startswith(target_name + "/")
+                for tracked in names
+            )
+            if not target_packaged:
+                raise RuntimeError(f"symlink target is not packaged: {name}")
+            if target.is_file():
+                entries.append((f"watch-yongchang/{name}", target))
+            continue
         if not path.is_file():
             missing.append(name)
             continue
