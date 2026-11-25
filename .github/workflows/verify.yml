@@ -244,7 +244,8 @@ jobs:
           fi
 
       - name: Import project
-        run: "$GODOT_BIN" --headless --path game --import
+        run: |
+          "$GODOT_BIN" --headless --path game --import
 
       - name: Run GUT
         run: |
