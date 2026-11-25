@@ -18,5 +18,4 @@ python3 skills/pixel-art-studio/examples/slime-build.py
 python3 pixel-art/<slug>/build.py
 ```
 
-WorkBuddy 通过 `.workbuddy/skills/pixel-art-studio` 符号链接发现本 skill；
-索引条目在 `.workbuddy/skills/index.json`。
+开发助手工作区（`.workbuddy/`）不随项目分发，项目只保留本目录中的可复现 skill。

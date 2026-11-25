@@ -1,52 +1,115 @@
 # ============================================================
-# 本项目 .gitignore 约定
-# 分类原则：只忽略「本地生成 / 下载候选 / 运行产物」；
-# game/assets/** 下的正式入库资产一律不在此列。
+# 《守望 · 永昌》公开仓库忽略规则
+#
+# 原则：
+# 1. 只跟踪可公开再分发的源码、运行资产、构建说明与授权材料。
+# 2. 开发助手工作区、赛事原始研究、第三方未授权语料、内部草稿、
+#    本地生成物和一次性脚本一律不入库。
+# 3. 正式游戏资产仍在 game/assets/ 内；本文件不忽略其中的运行文件。
 # ============================================================
 
-# ----- 第三方原始素材包（来源 URL 与校验值见 docs/source-manifest.json）-----
-docs/01-参考资料包/
-assets/third_party/hardvacuum/
+# ----- 开发助手 / Agent 工作区（含记忆、技能缓存、会话草稿）-----
+.workbuddy/
+.codex/
+.claude/
+.cursor/
+.continue/
+.aider*
+.agents/
+AGENTS.local.md
+CLAUDE.local.md
 
-# ----- 开源参考实现与本地 TTS 运行时（仅本地研究，不进入成品）-----
+# ----- 编辑器与操作系统噪声 -----
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ----- 赛事原始研究资料（授权未明或含主题密钥，不公开分发）-----
+docs/01-参考资料包/
+docs/02-主题资料/
+docs/03-站点图片/
+docs/04-结构化数据/
+docs/05-页面原文/
+docs/source-manifest.json
+
+# 06 目录只公开项目自行整理的索引/结论；原始全文、OCR、缩略图、
+# 联系表和图片来源清单仅在本地保留。
+docs/06-资料文本化/**
+!docs/06-资料文本化/*.md
+
+# ----- 内部设计草稿与过程材料 -----
+design/*-draft.md
+design/*草稿*
+design/内部*
+design/_*
+
+# ----- 本地研究、生成候选与第三方参考实现 -----
+assets/third_party/
 third_party/reference-games/
 third_party/moss-tts-nano/
-
-# ----- 验收截图 / 调试日志（本地临时产物，不入库、不写入文档）-----
-# gda / Xvfb / 压力测试产生的截图与日志统一放这里，需要时现场生成。
-docs/screenshots/
-
-# ----- Godot 引擎缓存、工具 harness 与导出产物 -----
-game/.godot/
-game/addons/gda_harness/
-game/export/
-game/build/
-game/android/build/
-game/ios/build/
-
-# ----- 索引数据库（本地生成）-----
-.codegraph/
-
-# ----- Python / Pillow 运行缓存 -----
-__pycache__/
-*.pyc
-.venv/
-
-# ----- 像素素材临时研究输出（正式导出走 game/assets/）-----
-pixel-art/**/*_study/
-
-# ----- 生成候选包（筛选后的正式文件才复制到 game/assets/）-----
 generated/game_icons/
 generated/tileset_candidates/
 generated/character_candidates/
 generated/battle_redesign/
 generated/forge_hd/
 
-# ----- CI 工具、构建产物与日志 -----
-.tools/
-artifacts/
-*.log
+# ----- Godot 缓存、工具 harness、导出与打包产物 -----
+game/.godot/
+game/addons/gda_harness/
+game/export/
+game/build/
+game/android/build/
+game/ios/build/
+.codegraph/
 
-# ----- 本地密钥与环境变量 -----
+# ----- 截图、调试日志、演示视频与本地验收产物 -----
+docs/screenshots/
+docs/video/
+.screenshots/
+artifacts/
+tools/__pycache__/
+dora/__pycache__/
+__pycache__/
+*.pyc
+*.log
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*.mp4
+*.mkv
+
+# ----- 本地密钥、证书与环境变量 -----
 .env
 .env.*
+*.key
+*.pem
+*.p12
+*.pfx
+*.keystore
+*.jks
+id_rsa
+id_ed25519
+credentials.json
+
+# ----- 一次性迁移脚本与临时脚本（保留可复现构建工具）-----
+tools/append_icon_credits.ts
+scripts/_*
+tools/_*
+scripts/*.tmp.*
+tools/*.tmp.*
+
+# ----- 像素素材临时研究输出（正式导出走 game/assets/）-----
+pixel-art/**/*_study/
+pixel-art/**/study/
+
+# ----- CI 工具与包管理器缓存 -----
+.tools/
+.venv/
+node_modules/

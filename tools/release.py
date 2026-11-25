@@ -37,7 +37,23 @@ FORBIDDEN_PARTS = (
     ".godot/editor/",
     ".godot/shader_cache/",
 )
-FORBIDDEN_SOURCE_PARTS = (".godot/",)
+FORBIDDEN_SOURCE_PARTS = (
+    ".godot/",
+    ".workbuddy/",
+    ".codex/",
+    ".claude/",
+    "docs/01-参考资料包/",
+    "docs/02-主题资料/",
+    "docs/03-站点图片/",
+    "docs/04-结构化数据/",
+    "docs/05-页面原文/",
+    "docs/source-manifest.json",
+    "docs/06-资料文本化/文档文本/",
+    "docs/06-资料文本化/图片OCR/",
+    "docs/06-资料文本化/缩略图/",
+    "docs/06-资料文本化/联系表/",
+    "third_party/",
+)
 LEGACY_UNITS = (
     "xiangyong",
     "gongshou",
@@ -322,8 +338,7 @@ def sensitive_names(entries: list[tuple[str, Path]]) -> list[str]:
         if base == ".env" or base.startswith(".env.") or base in {"id_rsa", "id_ed25519", "credentials.json"}:
             bad.append(name)
         elif base.endswith((".pem", ".key", ".p12", ".pfx")):
-            if name != "watch-yongchang/docs/02-主题资料/theme-guide.key":
-                bad.append(name)
+            bad.append(name)
     return bad
 
 
