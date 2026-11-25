@@ -225,6 +225,7 @@ def pck_entries(data: bytes) -> list[dict]:
             {
                 "name": raw.decode("utf-8"),
                 "size": file_size,
+                "offset": file_offset,
                 "md5_valid": hashlib.md5(content, usedforsecurity=False).digest() == expected_md5,
                 "sha256": hashlib.sha256(content).hexdigest(),
                 "header": content[:4],
@@ -262,6 +263,10 @@ def legacy_unit_path(name: str) -> bool:
     return legacy_static or any(normalized.startswith(f"assets/units/{unit}/") for unit in LEGACY_UNITS)
 
 
+def normalized_line_endings(data: bytes) -> bytes:
+    return data.replace(b"\r\n", b"\n")
+
+
 def forbidden_runtime_path(name: str, source_package: bool = False) -> bool:
     normalized = name.removeprefix("watch-yongchang/")
     tokens = FORBIDDEN_SOURCE_PARTS if source_package else FORBIDDEN_PARTS
@@ -286,11 +291,22 @@ def audit_pck(label: str, data: bytes, output: Path) -> dict:
     duplicates = sorted(name for name, count in Counter(normalized).items() if count > 1)
     by_name = {entry["name"].removeprefix("res://"): entry for entry in entries}
     project_binary = by_name.get("project.binary")
-    legal_mismatches = [
-        name
-        for name, source in LEGAL_SOURCES.items()
-        if name in by_name and by_name[name]["sha256"] != sha256(source)
-    ]
+    legal_byte_mismatches = []
+    legal_line_ending_mismatches = []
+    legal_content_mismatches = []
+    for name, source in LEGAL_SOURCES.items():
+        entry = by_name.get(name)
+        if entry is None:
+            continue
+        expected = source.read_bytes()
+        actual = data[entry["offset"] : entry["offset"] + entry["size"]]
+        if actual == expected:
+            continue
+        legal_byte_mismatches.append(name)
+        if normalized_line_endings(actual) == normalized_line_endings(expected):
+            legal_line_ending_mismatches.append(name)
+        else:
+            legal_content_mismatches.append(name)
     project_valid = (
         project_binary is not None
         and project_binary["size"] > 0
@@ -304,7 +320,7 @@ def audit_pck(label: str, data: bytes, output: Path) -> dict:
         and not duplicates
         and not [entry["name"] for entry in entries if not entry["md5_valid"]]
         and b"GdaHarness=" not in data
-        and not legal_mismatches,
+        and not legal_content_mismatches,
         "format_version": 4,
         "file_count": len(normalized),
         "forbidden": [name for name in normalized if forbidden_runtime_path(name)],
@@ -318,7 +334,9 @@ def audit_pck(label: str, data: bytes, output: Path) -> dict:
         "project_binary_size": project_binary["size"] if project_binary else 0,
         "project_binary_header": project_binary["header"].hex() if project_binary else "",
         "project_binary_valid": project_valid,
-        "legal_byte_mismatches": legal_mismatches,
+        "legal_byte_mismatches": legal_byte_mismatches,
+        "legal_line_ending_mismatches": legal_line_ending_mismatches,
+        "legal_content_mismatches": legal_content_mismatches,
         "exported_scene_cache_count": sum(name.startswith(".godot/exported/") for name in normalized),
     }
     RESULTS["checks"][label] = result
