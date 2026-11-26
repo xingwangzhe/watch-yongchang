@@ -10,9 +10,9 @@
   ],
   "source_background": "flat chroma green #00ff00",
   "alpha_threshold": null,
-  "chroma_key": "00ff00",
-  "key_tolerance": 150,
-  "fit_content": true,
+  "chroma_key": "#00ff00",
+  "key_tolerance": 210,
+  "fit_content": false,
   "output_size": [
     128,
     128
@@ -33,209 +33,209 @@
         128
       ],
       "alpha_bbox": [
-        29,
-        5,
-        98,
-        123
-      ],
-      "alpha_coverage": 0.27521
-    },
-    {
-      "row": 0,
-      "column": 1,
-      "source_bounds": [
-        209,
-        0,
-        418,
-        251
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
-        26,
-        5,
-        102,
-        123
-      ],
-      "alpha_coverage": 0.28455,
-      "changed_fraction_from_previous": 0.25922
-    },
-    {
-      "row": 0,
-      "column": 2,
-      "source_bounds": [
-        418,
-        0,
-        627,
-        251
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
-        17,
-        5,
-        110,
-        123
-      ],
-      "alpha_coverage": 0.3078,
-      "changed_fraction_from_previous": 0.35327
-    },
-    {
-      "row": 0,
-      "column": 3,
-      "source_bounds": [
-        627,
-        0,
-        836,
-        251
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
-        14,
-        5,
-        113,
-        123
-      ],
-      "alpha_coverage": 0.30298,
-      "changed_fraction_from_previous": 0.25238
-    },
-    {
-      "row": 0,
-      "column": 4,
-      "source_bounds": [
-        836,
-        0,
-        1045,
-        251
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
-        23,
-        5,
-        104,
-        123
-      ],
-      "alpha_coverage": 0.28992,
-      "changed_fraction_from_previous": 0.38269
-    },
-    {
-      "row": 0,
-      "column": 5,
-      "source_bounds": [
-        1045,
-        0,
-        1254,
-        251
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
-        29,
-        5,
-        99,
-        123
-      ],
-      "alpha_coverage": 0.27612,
-      "changed_fraction_from_previous": 0.23877
-    },
-    {
-      "row": 1,
-      "column": 0,
-      "source_bounds": [
-        0,
-        251,
-        209,
-        502
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
         28,
-        5,
-        99,
-        123
-      ],
-      "alpha_coverage": 0.28217
-    },
-    {
-      "row": 1,
-      "column": 1,
-      "source_bounds": [
-        209,
-        251,
-        418,
-        502
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
-        28,
-        5,
-        100,
-        123
-      ],
-      "alpha_coverage": 0.28021,
-      "changed_fraction_from_previous": 0.2226
-    },
-    {
-      "row": 1,
-      "column": 2,
-      "source_bounds": [
-        418,
-        251,
-        627,
-        502
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
-        23,
-        5,
-        105,
-        123
-      ],
-      "alpha_coverage": 0.2749,
-      "changed_fraction_from_previous": 0.27069
-    },
-    {
-      "row": 1,
-      "column": 3,
-      "source_bounds": [
-        627,
-        251,
-        836,
-        502
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
         16,
-        5,
-        112,
-        123
+        96,
+        114
       ],
-      "alpha_coverage": 0.28467,
-      "changed_fraction_from_previous": 0.31207
+      "alpha_coverage": 0.21698
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "source_bounds": [
+        209,
+        0,
+        418,
+        251
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        16,
+        104,
+        115
+      ],
+      "alpha_coverage": 0.22131,
+      "changed_fraction_from_previous": 0.17529
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "source_bounds": [
+        418,
+        0,
+        627,
+        251
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        27,
+        16,
+        120,
+        115
+      ],
+      "alpha_coverage": 0.2384,
+      "changed_fraction_from_previous": 0.18488
+    },
+    {
+      "row": 0,
+      "column": 3,
+      "source_bounds": [
+        627,
+        0,
+        836,
+        251
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        26,
+        16,
+        125,
+        115
+      ],
+      "alpha_coverage": 0.23792,
+      "changed_fraction_from_previous": 0.23584
+    },
+    {
+      "row": 0,
+      "column": 4,
+      "source_bounds": [
+        836,
+        0,
+        1045,
+        251
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        25,
+        17,
+        107,
+        115
+      ],
+      "alpha_coverage": 0.22614,
+      "changed_fraction_from_previous": 0.22168
+    },
+    {
+      "row": 0,
+      "column": 5,
+      "source_bounds": [
+        1045,
+        0,
+        1254,
+        251
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        16,
+        98,
+        115
+      ],
+      "alpha_coverage": 0.21686,
+      "changed_fraction_from_previous": 0.21552
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "source_bounds": [
+        0,
+        251,
+        209,
+        502
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        15,
+        97,
+        113
+      ],
+      "alpha_coverage": 0.2149
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "source_bounds": [
+        209,
+        251,
+        418,
+        502
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        17,
+        99,
+        113
+      ],
+      "alpha_coverage": 0.21039,
+      "changed_fraction_from_previous": 0.18951
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "source_bounds": [
+        418,
+        251,
+        627,
+        502
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        27,
+        17,
+        107,
+        113
+      ],
+      "alpha_coverage": 0.20453,
+      "changed_fraction_from_previous": 0.17792
+    },
+    {
+      "row": 1,
+      "column": 3,
+      "source_bounds": [
+        627,
+        251,
+        836,
+        502
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        27,
+        17,
+        121,
+        113
+      ],
+      "alpha_coverage": 0.21484,
+      "changed_fraction_from_previous": 0.18579
     },
     {
       "row": 1,
@@ -251,13 +251,13 @@
         128
       ],
       "alpha_bbox": [
-        28,
-        5,
-        100,
-        123
+        27,
+        17,
+        98,
+        113
       ],
-      "alpha_coverage": 0.27692,
-      "changed_fraction_from_previous": 0.35974
+      "alpha_coverage": 0.20782,
+      "changed_fraction_from_previous": 0.20258
     },
     {
       "row": 1,
@@ -274,12 +274,12 @@
       ],
       "alpha_bbox": [
         28,
-        5,
-        99,
-        123
+        15,
+        98,
+        113
       ],
-      "alpha_coverage": 0.27942,
-      "changed_fraction_from_previous": 0.2113
+      "alpha_coverage": 0.21405,
+      "changed_fraction_from_previous": 0.18829
     },
     {
       "row": 2,
@@ -296,11 +296,11 @@
       ],
       "alpha_bbox": [
         28,
-        5,
-        100,
-        123
+        17,
+        97,
+        114
       ],
-      "alpha_coverage": 0.2887
+      "alpha_coverage": 0.21454
     },
     {
       "row": 2,
@@ -316,13 +316,13 @@
         128
       ],
       "alpha_bbox": [
-        26,
-        5,
-        101,
-        123
+        28,
+        14,
+        104,
+        114
       ],
-      "alpha_coverage": 0.29041,
-      "changed_fraction_from_previous": 0.30188
+      "alpha_coverage": 0.23181,
+      "changed_fraction_from_previous": 0.22357
     },
     {
       "row": 2,
@@ -338,13 +338,13 @@
         128
       ],
       "alpha_bbox": [
-        31,
-        5,
-        96,
-        123
+        28,
+        7,
+        97,
+        114
       ],
-      "alpha_coverage": 0.25903,
-      "changed_fraction_from_previous": 0.28619
+      "alpha_coverage": 0.23975,
+      "changed_fraction_from_previous": 0.24713
     },
     {
       "row": 2,
@@ -360,13 +360,13 @@
         128
       ],
       "alpha_bbox": [
+        28,
         20,
-        5,
-        108,
-        123
+        110,
+        113
       ],
-      "alpha_coverage": 0.32043,
-      "changed_fraction_from_previous": 0.35596
+      "alpha_coverage": 0.22601,
+      "changed_fraction_from_previous": 0.2973
     },
     {
       "row": 2,
@@ -382,13 +382,13 @@
         128
       ],
       "alpha_bbox": [
-        24,
-        5,
-        104,
-        123
+        27,
+        23,
+        101,
+        113
       ],
-      "alpha_coverage": 0.30444,
-      "changed_fraction_from_previous": 0.32855
+      "alpha_coverage": 0.20721,
+      "changed_fraction_from_previous": 0.2262
     },
     {
       "row": 2,
@@ -405,12 +405,12 @@
       ],
       "alpha_bbox": [
         28,
-        5,
-        100,
-        123
+        17,
+        98,
+        114
       ],
-      "alpha_coverage": 0.28491,
-      "changed_fraction_from_previous": 0.28113
+      "alpha_coverage": 0.21411,
+      "changed_fraction_from_previous": 0.24097
     },
     {
       "row": 3,
@@ -426,12 +426,12 @@
         128
       ],
       "alpha_bbox": [
-        29,
-        5,
-        99,
-        123
+        28,
+        18,
+        96,
+        115
       ],
-      "alpha_coverage": 0.28223
+      "alpha_coverage": 0.21472
     },
     {
       "row": 3,
@@ -447,13 +447,13 @@
         128
       ],
       "alpha_bbox": [
-        24,
-        5,
-        103,
-        123
+        28,
+        17,
+        107,
+        115
       ],
-      "alpha_coverage": 0.29071,
-      "changed_fraction_from_previous": 0.34363
+      "alpha_coverage": 0.22778,
+      "changed_fraction_from_previous": 0.25519
     },
     {
       "row": 3,
@@ -462,6 +462,28 @@
         418,
         752,
         627,
+        1003
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        21,
+        17,
+        115,
+        115
+      ],
+      "alpha_coverage": 0.23553,
+      "changed_fraction_from_previous": 0.26166
+    },
+    {
+      "row": 3,
+      "column": 3,
+      "source_bounds": [
+        627,
+        752,
+        836,
         1003
       ],
       "size": [
@@ -470,34 +492,12 @@
       ],
       "alpha_bbox": [
         17,
-        5,
-        111,
-        123
+        20,
+        119,
+        115
       ],
-      "alpha_coverage": 0.30463,
-      "changed_fraction_from_previous": 0.28796
-    },
-    {
-      "row": 3,
-      "column": 3,
-      "source_bounds": [
-        627,
-        752,
-        836,
-        1003
-      ],
-      "size": [
-        128,
-        128
-      ],
-      "alpha_bbox": [
-        11,
-        5,
-        117,
-        123
-      ],
-      "alpha_coverage": 0.32147,
-      "changed_fraction_from_previous": 0.25696
+      "alpha_coverage": 0.2373,
+      "changed_fraction_from_previous": 0.20923
     },
     {
       "row": 3,
@@ -513,13 +513,13 @@
         128
       ],
       "alpha_bbox": [
-        12,
-        5,
-        115,
-        123
+        17,
+        20,
+        117,
+        115
       ],
-      "alpha_coverage": 0.3172,
-      "changed_fraction_from_previous": 0.28217
+      "alpha_coverage": 0.23236,
+      "changed_fraction_from_previous": 0.23602
     },
     {
       "row": 3,
@@ -536,12 +536,12 @@
       ],
       "alpha_bbox": [
         28,
-        5,
+        18,
         99,
-        123
+        115
       ],
-      "alpha_coverage": 0.28998,
-      "changed_fraction_from_previous": 0.37421
+      "alpha_coverage": 0.2193,
+      "changed_fraction_from_previous": 0.29846
     },
     {
       "row": 4,
@@ -558,11 +558,11 @@
       ],
       "alpha_bbox": [
         28,
-        5,
-        99,
-        123
+        18,
+        97,
+        115
       ],
-      "alpha_coverage": 0.28265
+      "alpha_coverage": 0.21375
     },
     {
       "row": 4,
@@ -578,13 +578,13 @@
         128
       ],
       "alpha_bbox": [
-        26,
-        5,
-        101,
-        123
+        28,
+        19,
+        100,
+        115
       ],
-      "alpha_coverage": 0.28595,
-      "changed_fraction_from_previous": 0.26691
+      "alpha_coverage": 0.21149,
+      "changed_fraction_from_previous": 0.22119
     },
     {
       "row": 4,
@@ -600,13 +600,13 @@
         128
       ],
       "alpha_bbox": [
-        19,
-        5,
-        108,
-        123
+        26,
+        27,
+        105,
+        115
       ],
-      "alpha_coverage": 0.33899,
-      "changed_fraction_from_previous": 0.28967
+      "alpha_coverage": 0.21185,
+      "changed_fraction_from_previous": 0.24445
     },
     {
       "row": 4,
@@ -622,13 +622,13 @@
         128
       ],
       "alpha_bbox": [
-        9,
-        5,
-        119,
-        123
+        23,
+        36,
+        111,
+        115
       ],
-      "alpha_coverage": 0.42542,
-      "changed_fraction_from_previous": 0.38287
+      "alpha_coverage": 0.21735,
+      "changed_fraction_from_previous": 0.24164
     },
     {
       "row": 4,
@@ -644,13 +644,13 @@
         128
       ],
       "alpha_bbox": [
-        23,
-        5,
-        104,
-        123
+        27,
+        24,
+        102,
+        115
       ],
-      "alpha_coverage": 0.31128,
-      "changed_fraction_from_previous": 0.40417
+      "alpha_coverage": 0.20862,
+      "changed_fraction_from_previous": 0.27203
     },
     {
       "row": 4,
@@ -667,12 +667,12 @@
       ],
       "alpha_bbox": [
         28,
-        5,
-        100,
-        123
+        18,
+        98,
+        115
       ],
-      "alpha_coverage": 0.28479,
-      "changed_fraction_from_previous": 0.30933
+      "alpha_coverage": 0.21716,
+      "changed_fraction_from_previous": 0.24786
     }
   ]
 }

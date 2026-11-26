@@ -10,14 +10,14 @@
   ],
   "source_background": "flat chroma green #00ff00",
   "alpha_threshold": null,
-  "chroma_key": "00ff00",
-  "key_tolerance": 150,
-  "fit_content": true,
+  "chroma_key": "#00ff00",
+  "key_tolerance": 210,
+  "fit_content": false,
   "output_size": [
     128,
     128
   ],
-  "frame_rows": false,
+  "frame_rows": true,
   "cells": [
     {
       "row": 0,
@@ -33,12 +33,12 @@
         128
       ],
       "alpha_bbox": [
-        15,
-        5,
-        112,
-        123
+        2,
+        27,
+        126,
+        102
       ],
-      "alpha_coverage": 0.49628
+      "alpha_coverage": 0.40253
     },
     {
       "row": 0,
@@ -54,12 +54,13 @@
         128
       ],
       "alpha_bbox": [
-        15,
-        5,
-        112,
-        123
+        2,
+        27,
+        126,
+        102
       ],
-      "alpha_coverage": 0.49658
+      "alpha_coverage": 0.40369,
+      "changed_fraction_from_previous": 0.1994
     },
     {
       "row": 0,
@@ -75,12 +76,13 @@
         128
       ],
       "alpha_bbox": [
-        15,
-        5,
-        112,
-        123
+        2,
+        27,
+        126,
+        102
       ],
-      "alpha_coverage": 0.4953
+      "alpha_coverage": 0.40302,
+      "changed_fraction_from_previous": 0.21521
     },
     {
       "row": 0,
@@ -96,12 +98,13 @@
         128
       ],
       "alpha_bbox": [
-        15,
-        5,
-        112,
-        123
+        2,
+        27,
+        126,
+        102
       ],
-      "alpha_coverage": 0.4967
+      "alpha_coverage": 0.40295,
+      "changed_fraction_from_previous": 0.23328
     }
   ]
 }

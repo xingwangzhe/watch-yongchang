@@ -10,8 +10,8 @@
   ],
   "source_background": "flat chroma green #00ff00",
   "alpha_threshold": null,
-  "chroma_key": "00ff00",
-  "key_tolerance": 150,
+  "chroma_key": "#00ff00",
+  "key_tolerance": 210,
   "fit_content": false,
   "output_size": [
     128,
@@ -38,7 +38,7 @@
         94,
         99
       ],
-      "alpha_coverage": 0.12183
+      "alpha_coverage": 0.11084
     },
     {
       "row": 0,
@@ -55,12 +55,12 @@
       ],
       "alpha_bbox": [
         40,
-        40,
+        41,
         94,
         97
       ],
-      "alpha_coverage": 0.12311,
-      "changed_fraction_from_previous": 0.12604
+      "alpha_coverage": 0.11438,
+      "changed_fraction_from_previous": 0.12622
     },
     {
       "row": 0,
@@ -81,8 +81,8 @@
         94,
         94
       ],
-      "alpha_coverage": 0.12054,
-      "changed_fraction_from_previous": 0.11871
+      "alpha_coverage": 0.11127,
+      "changed_fraction_from_previous": 0.11884
     },
     {
       "row": 0,
@@ -103,8 +103,8 @@
         95,
         92
       ],
-      "alpha_coverage": 0.11737,
-      "changed_fraction_from_previous": 0.11865
+      "alpha_coverage": 0.10748,
+      "changed_fraction_from_previous": 0.11871
     },
     {
       "row": 1,
@@ -125,7 +125,7 @@
         94,
         90
       ],
-      "alpha_coverage": 0.11542
+      "alpha_coverage": 0.10559
     },
     {
       "row": 1,
@@ -142,12 +142,12 @@
       ],
       "alpha_bbox": [
         42,
-        37,
+        38,
         95,
         94
       ],
-      "alpha_coverage": 0.12262,
-      "changed_fraction_from_previous": 0.12201
+      "alpha_coverage": 0.11267,
+      "changed_fraction_from_previous": 0.12225
     },
     {
       "row": 1,
@@ -168,8 +168,8 @@
         95,
         96
       ],
-      "alpha_coverage": 0.12671,
-      "changed_fraction_from_previous": 0.11578
+      "alpha_coverage": 0.11444,
+      "changed_fraction_from_previous": 0.11621
     },
     {
       "row": 1,
@@ -190,8 +190,8 @@
         95,
         97
       ],
-      "alpha_coverage": 0.125,
-      "changed_fraction_from_previous": 0.12164
+      "alpha_coverage": 0.11536,
+      "changed_fraction_from_previous": 0.12231
     }
   ]
 }

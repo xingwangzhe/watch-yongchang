@@ -79,3 +79,5 @@ QA；尚未接入正式图集。
 ### 地面攻击动作 QA
 
 `ground_attack_bodies_v3_source.png`、`ming_ground_attack_clothing_overlay_v1_source.png` 与 `wokou_ground_attack_clothing_overlay_v1_source.png` 均为 6×5 大图。运行 `python3 pixel-art/model_redraw/bake_ground_attack_qa.py`，会从原图执行色键切分并输出两阵营身体+衣装联系表和帧差 JSON 到 `/tmp/yongchang-ground-attack-qa/`。联系表不含武器、副手或完整装备角色。五行语义尚未完成武器动作映射，故仍是 QA 素材，不进入运行时。
+
+`ground_attack_action_mapping.json` records visual-only row hypotheses: row 2 overhead descending slash; row 3 forward lunge thrust. `python3 pixel-art/model_redraw/bake_dao_action_overlay_qa.py` draws CharacterForge Ming dao and Wokou dao overlays on those rows using manually estimated front-hand anchors. Ming single-hand dao appears to follow the sampled hand poses; Wokou dao is two-handed, and its second hand does not stay on the generated grip across frames. Both remain QA-only; do not promote to runtime until mapped grip poses pass per-frame review. The QA scripts read the three source PNG sheets directly, not ignored slice caches.

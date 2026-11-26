@@ -8,10 +8,10 @@
     8,
     3
   ],
-  "source_background": "flat chroma cyan #00ffff",
+  "source_background": "flat chroma cyan #00ffff; runtime key is #00ffff",
   "alpha_threshold": null,
-  "chroma_key": "00ffff",
-  "key_tolerance": 150,
+  "chroma_key": "#00ffff",
+  "key_tolerance": 210,
   "fit_content": false,
   "output_size": [
     128,
@@ -38,7 +38,7 @@
         120,
         84
       ],
-      "alpha_coverage": 0.10742
+      "alpha_coverage": 0.10565
     },
     {
       "row": 0,
@@ -59,7 +59,7 @@
         117,
         85
       ],
-      "alpha_coverage": 0.10168,
+      "alpha_coverage": 0.09949,
       "changed_fraction_from_previous": 0.10791
     },
     {
@@ -79,9 +79,9 @@
         32,
         31,
         116,
-        85
+        84
       ],
-      "alpha_coverage": 0.10095,
+      "alpha_coverage": 0.09937,
       "changed_fraction_from_previous": 0.08569
     },
     {
@@ -103,7 +103,7 @@
         118,
         87
       ],
-      "alpha_coverage": 0.10638,
+      "alpha_coverage": 0.10474,
       "changed_fraction_from_previous": 0.10022
     },
     {
@@ -125,7 +125,7 @@
         116,
         89
       ],
-      "alpha_coverage": 0.10712,
+      "alpha_coverage": 0.10529,
       "changed_fraction_from_previous": 0.10785
     },
     {
@@ -147,7 +147,7 @@
         117,
         85
       ],
-      "alpha_coverage": 0.10315,
+      "alpha_coverage": 0.10138,
       "changed_fraction_from_previous": 0.10144
     },
     {
@@ -169,7 +169,7 @@
         118,
         85
       ],
-      "alpha_coverage": 0.09766,
+      "alpha_coverage": 0.0957,
       "changed_fraction_from_previous": 0.09589
     },
     {
@@ -191,7 +191,7 @@
         119,
         87
       ],
-      "alpha_coverage": 0.10382,
+      "alpha_coverage": 0.10168,
       "changed_fraction_from_previous": 0.09784
     },
     {
@@ -213,7 +213,7 @@
         120,
         83
       ],
-      "alpha_coverage": 0.10651
+      "alpha_coverage": 0.10028
     },
     {
       "row": 1,
@@ -234,8 +234,8 @@
         117,
         84
       ],
-      "alpha_coverage": 0.10095,
-      "changed_fraction_from_previous": 0.10895
+      "alpha_coverage": 0.09576,
+      "changed_fraction_from_previous": 0.10931
     },
     {
       "row": 1,
@@ -256,8 +256,8 @@
         116,
         84
       ],
-      "alpha_coverage": 0.10114,
-      "changed_fraction_from_previous": 0.08569
+      "alpha_coverage": 0.09515,
+      "changed_fraction_from_previous": 0.08575
     },
     {
       "row": 1,
@@ -278,7 +278,7 @@
         118,
         86
       ],
-      "alpha_coverage": 0.10809,
+      "alpha_coverage": 0.10175,
       "changed_fraction_from_previous": 0.09839
     },
     {
@@ -300,7 +300,7 @@
         116,
         88
       ],
-      "alpha_coverage": 0.10626,
+      "alpha_coverage": 0.1001,
       "changed_fraction_from_previous": 0.10663
     },
     {
@@ -322,8 +322,8 @@
         117,
         84
       ],
-      "alpha_coverage": 0.10376,
-      "changed_fraction_from_previous": 0.10162
+      "alpha_coverage": 0.09888,
+      "changed_fraction_from_previous": 0.10168
     },
     {
       "row": 1,
@@ -344,8 +344,8 @@
         118,
         84
       ],
-      "alpha_coverage": 0.09961,
-      "changed_fraction_from_previous": 0.09485
+      "alpha_coverage": 0.09509,
+      "changed_fraction_from_previous": 0.09515
     },
     {
       "row": 1,
@@ -366,8 +366,8 @@
         119,
         86
       ],
-      "alpha_coverage": 0.10431,
-      "changed_fraction_from_previous": 0.09552
+      "alpha_coverage": 0.09796,
+      "changed_fraction_from_previous": 0.09583
     },
     {
       "row": 2,
@@ -388,7 +388,7 @@
         120,
         83
       ],
-      "alpha_coverage": 0.10822
+      "alpha_coverage": 0.10626
     },
     {
       "row": 2,
@@ -409,7 +409,7 @@
         117,
         84
       ],
-      "alpha_coverage": 0.10223,
+      "alpha_coverage": 0.09967,
       "changed_fraction_from_previous": 0.10431
     },
     {
@@ -431,7 +431,7 @@
         116,
         83
       ],
-      "alpha_coverage": 0.10077,
+      "alpha_coverage": 0.09937,
       "changed_fraction_from_previous": 0.08215
     },
     {
@@ -453,7 +453,7 @@
         118,
         86
       ],
-      "alpha_coverage": 0.10724,
+      "alpha_coverage": 0.10492,
       "changed_fraction_from_previous": 0.09497
     },
     {
@@ -475,7 +475,7 @@
         116,
         87
       ],
-      "alpha_coverage": 0.10638,
+      "alpha_coverage": 0.10468,
       "changed_fraction_from_previous": 0.10248
     },
     {
@@ -497,7 +497,7 @@
         117,
         84
       ],
-      "alpha_coverage": 0.10297,
+      "alpha_coverage": 0.10144,
       "changed_fraction_from_previous": 0.10028
     },
     {
@@ -519,7 +519,7 @@
         118,
         83
       ],
-      "alpha_coverage": 0.09888,
+      "alpha_coverage": 0.09692,
       "changed_fraction_from_previous": 0.0957
     },
     {
@@ -541,7 +541,7 @@
         119,
         86
       ],
-      "alpha_coverage": 0.10455,
+      "alpha_coverage": 0.10272,
       "changed_fraction_from_previous": 0.09888
     }
   ]

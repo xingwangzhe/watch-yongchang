@@ -10,8 +10,8 @@
   ],
   "source_background": "flat chroma green #00ff00",
   "alpha_threshold": null,
-  "chroma_key": "00ff00",
-  "key_tolerance": 150,
+  "chroma_key": "#00ff00",
+  "key_tolerance": 210,
   "fit_content": false,
   "output_size": [
     128,
@@ -38,7 +38,7 @@
         95,
         99
       ],
-      "alpha_coverage": 0.12622
+      "alpha_coverage": 0.12341
     },
     {
       "row": 0,
@@ -59,8 +59,8 @@
         96,
         95
       ],
-      "alpha_coverage": 0.12195,
-      "changed_fraction_from_previous": 0.12524
+      "alpha_coverage": 0.12,
+      "changed_fraction_from_previous": 0.12537
     },
     {
       "row": 0,
@@ -78,11 +78,11 @@
       "alpha_bbox": [
         37,
         39,
-        97,
+        96,
         94
       ],
-      "alpha_coverage": 0.12305,
-      "changed_fraction_from_previous": 0.10809
+      "alpha_coverage": 0.12054,
+      "changed_fraction_from_previous": 0.10815
     },
     {
       "row": 0,
@@ -103,8 +103,8 @@
         97,
         93
       ],
-      "alpha_coverage": 0.12433,
-      "changed_fraction_from_previous": 0.10553
+      "alpha_coverage": 0.12286,
+      "changed_fraction_from_previous": 0.10565
     },
     {
       "row": 1,
@@ -123,9 +123,9 @@
         36,
         36,
         95,
-        92
+        91
       ],
-      "alpha_coverage": 0.12323
+      "alpha_coverage": 0.12115
     },
     {
       "row": 1,
@@ -146,7 +146,7 @@
         97,
         94
       ],
-      "alpha_coverage": 0.12622,
+      "alpha_coverage": 0.12408,
       "changed_fraction_from_previous": 0.12988
     },
     {
@@ -165,10 +165,10 @@
       "alpha_bbox": [
         37,
         41,
-        97,
+        96,
         97
       ],
-      "alpha_coverage": 0.12939,
+      "alpha_coverage": 0.12622,
       "changed_fraction_from_previous": 0.13306
     },
     {
@@ -185,13 +185,13 @@
         128
       ],
       "alpha_bbox": [
-        37,
+        38,
         42,
         97,
         99
       ],
-      "alpha_coverage": 0.12811,
-      "changed_fraction_from_previous": 0.11078
+      "alpha_coverage": 0.12604,
+      "changed_fraction_from_previous": 0.1109
     }
   ]
 }

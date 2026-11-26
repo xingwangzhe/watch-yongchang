@@ -1,0 +1,17 @@
+{
+  "source": "ground_attack_bodies_v3_source.png",
+  "interpretation": "visual hypothesis only; no source metadata defines these action names",
+  "rows": [
+    {"row": 0, "label_zh": "横向出击与回收", "label_en": "horizontal strike and recovery", "confidence": "medium", "runtime_mapping": null},
+    {"row": 1, "label_zh": "前压直击", "label_en": "forward drive strike", "confidence": "medium", "runtime_mapping": null},
+    {"row": 2, "label_zh": "举手后下劈", "label_en": "overhead descending slash", "confidence": "high", "runtime_mapping_candidate": "CharacterForge attack_2", "runtime_mapping": null},
+    {"row": 3, "label_zh": "前弓步直刺", "label_en": "forward lunge thrust", "confidence": "high", "runtime_mapping_candidate": "CharacterForge attack_3", "runtime_mapping": null},
+    {"row": 4, "label_zh": "低身护架与回位", "label_en": "low guard and recovery", "confidence": "medium", "runtime_mapping": null}
+  ],
+  "dao_qa_front_hand_anchors": {
+    "coordinate_space": "128x128 normalized slice cells",
+    "row_2": [[88, 60], [96, 42], [80, 23], [92, 70], [90, 78], [88, 62]],
+    "row_3": [[87, 63], [96, 55], [101, 48], [106, 49], [102, 54], [90, 68]],
+    "source_note": "Manually estimated center of rightmost exposed hand from reviewed cells; QA only. Wokou dao is two-handed, so near-hand fit alone does not prove far-hand grip alignment."
+  }
+}

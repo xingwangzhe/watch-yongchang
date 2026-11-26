@@ -10,8 +10,8 @@
   ],
   "source_background": "flat chroma green #00ff00",
   "alpha_threshold": null,
-  "chroma_key": "00ff00",
-  "key_tolerance": 150,
+  "chroma_key": "#00ff00",
+  "key_tolerance": 210,
   "fit_content": false,
   "output_size": [
     128,
@@ -38,7 +38,7 @@
         95,
         100
       ],
-      "alpha_coverage": 0.14276
+      "alpha_coverage": 0.13361
     },
     {
       "row": 0,
@@ -59,8 +59,8 @@
         102,
         100
       ],
-      "alpha_coverage": 0.14734,
-      "changed_fraction_from_previous": 0.15375
+      "alpha_coverage": 0.1369,
+      "changed_fraction_from_previous": 0.15424
     },
     {
       "row": 0,
@@ -77,12 +77,12 @@
       ],
       "alpha_bbox": [
         30,
-        42,
+        43,
         110,
         104
       ],
-      "alpha_coverage": 0.17755,
-      "changed_fraction_from_previous": 0.19897
+      "alpha_coverage": 0.16675,
+      "changed_fraction_from_previous": 0.19928
     },
     {
       "row": 0,
@@ -101,10 +101,10 @@
         29,
         38,
         113,
-        102
+        101
       ],
-      "alpha_coverage": 0.17358,
-      "changed_fraction_from_previous": 0.1925
+      "alpha_coverage": 0.16431,
+      "changed_fraction_from_previous": 0.19305
     },
     {
       "row": 0,
@@ -125,8 +125,8 @@
         104,
         104
       ],
-      "alpha_coverage": 0.15912,
-      "changed_fraction_from_previous": 0.1864
+      "alpha_coverage": 0.14856,
+      "changed_fraction_from_previous": 0.18689
     },
     {
       "row": 0,
@@ -142,13 +142,13 @@
         128
       ],
       "alpha_bbox": [
-        34,
-        41,
+        35,
+        42,
         97,
         101
       ],
-      "alpha_coverage": 0.14484,
-      "changed_fraction_from_previous": 0.17163
+      "alpha_coverage": 0.13385,
+      "changed_fraction_from_previous": 0.17194
     },
     {
       "row": 1,
@@ -166,10 +166,10 @@
       "alpha_bbox": [
         34,
         39,
-        95,
+        94,
         99
       ],
-      "alpha_coverage": 0.14685
+      "alpha_coverage": 0.13513
     },
     {
       "row": 1,
@@ -190,8 +190,8 @@
         99,
         97
       ],
-      "alpha_coverage": 0.14398,
-      "changed_fraction_from_previous": 0.15186
+      "alpha_coverage": 0.13153,
+      "changed_fraction_from_previous": 0.15216
     },
     {
       "row": 1,
@@ -212,8 +212,8 @@
         99,
         99
       ],
-      "alpha_coverage": 0.13745,
-      "changed_fraction_from_previous": 0.15369
+      "alpha_coverage": 0.12512,
+      "changed_fraction_from_previous": 0.15405
     },
     {
       "row": 1,
@@ -234,8 +234,8 @@
         114,
         99
       ],
-      "alpha_coverage": 0.15613,
-      "changed_fraction_from_previous": 0.1665
+      "alpha_coverage": 0.14728,
+      "changed_fraction_from_previous": 0.16675
     },
     {
       "row": 1,
@@ -253,11 +253,11 @@
       "alpha_bbox": [
         32,
         41,
-        98,
+        96,
         99
       ],
-      "alpha_coverage": 0.13544,
-      "changed_fraction_from_previous": 0.17554
+      "alpha_coverage": 0.12683,
+      "changed_fraction_from_previous": 0.17566
     },
     {
       "row": 1,
@@ -276,10 +276,10 @@
         34,
         39,
         95,
-        99
+        98
       ],
-      "alpha_coverage": 0.14398,
-      "changed_fraction_from_previous": 0.14453
+      "alpha_coverage": 0.13257,
+      "changed_fraction_from_previous": 0.14502
     },
     {
       "row": 2,
@@ -297,10 +297,10 @@
       "alpha_bbox": [
         37,
         39,
-        97,
+        96,
         97
       ],
-      "alpha_coverage": 0.14209
+      "alpha_coverage": 0.13025
     },
     {
       "row": 2,
@@ -317,12 +317,12 @@
       ],
       "alpha_bbox": [
         35,
-        33,
+        34,
         104,
         96
       ],
-      "alpha_coverage": 0.15283,
-      "changed_fraction_from_previous": 0.17206
+      "alpha_coverage": 0.14178,
+      "changed_fraction_from_previous": 0.17267
     },
     {
       "row": 2,
@@ -341,10 +341,10 @@
         34,
         19,
         97,
-        95
+        94
       ],
-      "alpha_coverage": 0.18103,
-      "changed_fraction_from_previous": 0.21039
+      "alpha_coverage": 0.16895,
+      "changed_fraction_from_previous": 0.21063
     },
     {
       "row": 2,
@@ -361,11 +361,11 @@
       ],
       "alpha_bbox": [
         29,
-        44,
+        45,
         105,
         97
       ],
-      "alpha_coverage": 0.14752,
+      "alpha_coverage": 0.1377,
       "changed_fraction_from_previous": 0.23529
     },
     {
@@ -382,13 +382,13 @@
         128
       ],
       "alpha_bbox": [
-        30,
+        31,
         46,
-        99,
+        98,
         97
       ],
-      "alpha_coverage": 0.12482,
-      "changed_fraction_from_previous": 0.14771
+      "alpha_coverage": 0.11572,
+      "changed_fraction_from_previous": 0.14783
     },
     {
       "row": 2,
@@ -404,12 +404,12 @@
         128
       ],
       "alpha_bbox": [
-        38,
+        39,
         40,
         97,
         97
       ],
-      "alpha_coverage": 0.13275,
+      "alpha_coverage": 0.12244,
       "changed_fraction_from_previous": 0.16882
     },
     {
@@ -428,10 +428,10 @@
       "alpha_bbox": [
         35,
         40,
-        95,
+        94,
         99
       ],
-      "alpha_coverage": 0.14203
+      "alpha_coverage": 0.13275
     },
     {
       "row": 3,
@@ -450,10 +450,10 @@
         32,
         41,
         102,
-        100
+        99
       ],
-      "alpha_coverage": 0.1524,
-      "changed_fraction_from_previous": 0.17096
+      "alpha_coverage": 0.14081,
+      "changed_fraction_from_previous": 0.17145
     },
     {
       "row": 3,
@@ -471,11 +471,11 @@
       "alpha_bbox": [
         26,
         40,
-        110,
+        109,
         99
       ],
-      "alpha_coverage": 0.16486,
-      "changed_fraction_from_previous": 0.17462
+      "alpha_coverage": 0.15601,
+      "changed_fraction_from_previous": 0.17529
     },
     {
       "row": 3,
@@ -491,13 +491,13 @@
         128
       ],
       "alpha_bbox": [
-        21,
-        40,
-        114,
+        22,
+        41,
+        113,
         100
       ],
-      "alpha_coverage": 0.17731,
-      "changed_fraction_from_previous": 0.17017
+      "alpha_coverage": 0.16809,
+      "changed_fraction_from_previous": 0.17065
     },
     {
       "row": 3,
@@ -514,12 +514,12 @@
       ],
       "alpha_bbox": [
         26,
-        44,
+        45,
         110,
         100
       ],
-      "alpha_coverage": 0.15912,
-      "changed_fraction_from_previous": 0.1861
+      "alpha_coverage": 0.15063,
+      "changed_fraction_from_previous": 0.18652
     },
     {
       "row": 3,
@@ -538,10 +538,10 @@
         34,
         41,
         97,
-        99
+        98
       ],
-      "alpha_coverage": 0.14423,
-      "changed_fraction_from_previous": 0.19171
+      "alpha_coverage": 0.13336,
+      "changed_fraction_from_previous": 0.19183
     },
     {
       "row": 4,
@@ -562,7 +562,7 @@
         95,
         99
       ],
-      "alpha_coverage": 0.14191
+      "alpha_coverage": 0.13043
     },
     {
       "row": 4,
@@ -583,8 +583,8 @@
         100,
         99
       ],
-      "alpha_coverage": 0.14307,
-      "changed_fraction_from_previous": 0.15662
+      "alpha_coverage": 0.1319,
+      "changed_fraction_from_previous": 0.15692
     },
     {
       "row": 4,
@@ -600,13 +600,13 @@
         128
       ],
       "alpha_bbox": [
-        31,
+        32,
         47,
         105,
         101
       ],
-      "alpha_coverage": 0.14484,
-      "changed_fraction_from_previous": 0.16907
+      "alpha_coverage": 0.13287,
+      "changed_fraction_from_previous": 0.16949
     },
     {
       "row": 4,
@@ -623,12 +623,12 @@
       ],
       "alpha_bbox": [
         29,
-        51,
+        52,
         108,
         103
       ],
-      "alpha_coverage": 0.14777,
-      "changed_fraction_from_previous": 0.17712
+      "alpha_coverage": 0.13489,
+      "changed_fraction_from_previous": 0.17737
     },
     {
       "row": 4,
@@ -649,8 +649,8 @@
         102,
         99
       ],
-      "alpha_coverage": 0.14282,
-      "changed_fraction_from_previous": 0.1911
+      "alpha_coverage": 0.13037,
+      "changed_fraction_from_previous": 0.19128
     },
     {
       "row": 4,
@@ -666,13 +666,13 @@
         128
       ],
       "alpha_bbox": [
-        34,
+        35,
         41,
-        97,
+        96,
         99
       ],
-      "alpha_coverage": 0.14087,
-      "changed_fraction_from_previous": 0.16553
+      "alpha_coverage": 0.12885,
+      "changed_fraction_from_previous": 0.16565
     }
   ]
 }

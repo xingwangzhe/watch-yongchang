@@ -410,13 +410,16 @@
       ],
       "content": "unarmed base body motion atlas; five rows of six empty-hand attack/guard action frames",
       "background": "flat chroma green #00ff00",
-      "status": "sliced from the 6x5 source atlas and visually reviewed in QA contacts; geometry animates continuously, but action-row meanings and weapon hand anchors remain unmapped, so QA only",
+      "status": "5x6 body/clothing contact reviewed; inferred row2 overhead slash and row3 thrust; Ming one-hand dao overlays reviewed, manual near-hand QA anchors appear usable in sample frames; not runtime",
       "qa_script": "pixel-art/model_redraw/bake_ground_attack_qa.py",
       "qa_outputs": [
         "/tmp/yongchang-ground-attack-qa/ming_ground_attack_contact.png",
         "/tmp/yongchang-ground-attack-qa/wokou_ground_attack_contact.png"
       ],
-      "runtime_use": false
+      "runtime_use": false,
+      "qa_mapping_file": "pixel-art/model_redraw/ground_attack_action_mapping.json",
+      "dao_overlay_qa_script": "pixel-art/model_redraw/bake_dao_action_overlay_qa.py",
+      "dao_overlay_qa_result": "/tmp/yongchang-dao-action-qa/dao_action_overlay_qa_report.json"
     },
     {
       "source": "OpenAI ImageGen",
@@ -551,13 +554,16 @@
       ],
       "content": "thirty-frame Ming chest and sleeves overlay matching ground attack body sheet",
       "background": "flat chroma green #00ff00",
-      "status": "sliced from the 6x5 source atlas and visually reviewed in QA contacts; geometry animates continuously, but action-row meanings and weapon hand anchors remain unmapped, so QA only",
+      "status": "5x6 body/clothing contact reviewed; inferred row2 overhead slash and row3 thrust; Ming one-hand dao overlays reviewed, manual near-hand QA anchors appear usable in sample frames; not runtime",
       "qa_script": "pixel-art/model_redraw/bake_ground_attack_qa.py",
       "qa_outputs": [
         "/tmp/yongchang-ground-attack-qa/ming_ground_attack_contact.png",
         "/tmp/yongchang-ground-attack-qa/wokou_ground_attack_contact.png"
       ],
-      "runtime_use": false
+      "runtime_use": false,
+      "qa_mapping_file": "pixel-art/model_redraw/ground_attack_action_mapping.json",
+      "dao_overlay_qa_script": "pixel-art/model_redraw/bake_dao_action_overlay_qa.py",
+      "dao_overlay_qa_result": "/tmp/yongchang-dao-action-qa/dao_action_overlay_qa_report.json"
     },
     {
       "source": "OpenAI ImageGen edit using ground_attack_bodies_v3_source.png as pose reference",
@@ -572,13 +578,16 @@
       ],
       "content": "thirty-frame Wokou chest and sleeves overlay matching ground attack body sheet",
       "background": "flat chroma green #00ff00",
-      "status": "sliced from the 6x5 source atlas and visually reviewed in QA contacts; geometry animates continuously, but action-row meanings and weapon hand anchors remain unmapped, so QA only",
+      "status": "5x6 body/clothing contact reviewed; inferred row2 overhead slash and row3 thrust; Wokou two-hand dao contact only, far-hand alignment fails QA; not runtime",
       "qa_script": "pixel-art/model_redraw/bake_ground_attack_qa.py",
       "qa_outputs": [
         "/tmp/yongchang-ground-attack-qa/ming_ground_attack_contact.png",
         "/tmp/yongchang-ground-attack-qa/wokou_ground_attack_contact.png"
       ],
-      "runtime_use": false
+      "runtime_use": false,
+      "qa_mapping_file": "pixel-art/model_redraw/ground_attack_action_mapping.json",
+      "dao_overlay_qa_script": "pixel-art/model_redraw/bake_dao_action_overlay_qa.py",
+      "dao_overlay_qa_result": "/tmp/yongchang-dao-action-qa/dao_action_overlay_qa_report.json"
     },
     {
       "source": "OpenAI ImageGen",
