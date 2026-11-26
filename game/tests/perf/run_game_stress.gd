@@ -15,6 +15,7 @@ var _sample_count := 0
 var _capture := ""
 var _frame_capture_dir := ""
 var _target_enemy_count := 0
+var _frame_limit := 120
 var _enemy_spawn_index := 0
 var _walk_hist: Array[int] = []
 var _idle_hist: Array[int] = []
@@ -24,6 +25,9 @@ var _enemy_frame_hist: Array[int] = []
 func _ready() -> void:
 	_capture = OS.get_environment("WATCH_RUN_CAPTURE")
 	_frame_capture_dir = OS.get_environment("WATCH_RUN_FRAME_CAPTURE_DIR")
+	var requested_frame_limit := OS.get_environment("WATCH_RUN_FRAMES")
+	if not requested_frame_limit.is_empty():
+		_frame_limit = clampi(int(requested_frame_limit), 1, 120)
 	if not _frame_capture_dir.is_empty():
 		DirAccess.make_dir_recursive_absolute(_frame_capture_dir)
 	_walk_hist.resize(8)
@@ -53,9 +57,7 @@ func _ready() -> void:
 		_target_enemy_count = clampi(int(requested_enemy_count), 1, _target_enemy_count)
 	var spawn_count: int = maxi(0, _target_enemy_count - run.battlefield.alive_count())
 	for i in range(spawn_count):
-		var angle := TAU * float(i) / 460.0
-		var ring := 240.0 + float(i % 9) * 52.0
-		run.battlefield.spawn_enemy_at(str(STRESS_ENEMY_IDS[i % STRESS_ENEMY_IDS.size()]), center + Vector2.RIGHT.rotated(angle) * ring)
+		_spawn_stress_enemy(i, center)
 		_enemy_spawn_index += 1
 	# Keep every target alive so the renderer stays at the requested enemy cap.
 	run._auto_attack = false
@@ -77,13 +79,7 @@ func _process(delta: float) -> void:
 	# Enemies that leave the active world are removed by Battlefield; replenish them
 	# so the stress case continues measuring the requested maximum population.
 	while run.battlefield.alive_count() < _target_enemy_count:
-		var angle := TAU * float(_enemy_spawn_index) / 460.0
-		var ring := 240.0 + float(_enemy_spawn_index % 9) * 52.0
-		var spawned: int = run.battlefield.spawn_enemy_at(
-			str(STRESS_ENEMY_IDS[_enemy_spawn_index % STRESS_ENEMY_IDS.size()]),
-			run.player["pos"] + Vector2.RIGHT.rotated(angle) * ring
-		)
-		if spawned < 0:
+		if not _spawn_stress_enemy(_enemy_spawn_index, run.player["pos"] as Vector2):
 			break
 		_enemy_spawn_index += 1
 	var now := Time.get_ticks_usec()
@@ -110,16 +106,19 @@ func _process(delta: float) -> void:
 		else:
 			_idle_hist[animation_frame] += 1
 	if _frame % 10 == 0:
+		var atlas_variants: Dictionary = battlefield.enemy_variant_atlas_data.get("variants", {}) as Dictionary
 		for enemy in battlefield.enemies:
 			if not bool(enemy.get("alive", false)):
 				continue
 			var draw_id := str(enemy.get("draw_id", enemy.get("id", "")))
 			var enemy_frames: Array = battlefield.enemy_sprite_frames.get(draw_id, []) as Array
-			if enemy_frames.size() == 8:
+			var atlas_entry: Dictionary = atlas_variants.get(draw_id, {}) as Dictionary
+			var frame_count := int(atlas_entry.get("frames", enemy_frames.size()))
+			if frame_count == 8:
 				var enemy_frame := posmod(
 					int(battlefield.time * maxf(1.0, float(enemy.get("sprite_fps", 10.0))))
-						+ posmod(draw_id.hash(), enemy_frames.size()),
-					enemy_frames.size()
+					+ posmod(draw_id.hash(), frame_count),
+					frame_count
 				)
 				_enemy_frame_hist[enemy_frame] += 1
 	_sample_count += 1
@@ -129,7 +128,7 @@ func _process(delta: float) -> void:
 			var frame_path := "%s/frame_%03d.png" % [_frame_capture_dir, _frame]
 			frame_image.save_png(frame_path)
 	_frame += 1
-	if _frame % 120 == 0 and _wall_sum > 0:
+	if _frame % _frame_limit == 0 and _wall_sum > 0:
 		var fps := float(_sample_count) * 1000000.0 / float(_wall_sum)
 		var ms := float(_wall_sum) / float(_sample_count) / 1000.0
 		var step_ms := float(_step_sum) / float(_sample_count) / 1000.0
@@ -146,6 +145,10 @@ func _process(delta: float) -> void:
 			Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
 		])
 		print("[run_stress] world_parts_ms=%s" % JSON.stringify(world_parts_ms))
+		var atlas_batch_count := 0
+		if battlefield.enemy_atlas_batch != null and battlefield.enemy_atlas_batch.body_batch != null:
+			atlas_batch_count = battlefield.enemy_atlas_batch.body_batch.multimesh.visible_instance_count
+		print("[run_stress] render_batches=%s atlas_instances=%d" % [JSON.stringify(battlefield._draw_active_ids), atlas_batch_count])
 		_wall_sum = 0
 		_step_sum = 0
 		_world_sum = 0
@@ -153,7 +156,7 @@ func _process(delta: float) -> void:
 		_hud_sum = 0
 		_world_part_sum.clear()
 		_sample_count = 0
-	if _frame >= 120:
+	if _frame >= _frame_limit:
 		print("[run_stress] walk_frame_hist=%s idle_frame_hist=%s enemy_frame_hist=%s" % [JSON.stringify(_walk_hist), JSON.stringify(_idle_hist), JSON.stringify(_enemy_frame_hist)])
 		if not _capture.is_empty():
 			var viewport_texture := get_viewport().get_texture()
@@ -172,3 +175,25 @@ func _process(delta: float) -> void:
 			get_tree().paused = true
 		else:
 			get_tree().quit()
+
+
+func _spawn_stress_enemy(index: int, center: Vector2) -> bool:
+	var columns := 23
+	var spacing := 28.0
+	var column := index % columns
+	@warning_ignore("integer_division")
+	var row := index / columns
+	var position := center + Vector2(
+		(float(column) - float(columns - 1) * 0.5) * spacing,
+		(float(row) - 9.5) * spacing
+	)
+	var enemy_index: int = run.battlefield.spawn_enemy_at(
+		str(STRESS_ENEMY_IDS[index % STRESS_ENEMY_IDS.size()]),
+		position
+	)
+	if enemy_index < 0:
+		return false
+	var enemy: Dictionary = run.battlefield.enemies[enemy_index] as Dictionary
+	enemy["speed"] = 0.0
+	enemy["knockback"] = Vector2.ZERO
+	return true

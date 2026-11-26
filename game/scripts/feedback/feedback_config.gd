@@ -56,3 +56,12 @@ extends Resource
 @export var hitstop_enabled: bool = false
 @export_range(0.0, 0.03, 0.001) var hitstop_heavy_duration: float = 0.0
 @export_range(0.0, 0.03, 0.001) var hitstop_boss_duration: float = 0.018
+
+@export_group("8 冲击环与镜头微缩")
+@export var pop_enabled: bool = true
+@export var pop_color: Color = Color(0.95, 0.78, 0.42, 0.72)
+@export var zoom_enabled: bool = true
+@export_range(1.0, 1.15, 0.01) var zoom_heavy_amount: float = 1.04
+@export_range(2.0, 24.0, 0.5) var zoom_recovery_speed: float = 10.0
+
+var shake_strength: float = 1.0

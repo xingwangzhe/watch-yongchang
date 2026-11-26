@@ -64,8 +64,9 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
   由 `pixel-art/character_forge/bake_enemy_variants.py` 从合法
   `character_recipe` 烘焙（8 帧 128×128，步行/骑乘、12 种武器、10 种服装、
   8 种头饰、3 种马色）。运行时按 `game/data/enemy_variants.json` 抽样，
-  单局每类限制 4 组以保持 MultiMesh 批处理效率；帧用 AtlasTexture 共享
-  条带纹理，不额外复制像素。
+  由 `pixel-art/character_forge/bake_enemy_variant_atlas.py` 合并为 4608×4096
+  运行图集，渲染通过独立 `MultiMeshInstance2D` 按实例 UV 选择 144 组角色的 8 帧动画；
+  原始变体 PNG 条带仍是图集生成源。
 - `game/assets/units/forge/cavalry/`：3 种未骑乘马与 6 个骑手变体，每种
   4 帧待机 + 8 帧行走。由 `pixel-art/character_forge/build_cavalry.py` 与
   `cavalry_data.py` 烘焙；马匹步态、马具、骑手身体与明/倭寇骑手衣装分别来自

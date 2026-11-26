@@ -58,6 +58,7 @@ const ENCOUNTER_TRIGGER_RADIUS := 58.0
 const ENCOUNTER_REARM_MARGIN := 22.0
 const ENCOUNTER_REFRESH_DEFAULT := 72.0
 const VARIANT_CATALOG_PATH := "res://data/enemy_variants.json"
+const VARIANT_ATLAS_PATH := "res://data/enemy_variant_atlas.json"
 # 0 = 使用目录内全部烘焙变体。4 会把每种敌人锁死在极小的视觉池里，
 # 与「装备随机组合」的要求冲突；全部变体合计约 5MB，常驻内存可接受。
 const VARIANTS_PER_ENEMY := 0
@@ -114,6 +115,9 @@ var tower_textures: Dictionary = {}
 var textures: Dictionary = {}
 var encounter_sites: Array[Dictionary] = []
 var enemy_sprite_frames: Dictionary = {}
+var enemy_variant_atlas_data: Dictionary = {}
+var enemy_variant_atlas_texture: Texture2D
+var enemy_atlas_batch: EnemyAtlasBatch
 var enemy_variant_catalog: Dictionary = {}
 var _variant_pool: Dictionary = {}
 var _last_variant_ids: Dictionary = {}
@@ -218,7 +222,7 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 				continue
 			var variant: Dictionary = raw_variant
 			var draw_id := str(variant.get("draw_id", ""))
-			if draw_id.is_empty():
+			if draw_id.is_empty() or (enemy_variant_atlas_data.get("variants", {}) as Dictionary).has(draw_id):
 				continue
 			_cache_enemy_sprite(
 				draw_id,
@@ -1023,6 +1027,13 @@ func spawn_enemy(enemy_id: String, center: Vector2, elite_color: String = "") ->
 
 func _load_enemy_variants() -> void:
 	enemy_variant_catalog = GameData.load_json(VARIANT_CATALOG_PATH).get("variants", {}) as Dictionary
+	enemy_variant_atlas_data = GameData.load_json(VARIANT_ATLAS_PATH)
+	enemy_variant_atlas_texture = GameData.texture(str(enemy_variant_atlas_data.get("texture", "")))
+	if enemy_variant_atlas_texture != null:
+		enemy_atlas_batch = EnemyAtlasBatch.new()
+		enemy_atlas_batch.name = "EnemyAtlasBatch"
+		add_child(enemy_atlas_batch)
+		enemy_atlas_batch.setup(enemy_variant_atlas_data, enemy_variant_atlas_texture)
 	_variant_pool.clear()
 	_last_variant_ids.clear()
 	_recent_variant_ids.clear()
@@ -1131,7 +1142,9 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 	var loadout := _generate_runtime_loadout(enemy_id, definition)
 	var runtime_visual := _runtime_visual_for(definition, loadout, enemy_id)
 	var draw_id := str(runtime_visual.get("draw_id", enemy_id))
-	if not enemy_sprite_frames.has(draw_id):
+	var atlas_variants: Dictionary = enemy_variant_atlas_data.get("variants", {}) as Dictionary
+	var uses_atlas := enemy_variant_atlas_texture != null and atlas_variants.has(draw_id)
+	if not uses_atlas and not enemy_sprite_frames.has(draw_id):
 		var variant_path := str(runtime_visual.get("texture", ""))
 		if not variant_path.is_empty():
 			_cache_enemy_sprite(
@@ -1139,7 +1152,7 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 				variant_path,
 				maxi(1, int(runtime_visual.get("sprite_frames", 8)))
 			)
-	if not enemy_sprite_frames.has(draw_id):
+	if not uses_atlas and not enemy_sprite_frames.has(draw_id):
 		draw_id = enemy_id
 	var behavior := str(runtime_visual.get("behavior", base_behavior))
 	var runtime_attack_class := str(loadout.get("attack_class", ""))
@@ -3044,7 +3057,11 @@ func _draw_pickups() -> void:
 
 func _draw_enemies() -> void:
 	if not bool(get_meta("draw_enemies", true)):
+		if enemy_atlas_batch != null:
+			enemy_atlas_batch.visible = false
 		return
+	var atlas_enemies: Array[Dictionary] = []
+	var atlas_variants: Dictionary = enemy_variant_atlas_data.get("variants", {}) as Dictionary
 	for value in _draw_groups.values():
 		(value as Array).clear()
 	_draw_active_ids.clear()
@@ -3057,12 +3074,17 @@ func _draw_enemies() -> void:
 		if absf(position.y - player_pos.y) > VIEW_HALF.y + 120.0:
 			continue
 		var batch_id := str(enemy.get("draw_id", enemy.get("id", "")))
+		if enemy_atlas_batch != null and atlas_variants.has(batch_id):
+			atlas_enemies.append(enemy)
+			continue
 		if not _draw_groups.has(batch_id):
 			_draw_groups[batch_id] = []
 		var batch := _draw_groups[batch_id] as Array
 		if batch.is_empty():
 			_draw_active_ids.append(batch_id)
 		batch.append(enemy)
+	if enemy_atlas_batch != null:
+		enemy_atlas_batch.update_enemies(atlas_enemies, time)
 	for batch_id in _draw_active_ids:
 		_draw_enemy_batch(batch_id, _draw_groups[batch_id] as Array, true)
 	for batch_id in _draw_active_ids:

@@ -1,6 +1,6 @@
 extends Node
 ## 统一命中反馈入口（Autoload 单例名 FeedbackManager）。
-## 分层：闪白 / 伤害数字 / 音效 / 击退 / 粒子火花 / Trauma 震动 / 可选 Hitstop。
+## 分层：闪白 / 伤害数字 / 音效 / 击退 / 粒子火花 / Trauma 震动 / Hitstop / Squash-Stretch / Screen Zoom。
 ## 性能约定：全部视觉层用预分配 Dictionary 池，由 Battlefield._draw() 委托绘制；
 ## 命中时零节点创建、零材质创建、零资源加载。HitData 也走池。
 
@@ -16,6 +16,10 @@ var sfx_pool: ImpactSfxPool
 var numbers: Array[Dictionary] = []
 var sparks: Array[Dictionary] = []
 
+## Squash-stretch pop effects
+var pops: Array[Dictionary] = []
+var _pop_cursor: int = 0
+
 var _hit_data_pool: Array[HitData] = []
 var _rng := RandomNumberGenerator.new()
 var _number_cursor: int = 0
@@ -24,6 +28,11 @@ var _camera: Camera2D
 var _hitstop_until_usec: int = 0
 var _saved_time_scale: float = 1.0
 var _hitstop_active: bool = false
+
+## Screen zoom (for heavy hits / explosions)
+var _zoom_target: float = 1.0
+var _zoom_current: float = 1.0
+var _base_camera_zoom: Vector2 = Vector2.ONE
 
 
 func _ready() -> void:
@@ -63,6 +72,12 @@ func set_config(next_config: FeedbackConfig) -> void:
 
 func bind_camera(camera: Camera2D) -> void:
 	_camera = camera
+	if _camera != null and is_instance_valid(_camera):
+		_base_camera_zoom = _camera.zoom
+	else:
+		_base_camera_zoom = Vector2.ONE
+	_zoom_target = 1.0
+	_zoom_current = 1.0
 
 
 func acquire_hit_data() -> HitData:
@@ -114,6 +129,7 @@ func on_hit(data: HitData) -> void:
 	if not data.suppress_fx:
 		_push_number(data)
 		_emit_sparks(data)
+		_push_pop(data)
 		if config.sfx_enabled and sfx_pool != null:
 			sfx_pool.play(data.weight)
 		if config.shake_enabled:
@@ -121,6 +137,8 @@ func on_hit(data: HitData) -> void:
 			if data.critical:
 				amount = maxf(amount, config.shake_light_trauma * 2.0)
 			shake.add(amount)
+		if config.zoom_enabled:
+			_add_zoom(data)
 		_maybe_hitstop(data)
 	hit_processed.emit(data.position, data.damage, data.critical, data.weight)
 	release_hit_data(data)
@@ -192,17 +210,40 @@ func _emit_sparks(data: HitData) -> void:
 		entry["max_ttl"] = config.spark_lifetime
 
 
+func _push_pop(data: HitData) -> void:
+	if not config.pop_enabled or pops.is_empty():
+		return
+	if data.weight < 2 and not data.critical:
+		return
+	var entry := pops[_pop_cursor]
+	_pop_cursor = (_pop_cursor + 1) % pops.size()
+	entry["active"] = true
+	entry["pos"] = data.position
+	entry["scale"] = Vector2(1.35, 0.72)  # squash X, stretch Y (overshoot)
+	entry["ttl"] = 0.18
+	entry["max_ttl"] = 0.18
+
+
+func _add_zoom(data: HitData) -> void:
+	if data.weight >= 2 or data.critical:
+		_zoom_target = maxf(_zoom_target, config.zoom_heavy_amount)
+
+
 func _maybe_hitstop(data: HitData) -> void:
-	if not config.hitstop_enabled or _hitstop_active or data.weight < 2:
+	if not config.hitstop_enabled or data.weight < 2:
 		return
 	var duration := config.hitstop_boss_duration if str(data.kind) == "boss" else config.hitstop_heavy_duration
 	duration = clampf(duration, 0.0, 0.03)
-	if duration <= 0.0 or is_equal_approx(Engine.time_scale, 0.0):
+	if duration <= 0.0:
 		return
-	_saved_time_scale = Engine.time_scale
-	_hitstop_until_usec = Time.get_ticks_usec() + int(duration * 1000000.0)
-	_hitstop_active = true
-	Engine.time_scale = 0.0
+	if not _hitstop_active:
+		if is_equal_approx(Engine.time_scale, 0.0):
+			return
+		_saved_time_scale = Engine.time_scale
+		_hitstop_active = true
+	var target_end := Time.get_ticks_usec() + int(duration * 1000000.0)
+	_hitstop_until_usec = maxi(_hitstop_until_usec, target_end)
+	Engine.time_scale = 0.05
 
 
 func _prefill_pools() -> void:
@@ -229,12 +270,31 @@ func _prefill_pools() -> void:
 		})
 	_spark_cursor = 0
 
+	# Squash-stretch pop pool
+	pops.clear()
+	for _i in range(maxi(1, config.number_max)):
+		pops.append({
+			"active": false,
+			"pos": Vector2.ZERO,
+			"scale": Vector2.ONE,
+			"ttl": 0.0,
+			"max_ttl": 0.18,
+		})
+	_pop_cursor = 0
+
 
 func _process(delta: float) -> void:
 	if _hitstop_active and Time.get_ticks_usec() >= _hitstop_until_usec:
 		Engine.time_scale = _saved_time_scale
 		_hitstop_active = false
 		_hitstop_until_usec = 0
+
+	var real_delta := delta / maxf(0.05, Engine.time_scale) if _hitstop_active else delta
+	_zoom_target = lerpf(_zoom_target, 1.0, clampf(config.zoom_recovery_speed * real_delta, 0.0, 1.0))
+	_zoom_current = lerpf(_zoom_current, _zoom_target, clampf(16.0 * real_delta, 0.0, 1.0))
+	if absf(_zoom_target - 1.0) < 0.002 and absf(_zoom_current - 1.0) < 0.002:
+		_zoom_target = 1.0
+		_zoom_current = 1.0
 
 	for entry in numbers:
 		if not bool(entry["active"]):
@@ -256,10 +316,25 @@ func _process(delta: float) -> void:
 			entry["pos"] = (entry["pos"] as Vector2) + (entry["vel"] as Vector2) * delta
 			entry["vel"] = (entry["vel"] as Vector2) * friction
 
+	# Squash-stretch pops (back ease out)
+	for entry in pops:
+		if not bool(entry["active"]):
+			continue
+		entry["ttl"] = float(entry["ttl"]) - delta
+		if float(entry["ttl"]) <= 0.0:
+			entry["active"] = false
+			entry["scale"] = Vector2.ONE
+		else:
+			var t := 1.0 - float(entry["ttl"]) / float(entry["max_ttl"])
+			# Back ease out: overshoots past 1.0 then settles
+			var eased := 1.0 + (1.0 - t) * (1.0 - t) * (2.7 * t - 1.7)
+			entry["scale"] = Vector2(lerp(1.35, 1.0, eased), lerp(0.72, 1.0, eased))
+
 	if _camera != null and is_instance_valid(_camera):
-		_camera.offset = shake.update(delta)
+		_camera.offset = shake.update(real_delta) * config.shake_strength
+		_camera.zoom = _base_camera_zoom * _zoom_current
 	else:
-		shake.update(delta)
+		shake.update(real_delta)
 
 
 ## 由 Battlefield._draw() 末尾调用，字段与战场共用同一坐标系与 draw transform。
@@ -270,6 +345,8 @@ func draw(canvas: Node2D) -> void:
 		_draw_sparks(canvas)
 	if config.number_enabled:
 		_draw_numbers(canvas)
+	if config.pop_enabled:
+		_draw_pops(canvas)
 
 
 func _draw_numbers(canvas: Node2D) -> void:
@@ -300,17 +377,36 @@ func _draw_sparks(canvas: Node2D) -> void:
 		canvas.draw_line(start, start + tail, Color(config.spark_color, alpha), 2.0, true)
 
 
+func _draw_pops(canvas: Node2D) -> void:
+	for entry in pops:
+		if not bool(entry["active"]):
+			continue
+		var scale := entry["scale"] as Vector2
+		var max_ttl := maxf(0.001, float(entry["max_ttl"]))
+		var progress := 1.0 - clampf(float(entry["ttl"]) / max_ttl, 0.0, 1.0)
+		var alpha := (1.0 - progress) * config.pop_color.a
+		var radius := lerpf(8.0, 26.0, progress) * ((scale.x + scale.y) * 0.5)
+		canvas.draw_arc(entry["pos"] as Vector2, radius, 0.0, TAU, 20, Color(config.pop_color, alpha), 1.8, true)
+
+
 ## 场景切换 / 暂停时清理运行态，避免 Hitstop 跨场景残留。
 func reset_runtime() -> void:
 	for entry in numbers:
 		entry["active"] = false
 	for entry in sparks:
 		entry["active"] = false
+	for entry in pops:
+		entry["active"] = false
 	shake.reset()
+	_zoom_target = 1.0
+	_zoom_current = 1.0
 	if _hitstop_active:
 		Engine.time_scale = _saved_time_scale
 		_hitstop_active = false
 		_hitstop_until_usec = 0
+	if _camera != null and is_instance_valid(_camera):
+		_camera.offset = Vector2.ZERO
+		_camera.zoom = _base_camera_zoom
 	_camera = null
 
 

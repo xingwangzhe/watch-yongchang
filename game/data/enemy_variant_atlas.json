@@ -1,0 +1,736 @@
+{
+  "version": 1,
+  "texture": "res://assets/units/forge/enemy_variant_atlas.webp",
+  "source": "pixel-art/character_forge/bake_enemy_variant_atlas.py",
+  "cell_size": 128,
+  "columns": 36,
+  "rows": 32,
+  "atlas_size": [
+    4608,
+    4096
+  ],
+  "frames": 8,
+  "variant_count": 144,
+  "variants": {
+    "archer_foot_00": {
+      "first_cell": 0,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_01": {
+      "first_cell": 8,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_02": {
+      "first_cell": 16,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_03": {
+      "first_cell": 24,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_04": {
+      "first_cell": 32,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_05": {
+      "first_cell": 40,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_06": {
+      "first_cell": 48,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_07": {
+      "first_cell": 56,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_08": {
+      "first_cell": 64,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_09": {
+      "first_cell": 72,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_10": {
+      "first_cell": 80,
+      "frames": 8,
+      "fps": 10
+    },
+    "archer_foot_11": {
+      "first_cell": 88,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_00": {
+      "first_cell": 96,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_01": {
+      "first_cell": 104,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_02": {
+      "first_cell": 112,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_03": {
+      "first_cell": 120,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_04": {
+      "first_cell": 128,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_05": {
+      "first_cell": 136,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_06": {
+      "first_cell": 144,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_07": {
+      "first_cell": 152,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_08": {
+      "first_cell": 160,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_09": {
+      "first_cell": 168,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_10": {
+      "first_cell": 176,
+      "frames": 8,
+      "fps": 10
+    },
+    "banner_foot_11": {
+      "first_cell": 184,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_00": {
+      "first_cell": 192,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_01": {
+      "first_cell": 200,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_02": {
+      "first_cell": 208,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_03": {
+      "first_cell": 216,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_04": {
+      "first_cell": 224,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_05": {
+      "first_cell": 232,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_06": {
+      "first_cell": 240,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_07": {
+      "first_cell": 248,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_08": {
+      "first_cell": 256,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_09": {
+      "first_cell": 264,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_10": {
+      "first_cell": 272,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_foot_11": {
+      "first_cell": 280,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_00": {
+      "first_cell": 288,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_01": {
+      "first_cell": 296,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_02": {
+      "first_cell": 304,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_03": {
+      "first_cell": 312,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_04": {
+      "first_cell": 320,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_05": {
+      "first_cell": 328,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_06": {
+      "first_cell": 336,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_07": {
+      "first_cell": 344,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_08": {
+      "first_cell": 352,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_09": {
+      "first_cell": 360,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_10": {
+      "first_cell": 368,
+      "frames": 8,
+      "fps": 10
+    },
+    "cavalry_mounted_11": {
+      "first_cell": 376,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_00": {
+      "first_cell": 384,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_01": {
+      "first_cell": 392,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_02": {
+      "first_cell": 400,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_03": {
+      "first_cell": 408,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_04": {
+      "first_cell": 416,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_05": {
+      "first_cell": 424,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_06": {
+      "first_cell": 432,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_07": {
+      "first_cell": 440,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_08": {
+      "first_cell": 448,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_09": {
+      "first_cell": 456,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_10": {
+      "first_cell": 464,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_foot_11": {
+      "first_cell": 472,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_00": {
+      "first_cell": 480,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_01": {
+      "first_cell": 488,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_02": {
+      "first_cell": 496,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_03": {
+      "first_cell": 504,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_04": {
+      "first_cell": 512,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_05": {
+      "first_cell": 520,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_06": {
+      "first_cell": 528,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_07": {
+      "first_cell": 536,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_08": {
+      "first_cell": 544,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_09": {
+      "first_cell": 552,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_10": {
+      "first_cell": 560,
+      "frames": 8,
+      "fps": 10
+    },
+    "daimyo_mounted_11": {
+      "first_cell": 568,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_00": {
+      "first_cell": 576,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_01": {
+      "first_cell": 584,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_02": {
+      "first_cell": 592,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_03": {
+      "first_cell": 600,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_04": {
+      "first_cell": 608,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_05": {
+      "first_cell": 616,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_06": {
+      "first_cell": 624,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_07": {
+      "first_cell": 632,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_08": {
+      "first_cell": 640,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_09": {
+      "first_cell": 648,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_10": {
+      "first_cell": 656,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_foot_11": {
+      "first_cell": 664,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_00": {
+      "first_cell": 672,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_01": {
+      "first_cell": 680,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_02": {
+      "first_cell": 688,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_03": {
+      "first_cell": 696,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_04": {
+      "first_cell": 704,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_05": {
+      "first_cell": 712,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_06": {
+      "first_cell": 720,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_07": {
+      "first_cell": 728,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_08": {
+      "first_cell": 736,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_09": {
+      "first_cell": 744,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_10": {
+      "first_cell": 752,
+      "frames": 8,
+      "fps": 10
+    },
+    "general_mounted_11": {
+      "first_cell": 760,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_00": {
+      "first_cell": 768,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_01": {
+      "first_cell": 776,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_02": {
+      "first_cell": 784,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_03": {
+      "first_cell": 792,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_04": {
+      "first_cell": 800,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_05": {
+      "first_cell": 808,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_06": {
+      "first_cell": 816,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_07": {
+      "first_cell": 824,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_08": {
+      "first_cell": 832,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_09": {
+      "first_cell": 840,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_10": {
+      "first_cell": 848,
+      "frames": 8,
+      "fps": 10
+    },
+    "gun_foot_11": {
+      "first_cell": 856,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_00": {
+      "first_cell": 864,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_01": {
+      "first_cell": 872,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_02": {
+      "first_cell": 880,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_03": {
+      "first_cell": 888,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_04": {
+      "first_cell": 896,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_05": {
+      "first_cell": 904,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_06": {
+      "first_cell": 912,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_07": {
+      "first_cell": 920,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_08": {
+      "first_cell": 928,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_09": {
+      "first_cell": 936,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_10": {
+      "first_cell": 944,
+      "frames": 8,
+      "fps": 10
+    },
+    "ronin_foot_11": {
+      "first_cell": 952,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_00": {
+      "first_cell": 960,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_01": {
+      "first_cell": 968,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_02": {
+      "first_cell": 976,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_03": {
+      "first_cell": 984,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_04": {
+      "first_cell": 992,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_05": {
+      "first_cell": 1000,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_06": {
+      "first_cell": 1008,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_07": {
+      "first_cell": 1016,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_08": {
+      "first_cell": 1024,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_09": {
+      "first_cell": 1032,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_10": {
+      "first_cell": 1040,
+      "frames": 8,
+      "fps": 10
+    },
+    "scout_foot_11": {
+      "first_cell": 1048,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_00": {
+      "first_cell": 1056,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_01": {
+      "first_cell": 1064,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_02": {
+      "first_cell": 1072,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_03": {
+      "first_cell": 1080,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_04": {
+      "first_cell": 1088,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_05": {
+      "first_cell": 1096,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_06": {
+      "first_cell": 1104,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_07": {
+      "first_cell": 1112,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_08": {
+      "first_cell": 1120,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_09": {
+      "first_cell": 1128,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_10": {
+      "first_cell": 1136,
+      "frames": 8,
+      "fps": 10
+    },
+    "shield_foot_11": {
+      "first_cell": 1144,
+      "frames": 8,
+      "fps": 10
+    }
+  }
+}
