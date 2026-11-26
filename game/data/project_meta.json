@@ -2,7 +2,7 @@
   "schema_version": 1,
   "generated_from": ".env",
   "app": {
-    "version": "1.6.0",
+    "version": "1.7.0",
     "godot_version": "4.7.2-stable",
     "slug": "watch-yongchang",
     "bundle_identifier": "fun.xingwangzhe.watch-yongchang",

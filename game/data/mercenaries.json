@@ -279,7 +279,7 @@
 			"source_ref": "《永昌堡与汤和关系索引》",
 			"rarity": "uncommon",
 			"price": 118,
-			"battle_idle": "res://assets/units/forge/cavalry/ming_zhaohong_lancer/idle.webp",
+			"battle_idle": "res://assets/units/forge/cavalry/ming_zhaohong_lancer/idle.png",
 			"battle_walk": "res://assets/units/forge/cavalry/ming_zhaohong_lancer/walk.webp",
 			"battle_idle_frames": 4,
 			"battle_walk_frames": 8,

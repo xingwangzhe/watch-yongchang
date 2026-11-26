@@ -1,5 +1,7 @@
 extends Node
 
+const STRESS_ENEMY_IDS := ["scout", "ronin", "archer", "shield", "gun", "banner", "cavalry", "general"]
+
 var run: Node
 var _frame := 0
 var _wall_start := 0
@@ -11,6 +13,9 @@ var _hud_sum := 0
 var _world_part_sum: Dictionary = {}
 var _sample_count := 0
 var _capture := ""
+var _frame_capture_dir := ""
+var _target_enemy_count := 0
+var _enemy_spawn_index := 0
 var _walk_hist: Array[int] = []
 var _idle_hist: Array[int] = []
 var _enemy_frame_hist: Array[int] = []
@@ -18,6 +23,9 @@ var _enemy_frame_hist: Array[int] = []
 
 func _ready() -> void:
 	_capture = OS.get_environment("WATCH_RUN_CAPTURE")
+	_frame_capture_dir = OS.get_environment("WATCH_RUN_FRAME_CAPTURE_DIR")
+	if not _frame_capture_dir.is_empty():
+		DirAccess.make_dir_recursive_absolute(_frame_capture_dir)
 	_walk_hist.resize(8)
 	_idle_hist.resize(4)
 	_enemy_frame_hist.resize(8)
@@ -30,32 +38,54 @@ func _ready() -> void:
 	run.debug_prepare_capture("aim")
 	run._paused = false
 	run.set_invincible_mode(true)
+	run.elapsed = 0.0
+	run._spawn_accum = -1000.0
+	run._boss_spawned = true
+	run._scale_event_index = run._scale_events.size()
 	# Keep the full battle active without an XP card overlay blocking the visual capture.
 	run.battlefield.xp_collected.disconnect(run._on_xp_collected)
 	run.touch_controls.force_visible = true
 	run.touch_controls._apply_visibility()
 	var center: Vector2 = run.player["pos"]
-	var enemy_ids := ["scout", "ronin", "archer", "shield", "gun", "banner", "cavalry", "general"]
-	var target_enemy_count: int = int(run.battlefield.max_alive_enemies())
-	var spawn_count: int = maxi(0, target_enemy_count - run.battlefield.alive_count())
+	_target_enemy_count = int(run.battlefield.max_alive_enemies())
+	var requested_enemy_count := OS.get_environment("WATCH_RUN_ENEMY_COUNT")
+	if not requested_enemy_count.is_empty():
+		_target_enemy_count = clampi(int(requested_enemy_count), 1, _target_enemy_count)
+	var spawn_count: int = maxi(0, _target_enemy_count - run.battlefield.alive_count())
 	for i in range(spawn_count):
 		var angle := TAU * float(i) / 460.0
 		var ring := 240.0 + float(i % 9) * 52.0
-		run.battlefield.spawn_enemy_at(str(enemy_ids[i % enemy_ids.size()]), center + Vector2.RIGHT.rotated(angle) * ring)
+		run.battlefield.spawn_enemy_at(str(STRESS_ENEMY_IDS[i % STRESS_ENEMY_IDS.size()]), center + Vector2.RIGHT.rotated(angle) * ring)
+		_enemy_spawn_index += 1
 	# Keep every target alive so the renderer stays at the requested enemy cap.
 	run._auto_attack = false
 	var ally_ids := ["yishi_spear", "yishi_archer", "tengpai_militia", "standard_bearer"]
 	var ally_offsets := [Vector2(-72.0, -48.0), Vector2(72.0, -48.0), Vector2(-72.0, 48.0), Vector2(72.0, 48.0)]
 	for index in ally_ids.size():
 		run.battlefield.spawn_ally(str(ally_ids[index]), center + (ally_offsets[index] as Vector2))
-	print("[run_stress] target_enemies=%d spawned_enemies=%d allies=%d invincible=%s auto_attack=%s" % [target_enemy_count, run.battlefield.alive_count(), run.battlefield.allies.size(), run.debug_invincible, run._auto_attack])
-	if run.battlefield.alive_count() != target_enemy_count:
-		push_warning("stress spawn did not reach enemy cap: %d/%d" % [run.battlefield.alive_count(), target_enemy_count])
+	# Preserve the full enemy load while keeping the visual allies present.
+	for ally in run.battlefield.allies:
+		ally["damage"] = 0.0
+	print("[run_stress] target_enemies=%d spawned_enemies=%d allies=%d invincible=%s auto_attack=%s" % [_target_enemy_count, run.battlefield.alive_count(), run.battlefield.allies.size(), run.debug_invincible, run._auto_attack])
+	if run.battlefield.alive_count() != _target_enemy_count:
+		push_warning("stress spawn did not reach enemy cap: %d/%d" % [run.battlefield.alive_count(), _target_enemy_count])
 
 
 func _process(delta: float) -> void:
 	if run == null:
 		return
+	# Enemies that leave the active world are removed by Battlefield; replenish them
+	# so the stress case continues measuring the requested maximum population.
+	while run.battlefield.alive_count() < _target_enemy_count:
+		var angle := TAU * float(_enemy_spawn_index) / 460.0
+		var ring := 240.0 + float(_enemy_spawn_index % 9) * 52.0
+		var spawned: int = run.battlefield.spawn_enemy_at(
+			str(STRESS_ENEMY_IDS[_enemy_spawn_index % STRESS_ENEMY_IDS.size()]),
+			run.player["pos"] + Vector2.RIGHT.rotated(angle) * ring
+		)
+		if spawned < 0:
+			break
+		_enemy_spawn_index += 1
 	var now := Time.get_ticks_usec()
 	if _wall_start > 0:
 		_wall_sum += now - _wall_start
@@ -93,6 +123,11 @@ func _process(delta: float) -> void:
 				)
 				_enemy_frame_hist[enemy_frame] += 1
 	_sample_count += 1
+	if not _frame_capture_dir.is_empty() and _frame % 15 == 0:
+		var frame_image := get_viewport().get_texture().get_image()
+		if frame_image != null:
+			var frame_path := "%s/frame_%03d.png" % [_frame_capture_dir, _frame]
+			frame_image.save_png(frame_path)
 	_frame += 1
 	if _frame % 120 == 0 and _wall_sum > 0:
 		var fps := float(_sample_count) * 1000000.0 / float(_wall_sum)
@@ -121,9 +156,13 @@ func _process(delta: float) -> void:
 	if _frame >= 120:
 		print("[run_stress] walk_frame_hist=%s idle_frame_hist=%s enemy_frame_hist=%s" % [JSON.stringify(_walk_hist), JSON.stringify(_idle_hist), JSON.stringify(_enemy_frame_hist)])
 		if not _capture.is_empty():
-			var image := get_viewport().get_texture().get_image()
-			if image != null:
-				print("[run_stress] capture=%s error=%d" % [_capture, image.save_png(_capture)])
+			var viewport_texture := get_viewport().get_texture()
+			if DisplayServer.get_name() != "headless" and viewport_texture != null:
+				var image := viewport_texture.get_image()
+				if image != null:
+					print("[run_stress] capture=%s error=%d" % [_capture, image.save_png(_capture)])
+			else:
+				push_warning("stress capture unavailable with the active renderer")
 		if OS.has_feature("web"):
 			# Keep the last frame visible for browser screenshot review; quitting the Web
 			# runtime tears down AudioWorklet samples before their nodes finish closing.

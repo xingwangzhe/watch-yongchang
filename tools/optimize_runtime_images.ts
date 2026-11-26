@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { dirname, extname, join, relative } from "node:path";
 import sharp from "sharp";
 
@@ -27,6 +27,7 @@ const INCLUDE_FILES = [
 const LOSSY = new Map([
   ["ui/panel_dark.png", { quality: 92, alphaQuality: 100 }],
 ]);
+const MAX_WEBP_RATIO = 1.1;
 
 const REF_ROOTS = ["scripts", "data", "scenes"].map((path) => join(GAME, path));
 const REF_EXCLUDES = [
@@ -92,7 +93,20 @@ for (const source of [...sources].sort()) {
     )
     .toBuffer();
 
+  const usePng = output.length > before * MAX_WEBP_RATIO;
+  const selectedTarget = usePng ? source : target;
+
   if (CHECK) {
+    if (usePng) {
+      if (existsSync(target)) {
+        throw new Error(
+          `Oversized WebP should be removed in favor of PNG: ${relative(ROOT, target)}. Run \`bun run assets:images\`.`,
+        );
+      }
+      targetBytes += before;
+      generated.push({ source, target: selectedTarget, before, after: before });
+      continue;
+    }
     if (!existsSync(target)) {
       throw new Error(`Missing generated image: ${target}. Run \`bun run assets:images\`.`);
     }
@@ -118,10 +132,15 @@ for (const source of [...sources].sort()) {
     continue;
   }
 
-  await Bun.write(target, output);
-  const after = output.length;
+  if (usePng) {
+    if (existsSync(target)) rmSync(target);
+    if (existsSync(`${target}.import`)) rmSync(`${target}.import`);
+  } else {
+    await Bun.write(target, output);
+  }
+  const after = usePng ? before : output.length;
   targetBytes += after;
-  generated.push({ source, target, before, after });
+  generated.push({ source, target: selectedTarget, before, after });
 }
 
 const refFiles: string[] = [];
@@ -139,7 +158,8 @@ for (const root of REF_ROOTS) walkRefs(root);
 const replacements = generated
   .map(({ source, target }) => ({
     png: `res://${relative(GAME, source).replaceAll("\\", "/")}`,
-    webp: `res://${relative(GAME, target).replaceAll("\\", "/")}`,
+    oldWebp: `res://${relative(GAME, source.replace(/\.png$/i, ".webp")).replaceAll("\\", "/")}`,
+    target: `res://${relative(GAME, target).replaceAll("\\", "/")}`,
   }))
   .sort((left, right) => right.png.length - left.png.length);
 
@@ -148,9 +168,8 @@ for (const file of refFiles) {
   const original = readFileSync(file, "utf8");
   let updated = original;
   for (const replacement of replacements) {
-    if (updated.includes(replacement.png)) {
-      updated = updated.replaceAll(replacement.png, replacement.webp);
-    }
+    updated = updated.replaceAll(replacement.oldWebp, replacement.target);
+    updated = updated.replaceAll(replacement.png, replacement.target);
   }
   if (updated !== original) {
     if (UPDATE_REFS) {
@@ -172,12 +191,3 @@ console.log(
 );
 if (UPDATE_REFS) console.log(`updated reference files: ${changedRefs}`);
 
-if (CHECK && !UPDATE_REFS) {
-  for (const { source, before, after } of generated) {
-    if (after > before * 1.1) {
-      throw new Error(
-        `WebP output is unexpectedly larger: ${relative(ROOT, source)} (${before} -> ${after})`,
-      );
-    }
-  }
-}
