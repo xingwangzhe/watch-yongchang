@@ -237,20 +237,24 @@ func _build_tile_index() -> void:
 
 
 func _make_layers() -> void:
-	terrain_layer = _make_layer("terrain", "TerrainLayer", 0)
+	var shared_tile_set := TileSet.new()
+	shared_tile_set.tile_size = Vector2i(TILE, TILE)
+	for atlas_key in _atlas_config.keys():
+		_add_atlas_source(shared_tile_set, str(atlas_key))
+	terrain_layer = _make_layer("terrain", "TerrainLayer", 0, shared_tile_set)
 	shade_layer = OverlayLayer.new()
 	shade_layer.name = "ShadeLayer"
 	shade_layer.z_index = 1
 	shade_layer.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	add_child(shade_layer)
-	architecture_layer = _make_layer("architecture", "ArchitectureLayer", 2)
+	architecture_layer = _make_layer("architecture", "ArchitectureLayer", 2, shared_tile_set)
 	elevation_layer = OverlayLayer.new()
 	elevation_layer.name = "ElevationLayer"
 	elevation_layer.z_index = 3
 	elevation_layer.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	add_child(elevation_layer)
-	props_layer = _make_layer("props", "PropsLayer", 4)
-	canopy_layer = _make_layer("props", "CanopyLayer", 8)
+	props_layer = _make_layer("props", "PropsLayer", 4, shared_tile_set)
+	canopy_layer = _make_layer("props", "CanopyLayer", 8, shared_tile_set)
 	# 树冠独立于地图 z 排序，始终遮住从树下经过的单位。
 	canopy_layer.z_as_relative = false
 	canopy_layer.z_index = 8
@@ -268,7 +272,7 @@ func _build_overlay_batches() -> void:
 	elevation_layer.build_batches(bounds)
 
 
-func _make_layer(atlas_key: String, node_name: String, z: int) -> TileMapLayer:
+func _add_atlas_source(tile_set: TileSet, atlas_key: String) -> void:
 	var atlas: Dictionary = _atlas_config[atlas_key] as Dictionary
 	var texture := load(str(atlas["path"])) as Texture2D
 	var source := TileSetAtlasSource.new()
@@ -279,16 +283,17 @@ func _make_layer(atlas_key: String, node_name: String, z: int) -> TileMapLayer:
 	for y in rows:
 		for x in columns:
 			source.create_tile(Vector2i(x, y))
-	var tile_set := TileSet.new()
-	tile_set.tile_size = Vector2i(TILE, TILE)
 	var source_id := tile_set.add_source(source)
+	_source_ids[atlas_key] = source_id
+
+
+func _make_layer(atlas_key: String, node_name: String, z: int, shared_tile_set: TileSet) -> TileMapLayer:
 	var layer := TileMapLayer.new()
 	layer.name = node_name
-	layer.tile_set = tile_set
+	layer.tile_set = shared_tile_set
 	layer.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	layer.z_index = z
 	add_child(layer)
-	_source_ids[atlas_key] = source_id
 	return layer
 
 

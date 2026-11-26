@@ -5,6 +5,38 @@ const WATER_MAP_IDS := ["tideland", "watergate", "crossstreet"]
 const WATER_COMPONENT_MIN_CELLS := 16
 
 
+func test_map_layers_share_tileset_and_resolve_atlas_cells() -> void:
+	var maps := GameData.get_maps()
+	var definition := (maps["tideland"] as Dictionary).duplicate(true)
+	var layout := MapLayout.new()
+	layout.setup("tideland", definition)
+	var renderer := MapRenderer.new()
+	add_child_autofree(renderer)
+	renderer.build(layout, definition, 20261126)
+
+	var shared_tile_set := renderer.terrain_layer.tile_set
+	assert_not_null(shared_tile_set, "map layers must have a TileSet")
+	assert_eq(renderer.architecture_layer.tile_set, shared_tile_set, "architecture shares TileSet")
+	assert_eq(renderer.props_layer.tile_set, shared_tile_set, "props share TileSet")
+	assert_eq(renderer.canopy_layer.tile_set, shared_tile_set, "canopy shares TileSet")
+	assert_true(shared_tile_set.get_source_count() >= 4, "TileSet keeps separate atlas sources")
+
+	var terrain_cells := renderer.terrain_layer.get_used_cells()
+	var architecture_cells := renderer.architecture_layer.get_used_cells()
+	assert_gt(terrain_cells.size(), 0, "map terrain is composed from atlas cells")
+	assert_gt(architecture_cells.size(), 0, "map buildings are composed from atlas cells")
+	if not terrain_cells.is_empty():
+		assert_not_null(
+			renderer.terrain_layer.get_cell_tile_data(terrain_cells[0]),
+			"terrain atlas coordinates resolve to tile data"
+		)
+	if not architecture_cells.is_empty():
+		assert_not_null(
+			renderer.architecture_layer.get_cell_tile_data(architecture_cells[0]),
+			"architecture atlas coordinates resolve to tile data"
+		)
+
+
 func test_tile_atlases_match_declared_grid() -> void:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
 	assert_not_null(parsed, "tile index must parse")
