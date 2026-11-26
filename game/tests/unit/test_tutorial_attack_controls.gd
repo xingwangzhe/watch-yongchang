@@ -254,6 +254,87 @@ func test_auto_mode_aims_at_nearest_living_enemy_and_fires_without_mouse() -> vo
 	assert_gt(run.battlefield.jeff_effects.size(), 0, "auto mode must fire without a held mouse button")
 
 
+func test_auto_attack_ignores_enemies_far_outside_weapon_range() -> void:
+	var run: Variant = await _started_run()
+	run.battlefield.enemies.clear()
+	run.weapons.clear()
+	run._add_weapon("bow")
+	var origin: Vector2 = run.battlefield.player_spawn_position()
+	run.player["pos"] = origin
+	run.battlefield.spawn_enemy_at("scout", origin + Vector2(900.0, 0.0))
+	run._auto_attack = true
+	run._has_mouse_screen_pos = false
+	for weapon in run.weapons:
+		weapon["timer"] = 0.0
+	run.battlefield.player_shots.clear()
+	run.battlefield.jeff_effects.clear()
+
+	run._update_player(1.0 / 60.0)
+	run._update_weapons(0.01)
+
+	assert_eq(run.battlefield.player_shots.size(), 0, "a distant enemy must not consume an arrow")
+	assert_eq(run.battlefield.jeff_effects.size(), 0, "auto attack must not play an empty shot")
+
+
+func test_auto_attack_fires_when_enemy_is_about_to_enter_range() -> void:
+	var run: Variant = await _started_run()
+	run.battlefield.enemies.clear()
+	run.weapons.clear()
+	run._add_weapon("bow")
+	var origin: Vector2 = run.battlefield.player_spawn_position()
+	run.player["pos"] = origin
+	var enemy_index: int = run.battlefield.spawn_enemy_at(
+		"scout",
+		origin + Vector2(455.0, 0.0)
+	)
+	assert_gte(enemy_index, 0)
+	var enemy: Dictionary = run.battlefield.enemies[enemy_index]
+	enemy["nav_dir"] = Vector2.LEFT
+	run._auto_attack = true
+	run._has_mouse_screen_pos = false
+	for weapon in run.weapons:
+		weapon["timer"] = 0.0
+	run.battlefield.player_shots.clear()
+
+	run._update_player(1.0 / 60.0)
+	run._update_weapons(0.01)
+
+	assert_eq(
+		run.battlefield.player_shots.size(),
+		1,
+		"a closing enemy just outside nominal range must still be engaged"
+	)
+
+
+func test_auto_projectile_leads_a_moving_target() -> void:
+	var run: Variant = await _started_run()
+	run.battlefield.enemies.clear()
+	run.weapons.clear()
+	run._add_weapon("bow")
+	var origin: Vector2 = run.battlefield.player_spawn_position()
+	run.player["pos"] = origin
+	var enemy_index: int = run.battlefield.spawn_enemy_at(
+		"scout",
+		origin + Vector2(300.0, 0.0)
+	)
+	assert_gte(enemy_index, 0)
+	var enemy: Dictionary = run.battlefield.enemies[enemy_index]
+	enemy["nav_dir"] = Vector2.DOWN
+	run._auto_attack = true
+	run._has_mouse_screen_pos = false
+	for weapon in run.weapons:
+		weapon["timer"] = 0.0
+	run.battlefield.player_shots.clear()
+
+	run._update_player(1.0 / 60.0)
+	run._update_weapons(0.01)
+
+	assert_eq(run.battlefield.player_shots.size(), 1)
+	var shot_velocity := run.battlefield.player_shots[0]["vel"] as Vector2
+	assert_gt(shot_velocity.y, 0.0, "the arrow must lead a target moving down")
+	assert_almost_eq(shot_velocity.length(), 560.0, 0.5)
+
+
 func test_pause_focus_and_tutorial_clear_attack_state_and_block_toggle() -> void:
 	var run: Variant = await _started_run()
 	run._attack_held = true

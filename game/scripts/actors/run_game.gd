@@ -11,6 +11,11 @@ const FLOW_CELLS_PER_FRAME_WEB := 320
 const FLOW_CELLS_PER_FRAME_NATIVE := 384
 const GAMEPLAY_CURSOR_PATH := "res://assets/ui/watch_cursor.webp"
 const GAMEPLAY_CURSOR_HOTSPOT := Vector2(3, 0)
+const AUTO_ATTACK_AIM_PADDING := 32.0
+const AUTO_ATTACK_QUERY_PADDING := 160.0
+const AUTO_ATTACK_HIT_PADDING := 2.0
+const AUTO_ATTACK_PROJECTILE_PADDING := 18.0
+const AUTO_ATTACK_MAX_LEAD := 56.0
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const ICON_KATANA := "res://assets/icons/game_icons/wpn_katana.svg"
@@ -645,7 +650,7 @@ func _update_player(delta: float) -> void:
 	if aim_vector.length_squared() > 16.0:
 		_aim_direction = aim_vector.normalized()
 	if _auto_attack:
-		var target := battlefield.nearest_enemy_any(player["pos"] as Vector2)
+		var target := battlefield.nearest_enemy(player["pos"] as Vector2, _auto_aim_range())
 		if not target.is_empty():
 			var target_direction := (target["pos"] as Vector2) - (player["pos"] as Vector2)
 			if target_direction.length_squared() > 4.0:
@@ -934,10 +939,16 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 	var radius := float(definition.get("range", 120.0)) * float(player["area_mult"])
 	var base_damage := _weapon_damage(weapon)
 	var target := battlefield.nearest_enemy(origin, maxf(radius, 520.0))
+	if _auto_attack:
+		target = _auto_attack_target(origin, radius, definition)
+		if target.is_empty():
+			return false
 	var roll := _damage_roll(base_damage)
 	var damage := float(roll[0])
 	var critical := bool(roll[1])
 	var direction := _aim_direction.normalized()
+	if _auto_attack and not target.is_empty():
+		direction = _auto_attack_direction(origin, target, definition)
 	if direction.length_squared() <= 0.001:
 		var facing := player.get("facing", Vector2.RIGHT) as Vector2
 		direction = Vector2.RIGHT if facing.x >= 0.0 else Vector2.LEFT
@@ -1098,6 +1109,107 @@ func _weapon_cooldown(weapon: Dictionary) -> float:
 	var level_scale := pow(0.92, float(int(weapon["level"]) - 1))
 	var evolved_scale := 0.82 if bool(weapon["evolved"]) else 1.0
 	return maxf(0.12, base * level_scale * evolved_scale * float(player["cooldown_mult"]))
+
+
+func _auto_aim_range() -> float:
+	var max_range := 0.0
+	for weapon in weapons:
+		var definition: Dictionary = weapon["definition"] as Dictionary
+		max_range = maxf(
+			max_range,
+			float(definition.get("range", 120.0)) * float(player.get("area_mult", 1.0))
+		)
+	return max_range + AUTO_ATTACK_AIM_PADDING
+
+
+func _enemy_known_heading(enemy: Dictionary) -> Vector2:
+	var heading := enemy.get("nav_dir", Vector2.ZERO) as Vector2
+	if heading.length_squared() <= 0.0001:
+		return Vector2.ZERO
+	return heading.normalized()
+
+
+func _enemy_closing_speed(enemy: Dictionary, origin: Vector2) -> float:
+	var enemy_pos := enemy.get("pos", origin) as Vector2
+	var to_origin := origin - enemy_pos
+	if to_origin.length_squared() <= 0.0001:
+		return 0.0
+	var heading := _enemy_known_heading(enemy)
+	if heading.length_squared() <= 0.0001:
+		heading = to_origin.normalized()
+	return maxf(0.0, heading.dot(to_origin.normalized())) * float(enemy.get("speed", 0.0))
+
+
+func _auto_attack_engagement_range(
+	definition: Dictionary,
+	radius: float,
+	target: Dictionary,
+	origin: Vector2
+) -> float:
+	var weapon_type := str(definition.get("type", "melee_arc"))
+	var padding := AUTO_ATTACK_HIT_PADDING
+	if weapon_type in ["projectile", "shotgun"]:
+		var closing := _enemy_closing_speed(target, origin)
+		var projectile_speed := maxf(
+			1.0,
+			float(definition.get("projectile_speed", 560.0))
+				* float(player.get("projectile_speed_mult", 1.0))
+		)
+		var flight_time := clampf(radius / projectile_speed, 0.0, 0.55)
+		padding += AUTO_ATTACK_PROJECTILE_PADDING + minf(
+			closing * flight_time,
+			AUTO_ATTACK_MAX_LEAD
+		)
+	return radius + float(target.get("radius", 20.0)) + padding
+
+
+func _auto_attack_target(origin: Vector2, radius: float, definition: Dictionary) -> Dictionary:
+	var candidates := battlefield.nearest_enemies(
+		origin,
+		radius + AUTO_ATTACK_QUERY_PADDING,
+		12
+	)
+	var best: Dictionary = {}
+	var best_distance := INF
+	for target in candidates:
+		var distance := origin.distance_to(target["pos"] as Vector2)
+		if distance > _auto_attack_engagement_range(definition, radius, target, origin):
+			continue
+		if distance < best_distance:
+			best_distance = distance
+			best = target
+	return best
+
+
+func _auto_attack_direction(
+	origin: Vector2,
+	target: Dictionary,
+	definition: Dictionary
+) -> Vector2:
+	var target_pos := target["pos"] as Vector2
+	var direct := target_pos - origin
+	if direct.length_squared() <= 0.0001:
+		return Vector2.ZERO
+	direct = direct.normalized()
+	var weapon_type := str(definition.get("type", "melee_arc"))
+	if weapon_type not in ["projectile", "shotgun"]:
+		return direct
+	var heading := _enemy_known_heading(target)
+	var enemy_speed := float(target.get("speed", 0.0))
+	if heading.length_squared() <= 0.0001 or enemy_speed <= 0.0:
+		return direct
+	var projectile_speed := maxf(
+		1.0,
+		float(definition.get("projectile_speed", 560.0))
+			* float(player.get("projectile_speed_mult", 1.0))
+	)
+	var travel := origin.distance_to(target_pos) / projectile_speed
+	var predicted := target_pos
+	for _iteration in range(3):
+		predicted = target_pos + heading * enemy_speed * travel
+		travel = origin.distance_to(predicted) / projectile_speed
+	var aim := predicted - origin
+	return aim.normalized() if aim.length_squared() > 0.0001 else direct
 
 
 func _damage_roll(base_damage: float) -> Array:
