@@ -2,6 +2,7 @@ class_name UpgradeCatalog
 extends RefCounted
 
 const DATA_PATH := "res://data/upgrades.json"
+const JINSHI_DATA_PATH := "res://data/jinshi_blessings.json"
 const FAMILY_COLORS := {
 	"weapon_upgrade": Color("#d8a548"),
 	"weapon_new": Color("#d8a548"),
@@ -123,6 +124,30 @@ static func build_card_pool(
 				continue
 			pool.append(make_option(singular, str(card_id), definition, current + 1, luck))
 	return pool
+
+
+static func build_run_card_pool(
+	card_levels: Dictionary,
+	used_events: Dictionary,
+	luck: float,
+	jinshi_seed: int
+) -> Array[Dictionary]:
+	var pool := build_card_pool(card_levels, used_events, luck)
+	if not used_events.has("jinshi_blessing"):
+		pool.append(make_jinshi_blessing_option(jinshi_seed, luck))
+	return pool
+
+
+static func make_jinshi_blessing_option(seed_value: int, luck: float = 0.0) -> Dictionary:
+	var entries: Array = GameData.load_json(JINSHI_DATA_PATH).get("blessings", []) as Array
+	if entries.is_empty():
+		return {}
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var definition: Dictionary = entries[rng.randi_range(0, entries.size() - 1)] as Dictionary
+	var option := make_option("event", "jinshi_blessing", definition, 1, luck)
+	option["kind_label"] = Locale.t("upgrade.kind.event")
+	return option
 
 
 static func make_option(

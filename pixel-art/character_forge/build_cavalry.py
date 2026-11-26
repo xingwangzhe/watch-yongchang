@@ -512,6 +512,8 @@ def draw_tack(s: forge.Sprite, mount: dict, pose: dict, faction: str | None) -> 
 
 
 def draw_horse_layer(mount: dict, pose: dict, faction: str | None) -> Image.Image:
+    if mount.get("model_art_source") and pose.get("clip") == "walk":
+        return draw_model_horse_layer(mount, pose, faction)
     s = forge.Canvas(CELL, CELL)
     draw_tail(s, mount, pose)
     draw_mount_leg(s, mount, pose, "hind", False)
@@ -525,6 +527,38 @@ def draw_horse_layer(mount: dict, pose: dict, faction: str | None) -> Image.Imag
     draw_tack(s, mount, pose, faction)
     s.outline(forge.OUTLINE, where="outside")
     return s.composite()
+
+
+def draw_model_horse_layer(mount: dict, pose: dict, faction: str | None) -> Image.Image:
+    """Load one horse-only gait frame; keep tack and rider as separate layers."""
+    source = ROOT / str(mount["model_art_source"])
+    atlas = Image.open(source).convert("RGBA")
+    columns, rows = cd.WALK_FRAMES, len(cd.MOUNTS)
+    row = int(mount["model_art_row"])
+    frame_index = int(pose["index"]) % cd.WALK_FRAMES
+    left = round(frame_index * atlas.width / columns)
+    right = round((frame_index + 1) * atlas.width / columns)
+    top = round(row * atlas.height / rows)
+    bottom = round((row + 1) * atlas.height / rows)
+    frame = atlas.crop((left, top, right, bottom))
+    alpha = frame.getchannel("A").point(lambda value: 255 if value >= 128 else 0)
+    frame.putalpha(alpha)
+    bbox = alpha.getbbox()
+    if bbox is None:
+        raise ValueError(f"empty model horse frame: {source} row={row} frame={frame_index}")
+    frame = frame.crop(bbox)
+    # Match the procedural mount's right-facing 94x90 footprint and fixed hoof baseline.
+    scale = min(94 / frame.width, 91 / frame.height)
+    frame = frame.resize((max(1, round(frame.width * scale)), max(1, round(frame.height * scale))), Image.Resampling.NEAREST)
+    canvas = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
+    x = (CELL - frame.width) // 2
+    y = 119 - frame.height
+    canvas.alpha_composite(frame, (x, y))
+    tack = forge.Canvas(CELL, CELL)
+    draw_tack(tack, mount, pose, faction)
+    canvas.alpha_composite(tack.composite())
+    canvas.putalpha(canvas.getchannel("A").point(lambda value: 255 if value >= 128 else 0))
+    return canvas
 
 
 def draw_ground_shadow(clip: str, index: int) -> Image.Image:
@@ -1273,6 +1307,15 @@ def compose_mounted_frame(
     rein = draw_rein_overlay(bit_point(horse), rider_pose["rein_hand"], horse["phase"])
     canvas.alpha_composite(rein)
     canvas.alpha_composite(rider_image)
+    bbox = canvas.getchannel("A").getbbox()
+    if bbox:
+        dx = max(1 - bbox[0], min(0, CELL - 1 - bbox[2]))
+        dy = max(1 - bbox[1], min(0, CELL - 1 - bbox[3]))
+        if dx or dy:
+            shifted = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
+            shifted.alpha_composite(canvas, (dx, dy))
+            canvas = shifted
+    canvas.putalpha(canvas.getchannel("A").point(lambda value: 255 if value >= 128 else 0))
     return canvas
 
 

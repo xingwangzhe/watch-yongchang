@@ -25,7 +25,8 @@
         "headgear": "common_headwrap",
         "backgear": "none",
         "weapon": "dao",
-        "offhand": "dun"
+        "offhand": "dun",
+        "complete_sprite_family": "ming_lampwatch_shielded_v1"
       },
       "tint": "#ffffff",
       "hp": 140.0,

@@ -1,0 +1,359 @@
+{
+  "source": "/home/xingwangzhe/\u684c\u9762/2026\u6e38\u620f\u8d5b\u4e8b/pixel-art/model_redraw/weapons_atlas_v5_source.png",
+  "source_size": [
+    1254,
+    1254
+  ],
+  "grid": [
+    4,
+    4
+  ],
+  "source_background": "flat chroma magenta #ff00ff",
+  "alpha_threshold": null,
+  "chroma_key": "ff00ff",
+  "key_tolerance": 150,
+  "fit_content": true,
+  "output_size": [
+    128,
+    128
+  ],
+  "frame_rows": false,
+  "cells": [
+    {
+      "row": 0,
+      "column": 0,
+      "source_bounds": [
+        0,
+        0,
+        314,
+        314
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        8,
+        5,
+        119,
+        123
+      ],
+      "alpha_coverage": 0.15192
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "source_bounds": [
+        314,
+        0,
+        627,
+        314
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        6,
+        5,
+        121,
+        123
+      ],
+      "alpha_coverage": 0.10742
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "source_bounds": [
+        627,
+        0,
+        940,
+        314
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        8,
+        5,
+        119,
+        123
+      ],
+      "alpha_coverage": 0.13068
+    },
+    {
+      "row": 0,
+      "column": 3,
+      "source_bounds": [
+        940,
+        0,
+        1254,
+        314
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        7,
+        5,
+        121,
+        123
+      ],
+      "alpha_coverage": 0.13452
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "source_bounds": [
+        0,
+        314,
+        314,
+        627
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        13,
+        5,
+        114,
+        123
+      ],
+      "alpha_coverage": 0.22858
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "source_bounds": [
+        314,
+        314,
+        627,
+        627
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        32,
+        5,
+        95,
+        123
+      ],
+      "alpha_coverage": 0.14136
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "source_bounds": [
+        627,
+        314,
+        940,
+        627
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        10,
+        5,
+        118,
+        123
+      ],
+      "alpha_coverage": 0.29517
+    },
+    {
+      "row": 1,
+      "column": 3,
+      "source_bounds": [
+        940,
+        314,
+        1254,
+        627
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        36,
+        5,
+        91,
+        123
+      ],
+      "alpha_coverage": 0.09753
+    },
+    {
+      "row": 2,
+      "column": 0,
+      "source_bounds": [
+        0,
+        627,
+        314,
+        940
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        6,
+        5,
+        122,
+        123
+      ],
+      "alpha_coverage": 0.63525
+    },
+    {
+      "row": 2,
+      "column": 1,
+      "source_bounds": [
+        314,
+        627,
+        627,
+        940
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        12,
+        5,
+        116,
+        123
+      ],
+      "alpha_coverage": 0.1178
+    },
+    {
+      "row": 2,
+      "column": 2,
+      "source_bounds": [
+        627,
+        627,
+        940,
+        940
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        5,
+        36,
+        123,
+        123
+      ],
+      "alpha_coverage": 0.25159
+    },
+    {
+      "row": 2,
+      "column": 3,
+      "source_bounds": [
+        940,
+        627,
+        1254,
+        940
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        5,
+        22,
+        123,
+        123
+      ],
+      "alpha_coverage": 0.14966
+    },
+    {
+      "row": 3,
+      "column": 0,
+      "source_bounds": [
+        0,
+        940,
+        314,
+        1254
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        5,
+        31,
+        123,
+        123
+      ],
+      "alpha_coverage": 0.39008
+    },
+    {
+      "row": 3,
+      "column": 1,
+      "source_bounds": [
+        314,
+        940,
+        627,
+        1254
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        11,
+        5,
+        116,
+        123
+      ],
+      "alpha_coverage": 0.11371
+    },
+    {
+      "row": 3,
+      "column": 2,
+      "source_bounds": [
+        627,
+        940,
+        940,
+        1254
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        34,
+        5,
+        94,
+        123
+      ],
+      "alpha_coverage": 0.10852
+    },
+    {
+      "row": 3,
+      "column": 3,
+      "source_bounds": [
+        940,
+        940,
+        1254,
+        1254
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        16,
+        5,
+        112,
+        123
+      ],
+      "alpha_coverage": 0.27808
+    }
+  ]
+}

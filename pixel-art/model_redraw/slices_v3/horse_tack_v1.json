@@ -1,0 +1,548 @@
+{
+  "source": "/home/xingwangzhe/\u684c\u9762/2026\u6e38\u620f\u8d5b\u4e8b/pixel-art/model_redraw/horse_tack_v1_source.png",
+  "source_size": [
+    2048,
+    768
+  ],
+  "grid": [
+    8,
+    3
+  ],
+  "source_background": "flat chroma cyan #00ffff",
+  "alpha_threshold": null,
+  "chroma_key": "00ffff",
+  "key_tolerance": 150,
+  "fit_content": false,
+  "output_size": [
+    128,
+    128
+  ],
+  "frame_rows": true,
+  "cells": [
+    {
+      "row": 0,
+      "column": 0,
+      "source_bounds": [
+        0,
+        0,
+        256,
+        256
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        30,
+        32,
+        120,
+        84
+      ],
+      "alpha_coverage": 0.10742
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "source_bounds": [
+        256,
+        0,
+        512,
+        256
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        31,
+        32,
+        117,
+        85
+      ],
+      "alpha_coverage": 0.10168,
+      "changed_fraction_from_previous": 0.10791
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "source_bounds": [
+        512,
+        0,
+        768,
+        256
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        32,
+        31,
+        116,
+        85
+      ],
+      "alpha_coverage": 0.10095,
+      "changed_fraction_from_previous": 0.08569
+    },
+    {
+      "row": 0,
+      "column": 3,
+      "source_bounds": [
+        768,
+        0,
+        1024,
+        256
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        31,
+        118,
+        87
+      ],
+      "alpha_coverage": 0.10638,
+      "changed_fraction_from_previous": 0.10022
+    },
+    {
+      "row": 0,
+      "column": 4,
+      "source_bounds": [
+        1024,
+        0,
+        1280,
+        256
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        26,
+        33,
+        116,
+        89
+      ],
+      "alpha_coverage": 0.10712,
+      "changed_fraction_from_previous": 0.10785
+    },
+    {
+      "row": 0,
+      "column": 5,
+      "source_bounds": [
+        1280,
+        0,
+        1536,
+        256
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        32,
+        117,
+        85
+      ],
+      "alpha_coverage": 0.10315,
+      "changed_fraction_from_previous": 0.10144
+    },
+    {
+      "row": 0,
+      "column": 6,
+      "source_bounds": [
+        1536,
+        0,
+        1792,
+        256
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        32,
+        31,
+        118,
+        85
+      ],
+      "alpha_coverage": 0.09766,
+      "changed_fraction_from_previous": 0.09589
+    },
+    {
+      "row": 0,
+      "column": 7,
+      "source_bounds": [
+        1792,
+        0,
+        2048,
+        256
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        31,
+        32,
+        119,
+        87
+      ],
+      "alpha_coverage": 0.10382,
+      "changed_fraction_from_previous": 0.09784
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "source_bounds": [
+        0,
+        256,
+        256,
+        512
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        30,
+        31,
+        120,
+        83
+      ],
+      "alpha_coverage": 0.10651
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "source_bounds": [
+        256,
+        256,
+        512,
+        512
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        31,
+        31,
+        117,
+        84
+      ],
+      "alpha_coverage": 0.10095,
+      "changed_fraction_from_previous": 0.10895
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "source_bounds": [
+        512,
+        256,
+        768,
+        512
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        32,
+        31,
+        116,
+        84
+      ],
+      "alpha_coverage": 0.10114,
+      "changed_fraction_from_previous": 0.08569
+    },
+    {
+      "row": 1,
+      "column": 3,
+      "source_bounds": [
+        768,
+        256,
+        1024,
+        512
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        31,
+        118,
+        86
+      ],
+      "alpha_coverage": 0.10809,
+      "changed_fraction_from_previous": 0.09839
+    },
+    {
+      "row": 1,
+      "column": 4,
+      "source_bounds": [
+        1024,
+        256,
+        1280,
+        512
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        26,
+        32,
+        116,
+        88
+      ],
+      "alpha_coverage": 0.10626,
+      "changed_fraction_from_previous": 0.10663
+    },
+    {
+      "row": 1,
+      "column": 5,
+      "source_bounds": [
+        1280,
+        256,
+        1536,
+        512
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        31,
+        117,
+        84
+      ],
+      "alpha_coverage": 0.10376,
+      "changed_fraction_from_previous": 0.10162
+    },
+    {
+      "row": 1,
+      "column": 6,
+      "source_bounds": [
+        1536,
+        256,
+        1792,
+        512
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        32,
+        30,
+        118,
+        84
+      ],
+      "alpha_coverage": 0.09961,
+      "changed_fraction_from_previous": 0.09485
+    },
+    {
+      "row": 1,
+      "column": 7,
+      "source_bounds": [
+        1792,
+        256,
+        2048,
+        512
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        31,
+        31,
+        119,
+        86
+      ],
+      "alpha_coverage": 0.10431,
+      "changed_fraction_from_previous": 0.09552
+    },
+    {
+      "row": 2,
+      "column": 0,
+      "source_bounds": [
+        0,
+        512,
+        256,
+        768
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        30,
+        31,
+        120,
+        83
+      ],
+      "alpha_coverage": 0.10822
+    },
+    {
+      "row": 2,
+      "column": 1,
+      "source_bounds": [
+        256,
+        512,
+        512,
+        768
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        31,
+        31,
+        117,
+        84
+      ],
+      "alpha_coverage": 0.10223,
+      "changed_fraction_from_previous": 0.10431
+    },
+    {
+      "row": 2,
+      "column": 2,
+      "source_bounds": [
+        512,
+        512,
+        768,
+        768
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        32,
+        30,
+        116,
+        83
+      ],
+      "alpha_coverage": 0.10077,
+      "changed_fraction_from_previous": 0.08215
+    },
+    {
+      "row": 2,
+      "column": 3,
+      "source_bounds": [
+        768,
+        512,
+        1024,
+        768
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        30,
+        118,
+        86
+      ],
+      "alpha_coverage": 0.10724,
+      "changed_fraction_from_previous": 0.09497
+    },
+    {
+      "row": 2,
+      "column": 4,
+      "source_bounds": [
+        1024,
+        512,
+        1280,
+        768
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        26,
+        32,
+        116,
+        87
+      ],
+      "alpha_coverage": 0.10638,
+      "changed_fraction_from_previous": 0.10248
+    },
+    {
+      "row": 2,
+      "column": 5,
+      "source_bounds": [
+        1280,
+        512,
+        1536,
+        768
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        31,
+        117,
+        84
+      ],
+      "alpha_coverage": 0.10297,
+      "changed_fraction_from_previous": 0.10028
+    },
+    {
+      "row": 2,
+      "column": 6,
+      "source_bounds": [
+        1536,
+        512,
+        1792,
+        768
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        32,
+        30,
+        118,
+        83
+      ],
+      "alpha_coverage": 0.09888,
+      "changed_fraction_from_previous": 0.0957
+    },
+    {
+      "row": 2,
+      "column": 7,
+      "source_bounds": [
+        1792,
+        512,
+        2048,
+        768
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        31,
+        31,
+        119,
+        86
+      ],
+      "alpha_coverage": 0.10455,
+      "changed_fraction_from_previous": 0.09888
+    }
+  ]
+}

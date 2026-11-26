@@ -77,6 +77,36 @@ func test_event_cards_expose_settlement_text() -> void:
 		assert_true(ResourceLoader.exists(str(option.get("icon", ""))))
 
 
+func test_each_run_gets_one_seeded_optional_jinshi_blessing() -> void:
+	var options := UpgradeCatalog.build_run_card_pool({}, {}, 0.0, 20261127)
+	var blessing: Dictionary = {}
+	for option in options:
+		if str(option.get("card_id", "")) == "jinshi_blessing":
+			blessing = option
+	assert_false(blessing.is_empty(), "a fresh run must include its optional blessing in the upgrade pool")
+	assert_eq(blessing.get("family"), "event")
+	assert_eq(blessing.get("category"), "演绎")
+	assert_true(str(blessing.get("source_ref", "")).begins_with("《永昌堡：十三进士与抗倭纪略》"))
+	assert_eq(blessing.get("title"), UpgradeCatalog.make_jinshi_blessing_option(20261127).get("title"))
+	assert_eq((blessing.get("definition", {}) as Dictionary).get("effects", [])[0].get("amount"), 0.05)
+	assert_eq(options.size(), 144, "the run-specific blessing is outside the 143 authored catalog")
+
+	var used := {"jinshi_blessing": true}
+	var spent_options := UpgradeCatalog.build_run_card_pool({}, used, 0.0, 20261127)
+	assert_eq(spent_options.size(), 143, "the blessing must leave the pool after it is chosen")
+	for option in spent_options:
+		assert_ne(str(option.get("card_id", "")), "jinshi_blessing")
+
+	var blessings: Array = GameData.load_json("res://data/jinshi_blessings.json").get("blessings", []) as Array
+	assert_eq(blessings.size(), 13)
+	var observed_titles := {}
+	for seed in range(1, 100):
+		var seeded_option := UpgradeCatalog.make_jinshi_blessing_option(seed)
+		assert_gt(str(seeded_option.get("title", "")).length(), 0)
+		observed_titles[str(seeded_option.get("title", ""))] = true
+	assert_gt(observed_titles.size(), 1, "different run seeds should select different scholars")
+
+
 func test_battlefield_applies_slow_burn_stun_and_soul_magnet() -> void:
 	var field := Battlefield.new()
 	add_child_autofree(field)

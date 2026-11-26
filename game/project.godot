@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="守望·永昌"
-config/version="1.4.0"
+config/version="1.6.0"
 run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 run/max_fps=60
@@ -31,6 +31,11 @@ window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+window/stretch/scale_mode="fractional"
+window/size/width_override=0
+window/size/height_override=0
+# Mobile native orientation; installed PWA orientation is set in its manifest.
+window/handheld/orientation="landscape"
 
 [editor_plugins]
 

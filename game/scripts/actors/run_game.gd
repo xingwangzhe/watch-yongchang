@@ -146,6 +146,7 @@ var _current_shop_offers: Array[Dictionary] = []
 var mercenaries: Array[String] = []
 var _current_upgrade_options: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
+var _jinshi_blessing_seed := 0
 var _towers_built := 0
 var _narrative_timer: Timer
 var _sfx_players: Array[AudioStreamPlayer] = []
@@ -165,6 +166,7 @@ var _gameplay_cursor_active := false
 func _ready() -> void:
 	InputSetup.ensure_defaults()
 	_rng.seed = 20261123
+	_jinshi_blessing_seed = int(SaveSystem.data.get("runs", 0))
 	_run_start_merit = int(SaveSystem.data.get("total_merit", 0))
 	_load_data()
 	_build_world()
@@ -1723,6 +1725,8 @@ func _show_level_up() -> void:
 
 func _upgrade_pool_count() -> int:
 	var total := UpgradeCatalog.total_offer_count()
+	if not used_events.has("jinshi_blessing"):
+		total += 1
 	for weapon_id in weapon_defs.keys():
 		var current := 0
 		for weapon in weapons:
@@ -1835,10 +1839,11 @@ func _build_upgrade_options() -> Array[Dictionary]:
 				"effect_summary": GameData.loc(definition, "description"),
 			}
 		))
-	pool.append_array(UpgradeCatalog.build_card_pool(
+	pool.append_array(UpgradeCatalog.build_run_card_pool(
 		card_levels,
 		used_events,
-		float(player.get("luck", 0.0))
+		float(player.get("luck", 0.0)),
+		_jinshi_blessing_seed
 	))
 	pool.append(UpgradeCatalog.make_external_option(
 		"heal",

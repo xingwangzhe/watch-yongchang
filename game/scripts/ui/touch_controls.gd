@@ -51,13 +51,33 @@ var _dash_label: Label
 var _auto_label: Label
 var _label_specs: Array[Dictionary] = []
 
+## Mobile web: safe area insets (notch, home indicator)
+var _safe_left := 0.0
+var _safe_top := 0.0
+var _safe_right := 0.0
+var _safe_bottom := 0.0
+var _is_mobile_web := false
+var _orientation_lock_attempted := false
+var _rotate_prompt: Label
+
 
 func _ready() -> void:
 	name = "TouchControls"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+	_is_mobile_web = OS.has_feature("web") and (OS.has_feature("web_android") or OS.has_feature("web_ios"))
+	if _is_mobile_web and not DisplayServer.orientation_changed.is_connected(_on_orientation_changed):
+		DisplayServer.orientation_changed.connect(_on_orientation_changed)
+
+	# Listen for safe area changes (mobile web + native)
+	if OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios"):
+		_update_safe_area()
+	get_viewport().size_changed.connect(_on_resized)
+
 	_apply_visibility()
 	_build_labels()
+	_build_rotate_prompt()
 	_layout()
 	resized.connect(_on_resized)
 	set_process_input(visible)
@@ -80,7 +100,95 @@ func _apply_visibility() -> void:
 
 func _on_resized() -> void:
 	_apply_visibility()
+	_update_safe_area()
 	_layout()
+	_update_rotate_prompt()
+
+
+func _update_safe_area() -> void:
+	if not (OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios")):
+		_safe_left = 0.0
+		_safe_top = 0.0
+		_safe_right = 0.0
+		_safe_bottom = 0.0
+		return
+	# Browser CSS env() insets are needed for phones with a notch or home indicator.
+	if OS.has_feature("web"):
+		var raw_insets: Variant = JavaScriptBridge.eval(
+			"""(() => {
+				const probe = document.createElement('div');
+				probe.style.cssText = 'position:fixed;inset:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);box-sizing:border-box';
+				document.body.appendChild(probe);
+				const style = getComputedStyle(probe);
+				const values = [style.paddingLeft, style.paddingTop, style.paddingRight, style.paddingBottom, window.innerWidth, window.innerHeight].map(value => parseFloat(value));
+				probe.remove();
+				return JSON.stringify(values);
+			})()""",
+			true
+		)
+		var parsed: Variant = JSON.parse_string(str(raw_insets))
+		if parsed is Array and parsed.size() >= 6:
+			var values: Array = parsed
+			var viewport_size := get_viewport_rect().size
+			var scale_x := viewport_size.x / maxf(1.0, float(values[4]))
+			var scale_y := viewport_size.y / maxf(1.0, float(values[5]))
+			_safe_left = float(values[0]) * scale_x
+			_safe_top = float(values[1]) * scale_y
+			_safe_right = float(values[2]) * scale_x
+			_safe_bottom = float(values[3]) * scale_y
+		else:
+			_safe_left = 0.0
+			_safe_top = 0.0
+			_safe_right = 0.0
+			_safe_bottom = 0.0
+		return
+	var safe_area := DisplayServer.get_display_safe_area()
+	var viewport_size := get_viewport_rect().size
+	var win_size := Vector2(DisplayServer.window_get_size().x, DisplayServer.window_get_size().y)
+
+	# Convert screen pixels to UI units
+	var scale_x := viewport_size.x / win_size.x if win_size.x > 0 else 1.0
+	var scale_y := viewport_size.y / win_size.y if win_size.y > 0 else 1.0
+
+	_safe_left = safe_area.position.x * scale_x
+	_safe_top = safe_area.position.y * scale_y
+	_safe_right = (win_size.x - safe_area.end.x) * scale_x
+	_safe_bottom = (win_size.y - safe_area.end.y) * scale_y
+
+
+func _on_orientation_changed(orientation: int) -> void:
+	_update_safe_area()
+	_layout()
+	_update_rotate_prompt()
+
+
+func _build_rotate_prompt() -> void:
+	if not OS.has_feature("web"):
+		return
+	_rotate_prompt = Label.new()
+	_rotate_prompt.text = "请将设备横向持握 / Rotate your device"
+	_rotate_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_rotate_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_rotate_prompt.add_theme_font_override("font", UI_FONT)
+	_rotate_prompt.add_theme_font_size_override("font_size", 28)
+	_rotate_prompt.add_theme_color_override("font_color", PAPER)
+	_rotate_prompt.add_theme_color_override("font_outline_color", Color("#071216"))
+	_rotate_prompt.add_theme_constant_override("outline_size", 4)
+	_rotate_prompt.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_rotate_prompt.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_rotate_prompt.z_index = 100
+	add_child(_rotate_prompt)
+	_update_rotate_prompt()
+
+
+func _update_rotate_prompt() -> void:
+	if not is_instance_valid(_rotate_prompt):
+		return
+	var viewport_size := get_viewport_rect().size
+	var portrait := viewport_size.y > viewport_size.x
+	_rotate_prompt.visible = portrait
+	if portrait:
+		_rotate_prompt.text = "请将设备横向持握 / Rotate your device"
 
 
 func _layout() -> void:
@@ -93,10 +201,25 @@ func _layout() -> void:
 	dash_radius = DASH_RADIUS * ui_scale
 	auto_radius = AUTO_RADIUS * ui_scale
 
-	_joystick_center = Vector2(viewport_size.x * 0.12, viewport_size.y * 0.72)
-	_attack_center = Vector2(viewport_size.x * 0.85, viewport_size.y * 0.70)
-	_dash_center = Vector2(viewport_size.x * 0.92, viewport_size.y * 0.80)
-	_auto_center = Vector2(viewport_size.x * 0.73, viewport_size.y * 0.60)
+	# Layout with safe area insets
+	var safe_w := viewport_size.x - _safe_left - _safe_right
+	var safe_h := viewport_size.y - _safe_top - _safe_bottom
+
+	_joystick_center = Vector2(_safe_left + safe_w * 0.12, _safe_top + safe_h * 0.72)
+	_attack_center = Vector2(_safe_left + safe_w * 0.85, _safe_top + safe_h * 0.70)
+	_dash_center = Vector2(_safe_left + safe_w * 0.92, _safe_top + safe_h * 0.80)
+	_auto_center = Vector2(_safe_left + safe_w * 0.73, _safe_top + safe_h * 0.60)
+
+	# Ensure minimum distance from edges
+	_joystick_center.x = maxf(_joystick_center.x, _safe_left + joystick_radius + 12.0 * ui_scale)
+	_joystick_center.y = minf(_joystick_center.y, _safe_top + safe_h - joystick_radius - 12.0 * ui_scale)
+	_attack_center.x = minf(_attack_center.x, _safe_left + safe_w - attack_radius - 12.0 * ui_scale)
+	_attack_center.y = minf(_attack_center.y, _safe_top + safe_h - attack_radius - 12.0 * ui_scale)
+	_dash_center.x = minf(_dash_center.x, _safe_left + safe_w - dash_radius - 12.0 * ui_scale)
+	_dash_center.y = minf(_dash_center.y, _safe_top + safe_h - dash_radius - 12.0 * ui_scale)
+	_auto_center.x = minf(_auto_center.x, _safe_left + safe_w - auto_radius - 12.0 * ui_scale)
+	_auto_center.y = maxf(_auto_center.y, _safe_top + auto_radius + 12.0 * ui_scale)
+
 	_layout_labels(viewport_size)
 	queue_redraw()
 
@@ -148,6 +271,7 @@ func _input(event: InputEvent) -> void:
 		var position := local.position
 		if touch.pressed:
 			using_touch = true
+			_request_mobile_web_landscape_lock()
 			if _joystick_touch < 0 and position.distance_to(_joystick_center) <= joystick_radius * 1.32:
 				_joystick_touch = touch.index
 				_update_joystick(position)
@@ -194,6 +318,17 @@ func _input(event: InputEvent) -> void:
 		var local := make_input_local(drag) as InputEventScreenDrag
 		_update_joystick(local.position)
 		get_viewport().set_input_as_handled()
+
+
+func _request_mobile_web_landscape_lock() -> void:
+	if not _is_mobile_web or _orientation_lock_attempted:
+		return
+	_orientation_lock_attempted = true
+	# Browsers require a user gesture for orientation locking; PWA manifest remains the fallback.
+	JavaScriptBridge.eval(
+		"if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(() => {}); }",
+		false
+	)
 
 
 func release_all() -> void:

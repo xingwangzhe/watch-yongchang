@@ -35,6 +35,9 @@ func _ready() -> void:
 	field.name = "Battlefield"
 	add_child(field)
 	field.setup(20261123)
+	var characters := GameData.get_characters()
+	field.set_player_sprites(characters.get("wanglu", {}) as Dictionary)
+	field.set_meta("player_tint", Color.WHITE)
 	field.set_meta("draw_enemies", OS.get_environment("WATCH_STRESS_DRAW_ENEMIES") != "0")
 	if OS.get_environment("WATCH_STRESS_HIDE_OVERLAYS") == "1":
 		field.map_renderer.shade_layer.visible = false
@@ -51,6 +54,9 @@ func _ready() -> void:
 			"scout" if i % 5 else "ronin",
 			Vector2(cos(angle), sin(angle)) * ring
 		)
+	var ally_ids := ["yishi_spear", "yishi_archer", "tengpai_militia", "standard_bearer"]
+	for index in ally_ids.size():
+		field.spawn_ally(str(ally_ids[index]), Vector2(-100.0 + float(index) * 64.0, 90.0))
 	var pickup_count := clampi(int(OS.get_environment("WATCH_STRESS_PICKUPS")), 0, 2000)
 	for i in range(pickup_count):
 		var angle := TAU * float(i) / float(maxi(1, pickup_count))
@@ -101,6 +107,8 @@ func _process(delta: float) -> void:
 		_log("[stress] process start frame=%d delta=%.6f" % [_debug_frames, delta])
 	_t += delta
 	player["pos"] = Vector2(cos(_t * 0.35), sin(_t * 0.35)) * 150.0
+	field.player_facing = (player["pos"] as Vector2) - field.player_pos
+	field.player_aim = Vector2.RIGHT.rotated(_t * 0.8)
 	var update_started := Time.get_ticks_usec()
 	if OS.get_environment("WATCH_STRESS_SKIP_UPDATE") != "1":
 		field.update_world(delta, player)
@@ -122,12 +130,15 @@ func _process(delta: float) -> void:
 	if _sample_time >= 2.0 and _sample_wall_usec > 0:
 		var wall_ms := float(_sample_wall_usec) / 1000.0 / float(maxi(1, _sample_wall_frames))
 		var logic_ms := float(_sample_update_usec) / 1000.0 / float(maxi(1, _sample_frames))
-		var line := "[stress] wall_fps=%.1f wall_frame_ms=%.2f logic_ms=%.3f engine_fps=%.1f enemies=%d draw_calls=%d primitives=%d" % [
+		var line := "[stress] wall_fps=%.1f wall_frame_ms=%.2f logic_ms=%.3f engine_fps=%.1f enemies=%d allies=%d player_walk_frames=%d player_idle_frames=%d draw_calls=%d primitives=%d" % [
 			float(_sample_wall_frames) * 1000000.0 / float(_sample_wall_usec),
 			wall_ms,
 			logic_ms,
 			Engine.get_frames_per_second(),
 			field.alive_count(),
+			field.allies.size(),
+			field.player_walk_frames.size(),
+			field.player_idle_frames.size(),
 			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
 			Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
 		]

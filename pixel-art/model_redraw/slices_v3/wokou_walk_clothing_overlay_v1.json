@@ -1,0 +1,197 @@
+{
+  "source": "/home/xingwangzhe/\u684c\u9762/2026\u6e38\u620f\u8d5b\u4e8b/pixel-art/model_redraw/wokou_walk_clothing_overlay_v1_source.png",
+  "source_size": [
+    1254,
+    1254
+  ],
+  "grid": [
+    4,
+    2
+  ],
+  "source_background": "flat chroma green #00ff00",
+  "alpha_threshold": null,
+  "chroma_key": "00ff00",
+  "key_tolerance": 150,
+  "fit_content": true,
+  "output_size": [
+    128,
+    128
+  ],
+  "frame_rows": true,
+  "cells": [
+    {
+      "row": 0,
+      "column": 0,
+      "source_bounds": [
+        0,
+        0,
+        314,
+        627
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        19,
+        5,
+        108,
+        123
+      ],
+      "alpha_coverage": 0.43823
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "source_bounds": [
+        314,
+        0,
+        627,
+        627
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        13,
+        5,
+        115,
+        123
+      ],
+      "alpha_coverage": 0.45892,
+      "changed_fraction_from_previous": 0.39893
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "source_bounds": [
+        627,
+        0,
+        940,
+        627
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        21,
+        5,
+        105,
+        123
+      ],
+      "alpha_coverage": 0.40265,
+      "changed_fraction_from_previous": 0.4198
+    },
+    {
+      "row": 0,
+      "column": 3,
+      "source_bounds": [
+        940,
+        0,
+        1254,
+        627
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        14,
+        5,
+        113,
+        123
+      ],
+      "alpha_coverage": 0.43591,
+      "changed_fraction_from_previous": 0.28857
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "source_bounds": [
+        0,
+        627,
+        314,
+        1254
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        17,
+        5,
+        111,
+        123
+      ],
+      "alpha_coverage": 0.41699
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "source_bounds": [
+        314,
+        627,
+        627,
+        1254
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        13,
+        5,
+        114,
+        123
+      ],
+      "alpha_coverage": 0.44342,
+      "changed_fraction_from_previous": 0.42664
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "source_bounds": [
+        627,
+        627,
+        940,
+        1254
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        16,
+        5,
+        111,
+        123
+      ],
+      "alpha_coverage": 0.44159,
+      "changed_fraction_from_previous": 0.30963
+    },
+    {
+      "row": 1,
+      "column": 3,
+      "source_bounds": [
+        940,
+        627,
+        1254,
+        1254
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        20,
+        5,
+        107,
+        123
+      ],
+      "alpha_coverage": 0.43176,
+      "changed_fraction_from_previous": 0.34265
+    }
+  ]
+}

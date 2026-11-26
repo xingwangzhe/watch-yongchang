@@ -1,0 +1,197 @@
+{
+  "source": "/home/xingwangzhe/\u684c\u9762/2026\u6e38\u620f\u8d5b\u4e8b/pixel-art/model_redraw/wokou_rider_walk_overlay_v1_source.png",
+  "source_size": [
+    1774,
+    887
+  ],
+  "grid": [
+    4,
+    2
+  ],
+  "source_background": "flat chroma green #00ff00",
+  "alpha_threshold": null,
+  "chroma_key": "00ff00",
+  "key_tolerance": 150,
+  "fit_content": false,
+  "output_size": [
+    128,
+    128
+  ],
+  "frame_rows": true,
+  "cells": [
+    {
+      "row": 0,
+      "column": 0,
+      "source_bounds": [
+        0,
+        0,
+        444,
+        444
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        36,
+        43,
+        95,
+        99
+      ],
+      "alpha_coverage": 0.12622
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "source_bounds": [
+        444,
+        0,
+        887,
+        444
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        37,
+        42,
+        96,
+        95
+      ],
+      "alpha_coverage": 0.12195,
+      "changed_fraction_from_previous": 0.12524
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "source_bounds": [
+        887,
+        0,
+        1330,
+        444
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        37,
+        39,
+        97,
+        94
+      ],
+      "alpha_coverage": 0.12305,
+      "changed_fraction_from_previous": 0.10809
+    },
+    {
+      "row": 0,
+      "column": 3,
+      "source_bounds": [
+        1330,
+        0,
+        1774,
+        444
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        37,
+        38,
+        97,
+        93
+      ],
+      "alpha_coverage": 0.12433,
+      "changed_fraction_from_previous": 0.10553
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "source_bounds": [
+        0,
+        444,
+        444,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        36,
+        36,
+        95,
+        92
+      ],
+      "alpha_coverage": 0.12323
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "source_bounds": [
+        444,
+        444,
+        887,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        37,
+        39,
+        97,
+        94
+      ],
+      "alpha_coverage": 0.12622,
+      "changed_fraction_from_previous": 0.12988
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "source_bounds": [
+        887,
+        444,
+        1330,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        37,
+        41,
+        97,
+        97
+      ],
+      "alpha_coverage": 0.12939,
+      "changed_fraction_from_previous": 0.13306
+    },
+    {
+      "row": 1,
+      "column": 3,
+      "source_bounds": [
+        1330,
+        444,
+        1774,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        37,
+        42,
+        97,
+        99
+      ],
+      "alpha_coverage": 0.12811,
+      "changed_fraction_from_previous": 0.11078
+    }
+  ]
+}

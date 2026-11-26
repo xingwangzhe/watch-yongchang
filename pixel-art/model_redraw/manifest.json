@@ -1,0 +1,656 @@
+{
+  "source": "OpenAI image generation tool",
+  "purpose": "Modular ImageGen reference art and selected recipe-matched runtime sources. Each asset records its slice grid, background status, and QA decision.",
+  "cultural_basis": [
+    "16th-century Yongchang Fort and coastal militia",
+    "Ming-era arms, local militia, fort and water-town motifs",
+    "no claim that Tang He built Yongchang Fort"
+  ],
+  "assets": [
+    {
+      "file": "body_walk_riding_poses.png",
+      "original": "exec-5db236c8-3eb6-4c1f-9e46-fff263d52f7f.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "grid": [
+        12,
+        8
+      ],
+      "content": "first four rows standing body/walk pose attempt; last four rows seated body/riding pose attempt",
+      "background": "checkerboard baked into RGB",
+      "status": "research only; unsuitable for clean transparency slicing"
+    },
+    {
+      "file": "upper_body_action_poses.png",
+      "original": "exec-575d3aaf-d4d7-45b1-92d5-665a0545c6d0.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "grid": [
+        8,
+        6
+      ],
+      "content": "idle, walk, slash, overhead, archery, guard upper-body pose families",
+      "background": "flat magenta chroma key",
+      "status": "research only; approximate cell spacing, requires chroma cleanup and manual review"
+    },
+    {
+      "file": "rider_body_poses.png",
+      "original": "exec-5fbeb9e8-ce5e-4c71-bc34-2713d4a16910.png",
+      "size": [
+        2172,
+        724
+      ],
+      "grid": [
+        12,
+        4
+      ],
+      "content": "seated unarmed body pose attempt, four skin-tone rows",
+      "background": "flat magenta chroma key",
+      "status": "research only; no real animation changes, needs pixel cleanup"
+    },
+    {
+      "file": "weapons_implements.png",
+      "original": "exec-74e6df48-7541-4e83-bc96-6571e357ed3f.png",
+      "size": [
+        1319,
+        1192
+      ],
+      "grid": [
+        8,
+        11
+      ],
+      "content": "dao, spear, sword, halberd, axe, crescent polearm, hook, fork, rattan shield, bow, crossbow",
+      "background": "checkerboard baked into RGB",
+      "status": "research only; detector-based extraction required before use"
+    },
+    {
+      "file": "horses_alone.png",
+      "original": "exec-a9578e9f-11b6-4b1e-9e46-fff263d52e7e.png",
+      "size": [
+        2172,
+        724
+      ],
+      "grid": [
+        12,
+        3
+      ],
+      "content": "chestnut, black, grey horses without riders",
+      "background": "checkerboard baked into RGB",
+      "status": "modular animal family, not yet suitable for runtime slicing"
+    },
+    {
+      "file": "mounted_riders_reference.png",
+      "original": "exec-a5ac4127-c71d-4074-bcd6-69eaafec5b55.png",
+      "size": [
+        2172,
+        724
+      ],
+      "grid": [
+        12,
+        4
+      ],
+      "content": "fully equipped mounted characters; reference only, explicitly excluded from modular assets",
+      "background": "RGBA with generated stray opaque pixels",
+      "status": "do not slice into production assets"
+    },
+    {
+      "file": "fort_buildings_tiles.png",
+      "original": "exec-0bc1a5f6-e72b-4920-865a-f2de5d8b2836.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "grid": [
+        8,
+        6
+      ],
+      "content": "Yongchang coastal fort walls, watchtowers, gates, roofs, house parts, stone roads, canal and bridge",
+      "background": "flat magenta chroma key",
+      "status": "research only; mixed perspective, approximate tile boundaries, needs cleanup and repeatability checks"
+    },
+    {
+      "file": "clothing_backgear_atlas.png",
+      "original": "exec-ed24bd0b-19b4-4d72-8679-118222862048.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        8,
+        4
+      ],
+      "content": "Ming and coastal militia isolated torso garments, village jackets and back accessories; no character bodies",
+      "background": "RGBA; generated transparent background requested, inspect alpha before use",
+      "status": "research only; several armor garments visible; some cells overlap approximate grid; inspect crops"
+    },
+    {
+      "file": "headgear_backgear_atlas.png",
+      "original": "exec-6955ada7-9b5c-4007-8439-4512d64f74b6.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        8,
+        4
+      ],
+      "content": "isolated headwear, cloaks, banners, quivers, straps and detachable ornaments; no people",
+      "background": "RGBA; generated transparent background requested, inspect alpha before use",
+      "status": "research only; one ornament depicts a dragon, ornate details may be culturally inaccurate; cell spacing is approximate"
+    },
+    {
+      "file": "rider_upper_body_motion.png",
+      "original": "exec-a35f79b1-9b2c-471f-8356-3364b5ccaf37.png",
+      "size": [
+        2048,
+        768
+      ],
+      "grid": [
+        8,
+        3
+      ],
+      "content": "isolated seated upper bodies with empty hands; no horse, clothes, armor or weapon",
+      "background": "flat cyan chroma key baked into RGB",
+      "status": "research only; repeated poses differ minimally and background requires removal"
+    },
+    {
+      "file": "ground_body_actions.png",
+      "original": "exec-4852c3ef-2a9b-4e3b-ad61-eee8c5a0ebf1.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "grid": [
+        8,
+        6
+      ],
+      "content": "isolated under-tunic full-body action atlas: idle, walk, empty-hand saber, overhead, spear-thrust, bow-pose rows; 8 frames per row",
+      "background": "transparent alpha requested; alpha present, but semi-transparent antialiasing and colored edge artifacts observed",
+      "status": "research only; pixellate, normalize alpha, anchor, and verify action differences before runtime use"
+    },
+    {
+      "file": "horse_motion_v4.png",
+      "source": "OpenAI ImageGen generated modular horse-only atlas",
+      "size": [
+        2172,
+        724
+      ],
+      "grid": [
+        8,
+        3
+      ],
+      "content": "three horse coat rows; eight noticeable diagonal-trot frames per row; no rider or tack",
+      "background": "transparent alpha; normalized to hard alpha threshold during bake",
+      "status": "runtime source for mounted walk frames; idle mounts and all rider layers remain CharacterForge generated"
+    },
+    {
+      "file": "horse_walk_atlas_v2.png",
+      "original": "exec-bd316a7a-c2c6-4219-861a-59db363897f5.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        8,
+        4
+      ],
+      "content": "four horse coat rows; eight diagonal-trot frames per row; horses only without tack or rider",
+      "background": "transparent alpha requested; alpha present, high antialiasing remains",
+      "status": "research only; frame variation and gait timing need visual/runtime validation"
+    },
+    {
+      "file": "fort_arrow_tower_tiles_v2.png",
+      "original": "exec-0657e525-ee5b-4745-9c70-197d01805e36.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        8,
+        4
+      ],
+      "content": "arrow tower row plus wall, corner/gate, roof, road and canal/bridge tile families inspired by Yongchang Fort",
+      "background": "transparent alpha requested; alpha present, high antialiasing remains",
+      "status": "research only; tower frames are nearly static, tile joins and perspective require a 3x3 repeat test"
+    },
+    {
+      "file": "weapons_implements_v2.png",
+      "original": "exec-5b77cade-b98d-434c-96e6-5ab6d09d0781.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        5,
+        4
+      ],
+      "content": "isolated Ming-era weapons and shields; requested list includes dao, jian, qiang, ji, fu, yue, gou, cha, qijia dao, langxian, tangpa, gong, nu, niaochong, longdeng, lingqi, wokou dao, dun, tengpai; cells 19-20 empty",
+      "background": "transparent alpha requested; alpha present, high antialiasing remains",
+      "status": "research only; inspect item identity/count, normalize to pixel grid, and establish held-prop anchors"
+    },
+    {
+      "file": "ground_body_actions_v3.png",
+      "original": "exec-4400772c-a64f-458f-930d-86aea85d63fa.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "grid": [
+        8,
+        6
+      ],
+      "content": "style-matched base militia body in plain tunic and trousers; 8 frames across each idle, walk, saber, overhead polearm, spear, and bow-action row",
+      "background": "transparent alpha requested and present; anti-aliased color fringing remains",
+      "status": "candidate production input; test per-frame pivot before baking CharacterForge output"
+    },
+    {
+      "file": "armor_chestplates_atlas.png",
+      "original": "exec-d3b94e6c-f95b-4b42-8ad6-6eb0844e278e.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        8,
+        2
+      ],
+      "content": "16 chest armor/vest variants isolated from people, mapped for faction-style outfit overlays",
+      "background": "transparent alpha requested and present; edges require alpha threshold and crop normalization",
+      "status": "candidate production input; fixed chest anchor must be verified across motion rows"
+    },
+    {
+      "file": "headwear_atlas_v2.png",
+      "original": "exec-ab6dc8ee-3f49-4645-9fce-8514c3c9c05a.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        8,
+        2
+      ],
+      "content": "16 standalone historical helmets, headwraps, kasa and caps",
+      "background": "transparent alpha requested and present; 16-cell approximate grid",
+      "status": "candidate production input; head anchor must be verified on all action frames"
+    },
+    {
+      "file": "architecture_atlas_model_v1_source.png",
+      "original": "exec-c61b1140-f1fa-467e-925a-8763be4ecdb5.png",
+      "size": [
+        1448,
+        1086
+      ],
+      "grid": [
+        8,
+        6
+      ],
+      "content": "48 modular architecture source cells in the exact row-major order of game/data/yongchang_tiles.json; 47 generated wall/gate/roof/house-detail tiles and one vertical bridge railing retained from the prior atlas",
+      "background": "RGBA source with alpha; generated edge artifacts reduced by alpha threshold 128 during slicing",
+      "status": "runtime source for game/assets/tiles/yongchang/architecture_atlas_ai_v1.png; 47 generated tiles sliced to 32x32, one vertical bridge railing preserved from prior atlas; representative joins remain imperfect and map placements follow the QA notes"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "full_sprite_concepts_v2.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        2,
+        2
+      ],
+      "content": "four complete character design references: Ming infantry, Wokou infantry, Ming standard-bearer, and mounted Ming lancer",
+      "background": "transparent alpha",
+      "status": "reference only; extracted to individual review crops; only the recipe-matched Wang Lu set was selected for runtime"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "full_walk_archetypes_v1.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        8,
+        4
+      ],
+      "content": "eight-frame complete walking strips for Ming infantry, Wokou infantry, Ming standard-bearer, and mounted Ming lancer",
+      "background": "transparent alpha",
+      "status": "research reference; motion is visible but no fixed recipe mapping yet"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "modular_parts_concepts_v1.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "grid": [
+        6,
+        4
+      ],
+      "content": "first modular equipment-category sheet",
+      "background": "opaque gradient",
+      "status": "rejected for slicing because background is opaque and cells overlap"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "modular_parts_v2.png",
+      "size": [
+        1261,
+        1247
+      ],
+      "grid": [
+        4,
+        4
+      ],
+      "content": "isolated headgear, upper armor, lower clothing, weapons, banner, and spear grouped by four archetype rows",
+      "background": "transparent alpha",
+      "status": "research only; clear cell crops but action pose and grip anchors do not match the CharacterForge rig"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "wanglu_idle_strip_v1.png",
+      "size": [
+        2172,
+        724
+      ],
+      "grid": [
+        4,
+        1
+      ],
+      "content": "complete recipe-matched Wang Lu with dao and round rattan shield; four subtle idle frames",
+      "background": "transparent alpha",
+      "status": "runtime source for the exact Ming tan/navy-green/common-headwrap/dao/dun recipe; sliced and nearest-neighbor normalized by bake_battle_sprites.py"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "wanglu_walk_strip_v1.png",
+      "size": [
+        2172,
+        724
+      ],
+      "grid": [
+        8,
+        1
+      ],
+      "content": "complete recipe-matched Wang Lu with dao and round rattan shield; eight walk frames",
+      "background": "transparent alpha",
+      "status": "runtime source for the exact Ming tan/navy-green/common-headwrap/dao/dun recipe; sliced and nearest-neighbor normalized by bake_battle_sprites.py"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "walk_base_v3_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "content": "unarmed Ming coastal militia base body, eight walking cycle frames; chroma green background",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; slice, inspect and bind to body layer"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "ground_attack_bodies_v3_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        6,
+        5
+      ],
+      "content": "unarmed base body motion atlas; five rows of six empty-hand attack/guard action frames",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; inspect action continuity and rig compatibility"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "mounted_action_bodies_v1_source.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        6,
+        3
+      ],
+      "content": "unarmed seated rider body action atlas; saber-like swing, thrust and bow gestures without horse or props",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; inspect seated pose and action continuity"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "horse_gaits_v5_source.png",
+      "size": [
+        2048,
+        768
+      ],
+      "grid": [
+        8,
+        3
+      ],
+      "content": "three horse coats, eight independent gait frames each; horses without tack or riders",
+      "background": "flat chroma cyan #00ffff",
+      "status": "candidate; inspect gait and normalize at 128px"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "weapons_atlas_v5_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        4,
+        4
+      ],
+      "content": "sixteen standalone Ming-era weapons, rattan shield, bows, crossbow, matchlock, cannon and signal flag",
+      "background": "flat chroma magenta #ff00ff",
+      "status": "candidate; inspect cells and map available items"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "equipment_atlas_v1_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        4,
+        4
+      ],
+      "content": "modular torso garments, headwear and backgear; no bodies",
+      "background": "flat chroma magenta #ff00ff",
+      "status": "candidate; inspect faction-specific layers and anchors"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "fort_tile_parts_v2_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        4,
+        4
+      ],
+      "content": "Yongchang coastal fort wall, gate, arrow tower, roofs, house, bridge, road and canal tile-part concepts",
+      "background": "flat chroma green #00ff00",
+      "status": "research; inspect adjacency before map use"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "arrow_towers_v1_source.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        4,
+        1
+      ],
+      "content": "four variants of standalone Ming-era arrow tower structure",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate for tower sprites; map to runtime after visual inspection"
+    },
+    {
+      "source": "OpenAI ImageGen edit using walk_base_v3_source.png as pose reference",
+      "file": "ming_walk_clothing_overlay_v1_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "content": "eight frame Ming coastal militia blue-grey lamellar jacket and sleeves overlay; no body",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; inspect compositing against walk_base_v3"
+    },
+    {
+      "source": "OpenAI ImageGen edit using walk_base_v3_source.png as pose reference",
+      "file": "wokou_walk_clothing_overlay_v1_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "content": "eight frame Wokou dark domaru chest and sleeves overlay; no body",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; inspect compositing against walk_base_v3"
+    },
+    {
+      "source": "OpenAI ImageGen edit using ground_attack_bodies_v3_source.png as pose reference",
+      "file": "ming_ground_attack_clothing_overlay_v1_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        6,
+        5
+      ],
+      "content": "thirty-frame Ming chest and sleeves overlay matching ground attack body sheet",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; preserve reference grid and inspect compositing"
+    },
+    {
+      "source": "OpenAI ImageGen edit using ground_attack_bodies_v3_source.png as pose reference",
+      "file": "wokou_ground_attack_clothing_overlay_v1_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        6,
+        5
+      ],
+      "content": "thirty-frame Wokou chest and sleeves overlay matching ground attack body sheet",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; preserve reference grid and inspect compositing"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "horse_tack_v1_source.png",
+      "size": [
+        2048,
+        768
+      ],
+      "grid": [
+        8,
+        3
+      ],
+      "content": "saddle, blanket and bridle overlays in Ming, Wokou and neutral palettes, aligned to horse_gaits_v5_source",
+      "background": "flat chroma cyan #00ffff",
+      "status": "candidate; inspect over corresponding horse frame and keep tack separate"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "rider_base_v1_source.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "content": "eight-frame unarmed rider body seated astride an invisible horse; no mount or tack",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; test layering over independent horse and tack"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "ming_rider_walk_overlay_v1_source.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "content": "Ming armor and sleeve overlays for eight rider walk frames, no body",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; pose-matched overlay for rider_base_v1"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "wokou_rider_walk_overlay_v1_source.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "content": "Wokou armor and sleeve overlays for eight rider walk frames, no body",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; pose-matched overlay for rider_base_v1"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "ming_walk_outfits_v1_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        8,
+        4
+      ],
+      "content": "four Ming outfit families repeated over an eight-frame walk cycle, clothing overlays only",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; inspect cell mapping and body anchors"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "wokou_walk_outfits_v1_source.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        8,
+        4
+      ],
+      "content": "four Wokou outfit families repeated over an eight-frame walk cycle, clothing overlays only",
+      "background": "flat chroma green #00ff00",
+      "status": "candidate; inspect cell mapping and body anchors"
+    }
+  ]
+}

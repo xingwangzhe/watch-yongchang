@@ -35,6 +35,22 @@ MERCENARY_CONTACT_SHEET = Path(__file__).resolve().parent / "mercenary_roster.pn
 REFERENCE_TRIO_SHEET = Path(__file__).resolve().parent / "reference_trio_actions.png"
 REFERENCE_TRIO_IDS = ("agong", "amei", "aqi")
 REFERENCE_TRIO_CLIPS = ("idle", "walk", "attack_1")
+MODEL_REDRAW_DIR = ROOT / "pixel-art" / "model_redraw"
+COMPLETE_SPRITE_FAMILIES = {
+    "ming_lampwatch_shielded_v1": {
+        "recipe": {
+            "faction": "ming",
+            "skin": "tan",
+            "outfit": "ming_navy_green",
+            "headgear": "common_headwrap",
+            "backgear": "none",
+            "weapon": "dao",
+            "offhand": "dun",
+        },
+        "idle": MODEL_REDRAW_DIR / "wanglu_idle_strip_v1.png",
+        "walk": MODEL_REDRAW_DIR / "wanglu_walk_strip_v1.png",
+    }
+}
 
 
 def load_enemies() -> dict:
@@ -61,6 +77,39 @@ def bake_strip(
     for column, frame in enumerate(frames):
         image = forge.compose_recipe_frame(recipe, frame, atlases)
         strip.alpha_composite(image, (column * forge.CELL, 0))
+    return strip
+
+
+def bake_complete_sprite_strip(family_id: str, clip_name: str) -> Image.Image:
+    """Slice one fixed, recipe-matched full-character action strip."""
+    family = COMPLETE_SPRITE_FAMILIES[family_id]
+    source = Image.open(family[clip_name]).convert("RGBA")
+    frame_count = len(clip_frames(clip_name))
+    cell_frames: list[Image.Image] = []
+    for index in range(frame_count):
+        bounds = (
+            round(index * source.width / frame_count),
+            0,
+            round((index + 1) * source.width / frame_count),
+            source.height,
+        )
+        frame = source.crop(bounds)
+        frame.putalpha(frame.getchannel("A").point(lambda alpha: 255 if alpha >= 128 else 0))
+        box = frame.getchannel("A").getbbox()
+        if box is None:
+            raise ValueError(f"empty {family_id}/{clip_name} frame {index}")
+        cell_frames.append(frame.crop(box))
+
+    max_width = max(frame.width for frame in cell_frames)
+    max_height = max(frame.height for frame in cell_frames)
+    scale = min(108 / max_width, 112 / max_height)
+    strip = Image.new("RGBA", (forge.CELL * frame_count, forge.CELL), (0, 0, 0, 0))
+    for index, frame in enumerate(cell_frames):
+        size = (max(1, round(frame.width * scale)), max(1, round(frame.height * scale)))
+        resized = frame.resize(size, Image.Resampling.NEAREST)
+        target = Image.new("RGBA", (forge.CELL, forge.CELL), (0, 0, 0, 0))
+        target.alpha_composite(resized, ((forge.CELL - resized.width) // 2, 120 - resized.height))
+        strip.alpha_composite(target, (index * forge.CELL, 0))
     return strip
 
 
@@ -177,6 +226,15 @@ def output_path(resource_path: str) -> Path:
     return ROOT / "game" / resource_path.removeprefix("res://")
 
 
+def save_runtime_strip(strip: Image.Image, output: Path) -> None:
+    """Keep PNG as the editable bake source; Bun derives referenced WebP files."""
+    output.parent.mkdir(parents=True, exist_ok=True)
+    if output.suffix.lower() == ".webp":
+        strip.save(output.with_suffix(".png"), optimize=True)
+        return
+    strip.save(output, optimize=True)
+
+
 def main() -> None:
     enemies = load_enemies()
     characters = json.loads(CHARACTER_DATA.read_text(encoding="utf-8")).get("characters", {})
@@ -212,15 +270,25 @@ def main() -> None:
             continue
         if str(recipe.get("faction", "")) != "ming":
             raise ValueError(f"{character_id} must be a Ming battle character")
-        idle = bake_strip(recipe, "idle", atlases)
-        walk = bake_strip(recipe, "walk", atlases)
+        family_id = str(recipe.get("complete_sprite_family", ""))
+        if family_id:
+            family = COMPLETE_SPRITE_FAMILIES.get(family_id)
+            if family is None:
+                raise ValueError(f"unknown complete sprite family: {family_id}")
+            expected_recipe = family["recipe"]
+            if any(str(recipe.get(key, "")) != value for key, value in expected_recipe.items()):
+                raise ValueError(f"{character_id} recipe does not match {family_id}")
+            idle = bake_complete_sprite_strip(family_id, "idle")
+            walk = bake_complete_sprite_strip(family_id, "walk")
+        else:
+            idle = bake_strip(recipe, "idle", atlases)
+            walk = bake_strip(recipe, "walk", atlases)
         for clip_name, strip, path_key, frames_key in (
             ("idle", idle, "battle_idle", "battle_idle_frames"),
             ("walk", walk, "battle_walk", "battle_walk_frames"),
         ):
             output = output_path(str(definition[path_key]))
-            output.parent.mkdir(parents=True, exist_ok=True)
-            strip.save(output, optimize=True)
+            save_runtime_strip(strip, output)
             if int(definition.get(frames_key, 0)) != len(clip_frames(clip_name)):
                 raise ValueError(
                     f"{character_id} {clip_name} frame count does not match "
@@ -244,8 +312,7 @@ def main() -> None:
             ("walk", walk, "battle_walk", "battle_walk_frames"),
         ):
             output = output_path(str(definition[path_key]))
-            output.parent.mkdir(parents=True, exist_ok=True)
-            strip.save(output, optimize=True)
+            save_runtime_strip(strip, output)
             if int(definition.get(frames_key, 0)) != len(clip_frames(clip_name)):
                 raise ValueError(
                     f"{mercenary_id} {clip_name} frame count does not match "

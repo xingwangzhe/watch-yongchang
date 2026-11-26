@@ -44,6 +44,13 @@ const UNIT_SEPARATION_WEIGHT := 0.62
 # 而不是物理卡进去后才靠 stuck 恢复硬挤。这是用户要求的「碰撞检测大一点」。
 const ENEMY_CLEARANCE_MULT := 1.42
 const STUCK_RECOVERY_SECONDS := 0.34
+const ENEMY_OBSTACLE_STEER_ANGLES := [
+	0.4537856055185257, -0.4537856055185257,
+	0.8726646259971648, -0.8726646259971648,
+	1.2915436464758039, -1.2915436464758039,
+	1.780235837034216, -1.780235837034216,
+	2.303834612632515, -2.303834612632515,
+]
 const ENEMY_NAV_REFRESH_WEB := 0.34
 const ENEMY_NAV_REFRESH_NATIVE := 0.20
 const ENEMY_SEPARATION_REFRESH := 0.12
@@ -55,12 +62,12 @@ const VARIANT_CATALOG_PATH := "res://data/enemy_variants.json"
 # 与「装备随机组合」的要求冲突；全部变体合计约 5MB，常驻内存可接受。
 const VARIANTS_PER_ENEMY := 0
 const VARIANT_RECENT_MEMORY := 5
-# Web (WebGL2) has no reliable GPU headroom on low-end devices; cap the live
-# crowd lower there while keeping the full native budget for desktop builds.
+# Web is single-threaded and its renderer varies widely across mobile browsers;
+# cap the live crowd to preserve room for animation, UI, and touch input.
 const MAX_ALIVE_ENEMIES_NATIVE := 460
-# Web 单线程绘制成本远高于原生。降低同屏敌人数并配合特效上限，
-# 保证大量敌人同时受击时不会掉到个位数帧率。
+# Web has a smaller crowd budget than desktop; mobile browsers get a lower cap.
 const MAX_ALIVE_ENEMIES_WEB := 180
+const MAX_ALIVE_ENEMIES_MOBILE_WEB := 120
 const FX_CAPACITY_NATIVE := 180
 const FX_CAPACITY_WEB := 64
 
@@ -146,6 +153,7 @@ var _enemy_shot_core_batch: MultiMesh
 var _player_moving := false
 var _last_player_pos := Vector2.ZERO
 var _flow_timer := 0.0
+var _world_perf_parts: Dictionary = {}
 
 
 func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) -> void:
@@ -891,6 +899,10 @@ func reset(seed_value: int = 20261123) -> void:
 
 
 func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.0) -> void:
+	var measure_parts := OS.has_environment("WATCH_RUN_WORLD_BREAKDOWN")
+	if measure_parts:
+		_world_perf_parts.clear()
+	var part_started := Time.get_ticks_usec() if measure_parts else 0
 	time += delta
 	player_pos = player.get("pos", Vector2.ZERO) as Vector2
 	_flow_timer -= delta
@@ -910,10 +922,22 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	_screen_clear_timer = maxf(0.0, _screen_clear_timer - delta)
 	_dragon_phase += delta * 1.7
 	_rebuild_spatial()
+	if measure_parts:
+		_world_perf_parts["spatial_us"] = Time.get_ticks_usec() - part_started
+		part_started = Time.get_ticks_usec()
 	_update_towers(delta)
 	_revive_towers(delta)
+	if measure_parts:
+		_world_perf_parts["towers_us"] = Time.get_ticks_usec() - part_started
+		part_started = Time.get_ticks_usec()
 	_update_allies(delta, player)
+	if measure_parts:
+		_world_perf_parts["allies_us"] = Time.get_ticks_usec() - part_started
+		part_started = Time.get_ticks_usec()
 	_update_enemies(delta, player, enemy_speed_mult)
+	if measure_parts:
+		_world_perf_parts["enemies_us"] = Time.get_ticks_usec() - part_started
+		part_started = Time.get_ticks_usec()
 	_update_player_shots(delta)
 	_update_tower_shots(delta)
 	_update_enemy_shots(delta, player)
@@ -924,6 +948,8 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	_update_wade_splashes(delta)
 	_cleanup_dead()
 	queue_redraw()
+	if measure_parts:
+		_world_perf_parts["other_us"] = Time.get_ticks_usec() - part_started
 
 
 ## 流场只在渲染帧推进一次，避免低帧补两步时把 BFS 成本翻倍。
@@ -965,7 +991,16 @@ func _update_wade_splashes(delta: float) -> void:
 
 
 func max_alive_enemies() -> int:
-	return MAX_ALIVE_ENEMIES_WEB if GameSettings.is_web_platform() else MAX_ALIVE_ENEMIES_NATIVE
+	var mobile_web := OS.has_feature("web_android") or OS.has_feature("web_ios")
+	return enemy_cap_for_platform(GameSettings.is_web_platform(), mobile_web)
+
+
+static func enemy_cap_for_platform(is_web: bool, is_mobile_web: bool) -> int:
+	if is_web and is_mobile_web:
+		return MAX_ALIVE_ENEMIES_MOBILE_WEB
+	if is_web:
+		return MAX_ALIVE_ENEMIES_WEB
+	return MAX_ALIVE_ENEMIES_NATIVE
 
 
 func spawn_enemy(enemy_id: String, center: Vector2, elite_color: String = "") -> int:
@@ -2335,9 +2370,8 @@ func _enemy_obstacle_steering(
 		return Vector2.ZERO
 	# 当前位置已经卡在障碍内时，旧实现直接返回 ZERO 任其原地抖动。
 	# 现在改为主动找一条能离开当前格、且通向目标的偏转方向。
-	var angles := [26.0, -26.0, 50.0, -50.0, 74.0, -74.0, 102.0, -102.0, 132.0, -132.0]
-	for angle in angles:
-		var candidate := navigation.rotated(deg_to_rad(angle))
+	for angle_radians in ENEMY_OBSTACLE_STEER_ANGLES:
+		var candidate := navigation.rotated(angle_radians)
 		if _enemy_path_clear(
 			position,
 			position + candidate * lookahead,

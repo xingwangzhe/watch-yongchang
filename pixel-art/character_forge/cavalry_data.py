@@ -29,6 +29,8 @@ MOUNTS = [
         "idle_frames": IDLE_FRAMES,
         "walk_frames": WALK_FRAMES,
         "gait": "diagonal_trot",
+        "model_art_source": "pixel-art/model_redraw/horse_motion_v4.png",
+        "model_art_row": 0,
         "anchor": {"x": 64, "y": 122},
         "palette": {
             "coat_dark": "#451c16",
@@ -56,6 +58,8 @@ MOUNTS = [
         "idle_frames": IDLE_FRAMES,
         "walk_frames": WALK_FRAMES,
         "gait": "diagonal_trot",
+        "model_art_source": "pixel-art/model_redraw/horse_motion_v4.png",
+        "model_art_row": 1,
         "anchor": {"x": 64, "y": 122},
         "palette": {
             "coat_dark": "#111319",
@@ -83,6 +87,8 @@ MOUNTS = [
         "idle_frames": IDLE_FRAMES,
         "walk_frames": WALK_FRAMES,
         "gait": "diagonal_trot",
+        "model_art_source": "pixel-art/model_redraw/horse_motion_v4.png",
+        "model_art_row": 2,
         "anchor": {"x": 64, "y": 122},
         "palette": {
             "coat_dark": "#4d4f4d",

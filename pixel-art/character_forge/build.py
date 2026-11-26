@@ -27,6 +27,8 @@ from PIL import Image, ImageDraw, ImageFont
 Image.MAX_IMAGE_PIXELS = None
 
 ROOT = Path(__file__).resolve().parents[2]
+MODEL_WEAPON_ATLAS = ROOT / "pixel-art" / "model_redraw" / "slices_v3" / "weapons_atlas_v5"
+LEGACY_MODEL_WEAPON_ATLAS = ROOT / "pixel-art" / "character_forge" / "source" / "weapons_modular_v4.png"
 sys.path.insert(0, str(ROOT / "skills" / "pixel-art-studio" / "scripts"))
 
 from pixelstudio import Sprite  # noqa: E402
@@ -714,6 +716,120 @@ class Canvas(Sprite):
             super().rect(int(x0), int(y0), int(x1), int(y1), args[2])
             return
         super().rect(*args)
+
+
+_MODEL_WEAPON_IDS = ["dao", "jian", "qiang", "ji", "fu", "yue", "gou", "cha",
+                     "qijia_dao", "langxian", "tangpa", "gong", "nu", "niaochong",
+                     "longdeng", "lingqi", "wokou_dao", "dun", "tengpai"]
+_MODEL_WEAPON_GRIPS = {
+    # Fractions inside each isolated source cell, measured at the visible handle.
+    "dao": (.19, .79), "jian": (.18, .81), "qiang": (.25, .84), "ji": (.22, .86),
+    "fu": (.22, .84), "yue": (.22, .86), "gou": (.22, .84), "cha": (.22, .85),
+    "qijia_dao": (.18, .82), "langxian": (.20, .85), "gong": (.50, .50),
+    "nu": (.22, .82), "niaochong": (.22, .84), "longdeng": (.20, .84),
+    "lingqi": (.16, .87), "wokou_dao": (.18, .82), "dun": (.50, .50),
+    "tengpai": (.50, .50),
+}
+_MODEL_WEAPON_SOURCE = None
+
+# Row-major cells from the generated, isolated v5 prop sheet. Unsupported
+# legacy props keep their existing generated source until a matching model cell
+# passes the same grip and composition review.
+_MODEL_WEAPON_V5_CELLS = {
+    "dao": 0,
+    "qiang": 1,
+    "jian": 2,
+    "ji": 3,
+    "fu": 4,
+    "yue": 5,
+    "gou": 6,
+    "cha": 7,
+    "dun": 8,
+    "tengpai": 8,
+    "gong": 9,
+    "nu": 10,
+    "niaochong": 11,
+    "qijia_dao": 0,
+    "tangpa": 14,
+    "lingqi": 15,
+}
+_MODEL_WEAPON_V5_GRIPS = {
+    "dao": (.15, .86), "qiang": (.12, .92), "jian": (.14, .86),
+    "ji": (.12, .92), "fu": (.18, .90), "yue": (.50, .90),
+    "gou": (.50, .86), "cha": (.50, .92), "dun": (.50, .50),
+    "tengpai": (.50, .50), "gong": (.50, .50), "nu": (.18, .86),
+    "niaochong": (.18, .90), "qijia_dao": (.15, .86),
+    "tangpa": (.50, .92), "lingqi": (.16, .92),
+}
+_MODEL_WEAPON_V5_VERTICAL = {"yue", "gou", "cha", "tangpa", "lingqi"}
+
+
+def _model_weapon_source(item_id: str) -> tuple[Image.Image, tuple[float, float]] | None:
+    """Return a sliced generated prop, with the older sheet as a narrow fallback."""
+    global _MODEL_WEAPON_SOURCE
+    if item_id not in _MODEL_WEAPON_IDS:
+        return None
+    try:
+        if item_id in _MODEL_WEAPON_V5_CELLS:
+            index = _MODEL_WEAPON_V5_CELLS[item_id]
+            cell = Image.open(MODEL_WEAPON_ATLAS / f"weapons_atlas_v5_source_r{index // 4:02d}_c{index % 4:02d}.png").convert("RGBA")
+            gx, gy = _MODEL_WEAPON_V5_GRIPS[item_id]
+        else:
+            if _MODEL_WEAPON_SOURCE is None:
+                _MODEL_WEAPON_SOURCE = Image.open(LEGACY_MODEL_WEAPON_ATLAS).convert("RGBA")
+            index = _MODEL_WEAPON_IDS.index(item_id)
+            atlas = _MODEL_WEAPON_SOURCE
+            x0, x1 = round(index % 5 * atlas.width / 5), round((index % 5 + 1) * atlas.width / 5)
+            y0, y1 = round(index // 5 * atlas.height / 4), round((index // 5 + 1) * atlas.height / 4)
+            cell = atlas.crop((x0, y0, x1, y1))
+            gx, gy = _MODEL_WEAPON_GRIPS[item_id]
+        bbox = cell.getchannel("A").getbbox()
+        if bbox is None:
+            return None
+        cell = cell.crop(bbox)
+        return cell, (gx * cell.width, gy * cell.height)
+    except (OSError, ValueError):
+        return None
+
+
+def draw_model_weapon(s: Sprite, pose: dict, weapon: dict) -> bool:
+    """Slice, scale, rotate and place generated prop art at the pose grip."""
+    source = _model_weapon_source(weapon["id"])
+    if source is None:
+        return False
+    image, grip = source
+    item_id = weapon["id"]
+    target_angle = float(pose["weapon_angle"])
+    if item_id == "gong":
+        # Bow limbs cross the draw direction; align the grip-to-limb axis sideways.
+        target_angle += math.pi / 2
+    target_lengths = {"one_hand": 36, "two_hand": 68, "ranged": 26, "offhand": 31}
+    target_length = target_lengths.get(weapon.get("grip", "one_hand"), 42)
+    if item_id in ("dun", "tengpai"):
+        target_length = 28
+        angle = 0.0
+    elif item_id in _MODEL_WEAPON_V5_CELLS:
+        source_axis = -math.pi / 2 if item_id in _MODEL_WEAPON_V5_VERTICAL else -math.pi / 4
+        angle = target_angle - source_axis
+    else:
+        # The isolated weapon axis runs from lower-left grip toward upper-right tip.
+        angle = target_angle + math.pi / 4
+    scale = target_length / max(1.0, math.hypot(image.width - grip[0], grip[1]))
+    out_w, out_h = max(1, round(image.width * scale)), max(1, round(image.height * scale))
+    image = image.resize((out_w, out_h), Image.Resampling.NEAREST)
+    gx, gy = grip[0] * scale, grip[1] * scale
+    c, sn = math.cos(angle), math.sin(angle)
+    a, b = c, sn
+    d, e = -sn, c
+    hx, hy = pose["near_hand"]
+    if pose.get("offhand"):
+        hx, hy = pose["near_hand"]
+    coeffs = (a, b, gx - a * hx - b * hy, d, e, gy - d * hx - e * hy)
+    transformed = image.transform((CELL, CELL), Image.Transform.AFFINE, coeffs,
+                                  resample=Image.Resampling.NEAREST,
+                                  fillcolor=(0, 0, 0, 0))
+    s._img().alpha_composite(transformed)
+    return True
 
 
 def add(a: tuple[float, float], b: tuple[float, float]) -> tuple[float, float]:
@@ -4352,6 +4468,8 @@ def draw_weapon_lingqi(s: Sprite, pose: dict) -> None:
 
 
 def draw_weapon_layer(s: Sprite, pose: dict, weapon: dict) -> None:
+    if draw_model_weapon(s, pose, weapon):
+        return
     kind = weapon["kind"]
     if kind == "dao":
         draw_weapon_dao(s, pose)

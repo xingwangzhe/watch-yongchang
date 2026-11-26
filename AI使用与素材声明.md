@@ -5,8 +5,8 @@
 | 作品 | 《守望 · 永昌》 / Watch of Yongchang |
 | 作者 | xingwangzhe |
 | 联系方式 | xingwangzhe@outlook.com |
-| 版本 | 1.2.0 |
-| 声明更新 | 2026-11-26 |
+| 版本 | 1.6.0 |
+| 声明更新 | 2026-11-27 |
 | 赛事 | 2026 OSGJ 开源游戏开发大赛 |
 | 代码许可 | AGPL-3.0-or-later |
 | 原创非代码资产 | CC BY 4.0；明确标注的原创音频另可选 CC0 1.0 |
@@ -35,6 +35,7 @@
 |---|---|---|---|
 | OpenAI Codex / WorkBuddy 会话助手 | 编程、重构、测试与文档起草 | GDScript 实现、数据表结构、GUT 用例、构建与部署文档、双语文本草稿 | 作者确定玩法与架构，逐项审查代码、修正实现、运行测试并验收界面；不以模型输出替代人工确认 |
 | WorkBuddy ImageGen | 位图 UI 素材 | UI 图标与面板底图；具体文件以 `素材授权清单.csv` 的生成工具字段为准 | 作者设计风格与提示词，筛掉不合格结果，去背、裁切、缩放并统一接入 UI |
+| OpenAI ImageGen | 完整角色与模块化像素素材 | 永昌堡建筑瓦片（47/48 格）、16 种独立武器、3 种马匹行走图、3 种阵营鞍具、4 座独立箭塔；另生成明军/倭寇步行身体、攻击身体、骑手身体与衣装大图；来源、切分网格和 QA 状态见 `pixel-art/model_redraw/manifest.json` | 作者按项目文化资料确定风格与提示词，筛掉不合格图；用 Pillow 仅做色键去背、裁格、缩放与层合，查看联系表并校验阵营、帧连续性、遮挡和游戏内显示。角色复合图仅用于QA，正式角色仍须满足CharacterForge配方门控 |
 | Pixel Art Studio（MIT） | 程序化像素美术工具链 | 角色、瓦片、主菜单夜景、光标与 UI 控件的确定性绘制脚本和导出图集 | 作者确定画布、调色板、轮廓、帧数与文化取向；每轮看图检查并修改 `build.py`，不手改导出的 PNG |
 | Python / Pillow | 图像生成与图集烘焙 | CharacterForge 部件、待机/行走条、瓦片、UI 控件与验收合图 | 作者检查关节、握持、阵营隔离、帧连续性和实际 Godot 场景显示 |
 | tesseract、trafilatura、pdftotext | 文化资料检索与文本化 | 仅用于地方史、汤和信俗与永昌堡资料的本地研究 | 作者核对人物、年代、地点与叙事边界；原始 PDF、OCR、缩略图和联系表不随仓库或发行版分发 |
@@ -56,7 +57,9 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
   武器和副手图集。由 `pixel-art/character_forge/build.py` 按确定性规则绘制。
 - `game/assets/units/forge/`：正式角色、敌兵与佣兵的待机/行走条。由
   `pixel-art/character_forge/bake_battle_sprites.py` 从合法
-  `character_recipe` 烘焙；战斗、选择页与序章只使用这些文件。
+  `character_recipe` 烘焙；战斗、选择页与序章只使用这些文件。王陆均衡位是完整
+  图到配方烘焙的首个样例：AI 图源只绑定明军/棕肤/海军绿服/布头巾/腰刀/藤牌这条
+  精确配方；其余阵位与单位仍由模块图集组合。
 - `game/assets/units/forge/enemy_variants/`：九类敌兵共 144 组随机外观变体，
   由 `pixel-art/character_forge/bake_enemy_variants.py` 从合法
   `character_recipe` 烘焙（8 帧 128×128，步行/骑乘、12 种武器、10 种服装、
@@ -65,9 +68,15 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
   条带纹理，不额外复制像素。
 - `game/assets/units/forge/cavalry/`：3 种未骑乘马与 6 个骑手变体，每种
   4 帧待机 + 8 帧行走。由 `pixel-art/character_forge/build_cavalry.py` 与
-  `cavalry_data.py` 按斜对角快步、马身分层和骑手滞后一帧绘制；战斗、佣兵与
+  `cavalry_data.py` 烘焙；马匹行走帧来自 `pixel-art/model_redraw/horse_motion_v4.png`
+  （OpenAI ImageGen，3 种毛色 × 8 帧），骑手服装、头饰、背挂与兵器仍由
+  CharacterForge 配方绘制，待机马匹与缰具/鞍具按程序化层绘制。战斗、佣兵与
   图鉴只读取这些正式条带，禁止手改导出的 PNG。
-- `game/assets/tiles/yongchang/`：原创明式抗倭瓦片与环境动效。
+- `game/assets/tiles/yongchang/`：地形、道具与环境动效由项目程序化绘制；
+  `architecture_atlas_ai_v1.png` 有 47 格来自 OpenAI ImageGen，
+  `wood_railing_vertical` 保留原图以维持桥栏杆接缝。切片流程在
+  `pixel-art/model_redraw/qa_architecture_atlas_v1.py`，输出 32×32 格，
+  再由 `map_renderer.gd` 按现有 48 个瓦片 ID 拼接。方向和重复限制见 QA 文档。
 - `game/assets/ui/menu_*.png`、`watch_cursor.png`：原创主菜单分层夜景与游戏光标。
 - `game/assets/**/*.webp`：由 `tools/optimize_runtime_images.ts` 从对应 PNG
   源图确定性派生的运行时纹理；像素画使用无损 WebP，面板底图使用近无损 WebP。
@@ -75,8 +84,9 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 - `game/assets/icons/game_icons/`：第三方 game-icons.net SVG，不是 AI 生成；
   运行时仅着色，不改变图形。
 
-以上像素资产不是扩散模型生成的成品图。AI 参与的是绘制代码与工作流编写，
-美术结果由可重跑的 Python/Pillow 规则生成并由作者逐轮视觉验收。
+除已登记的 `architecture_atlas_ai_v1.png` 外，角色与其他像素资产仍由项目脚本
+确定性绘制或烘焙。模型生成图只作为输入源；切片、alpha 阈值和最近邻缩放可重跑，
+作者检查图集、地图拼接与游戏场景后才登记为运行时素材。其他候选图仍只供研究。
 
 ### 3.2 文本、数据与剧情
 

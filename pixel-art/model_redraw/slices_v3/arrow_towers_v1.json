@@ -1,0 +1,107 @@
+{
+  "source": "/home/xingwangzhe/\u684c\u9762/2026\u6e38\u620f\u8d5b\u4e8b/pixel-art/model_redraw/arrow_towers_v1_source.png",
+  "source_size": [
+    1774,
+    887
+  ],
+  "grid": [
+    4,
+    1
+  ],
+  "source_background": "flat chroma green #00ff00",
+  "alpha_threshold": null,
+  "chroma_key": "00ff00",
+  "key_tolerance": 150,
+  "fit_content": true,
+  "output_size": [
+    128,
+    128
+  ],
+  "frame_rows": false,
+  "cells": [
+    {
+      "row": 0,
+      "column": 0,
+      "source_bounds": [
+        0,
+        0,
+        444,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        15,
+        5,
+        112,
+        123
+      ],
+      "alpha_coverage": 0.49628
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "source_bounds": [
+        444,
+        0,
+        887,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        15,
+        5,
+        112,
+        123
+      ],
+      "alpha_coverage": 0.49658
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "source_bounds": [
+        887,
+        0,
+        1330,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        15,
+        5,
+        112,
+        123
+      ],
+      "alpha_coverage": 0.4953
+    },
+    {
+      "row": 0,
+      "column": 3,
+      "source_bounds": [
+        1330,
+        0,
+        1774,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        15,
+        5,
+        112,
+        123
+      ],
+      "alpha_coverage": 0.4967
+    }
+  ]
+}

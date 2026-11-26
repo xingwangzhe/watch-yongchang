@@ -22,7 +22,7 @@
       ]
     },
     "architecture": {
-      "path": "res://assets/tiles/yongchang/architecture_atlas.png",
+      "path": "res://assets/tiles/yongchang/architecture_atlas_ai_v1.png",
       "columns": 8,
       "rows": 6,
       "tiles": [

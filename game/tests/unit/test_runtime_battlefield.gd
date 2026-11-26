@@ -3,6 +3,12 @@ extends GutTest
 const CELL := 128
 
 
+func test_enemy_caps_keep_desktop_design_and_limit_mobile_web_crowds() -> void:
+	assert_eq(Battlefield.enemy_cap_for_platform(false, false), 460)
+	assert_eq(Battlefield.enemy_cap_for_platform(true, false), 180)
+	assert_eq(Battlefield.enemy_cap_for_platform(true, true), 120)
+
+
 func test_cavalry_enemy_rolls_melee_and_ranged_forge_variants() -> void:
 	var field := Battlefield.new()
 	add_child_autofree(field)

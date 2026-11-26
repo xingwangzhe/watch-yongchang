@@ -2696,6 +2696,8 @@
       "idle_frames": 4,
       "walk_frames": 8,
       "gait": "diagonal_trot",
+      "model_art_source": "pixel-art/model_redraw/horse_motion_v4.png",
+      "model_art_row": 0,
       "anchor": {
         "x": 64,
         "y": 122
@@ -2735,6 +2737,8 @@
       "idle_frames": 4,
       "walk_frames": 8,
       "gait": "diagonal_trot",
+      "model_art_source": "pixel-art/model_redraw/horse_motion_v4.png",
+      "model_art_row": 1,
       "anchor": {
         "x": 64,
         "y": 122
@@ -2774,6 +2778,8 @@
       "idle_frames": 4,
       "walk_frames": 8,
       "gait": "diagonal_trot",
+      "model_art_source": "pixel-art/model_redraw/horse_motion_v4.png",
+      "model_art_row": 2,
       "anchor": {
         "x": 64,
         "y": 122

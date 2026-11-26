@@ -1,0 +1,197 @@
+{
+  "source": "/home/xingwangzhe/\u684c\u9762/2026\u6e38\u620f\u8d5b\u4e8b/pixel-art/model_redraw/rider_base_v1_source.png",
+  "source_size": [
+    1774,
+    887
+  ],
+  "grid": [
+    4,
+    2
+  ],
+  "source_background": "flat chroma green #00ff00",
+  "alpha_threshold": null,
+  "chroma_key": "00ff00",
+  "key_tolerance": 150,
+  "fit_content": true,
+  "output_size": [
+    128,
+    128
+  ],
+  "frame_rows": true,
+  "cells": [
+    {
+      "row": 0,
+      "column": 0,
+      "source_bounds": [
+        0,
+        0,
+        444,
+        444
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        26,
+        5,
+        102,
+        123
+      ],
+      "alpha_coverage": 0.28613
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "source_bounds": [
+        444,
+        0,
+        887,
+        444
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        5,
+        99,
+        123
+      ],
+      "alpha_coverage": 0.27979,
+      "changed_fraction_from_previous": 0.18292
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "source_bounds": [
+        887,
+        0,
+        1330,
+        444
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        5,
+        99,
+        123
+      ],
+      "alpha_coverage": 0.27759,
+      "changed_fraction_from_previous": 0.13495
+    },
+    {
+      "row": 0,
+      "column": 3,
+      "source_bounds": [
+        1330,
+        0,
+        1774,
+        444
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        29,
+        5,
+        99,
+        123
+      ],
+      "alpha_coverage": 0.2879,
+      "changed_fraction_from_previous": 0.14868
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "source_bounds": [
+        0,
+        444,
+        444,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        30,
+        5,
+        98,
+        123
+      ],
+      "alpha_coverage": 0.27655
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "source_bounds": [
+        444,
+        444,
+        887,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        30,
+        5,
+        97,
+        123
+      ],
+      "alpha_coverage": 0.2782,
+      "changed_fraction_from_previous": 0.13879
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "source_bounds": [
+        887,
+        444,
+        1330,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        28,
+        5,
+        99,
+        123
+      ],
+      "alpha_coverage": 0.27649,
+      "changed_fraction_from_previous": 0.15027
+    },
+    {
+      "row": 1,
+      "column": 3,
+      "source_bounds": [
+        1330,
+        444,
+        1774,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        26,
+        5,
+        101,
+        123
+      ],
+      "alpha_coverage": 0.28131,
+      "changed_fraction_from_previous": 0.15668
+    }
+  ]
+}

@@ -1,0 +1,416 @@
+{
+  "source": "/home/xingwangzhe/\u684c\u9762/2026\u6e38\u620f\u8d5b\u4e8b/pixel-art/model_redraw/mounted_action_bodies_v1_source.png",
+  "source_size": [
+    1774,
+    887
+  ],
+  "grid": [
+    6,
+    3
+  ],
+  "source_background": "flat chroma green #00ff00",
+  "alpha_threshold": null,
+  "chroma_key": "00ff00",
+  "key_tolerance": 150,
+  "fit_content": true,
+  "output_size": [
+    128,
+    128
+  ],
+  "frame_rows": true,
+  "cells": [
+    {
+      "row": 0,
+      "column": 0,
+      "source_bounds": [
+        0,
+        0,
+        296,
+        296
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        23,
+        5,
+        104,
+        123
+      ],
+      "alpha_coverage": 0.30511
+    },
+    {
+      "row": 0,
+      "column": 1,
+      "source_bounds": [
+        296,
+        0,
+        591,
+        296
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        24,
+        5,
+        104,
+        123
+      ],
+      "alpha_coverage": 0.29865,
+      "changed_fraction_from_previous": 0.18115
+    },
+    {
+      "row": 0,
+      "column": 2,
+      "source_bounds": [
+        591,
+        0,
+        887,
+        296
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        24,
+        5,
+        103,
+        123
+      ],
+      "alpha_coverage": 0.30804,
+      "changed_fraction_from_previous": 0.23145
+    },
+    {
+      "row": 0,
+      "column": 3,
+      "source_bounds": [
+        887,
+        0,
+        1183,
+        296
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        23,
+        5,
+        104,
+        123
+      ],
+      "alpha_coverage": 0.28253,
+      "changed_fraction_from_previous": 0.23395
+    },
+    {
+      "row": 0,
+      "column": 4,
+      "source_bounds": [
+        1183,
+        0,
+        1478,
+        296
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        19,
+        5,
+        108,
+        123
+      ],
+      "alpha_coverage": 0.30933,
+      "changed_fraction_from_previous": 0.24432
+    },
+    {
+      "row": 0,
+      "column": 5,
+      "source_bounds": [
+        1478,
+        0,
+        1774,
+        296
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        22,
+        5,
+        105,
+        123
+      ],
+      "alpha_coverage": 0.31531,
+      "changed_fraction_from_previous": 0.26324
+    },
+    {
+      "row": 1,
+      "column": 0,
+      "source_bounds": [
+        0,
+        296,
+        296,
+        591
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        23,
+        5,
+        104,
+        123
+      ],
+      "alpha_coverage": 0.30353
+    },
+    {
+      "row": 1,
+      "column": 1,
+      "source_bounds": [
+        296,
+        296,
+        591,
+        591
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        23,
+        5,
+        105,
+        123
+      ],
+      "alpha_coverage": 0.30347,
+      "changed_fraction_from_previous": 0.16608
+    },
+    {
+      "row": 1,
+      "column": 2,
+      "source_bounds": [
+        591,
+        296,
+        887,
+        591
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        23,
+        5,
+        105,
+        123
+      ],
+      "alpha_coverage": 0.31299,
+      "changed_fraction_from_previous": 0.17255
+    },
+    {
+      "row": 1,
+      "column": 3,
+      "source_bounds": [
+        887,
+        296,
+        1183,
+        591
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        15,
+        5,
+        112,
+        123
+      ],
+      "alpha_coverage": 0.33405,
+      "changed_fraction_from_previous": 0.34998
+    },
+    {
+      "row": 1,
+      "column": 4,
+      "source_bounds": [
+        1183,
+        296,
+        1478,
+        591
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        14,
+        5,
+        113,
+        123
+      ],
+      "alpha_coverage": 0.33478,
+      "changed_fraction_from_previous": 0.22876
+    },
+    {
+      "row": 1,
+      "column": 5,
+      "source_bounds": [
+        1478,
+        296,
+        1774,
+        591
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        23,
+        5,
+        105,
+        123
+      ],
+      "alpha_coverage": 0.30524,
+      "changed_fraction_from_previous": 0.38141
+    },
+    {
+      "row": 2,
+      "column": 0,
+      "source_bounds": [
+        0,
+        591,
+        296,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        23,
+        5,
+        105,
+        123
+      ],
+      "alpha_coverage": 0.30701
+    },
+    {
+      "row": 2,
+      "column": 1,
+      "source_bounds": [
+        296,
+        591,
+        591,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        23,
+        5,
+        105,
+        123
+      ],
+      "alpha_coverage": 0.31055,
+      "changed_fraction_from_previous": 0.18903
+    },
+    {
+      "row": 2,
+      "column": 2,
+      "source_bounds": [
+        591,
+        591,
+        887,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        17,
+        5,
+        111,
+        123
+      ],
+      "alpha_coverage": 0.32855,
+      "changed_fraction_from_previous": 0.3017
+    },
+    {
+      "row": 2,
+      "column": 3,
+      "source_bounds": [
+        887,
+        591,
+        1183,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        13,
+        5,
+        114,
+        123
+      ],
+      "alpha_coverage": 0.33374,
+      "changed_fraction_from_previous": 0.19043
+    },
+    {
+      "row": 2,
+      "column": 4,
+      "source_bounds": [
+        1183,
+        591,
+        1478,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        9,
+        5,
+        118,
+        123
+      ],
+      "alpha_coverage": 0.33923,
+      "changed_fraction_from_previous": 0.31982
+    },
+    {
+      "row": 2,
+      "column": 5,
+      "source_bounds": [
+        1478,
+        591,
+        1774,
+        887
+      ],
+      "size": [
+        128,
+        128
+      ],
+      "alpha_bbox": [
+        23,
+        5,
+        105,
+        123
+      ],
+      "alpha_coverage": 0.30548,
+      "changed_fraction_from_previous": 0.27155
+    }
+  ]
+}

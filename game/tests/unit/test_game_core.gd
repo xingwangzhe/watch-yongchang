@@ -99,6 +99,34 @@ func test_player_battle_art_uses_forge_recipes_and_baked_strips() -> void:
 			assert_eq(walk.get_width(), int(definition.get("battle_walk_frames", 0)) * cell)
 			assert_eq(idle.get_height(), cell)
 			assert_eq(walk.get_height(), cell)
+	var wanglu: Dictionary = characters["wanglu"]
+	var wanglu_recipe: Dictionary = wanglu["character_recipe"]
+	assert_eq(str(wanglu_recipe.get("complete_sprite_family", "")), "ming_lampwatch_shielded_v1")
+	assert_eq(str(wanglu_recipe.get("outfit", "")), "ming_navy_green")
+	assert_eq(str(wanglu_recipe.get("headgear", "")), "common_headwrap")
+	assert_eq(str(wanglu_recipe.get("weapon", "")), "dao")
+	assert_eq(str(wanglu_recipe.get("offhand", "")), "dun")
+	for source: Dictionary in [
+		{"path": "res://assets/units/forge/players/wanglu/idle.png", "frames": 4},
+		{"path": "res://assets/units/forge/players/wanglu/walk.png", "frames": 8},
+	]:
+		var image := Image.new()
+		assert_eq(
+			image.load_png_from_buffer(FileAccess.get_file_as_bytes(str(source["path"]))),
+			OK
+		)
+		assert_eq(image.get_width(), int(source["frames"]) * 128)
+		assert_eq(image.get_height(), 128)
+		for frame in int(source["frames"]):
+			var visible := false
+			for y in 128:
+				for x in 128:
+					if image.get_pixel(frame * 128 + x, y).a > 0.0:
+						visible = true
+						break
+				if visible:
+					break
+			assert_true(visible, "%s frame %d must contain the complete character" % [source["path"], frame])
 
 
 func test_roster_and_maps_are_complete_and_historically_bounded() -> void:
