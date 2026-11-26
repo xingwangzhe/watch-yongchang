@@ -38,7 +38,7 @@ runs:
       run: |
         set -euo pipefail
         bun install --frozen-lockfile
-        bun run assets:check
+        bun run assets:images -- --check
 
     - name: Restore compiled Web template
       id: template-cache
