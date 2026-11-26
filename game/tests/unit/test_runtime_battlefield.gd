@@ -124,5 +124,6 @@ func test_foot_enemy_spawns_sample_multiple_bounded_variants() -> void:
 		assert_true(draw_id.begins_with("scout_foot_"), "foot spawns must use baked variants")
 		assert_true(field.enemy_sprite_frames.has(draw_id), "%s must be cached" % draw_id)
 		seen[draw_id] = true
-	assert_gte(seen.size(), 2, "spawns must not collapse into one look")
-	assert_lte(seen.size(), 4, "the per-run variant pool must stay batching-friendly")
+	assert_gte(seen.size(), 6, "spawns must sample a wide set of equipment combinations")
+	# 全部烘焙变体都允许出现；绘制仍按 draw_id 分批，无需把视觉池锁死为 4 个。
+	assert_lte(seen.size(), 12, "the baked foot variant pool is capped at 12 looks")

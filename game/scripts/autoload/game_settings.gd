@@ -7,7 +7,9 @@ const DEFAULT_LANGUAGE := "zh"
 const LANGUAGE_CODES := ["zh", "en"]
 const FPS_LIMITS := [30, 60, 90, 120, 144, 240, 0]
 const DEFAULT_FPS_LIMIT := 60
-const DEFAULT_FPS_LIMIT_WEB := 0
+# Web 单线程 WASM 下不限帧会持续跑满主线程、触发浏览器/系统降频，实测更卡。
+# 锁到 60 让固定步长循环有稳定预算，低端设备也能保持可玩帧率。
+const DEFAULT_FPS_LIMIT_WEB := 60
 const DEFAULT_BGM_VOLUME := 0.42
 const RENDERER_AUTO := "auto"
 const RENDERER_VULKAN := "vulkan"

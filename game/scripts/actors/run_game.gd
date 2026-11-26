@@ -260,6 +260,23 @@ func _unhandled_input(event: InputEvent) -> void:
 		set_invincible_mode(not debug_invincible)
 		get_viewport().set_input_as_handled()
 		return
+	if (
+		event is InputEventKey
+		and (event as InputEventKey).pressed
+		and not (event as InputEventKey).echo
+		and (event as InputEventKey).keycode == KEY_F10
+	):
+		# 桌面/Web 测试入口：强制切换触摸摇杆，便于验证移动端 HUD 布局。
+		if is_instance_valid(touch_controls):
+			touch_controls.force_visible = not touch_controls.force_visible
+			touch_controls._apply_visibility()
+			hud.show_banner(
+				"Touch controls: %s" % ("ON" if touch_controls.force_visible else "OFF"),
+				"",
+				1.4
+			)
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("ui_cancel"):
 		_set_pause(not _paused)
 		get_viewport().set_input_as_handled()
@@ -1009,8 +1026,10 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 	if direction.length_squared() <= 0.001:
 		var facing := player.get("facing", Vector2.RIGHT) as Vector2
 		direction = Vector2.RIGHT if facing.x >= 0.0 else Vector2.LEFT
+	# 爆炸/命中类特效需要目标锚点。按武器定义显式标注，而不是按武器类型猜测。
+	# 近战武器即使有目标也保持锚点为零，特效仍环绕主角以体现近战战力。
 	var fx_anchor := Vector2.ZERO
-	if not target.is_empty() and weapon_type in ["projectile", "shotgun"]:
+	if not target.is_empty() and bool(definition.get("ranged_result_fx", weapon_type in ["projectile", "shotgun"])):
 		fx_anchor = target.get("pos", Vector2.ZERO) as Vector2
 	if not target.is_empty() and float(player.get("execute_below", 0.0)) > 0.0:
 		var target_max := maxf(1.0, float(target.get("max_hp", 1.0)))

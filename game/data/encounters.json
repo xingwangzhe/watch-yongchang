@@ -3,7 +3,7 @@
   "events": {
     "militia_cache": {
       "good": true,
-      "refresh_seconds": 72,
+      "refresh_seconds": 30,
       "icon": "res://assets/icons/game_icons/card_heart_armor.svg",
       "title_zh": "义民来投",
       "title_en": "Militia Answers the Lamp",
@@ -13,7 +13,7 @@
     },
     "forge_blessing": {
       "good": true,
-      "refresh_seconds": 78,
+      "refresh_seconds": 32,
       "icon": "res://assets/icons/game_icons/card_torch.svg",
       "title_zh": "炉火未熄",
       "title_en": "The Forge Still Burns",
@@ -25,7 +25,7 @@
     },
     "hidden_oil": {
       "good": true,
-      "refresh_seconds": 64,
+      "refresh_seconds": 26,
       "icon": "res://assets/icons/game_icons/ui_lantern.svg",
       "title_zh": "暗窖灯油",
       "title_en": "Hidden Lamp Oil",
@@ -36,7 +36,7 @@
     },
     "old_records": {
       "good": true,
-      "refresh_seconds": 84,
+      "refresh_seconds": 34,
       "icon": "res://assets/icons/game_icons/card_books.svg",
       "title_zh": "旧堡残卷",
       "title_en": "Records of the Old Fort",
@@ -47,7 +47,7 @@
     },
     "salt_pan_cache": {
       "good": true,
-      "refresh_seconds": 68,
+      "refresh_seconds": 28,
       "icon": "res://assets/icons/game_icons/card_treasure.svg",
       "title_zh": "盐商遗财",
       "title_en": "A Salt Trader's Cache",
@@ -58,7 +58,7 @@
     },
     "miasma": {
       "good": false,
-      "refresh_seconds": 96,
+      "refresh_seconds": 38,
       "icon": "res://assets/icons/game_icons/card_fog.svg",
       "title_zh": "滩雾侵体",
       "title_en": "Marsh Miasma",
@@ -70,7 +70,7 @@
     },
     "ambush": {
       "good": false,
-      "refresh_seconds": 88,
+      "refresh_seconds": 36,
       "icon": "res://assets/icons/game_icons/card_arrow_cluster.svg",
       "title_zh": "芦荡伏兵",
       "title_en": "Ambush in the Reeds",
@@ -83,19 +83,19 @@
     },
     "tide_haste": {
       "good": false,
-      "refresh_seconds": 92,
+      "refresh_seconds": 38,
       "icon": "res://assets/icons/game_icons/card_wave.svg",
       "title_zh": "潮声催命",
       "title_en": "The Tide Urges Them On",
       "description_zh": "远处潮声大作，敌潮短时间加速逼近。",
       "description_en": "The distant tide roars and the enemy surge quickens.",
       "effect": "enemy_haste",
-      "amount": 0.20,
+      "amount": 0.2,
       "duration": 15.0
     },
     "broken_ground": {
       "good": false,
-      "refresh_seconds": 90,
+      "refresh_seconds": 36,
       "icon": "res://assets/icons/game_icons/card_compass.svg",
       "title_zh": "迷途岔口",
       "title_en": "The Fork That Misleads",
@@ -108,22 +108,94 @@
   },
   "sites": {
     "tideland": [
-      {"event": "militia_cache", "tile": [18, 18]},
-      {"event": "forge_blessing", "tile": [100, 18]},
-      {"event": "ambush", "tile": [20, 66]},
-      {"event": "salt_pan_cache", "tile": [98, 66]}
+      {
+        "event": "militia_cache",
+        "tile": [
+          18,
+          18
+        ]
+      },
+      {
+        "event": "forge_blessing",
+        "tile": [
+          100,
+          18
+        ]
+      },
+      {
+        "event": "ambush",
+        "tile": [
+          20,
+          66
+        ]
+      },
+      {
+        "event": "salt_pan_cache",
+        "tile": [
+          98,
+          66
+        ]
+      }
     ],
     "watergate": [
-      {"event": "hidden_oil", "tile": [14, 20]},
-      {"event": "tide_haste", "tile": [82, 20]},
-      {"event": "old_records", "tile": [14, 140]},
-      {"event": "miasma", "tile": [82, 140]}
+      {
+        "event": "hidden_oil",
+        "tile": [
+          14,
+          20
+        ]
+      },
+      {
+        "event": "tide_haste",
+        "tile": [
+          82,
+          20
+        ]
+      },
+      {
+        "event": "old_records",
+        "tile": [
+          14,
+          140
+        ]
+      },
+      {
+        "event": "miasma",
+        "tile": [
+          82,
+          140
+        ]
+      }
     ],
     "crossstreet": [
-      {"event": "salt_pan_cache", "tile": [14, 20]},
-      {"event": "broken_ground", "tile": [82, 20]},
-      {"event": "militia_cache", "tile": [14, 140]},
-      {"event": "ambush", "tile": [82, 140]}
+      {
+        "event": "salt_pan_cache",
+        "tile": [
+          14,
+          20
+        ]
+      },
+      {
+        "event": "broken_ground",
+        "tile": [
+          82,
+          20
+        ]
+      },
+      {
+        "event": "militia_cache",
+        "tile": [
+          14,
+          140
+        ]
+      },
+      {
+        "event": "ambush",
+        "tile": [
+          82,
+          140
+        ]
+      }
     ]
   }
 }

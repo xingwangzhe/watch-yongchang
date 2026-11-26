@@ -149,9 +149,10 @@ func test_settings_file_persists_fps_and_vsync() -> void:
 	assert_eq(Engine.max_fps, 0, "unlimited frame limit must clear the engine cap")
 
 
-func test_platform_default_frame_limit_is_unlimited_only_on_web() -> void:
+func test_platform_default_frame_limit_is_capped_on_every_platform() -> void:
 	GameSettings.web_platform_override = 1
-	assert_eq(GameSettings.default_fps_limit(), 0)
+	# Web 单线程 WASM 不限帧会持续跑满主线程并触发降频；固定 60 更稳。
+	assert_eq(GameSettings.default_fps_limit(), 60)
 	GameSettings.web_platform_override = 0
 	assert_eq(GameSettings.default_fps_limit(), GameSettings.DEFAULT_FPS_LIMIT)
 

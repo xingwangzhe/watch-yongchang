@@ -517,17 +517,19 @@ func navigation_direction(
 	clearance_radius: float = 10.0
 ) -> Vector2:
 	var direct := to - from
+	# 净空半径按 caller（敌人实体半径）放大，避免把大体积单位导进细窄缝隙。
+	var clearance := maxf(clearance_radius, 10.0)
 	if direct.length_squared() <= direct_range * direct_range:
 		if (
-			direct.length_squared() <= 48.0 * 48.0
-			or is_segment_walkable(from, to, clearance_radius)
+			direct.length_squared() <= 44.0 * 44.0
+			or is_segment_walkable(from, to, clearance)
 		):
 			return direct.normalized()
 	# 长距离追击只做一次粗粒度通视判定：开阔地直接切向目标，
 	# 避免单位明明看得见却沿流场走折线；被建筑挡住时才回到共享流场。
 	if (
 		direct.length_squared() <= 360.0 * 360.0
-		and is_segment_walkable(from, to, clearance_radius)
+		and is_segment_walkable(from, to, clearance)
 	):
 		return direct.normalized()
 	var flow := flow_direction(from)

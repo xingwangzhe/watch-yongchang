@@ -9,8 +9,12 @@ const MUTED := Color("#baa98a")
 const DOT_CAPACITY := 2048
 const WEB_REFRESH_INTERVAL := 0.20
 const NATIVE_REFRESH_INTERVAL := 0.075
-const ENCOUNTER_MARKER_RADIUS := 8.0
-const ENCOUNTER_ICON_SIZE := 14.0
+# 小地图仅 212×144：奇遇点不再把 512×512 SVG 缩到 14px（NEAREST 采样会糊成一团），
+# 改为按实际像素用 draw_* 画矢量符号，半径即符号的可绘制范围。
+const ENCOUNTER_MARKER_RADIUS := 9.0
+const ENCOUNTER_GLYPH_ARM := 4.2
+# 深色描边色，统一用于地标/实体/玩家，提升浅色底图上的对比度。
+const MARKER_OUTLINE := Color(0.015, 0.025, 0.025, 0.84)
 
 var battlefield: Battlefield
 var map_def: Dictionary = {}
@@ -21,6 +25,7 @@ var _base_texture: Texture2D
 var _refresh_accum := 0.0
 var _map_rect := Rect2()
 var _dot_batch: MultiMesh
+var _dot_outline_batch: MultiMesh
 var _dot_texture: Texture2D
 var _dot_count := 0
 
@@ -63,12 +68,18 @@ func _build_dot_batch() -> void:
 	_dot_texture = ImageTexture.create_from_image(image)
 	var quad := QuadMesh.new()
 	quad.size = Vector2.ONE
-	_dot_batch = MultiMesh.new()
-	_dot_batch.transform_format = MultiMesh.TRANSFORM_2D
-	_dot_batch.use_colors = true
-	_dot_batch.mesh = quad
-	_dot_batch.instance_count = DOT_CAPACITY
-	_dot_batch.visible_instance_count = 0
+	_dot_batch = _create_dot_batch(quad)
+	_dot_outline_batch = _create_dot_batch(quad)
+
+
+func _create_dot_batch(quad: QuadMesh) -> MultiMesh:
+	var batch := MultiMesh.new()
+	batch.transform_format = MultiMesh.TRANSFORM_2D
+	batch.use_colors = true
+	batch.mesh = quad
+	batch.instance_count = DOT_CAPACITY
+	batch.visible_instance_count = 0
+	return batch
 
 
 func _draw() -> void:
@@ -94,13 +105,25 @@ func _draw_panel() -> void:
 	var map_title := GameData.loc(map_def, "name")
 	if map_title.is_empty():
 		map_title = Locale.t("hud.minimap")
-	draw_string(UI_FONT, Vector2(9, 17), map_title, HORIZONTAL_ALIGNMENT_LEFT, 180, 13, Color(PAPER, 0.94))
+	var live_text := Locale.t("hud.live_map")
+	var live_width := UI_FONT.get_string_size(live_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x
+	# 英文标题（如 "Tidal Flats at Night"）较长，按真实字宽自适应，避免被固定宽度裁切。
+	var available := size.x - 18.0 - live_width - 6.0
+	var title_size := 13
+	while title_size > 9 and UI_FONT.get_string_size(map_title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size).x > available:
+		title_size -= 1
+	var shown_title := map_title
+	if UI_FONT.get_string_size(shown_title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size).x > available:
+		while not shown_title.is_empty() and UI_FONT.get_string_size(shown_title + "…", HORIZONTAL_ALIGNMENT_LEFT, -1, title_size).x > available:
+			shown_title = shown_title.substr(0, shown_title.length() - 1)
+		shown_title += "…"
+	draw_string(UI_FONT, Vector2(9, 17), shown_title, HORIZONTAL_ALIGNMENT_LEFT, -1, title_size, Color(PAPER, 0.94))
 	draw_string(
 		UI_FONT,
-		Vector2(size.x - 52, 17),
-		Locale.t("hud.live_map"),
+		Vector2(size.x - 9, 17),
+		live_text,
 		HORIZONTAL_ALIGNMENT_RIGHT,
-		44,
+		-1,
 		10,
 		Color(MUTED, 0.72)
 	)
@@ -129,19 +152,29 @@ func _draw_landmarks() -> void:
 		var color: Color = landmark.get("color", GOLD) as Color
 		var kind := str(landmark.get("kind", "place"))
 		if kind == "water":
-			draw_circle(point, 1.8, Color(color, 0.82))
+			draw_circle(point, 3.4, MARKER_OUTLINE)
+			draw_circle(point, 2.6, Color(color, 0.92))
 		elif kind == "water_gate":
-			draw_rect(Rect2(point - Vector2(2.0, 2.0), Vector2(4.0, 4.0)), Color(color, 0.90))
+			draw_rect(Rect2(point - Vector2(3.1, 3.1), Vector2(6.2, 6.2)), MARKER_OUTLINE)
+			draw_rect(Rect2(point - Vector2(2.5, 2.5), Vector2(5.0, 5.0)), Color(color, 0.96))
 		elif kind == "gate":
-			var points := PackedVector2Array([
-				point + Vector2(0.0, -3.2),
-				point + Vector2(3.2, 0.0),
-				point + Vector2(0.0, 3.2),
-				point + Vector2(-3.2, 0.0),
+			var back := PackedVector2Array([
+				point + Vector2(0.0, -4.8),
+				point + Vector2(4.8, 0.0),
+				point + Vector2(0.0, 4.8),
+				point + Vector2(-4.8, 0.0),
 			])
-			draw_colored_polygon(points, Color(color, 0.94))
+			draw_colored_polygon(back, MARKER_OUTLINE)
+			var points := PackedVector2Array([
+				point + Vector2(0.0, -4.0),
+				point + Vector2(4.0, 0.0),
+				point + Vector2(0.0, 4.0),
+				point + Vector2(-4.0, 0.0),
+			])
+			draw_colored_polygon(points, Color(color, 0.96))
 		else:
-			draw_circle(point, 2.2, Color(color, 0.82))
+			draw_circle(point, 3.8, MARKER_OUTLINE)
+			draw_circle(point, 3.0, Color(color, 0.92))
 
 
 func _draw_encounters() -> void:
@@ -152,9 +185,10 @@ func _draw_encounters() -> void:
 		var used := bool(site.get("used", false))
 		var good := bool(site.get("good", true))
 		var color := Color("#8dde9c") if good else Color("#ef826c")
+		# 深色底盘 + 彩色环：可用时环亮，冷却时环暗；色相继续区分增益/危险。
 		draw_circle(point + Vector2(0.0, 0.8), ENCOUNTER_MARKER_RADIUS + 1.3, Color(0.0, 0.0, 0.0, 0.72))
 		draw_circle(point, ENCOUNTER_MARKER_RADIUS, Color(0.035, 0.052, 0.052, 0.96))
-		draw_circle(point, ENCOUNTER_MARKER_RADIUS, Color(color, 0.18 if used else 0.34))
+		draw_circle(point, ENCOUNTER_MARKER_RADIUS, Color(color, 0.18 if used else 0.40))
 		draw_arc(
 			point,
 			ENCOUNTER_MARKER_RADIUS - 0.6,
@@ -178,25 +212,53 @@ func _draw_encounters() -> void:
 					2.4,
 					true
 				)
-		var texture := site.get("texture", null) as Texture2D
-		if texture != null:
-			var icon_size := ENCOUNTER_ICON_SIZE if not used else 11.0
-			draw_texture_rect(
-				texture,
-				Rect2(point - Vector2.ONE * icon_size * 0.5, Vector2.ONE * icon_size),
-				false,
-				Color(1.0, 1.0, 1.0, 0.98 if not used else 0.58)
-			)
-		else:
-			draw_circle(point, 3.4 if not used else 2.4, Color(color, 0.98))
+		# 不再把 512 SVG 缩到 14px：直接按小地图实际像素画矢量字形。
+		_draw_encounter_glyph(point, good, used, color)
 		if not used:
-			draw_line(
-				point + Vector2(-4.0, -ENCOUNTER_MARKER_RADIUS - 2.0),
-				point + Vector2(4.0, -ENCOUNTER_MARKER_RADIUS - 2.0),
-				Color(color, 0.92),
-				1.5,
-				true
-			)
+			_draw_available_beacon(point, color)
+
+
+func _draw_encounter_glyph(point: Vector2, good: bool, used: bool, color: Color) -> void:
+	# 形状区分增益/危险，亮度区分可用/冷却；描边保证在任何底图上都清晰。
+	var glyph_color := Color(color.r, color.g, color.b, 1.0 if not used else 0.45)
+	var thick := 2.8 if not used else 2.4
+	var arm := ENCOUNTER_GLYPH_ARM
+	if good:
+		# 增益：加粗十字。
+		var h_a := point + Vector2(-arm, 0.0)
+		var h_b := point + Vector2(arm, 0.0)
+		var v_a := point + Vector2(0.0, -arm)
+		var v_b := point + Vector2(0.0, arm)
+		draw_line(h_a, h_b, MARKER_OUTLINE, thick + 1.6, true)
+		draw_line(v_a, v_b, MARKER_OUTLINE, thick + 1.6, true)
+		draw_line(h_a, h_b, glyph_color, thick, true)
+		draw_line(v_a, v_b, glyph_color, thick, true)
+	else:
+		# 危险：感叹号（竖杠 + 独立圆点），与十字形状完全不同，不只靠颜色区分。
+		var top := point + Vector2(0.0, -arm)
+		var bottom := point + Vector2(0.0, 1.2)
+		var dot := point + Vector2(0.0, 3.3)
+		draw_line(top, bottom, MARKER_OUTLINE, thick + 1.8, true)
+		draw_circle(dot, thick * 0.6 + 0.8, MARKER_OUTLINE)
+		draw_line(top, bottom, glyph_color, thick, true)
+		draw_circle(dot, thick * 0.6, glyph_color)
+
+
+func _draw_available_beacon(point: Vector2, color: Color) -> void:
+	# 可用状态在标记上方加一枚向下的小三角，比原来的一字线更醒目。
+	var tip_y := -ENCOUNTER_MARKER_RADIUS - 4.6
+	var back := PackedVector2Array([
+		point + Vector2(-3.4, tip_y - 3.4),
+		point + Vector2(3.4, tip_y - 3.4),
+		point + Vector2(0.0, tip_y + 1.0),
+	])
+	draw_colored_polygon(back, MARKER_OUTLINE)
+	var front := PackedVector2Array([
+		point + Vector2(-2.6, tip_y - 2.8),
+		point + Vector2(2.6, tip_y - 2.8),
+		point + Vector2(0.0, tip_y + 0.4),
+	])
+	draw_colored_polygon(front, Color(color, 0.98))
 
 
 func _encounter_refresh_progress(site: Dictionary) -> float:
@@ -211,11 +273,11 @@ func _draw_entities() -> void:
 		if not bool(enemy.get("alive", false)):
 			continue
 		if bool(enemy.get("boss", false)):
-			_append_dot(enemy["pos"] as Vector2, 6.0, Color("#f0a050"))
+			_append_dot(enemy["pos"] as Vector2, 6.4, Color("#f0a050"))
 		elif bool(enemy.get("elite", false)):
-			_append_dot(enemy["pos"] as Vector2, 3.6, Color("#e08055"))
+			_append_dot(enemy["pos"] as Vector2, 4.0, Color("#e08055"))
 		else:
-			_append_dot(enemy["pos"] as Vector2, 2.2, Color("#c95a48"))
+			_append_dot(enemy["pos"] as Vector2, 2.8, Color("#c95a48"))
 	for orb in battlefield.orbs:
 		_append_pickup_point(orb["pos"] as Vector2, Color("#e8c45f"), 1.0)
 	for drop in battlefield.oil_drops:
@@ -225,14 +287,16 @@ func _draw_entities() -> void:
 	for drop in battlefield.scale_drops:
 		_append_pickup_point(drop["pos"] as Vector2, battlefield._scale_color(str(drop.get("color", ""))), 1.6)
 	_dot_batch.visible_instance_count = _dot_count
+	_dot_outline_batch.visible_instance_count = _dot_count
 	if _dot_count > 0:
+		draw_multimesh(_dot_outline_batch, _dot_texture)
 		draw_multimesh(_dot_batch, _dot_texture)
 
 
 func _append_pickup_point(world_position: Vector2, color: Color, radius: float) -> void:
 	var point := world_to_map(world_position)
 	if _map_rect.has_point(point):
-		_append_dot(world_position, radius * 2.0, Color(color, 0.78))
+		_append_dot(world_position, radius * 2.2, Color(color, 0.88))
 
 
 func _append_dot(world_position: Vector2, size: float, color: Color) -> void:
@@ -246,6 +310,12 @@ func _append_dot(world_position: Vector2, size: float, color: Color) -> void:
 		Transform2D(0.0, Vector2(size, size), 0.0, point)
 	)
 	_dot_batch.set_instance_color(_dot_count, color)
+	var outline_size := size + 2.6
+	_dot_outline_batch.set_instance_transform_2d(
+		_dot_count,
+		Transform2D(0.0, Vector2(outline_size, outline_size), 0.0, point)
+	)
+	_dot_outline_batch.set_instance_color(_dot_count, MARKER_OUTLINE)
 	_dot_count += 1
 
 
@@ -275,9 +345,11 @@ func _draw_player() -> void:
 	var facing := battlefield.player_facing.normalized()
 	if facing.length_squared() <= 0.001:
 		facing = Vector2.RIGHT
-	draw_circle(point, 4.6, Color("#ffe2a1"))
-	draw_line(point, point + facing * 7.0, Color("#fff5cf"), 2.2, true)
-	draw_arc(point, 7.0, 0.0, TAU, 14, Color(GOLD, 0.68), 1.3, true)
+	draw_circle(point, 5.8, MARKER_OUTLINE)
+	draw_circle(point, 4.8, Color("#ffe2a1"))
+	draw_line(point, point + facing * 7.2, MARKER_OUTLINE, 3.8, true)
+	draw_line(point, point + facing * 7.2, Color("#fff5cf"), 2.2, true)
+	draw_arc(point, 7.4, 0.0, TAU, 14, Color(GOLD, 0.72), 1.4, true)
 
 
 func _draw_compass() -> void:

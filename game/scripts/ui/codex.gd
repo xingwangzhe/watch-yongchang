@@ -55,6 +55,12 @@ var _detail_source: Label
 var _detail_hint: Label
 var _detail_close: Button
 var _detail_scroll: ScrollContainer
+var _zoom_hit: Button
+var _zoom_overlay: Control
+var _zoom_backdrop: Button
+var _zoom_image: TextureRect
+var _zoom_close: Button
+var _zoom_hint: Label
 var active_tab := "cards"
 var embedded := false
 
@@ -90,6 +96,11 @@ func _load_catalog_data() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and (event as InputEventKey).echo:
+		return
+	if zoom_is_open():
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("toggle_codex"):
+			close_zoom()
+			get_viewport().set_input_as_handled()
 		return
 	if detail_is_open():
 		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("toggle_codex"):
@@ -140,6 +151,12 @@ func _rebuild() -> void:
 	if _detail_close != null:
 		_detail_close.text = Locale.t("codex.detail.close")
 		_detail_hint.text = Locale.t("codex.detail.hint")
+	if _zoom_hit != null:
+		_zoom_hit.tooltip_text = Locale.t("codex.detail.zoom_tip")
+	if _zoom_hint != null:
+		_zoom_hint.text = Locale.t("codex.zoom.hint")
+	if _zoom_close != null:
+		_zoom_close.text = Locale.t("codex.detail.close")
 	if not _valid_tab(active_tab):
 		active_tab = "cards"
 	for child in _content.get_children():
@@ -405,7 +422,6 @@ func _character_card(character_id: String, index: int) -> PanelContainer:
 	var panel := _card_panel(str(character.get("tint", "#e1b35a")))
 	panel.name = "Card_%s" % character_id
 	panel.custom_minimum_size = Vector2(0, 370)
-	panel.clip_contents = true
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
 	panel.add_child(column)
@@ -703,7 +719,6 @@ func _upgrade_card(family: String, card_id: String, definition: Dictionary) -> P
 	var panel := _card_panel(str(spec.get("accent", "#79a9bf")))
 	panel.name = "Upgrade_%s_%s" % [family, card_id]
 	panel.custom_minimum_size = Vector2(0, 214)
-	panel.clip_contents = true
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 6)
 	panel.add_child(column)
@@ -741,11 +756,8 @@ func _upgrade_card(family: String, card_id: String, definition: Dictionary) -> P
 		effect_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		column.add_child(effect_label)
 	var culture_text := GameData.loc(definition, "culture")
-	var culture := _label(culture_text, 10, Color(MUTED, 0.74))
+	var culture := _label(culture_text, 11, Color(MUTED, 0.82))
 	culture.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	culture.max_lines_visible = 3
-	culture.clip_text = true
-	culture.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	culture.tooltip_text = culture_text
 	culture.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(culture)
@@ -1004,11 +1016,8 @@ func _weapon_card(weapon_id: String, starters: Dictionary) -> PanelContainer:
 	evolution.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	evolution.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(evolution)
-	var culture := _label(GameData.loc(weapon, "culture"), 11, Color(MUTED, 0.76))
+	var culture := _label(GameData.loc(weapon, "culture"), 11, Color(MUTED, 0.82))
 	culture.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	culture.max_lines_visible = 4
-	culture.clip_text = true
-	culture.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	culture.tooltip_text = GameData.loc(weapon, "culture")
 	column.add_child(culture)
 	column.add_child(_source_line("%s · %s" % [
@@ -1442,11 +1451,8 @@ func _encounter_card(event_id: String, definition: Dictionary) -> PanelContainer
 		var effect_label := _label(effects, 11, Color(BLUE, 0.90))
 		effect_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		column.add_child(effect_label)
-	var culture := _label(GameData.loc(definition, "culture"), 10, Color(MUTED, 0.72))
+	var culture := _label(GameData.loc(definition, "culture"), 11, Color(MUTED, 0.82))
 	culture.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	culture.max_lines_visible = 3
-	culture.clip_text = true
-	culture.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	culture.tooltip_text = GameData.loc(definition, "culture")
 	culture.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(culture)
@@ -1529,7 +1535,6 @@ func _culture_card(section: Dictionary) -> PanelContainer:
 	var panel := _flat_panel(Color(0.045, 0.058, 0.058, 0.94), Color(accent, 0.34))
 	panel.name = "Culture_%s" % str(section.get("id", ""))
 	panel.custom_minimum_size = Vector2(0, 252)
-	panel.clip_contents = true
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 7)
 	panel.add_child(column)
@@ -1546,11 +1551,8 @@ func _culture_card(section: Dictionary) -> PanelContainer:
 	rule.custom_minimum_size = Vector2(0, 1)
 	column.add_child(rule)
 	var body_text := GameData.loc(section, "body")
-	var body := _label(body_text, 12, Color(PAPER, 0.84))
+	var body := _label(body_text, 12, Color(PAPER, 0.88))
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.max_lines_visible = 5
-	body.clip_text = true
-	body.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	body.tooltip_text = body_text
 	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(body)
@@ -1863,11 +1865,8 @@ func _badge(text: String, accent: Color) -> PanelContainer:
 
 
 func _source_line(text: String) -> Label:
-	var source := _label(text, 9, Color(MUTED, 0.58))
+	var source := _label(text, 9, Color(MUTED, 0.66))
 	source.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	source.max_lines_visible = 3
-	source.clip_text = true
-	source.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	source.tooltip_text = text
 	return source
 
@@ -2019,6 +2018,27 @@ func _build_detail_overlay() -> void:
 	_detail_image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_detail_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_detail_image_plate.add_child(_detail_image)
+	_zoom_hit = Button.new()
+	_zoom_hit.name = "DetailZoomHit"
+	_zoom_hit.text = ""
+	_zoom_hit.focus_mode = Control.FOCUS_NONE
+	_zoom_hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	_zoom_hit.tooltip_text = Locale.t("codex.detail.zoom_tip")
+	_zoom_hit.add_theme_stylebox_override(
+		"normal",
+		_flat_box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 6, 0)
+	)
+	_zoom_hit.add_theme_stylebox_override(
+		"hover",
+		_flat_box(Color(GOLD, 0.06), Color(GOLD, 0.66), 6, 0)
+	)
+	_zoom_hit.add_theme_stylebox_override(
+		"pressed",
+		_flat_box(Color(GOLD, 0.12), Color(GOLD, 0.86), 6, 0)
+	)
+	_zoom_hit.pressed.connect(open_zoom)
+	_detail_image_plate.add_child(_zoom_hit)
+	_zoom_hit.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	_detail_scroll = ScrollContainer.new()
 	_detail_scroll.name = "DetailScroll"
@@ -2049,6 +2069,95 @@ func _build_detail_overlay() -> void:
 	_detail_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	outer.add_child(_detail_hint)
 	_detail_overlay.visible = false
+	_build_zoom_overlay()
+
+
+func _build_zoom_overlay() -> void:
+	_zoom_overlay = Control.new()
+	_zoom_overlay.name = "CodexZoomOverlay"
+	_zoom_overlay.z_index = 95
+	_zoom_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_zoom_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_zoom_overlay)
+
+	_zoom_backdrop = Button.new()
+	_zoom_backdrop.name = "ZoomBackdrop"
+	_zoom_backdrop.focus_mode = Control.FOCUS_NONE
+	_zoom_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_zoom_backdrop.add_theme_stylebox_override(
+		"normal",
+		_flat_box(Color(0.002, 0.004, 0.005, 0.96), Color(0, 0, 0, 0), 0, 0)
+	)
+	_zoom_backdrop.add_theme_stylebox_override(
+		"hover",
+		_flat_box(Color(0.002, 0.004, 0.005, 0.96), Color(0, 0, 0, 0), 0, 0)
+	)
+	_zoom_backdrop.add_theme_stylebox_override(
+		"pressed",
+		_flat_box(Color(0.002, 0.004, 0.005, 0.99), Color(0, 0, 0, 0), 0, 0)
+	)
+	_zoom_backdrop.pressed.connect(close_zoom)
+	_zoom_overlay.add_child(_zoom_backdrop)
+
+	_zoom_image = TextureRect.new()
+	_zoom_image.name = "ZoomImage"
+	_zoom_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_zoom_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_zoom_image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_zoom_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_zoom_image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_zoom_image.offset_left = 48.0
+	_zoom_image.offset_right = -48.0
+	_zoom_image.offset_top = 26.0
+	_zoom_image.offset_bottom = -62.0
+	_zoom_overlay.add_child(_zoom_image)
+
+	_zoom_hint = _label(Locale.t("codex.zoom.hint"), 12, Color(PAPER, 0.82))
+	_zoom_hint.name = "ZoomHint"
+	_zoom_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_zoom_hint.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_zoom_hint.offset_left = 40.0
+	_zoom_hint.offset_right = -40.0
+	_zoom_hint.offset_top = -40.0
+	_zoom_hint.offset_bottom = -12.0
+	_zoom_overlay.add_child(_zoom_hint)
+
+	_zoom_close = _button(Locale.t("codex.detail.close"), true)
+	_zoom_close.name = "ZoomClose"
+	_zoom_close.custom_minimum_size = Vector2(150, 42)
+	_zoom_close.focus_mode = Control.FOCUS_ALL
+	_zoom_close.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_zoom_close.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	_zoom_close.offset_left = -190.0
+	_zoom_close.offset_top = 16.0
+	_zoom_close.offset_right = -30.0
+	_zoom_close.offset_bottom = 58.0
+	_zoom_close.pressed.connect(close_zoom)
+	_zoom_overlay.add_child(_zoom_close)
+	_zoom_overlay.visible = false
+
+
+func open_zoom() -> void:
+	if _zoom_overlay == null or not detail_is_open() or _detail_image.texture == null:
+		return
+	_zoom_image.texture = _detail_image.texture
+	_zoom_hint.text = Locale.t("codex.zoom.hint")
+	_zoom_close.text = Locale.t("codex.detail.close")
+	_zoom_overlay.visible = true
+	_zoom_close.grab_focus()
+
+
+func close_zoom() -> void:
+	if _zoom_overlay == null or not _zoom_overlay.visible:
+		return
+	_zoom_overlay.visible = false
+	_zoom_image.texture = null
+	if detail_is_open():
+		_detail_close.grab_focus()
+
+
+func zoom_is_open() -> bool:
+	return _zoom_overlay != null and _zoom_overlay.visible
 
 
 func _attach_detail(panel: PanelContainer, detail: Dictionary) -> void:
@@ -2085,6 +2194,7 @@ func _attach_detail(panel: PanelContainer, detail: Dictionary) -> void:
 func _show_detail(detail: Dictionary) -> void:
 	if _detail_overlay == null:
 		_build_detail_overlay()
+	close_zoom()
 	var accent: Color = detail.get("accent", GOLD)
 	for child in _detail_badges.get_children():
 		_detail_badges.remove_child(child)
@@ -2138,6 +2248,8 @@ func _show_detail(detail: Dictionary) -> void:
 	)
 	_detail_close.text = Locale.t("codex.detail.close")
 	_detail_hint.text = Locale.t("codex.detail.hint")
+	_zoom_hit.tooltip_text = Locale.t("codex.detail.zoom_tip")
+	_zoom_overlay.visible = false
 	_detail_overlay.visible = true
 	_detail_scroll.scroll_vertical = 0
 	_detail_close.grab_focus()
@@ -2146,6 +2258,8 @@ func _show_detail(detail: Dictionary) -> void:
 func close_detail() -> void:
 	if _detail_overlay == null:
 		return
+	if zoom_is_open():
+		close_zoom()
 	_detail_overlay.visible = false
 
 

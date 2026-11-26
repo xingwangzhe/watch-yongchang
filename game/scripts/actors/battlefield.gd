@@ -40,7 +40,10 @@ const FLOW_REQUEST_INTERVAL_WEB := 0.50
 const FLOW_REQUEST_INTERVAL_NATIVE := 0.30
 const ALLY_REPATH_INTERVAL := 0.65
 const UNIT_SEPARATION_WEIGHT := 0.62
-const STUCK_RECOVERY_SECONDS := 0.45
+# 寻路探测半径比实际碰撞半径大：敌人提前「感觉到」建筑与窄道并绕行，
+# 而不是物理卡进去后才靠 stuck 恢复硬挤。这是用户要求的「碰撞检测大一点」。
+const ENEMY_CLEARANCE_MULT := 1.42
+const STUCK_RECOVERY_SECONDS := 0.34
 const ENEMY_NAV_REFRESH_WEB := 0.34
 const ENEMY_NAV_REFRESH_NATIVE := 0.20
 const ENEMY_SEPARATION_REFRESH := 0.12
@@ -48,11 +51,18 @@ const ENCOUNTER_TRIGGER_RADIUS := 58.0
 const ENCOUNTER_REARM_MARGIN := 22.0
 const ENCOUNTER_REFRESH_DEFAULT := 72.0
 const VARIANT_CATALOG_PATH := "res://data/enemy_variants.json"
-const VARIANTS_PER_ENEMY := 4
+# 0 = 使用目录内全部烘焙变体。4 会把每种敌人锁死在极小的视觉池里，
+# 与「装备随机组合」的要求冲突；全部变体合计约 5MB，常驻内存可接受。
+const VARIANTS_PER_ENEMY := 0
+const VARIANT_RECENT_MEMORY := 5
 # Web (WebGL2) has no reliable GPU headroom on low-end devices; cap the live
 # crowd lower there while keeping the full native budget for desktop builds.
 const MAX_ALIVE_ENEMIES_NATIVE := 460
-const MAX_ALIVE_ENEMIES_WEB := 280
+# Web 单线程绘制成本远高于原生。降低同屏敌人数并配合特效上限，
+# 保证大量敌人同时受击时不会掉到个位数帧率。
+const MAX_ALIVE_ENEMIES_WEB := 180
+const FX_CAPACITY_NATIVE := 180
+const FX_CAPACITY_WEB := 64
 
 var enemies: Array[Dictionary] = []
 var allies: Array[Dictionary] = []
@@ -100,6 +110,7 @@ var enemy_sprite_frames: Dictionary = {}
 var enemy_variant_catalog: Dictionary = {}
 var _variant_pool: Dictionary = {}
 var _last_variant_ids: Dictionary = {}
+var _recent_variant_ids: Dictionary = {}
 var runtime_loadout: RuntimeLoadout
 var _runtime_map_salt := ""
 var player_idle_frames: Array[Texture2D] = []
@@ -979,6 +990,7 @@ func _load_enemy_variants() -> void:
 	enemy_variant_catalog = GameData.load_json(VARIANT_CATALOG_PATH).get("variants", {}) as Dictionary
 	_variant_pool.clear()
 	_last_variant_ids.clear()
+	_recent_variant_ids.clear()
 	var pool_rng := RandomNumberGenerator.new()
 	pool_rng.seed = _runtime_map_salt.hash()
 	for enemy_id in enemy_variant_catalog.keys():
@@ -995,7 +1007,7 @@ func _load_enemy_variants() -> void:
 		for raw in shuffled:
 			if raw is Dictionary:
 				pool.append(raw as Dictionary)
-			if pool.size() >= VARIANTS_PER_ENEMY:
+			if VARIANTS_PER_ENEMY > 0 and pool.size() >= VARIANTS_PER_ENEMY:
 				break
 		_variant_pool[str(enemy_id)] = pool
 
@@ -1013,8 +1025,11 @@ func _pick_enemy_variant(enemy_id: String, loadout: Dictionary) -> Dictionary:
 	var role := str(loadout.get("role", ""))
 	var attack_class := str(loadout.get("attack_class", ""))
 	var recipe := loadout.get("recipe", {}) as Dictionary
-	var weapon := str(recipe.get("weapon", ""))
 	var visual_mode := "mounted" if role == "cavalry" else "foot"
+
+	# 先按视觉模式 + 攻击类型过滤。与旧实现不同：不再用武器名做硬相等匹配，
+	# 而是按配方相似度打分，保留一批高分候选后随机抽取，这样武器、护甲、头饰
+	# 才会真正随机组合，且外观与运行时配方一致。
 	var candidates: Array[Dictionary] = []
 	for variant in pool:
 		if str(variant.get("visual_mode", "foot")) != visual_mode:
@@ -1029,23 +1044,43 @@ func _pick_enemy_variant(enemy_id: String, loadout: Dictionary) -> Dictionary:
 	if candidates.is_empty():
 		for variant in pool:
 			candidates.append(variant)
-	if not weapon.is_empty():
-		var matched: Array[Dictionary] = []
-		for variant in candidates:
-			if str(variant.get("weapon", "")) == weapon:
-				matched.append(variant)
-		if not matched.is_empty():
-			candidates = matched
-	var last_id := str(_last_variant_ids.get(enemy_id, ""))
-	if candidates.size() > 1 and not last_id.is_empty():
-		var fresh: Array[Dictionary] = []
-		for variant in candidates:
-			if str(variant.get("draw_id", "")) != last_id:
-				fresh.append(variant)
-		if not fresh.is_empty():
-			candidates = fresh
-	var chosen := candidates[rng.randi() % candidates.size()]
-	_last_variant_ids[enemy_id] = str(chosen.get("draw_id", ""))
+	if candidates.is_empty():
+		return {}
+
+	var scored: Array[Dictionary] = []
+	var best_score := -1.0
+	var variant_recipe_keys := ["weapon", "offhand", "outfit", "headgear", "backgear", "skin"]
+	for variant in candidates:
+		var variant_recipe := variant.get("recipe", {}) as Dictionary
+		var score := 0.0
+		for key in variant_recipe_keys:
+			if not recipe.is_empty() and str(variant_recipe.get(key, "")) == str(recipe.get(key, "")):
+				score += 1.0
+		# 轻微偏好尚未近期出现的配方，避免连续刷出同一个模子。
+		score += rng.randf_range(0.0, 0.45)
+		best_score = maxf(best_score, score)
+		scored.append({"variant": variant, "score": score})
+	var top: Array[Dictionary] = []
+	for item in scored:
+		if float(item.get("score", 0.0)) >= best_score - 1.5:
+			top.append(item.get("variant", {}) as Dictionary)
+	if top.is_empty():
+		top = candidates
+
+	var recent: Array = _recent_variant_ids.get(enemy_id, []) as Array
+	var fresh: Array[Dictionary] = []
+	for variant in top:
+		if str(variant.get("draw_id", "")) not in recent:
+			fresh.append(variant)
+	if not fresh.is_empty():
+		top = fresh
+	var chosen := top[rng.randi() % top.size()]
+	var chosen_id := str(chosen.get("draw_id", ""))
+	_last_variant_ids[enemy_id] = chosen_id
+	recent.append(chosen_id)
+	while recent.size() > VARIANT_RECENT_MEMORY:
+		recent.pop_front()
+	_recent_variant_ids[enemy_id] = recent
 	return chosen
 
 
@@ -1110,6 +1145,7 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"runtime_attack_class": runtime_attack_class,
 		"runtime_tint": runtime_tint,
 		"runtime_loadout": loadout,
+		"equipment_recipe": (runtime_visual.get("equipment_recipe", {}) as Dictionary).duplicate(true),
 		"runtime_visual_key": str(loadout.get("visual_key", "")),
 		"charger": bool(definition.get("charger", false)),
 		"armor": float(definition.get("armor", 0.0)),
@@ -1193,10 +1229,17 @@ func _runtime_visual_for(definition: Dictionary, loadout: Dictionary, enemy_id: 
 	if variant.is_empty():
 		return base
 	var merged := base.duplicate(true)
-	merged["draw_id"] = str(variant.get("draw_id", enemy_id))
+	var draw_id := str(variant.get("draw_id", enemy_id))
+	merged["draw_id"] = draw_id
 	merged["texture"] = str(variant.get("texture", ""))
 	merged["sprite_frames"] = maxi(1, int(variant.get("frames", 8)))
 	merged["sprite_fps"] = float(variant.get("fps", 10.0))
+	# 记录本次外观对应的烘焙装备配方（武器/护甲/头饰等）。不能直接写回 loadout：
+	# loadout 是 RuntimeLoadout 生成的完整合法快照，烘焙变体只含外观字段，
+	# 覆盖会丢失 mount 等字段并通过不了 validation_errors()。
+	var variant_recipe := variant.get("recipe", {}) as Dictionary
+	if not variant_recipe.is_empty():
+		merged["equipment_recipe"] = variant_recipe.duplicate(true)
 	return merged
 
 
@@ -1661,19 +1704,26 @@ func play_player_attack_fx(
 		aim = Vector2.RIGHT
 	var offset := float(profile.get("offset", 0.0))
 	var scale_value := float(profile.get("evolved_scale" if evolved else "scale", 1.0))
-	# 爆炸/命中类特效是远程结果，必须落在敌人区域；近战与环身特效仍以主角为原点。
-	var remote_fx := (
-		animation_id.contains("explosion") or animation_id.contains("hit_")
-	)
-	var anchor := enemy_anchor if remote_fx and enemy_anchor != Vector2.ZERO else origin
-	_play_jeff_fx(animation_id, anchor if remote_fx else anchor + aim * offset, {
+	# 远程结果特效（爆炸/命中）锚到目标敌人区域；近战环身特效以主角为原点。
+	# 锚点语义来自 attack_fx.json 的 animation.anchor，不再靠动画名字符串猜测。
+	var animation: Dictionary = fx_animations.get(animation_id, {}) as Dictionary
+	var remote_fx := str(animation.get("anchor", "origin")) == "target"
+	var has_anchor := enemy_anchor != Vector2.ZERO
+	var result_anchor := enemy_anchor if has_anchor else origin
+	var anchor := result_anchor if remote_fx else origin + aim * offset
+	_play_jeff_fx(animation_id, anchor, {
 		"rotation": aim.angle() if bool(profile.get("rotate", true)) else 0.0,
 		"scale": scale_value,
 	})
 	if evolved and profile.has("evolved_accent"):
-		_play_jeff_fx(str(profile["evolved_accent"]), anchor, {
-			"scale": float(profile.get("accent_scale", 0.75)),
-		})
+		var accent_id := str(profile["evolved_accent"])
+		var accent_anim: Dictionary = fx_animations.get(accent_id, {}) as Dictionary
+		var accent_remote := str(accent_anim.get("anchor", "origin")) == "target"
+		_play_jeff_fx(
+			accent_id,
+			result_anchor if accent_remote and has_anchor else origin,
+			{"scale": float(profile.get("accent_scale", 0.75))}
+		)
 
 
 func play_enemy_attack_fx(enemy_id: String, origin: Vector2, direction: Vector2) -> void:
@@ -1734,7 +1784,8 @@ func _play_jeff_fx(animation_id: String, position: Vector2, options: Dictionary 
 	if not fx_animations.has(animation_id):
 		return
 	var animation: Dictionary = fx_animations[animation_id] as Dictionary
-	if jeff_effects.size() >= 180:
+	var limit := FX_CAPACITY_WEB if GameSettings.is_web_platform() else FX_CAPACITY_NATIVE
+	if jeff_effects.size() >= limit:
 		jeff_effects.pop_front()
 	jeff_effects.append({
 		"animation_id": animation_id,
@@ -1749,7 +1800,8 @@ func _play_jeff_fx(animation_id: String, position: Vector2, options: Dictionary 
 
 
 func add_effect(effect: Dictionary) -> void:
-	if effects.size() >= 240:
+	var limit := FX_CAPACITY_WEB if GameSettings.is_web_platform() else FX_CAPACITY_NATIVE
+	if effects.size() >= limit:
 		_return_pooled(_free_effects, effects.pop_front())
 	var stored := _take_pooled(_free_effects)
 	if stored.is_empty():
@@ -2062,10 +2114,23 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 		var navigation := direction
 		var body_radius := _enemy_body_radius(enemy)
 		if siege_index >= 0:
-			# 塔在前方近处时不走流场（流场只指向玩家），直线压上并贴塔。
+			# 攻塔目标不在玩家流场里：用直线方向，但仍必须做障碍绕行。
+			# 旧实现在这里强制 navigation = direction 并跳过转向探测，导致敌人
+			# 隔着建筑/窄道一直撞墙，正是「死脑筋找最容易卡住的地方」的根因。
 			navigation = direction
 			if map_layout != null and distance > 90.0:
-				navigation = direction
+				enemy["steer_timer"] = float(enemy.get("steer_timer", 0.0)) - delta
+				if float(enemy["steer_timer"]) <= 0.0:
+					enemy["steer_dir"] = _enemy_obstacle_steering(
+						position,
+						navigation,
+						body_radius,
+						true
+					)
+					enemy["steer_timer"] = 0.10 + rng.randf_range(0.0, 0.04)
+				var siege_steer := enemy.get("steer_dir", Vector2.ZERO) as Vector2
+				if siege_steer.length_squared() > 0.001:
+					navigation = siege_steer
 		elif map_layout != null:
 			navigation = _cached_enemy_navigation(
 				enemy,
@@ -2215,10 +2280,22 @@ func _cached_enemy_navigation(
 	body_radius: float
 ) -> Vector2:
 	enemy["nav_timer"] = float(enemy.get("nav_timer", 0.0)) - delta
+	# 近距离也不能无条件直线冲：先用放大的净空半径验证前方通视。
+	# 旧实现在 190px 内直接返回 direct，敌人会切建筑墙角并卡住。
+	var clearance := body_radius * ENEMY_CLEARANCE_MULT
 	if distance <= 190.0:
+		var close_dir := direct
+		if distance > 56.0 and not _enemy_path_clear(
+			position,
+			position + direct * minf(distance, 132.0),
+			clearance
+		):
+			var detour := _enemy_obstacle_steering(position, direct, clearance)
+			if detour.length_squared() > 0.001:
+				close_dir = detour
 		enemy["nav_goal"] = target
-		enemy["nav_dir"] = direct
-		return direct
+		enemy["nav_dir"] = close_dir
+		return close_dir
 	var cached := enemy.get("nav_dir", Vector2.ZERO) as Vector2
 	var cached_goal := enemy.get("nav_goal", Vector2.ZERO) as Vector2
 	if (
@@ -2227,7 +2304,7 @@ func _cached_enemy_navigation(
 		and cached_goal.distance_squared_to(target) <= 96.0 * 96.0
 	):
 		return cached
-	var navigation := map_layout.navigation_direction(position, target, 190.0, body_radius)
+	var navigation := map_layout.navigation_direction(position, target, 190.0, clearance)
 	if navigation.length_squared() <= 0.001:
 		navigation = direct
 	enemy["nav_dir"] = navigation
@@ -2247,27 +2324,46 @@ func _enemy_body_radius(enemy: Dictionary) -> float:
 func _enemy_obstacle_steering(
 	position: Vector2,
 	navigation: Vector2,
-	body_radius: float
+	body_radius: float,
+	ignore_towers: bool = false
 ) -> Vector2:
-	if (
-		map_layout == null
-		or navigation.length_squared() <= 0.001
-		or not map_layout.is_point_walkable(position, body_radius)
-	):
+	if map_layout == null or navigation.length_squared() <= 0.001:
 		return Vector2.ZERO
-	var lookahead := maxf(42.0, body_radius * 2.1)
-	if _enemy_path_clear(position, position + navigation * lookahead, body_radius):
+	var lookahead := maxf(46.0, body_radius * 2.3)
+	var here_walkable := map_layout.is_point_walkable(position, body_radius)
+	if here_walkable and _enemy_path_clear(position, position + navigation * lookahead, body_radius, ignore_towers):
 		return Vector2.ZERO
-	for angle in [28.0, -28.0, 52.0, -52.0, 76.0, -76.0, 104.0, -104.0]:
+	# 当前位置已经卡在障碍内时，旧实现直接返回 ZERO 任其原地抖动。
+	# 现在改为主动找一条能离开当前格、且通向目标的偏转方向。
+	var angles := [26.0, -26.0, 50.0, -50.0, 74.0, -74.0, 102.0, -102.0, 132.0, -132.0]
+	for angle in angles:
 		var candidate := navigation.rotated(deg_to_rad(angle))
-		if _enemy_path_clear(position, position + candidate * lookahead, body_radius):
+		if _enemy_path_clear(
+			position,
+			position + candidate * lookahead,
+			body_radius,
+			ignore_towers
+		):
 			return candidate
+	if not here_walkable:
+		# 全部角度都受建筑阻挡：朝最近可站立点逃出，后续帧再重新寻路。
+		var escape := map_layout.find_walkable_position(position, body_radius + 2.0)
+		var offset := escape - position
+		if offset.length_squared() > 0.01:
+			return offset.normalized()
 	return Vector2.ZERO
 
 
-func _enemy_path_clear(from: Vector2, to: Vector2, body_radius: float) -> bool:
+func _enemy_path_clear(
+	from: Vector2,
+	to: Vector2,
+	body_radius: float,
+	ignore_towers: bool = false
+) -> bool:
 	if map_layout == null or not map_layout.is_segment_walkable(from, to, body_radius):
 		return false
+	if ignore_towers:
+		return true
 	for tower in towers:
 		if not bool(tower.get("alive", false)):
 			continue
@@ -2660,12 +2756,14 @@ func _draw() -> void:
 	_draw_wade_splashes()
 	_draw_projectiles()
 	_draw_tower_shots()
-	# 特效先画、主角后画：爆炸与刀光不会盖住主角，近战环身特效仍围绕主角可见。
+	# 绘制顺序：地图 → 单位 → 环境特效 → 五龙清屏 → 主角 → 反馈数字。
+	# 五龙粗弧曾画在主角之后，相位接近零时会直接压住主角；移到主角之前后，
+	# 清屏特效仍覆盖战场，但不会再遮盖玩家角色。
 	_draw_jeff_fx()
 	_draw_effects()
+	_draw_dragons()
 	_draw_player()
 	FeedbackManager.draw(self)
-	_draw_dragons()
 
 func _draw_towers() -> void:
 	if towers.is_empty():
@@ -2740,6 +2838,23 @@ func _draw_encounters() -> void:
 		var center := position + Vector2(0.0, -22.0 + bob)
 		draw_circle(center + Vector2(0.0, 18.0), 10.0, Color(0.0, 0.0, 0.0, 0.28))
 		draw_circle(center, 17.0 if not used else 10.0, Color(accent, 0.18))
+		if used:
+			# 采集后的刷新倒计时：世界视图里也能看到资源点何时恢复，
+			# 而不是一个永久灰掉的图标。
+			var total := maxf(0.001, float(site.get("refresh_seconds", ENCOUNTER_REFRESH_DEFAULT)))
+			var remaining := clampf(float(site.get("refresh_remaining", 0.0)), 0.0, total)
+			var progress := 1.0 - remaining / total
+			draw_arc(
+				center,
+				15.0,
+				-PI * 0.5,
+				-PI * 0.5 + TAU * progress,
+				20,
+				Color(GOLD, 0.94),
+				2.4,
+				true
+			)
+			draw_circle(center, 9.5, Color(0.02, 0.03, 0.03, 0.55))
 		var texture := site.get("texture", null) as Texture2D
 		if texture != null:
 			draw_texture_rect(
