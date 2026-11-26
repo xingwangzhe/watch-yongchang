@@ -78,6 +78,7 @@ func _draw() -> void:
 		draw_texture_rect(_base_texture, _map_rect, false, Color.WHITE)
 	draw_rect(_map_rect, Color(GOLD, 0.24), false, 1.0)
 	_draw_landmarks()
+	_draw_encounters()
 	_draw_entities()
 	_draw_camera_window()
 	_draw_player()
@@ -139,6 +140,38 @@ func _draw_landmarks() -> void:
 			draw_colored_polygon(points, Color(color, 0.94))
 		else:
 			draw_circle(point, 2.2, Color(color, 0.82))
+
+
+func _draw_encounters() -> void:
+	for site in battlefield.encounter_sites:
+		var point := world_to_map(site["pos"] as Vector2)
+		if not _map_rect.has_point(point):
+			continue
+		var used := bool(site.get("used", false))
+		var good := bool(site.get("good", true))
+		var color := Color("#78c78b") if good else Color("#d06a54")
+		if used:
+			color = Color(0.52, 0.50, 0.44, 0.62)
+		var texture := site.get("texture", null) as Texture2D
+		if texture != null:
+			var icon_size := 9.0 if not used else 6.0
+			draw_texture_rect(
+				texture,
+				Rect2(point - Vector2.ONE * icon_size * 0.5, Vector2.ONE * icon_size),
+				false,
+				Color(1.0, 1.0, 1.0, 0.92 if not used else 0.45)
+			)
+		else:
+			draw_circle(point, 2.4 if not used else 1.6, Color(color, 0.82))
+		if not used:
+			var diamond := PackedVector2Array([
+				point + Vector2(0.0, -5.2),
+				point + Vector2(5.2, 0.0),
+				point + Vector2(0.0, 5.2),
+				point + Vector2(-5.2, 0.0),
+				point + Vector2(0.0, -5.2),
+			])
+			draw_polyline(diamond, Color(color, 0.90), 1.0, true)
 
 
 func _draw_entities() -> void:

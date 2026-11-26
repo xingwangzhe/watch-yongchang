@@ -122,6 +122,63 @@ func test_tower_arrow_actually_damages_enemy() -> void:
 	assert_lt(float(enemy["hp"]), before_hp, "arrow must really hit and damage the enemy")
 
 
+func test_tower_kills_store_xp_until_player_harvests_near_tower() -> void:
+	var field := _new_field()
+	var tower_pos := Vector2(1952, 1536)
+	var tower_index := field.spawn_tower("watchtower", tower_pos)
+	var tower: Dictionary = field.towers[tower_index]
+	tower["attack_timer"] = 0.0
+	tower["cooldown"] = 0.10
+	tower["damage"] = 9999.0
+	var enemy_index := field.spawn_enemy_at("scout", tower_pos + Vector2(170, 0))
+	field.enemies[enemy_index]["speed"] = 0.0
+	var killed: Array[bool] = [false]
+	field.enemy_killed.connect(func(_id: String, _pos: Vector2, _elite: bool) -> void: killed[0] = true)
+	var far_player := {"pos": Vector2(2600, 1536), "radius": 18.0, "pickup_radius": 0.0}
+	for _frame in range(90):
+		field.update_world(1.0 / 60.0, far_player)
+		if killed[0]:
+			break
+	assert_true(killed[0], "tower must kill the stationary scout")
+	assert_eq(field.orbs.size(), 0, "tower kills must not leave loose XP orbs")
+	assert_gt(float(tower["xp"]), 0.0, "tower must bank the kill XP")
+
+	var collected: Array[float] = []
+	field.xp_collected.connect(func(amount: float) -> void: collected.append(amount))
+	var actual_tower_pos := tower["pos"] as Vector2
+	field.update_world(
+		1.0 / 60.0,
+		{"pos": actual_tower_pos + Vector2(28, 0), "radius": 18.0, "pickup_radius": 0.0}
+	)
+	assert_eq(collected.size(), 1, "walking beside the tower must harvest its banked XP")
+	assert_gt(float(collected[0]), 0.001, "harvested XP must be positive")
+	assert_almost_eq(float(tower["xp"]), 0.0, 0.001, "harvest must empty the tower bank")
+
+
+func test_tower_arrow_passes_through_buildings() -> void:
+	var field := _new_field()
+	var tower_pos := Vector2(1952, 1536)
+	field.spawn_tower("watchtower", tower_pos)
+	var enemy_pos := tower_pos + Vector2(260, 0)
+	var enemy_index := field.spawn_enemy_at("shield", enemy_pos)
+	var enemy: Dictionary = field.enemies[enemy_index]
+	enemy["speed"] = 0.0
+	enemy["hp"] = 1000.0
+	enemy["max_hp"] = 1000.0
+	field.map_layout.mark_solid_rect(Rect2i(64, 44, 1, 9))
+	var before_hp := float(enemy["hp"])
+	var player := {"pos": Vector2(2600, 1536), "radius": 18.0, "pickup_radius": 0.0}
+	for _frame in range(90):
+		field.update_world(1.0 / 60.0, player)
+		if float(enemy["hp"]) < before_hp:
+			break
+	assert_lt(
+		float(enemy["hp"]),
+		before_hp,
+		"friendly tower arrows must ignore building collision"
+	)
+
+
 func test_tower_burst_continues_during_main_cooldown() -> void:
 	var field := _new_field()
 	field.apply_tower_stats({"tower_burst_shots": 3})

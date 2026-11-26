@@ -3,7 +3,7 @@ extends Control
 
 signal chosen(index: int)
 
-const INPUT_LOCK_MSEC := 1000
+const INPUT_LOCK_MSEC := 200
 
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const PAPER := Color("#efe1c2")

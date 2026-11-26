@@ -20,7 +20,7 @@
 			"damage": 7.0,
 			"radius": 23.0,
 			"xp": 2.0,
-			"scale": 0.86,
+			"scale": 0.76,
 			"behavior": "chase"
 		},
 		"ronin": {
@@ -43,7 +43,7 @@
 			"damage": 10.0,
 			"radius": 25.0,
 			"xp": 3.0,
-			"scale": 0.9,
+			"scale": 0.79,
 			"behavior": "chase"
 		},
 		"shield": {
@@ -66,7 +66,7 @@
 			"damage": 13.0,
 			"radius": 28.0,
 			"xp": 7.0,
-			"scale": 0.96,
+			"scale": 0.82,
 			"behavior": "chase",
 			"armor": 0.18
 		},
@@ -90,7 +90,7 @@
 			"damage": 8.0,
 			"radius": 24.0,
 			"xp": 5.0,
-			"scale": 0.9,
+			"scale": 0.78,
 			"behavior": "ranged",
 			"attack_range": 270.0,
 			"attack_cooldown": 2.2,
@@ -116,7 +116,7 @@
 			"damage": 9.0,
 			"radius": 24.0,
 			"xp": 5.0,
-			"scale": 0.9,
+			"scale": 0.78,
 			"behavior": "ranged",
 			"attack_range": 330.0,
 			"attack_cooldown": 2.6,
@@ -142,7 +142,7 @@
 			"damage": 10.0,
 			"radius": 30.0,
 			"xp": 12.0,
-			"scale": 0.98,
+			"scale": 0.84,
 			"behavior": "support",
 			"aura_radius": 220.0
 		},
@@ -166,7 +166,7 @@
 			"damage": 24.0,
 			"radius": 38.0,
 			"xp": 55.0,
-			"scale": 1.21,
+			"scale": 1.28,
 			"behavior": "elite",
 			"charge_cooldown": 4.4
 		},
@@ -190,7 +190,7 @@
 			"damage": 38.0,
 			"radius": 62.0,
 			"xp": 320.0,
-			"scale": 2.24,
+			"scale": 2.32,
 			"behavior": "boss",
 			"charge_cooldown": 3.8
 		}

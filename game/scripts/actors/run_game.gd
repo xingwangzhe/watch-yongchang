@@ -109,6 +109,10 @@ var _mouse_screen_pos := Vector2.ZERO
 var _has_mouse_screen_pos := false
 var _move_trail_timer := 0.0
 var _event_enemy_speed_mult := 1.0
+var _event_slow_timer := 0.0
+var _event_slow_factor := 1.0
+var _event_enemy_haste_timer := 0.0
+var _event_enemy_haste_amount := 0.0
 var _accum := 0.0
 var _spawn_accum := 0.0
 var _hud_refresh_accum := 0.0
@@ -140,6 +144,7 @@ var _narrative_timer: Timer
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_index := 0
 var _kill_sfx_cd := 0.0
+var _elite_notice_cd := 0.0
 var _wade_sfx_cd := 0.0
 var _pickup_sfx_cd := 0.0
 var _result_recorded := false
@@ -351,6 +356,7 @@ func _build_world() -> void:
 	battlefield.oil_collected.connect(_on_oil_collected)
 	battlefield.heal_collected.connect(_on_heal_collected)
 	battlefield.scale_collected.connect(_on_scale_collected)
+	battlefield.encounter_triggered.connect(_on_encounter_triggered)
 	battlefield.boss_spawned.connect(_on_boss_spawned)
 	battlefield.boss_defeated.connect(_on_boss_defeated)
 	battlefield.tower_destroyed.connect(_on_tower_destroyed)
@@ -575,17 +581,25 @@ func _step(delta: float) -> void:
 	var step_started := Time.get_ticks_usec()
 	elapsed += delta
 	_update_player(delta)
+	_event_slow_timer = maxf(0.0, _event_slow_timer - delta)
+	_event_enemy_haste_timer = maxf(0.0, _event_enemy_haste_timer - delta)
 	_update_oil(delta)
 	_update_weapons(delta)
 	_update_skills(delta)
 	battlefield.set_meta("light_radius", float(player["light_radius"]))
 	battlefield.set_difficulty(elapsed / maxf(1.0, duration), _difficulty_curve)
 	var map_speed := float(map_def.get("enemy_speed_mult", 1.0))
+	var encounter_enemy_speed := (
+		1.0 + _event_enemy_haste_amount if _event_enemy_haste_timer > 0.0 else 1.0
+	)
 	var world_started := Time.get_ticks_usec()
 	battlefield.update_world(
 		delta,
 		player,
-		(1.20 if bool(player["dark"]) else 1.0) * map_speed * _event_enemy_speed_mult
+		(1.20 if bool(player["dark"]) else 1.0)
+			* map_speed
+			* _event_enemy_speed_mult
+			* encounter_enemy_speed
 	)
 	_last_world_usec = Time.get_ticks_usec() - world_started
 	_update_spawning(delta)
@@ -608,6 +622,7 @@ func _update_player(delta: float) -> void:
 	_invuln = maxf(0.0, _invuln - delta)
 	_attack_buffer = maxf(0.0, _attack_buffer - delta)
 	_kill_sfx_cd = maxf(0.0, _kill_sfx_cd - delta)
+	_elite_notice_cd = maxf(0.0, _elite_notice_cd - delta)
 	_pickup_sfx_cd = maxf(0.0, _pickup_sfx_cd - delta)
 	if float(player.get("regen", 0.0)) > 0.0 and float(player["hp"]) > 0.0:
 		player["hp"] = minf(
@@ -657,7 +672,15 @@ func _update_player(delta: float) -> void:
 	if _dash_timer > 0.0:
 		desired_position += _dash_dir * float(player["speed"]) * 3.5 * delta
 	else:
-		desired_position += input_vector * float(player["speed"]) * move_boost * wade_factor * delta
+		var encounter_speed := _event_slow_factor if _event_slow_timer > 0.0 else 1.0
+		desired_position += (
+			input_vector
+			* float(player["speed"])
+			* move_boost
+			* wade_factor
+			* encounter_speed
+			* delta
+		)
 		if wade_factor < 1.0 and input_vector.length_squared() > 0.001:
 			_wade_sfx_cd -= delta
 			if _wade_sfx_cd <= 0.0:
@@ -1428,7 +1451,7 @@ func _on_player_hit(raw_damage: float) -> void:
 			_begin_defeat()
 
 
-func _on_enemy_killed(enemy_id: String, _world_position: Vector2, elite: bool) -> void:
+func _on_enemy_killed(enemy_id: String, world_position: Vector2, elite: bool) -> void:
 	kills += 1
 	var definition: Dictionary = enemy_defs.get(enemy_id, {}) as Dictionary
 	var xp_value := float(definition.get("xp", 1.0))
@@ -1449,7 +1472,16 @@ func _on_enemy_killed(enemy_id: String, _world_position: Vector2, elite: bool) -
 			float(player["hp"]) + float(player["lifesteal"])
 		)
 	if elite:
-		hud.show_banner(Locale.t("banner.elite"), Locale.t("banner.elite_sub"), 1.8)
+		var carries_scale := false
+		for drop in battlefield.scale_drops:
+			if (drop["pos"] as Vector2).distance_squared_to(world_position) < 64.0 * 64.0:
+				carries_scale = true
+				break
+		# 后期精英成批出现，只有带龙鳞的精英才值得打断战斗提示；
+		# 普通精英仍保留击杀音效与军功，不再刷屏。
+		if carries_scale and _elite_notice_cd <= 0.0:
+			hud.show_banner(Locale.t("banner.elite"), Locale.t("banner.elite_sub"), 1.8)
+			_elite_notice_cd = 4.0
 		_play_sfx(SFX_ELITE_KILL, _rng.randf_range(0.94, 1.04), 0.78)
 	elif _kill_sfx_cd <= 0.0:
 		_play_sfx(SFX_ENEMY_KILL, _rng.randf_range(0.90, 1.10), 0.42)
@@ -1853,7 +1885,7 @@ func _on_shop_reroll() -> void:
 		shop_overlay.show_message(Locale.t("shop.not_enough"), true)
 		return
 	run_coin -= cost
-	_current_shop_offers = ShopCatalog.build_offers(weapons, passives, mercenaries, _rng)
+	_current_shop_offers = _reroll_shop_offers(_current_shop_offers)
 	shop_overlay.refresh(
 		_current_shop_offers,
 		run_coin,
@@ -1863,6 +1895,41 @@ func _on_shop_reroll() -> void:
 	shop_overlay.show_message(Locale.t("shop.rerolled"))
 	hud.update_hud(_hud_state())
 	AudioBus.play_confirm()
+
+
+func _reroll_shop_offers(previous: Array[Dictionary]) -> Array[Dictionary]:
+	var fresh := ShopCatalog.build_offers(
+		weapons,
+		passives,
+		mercenaries,
+		_rng,
+		maxi(1, previous.size())
+	)
+	var sold_ids: Dictionary = {}
+	for offer in previous:
+		if bool(offer.get("sold", false)):
+			sold_ids[str(offer.get("option_id", ""))] = true
+	var fresh_index := 0
+	var next: Array[Dictionary] = []
+	for index in range(previous.size()):
+		var old_offer := previous[index]
+		if bool(old_offer.get("sold", false)):
+			next.append(old_offer)
+			continue
+		var replacement: Dictionary = {}
+		while fresh_index < fresh.size():
+			var candidate := fresh[fresh_index]
+			fresh_index += 1
+			var candidate_id := str(candidate.get("option_id", ""))
+			if sold_ids.has(candidate_id):
+				continue
+			replacement = candidate
+			sold_ids[candidate_id] = true
+			break
+		if replacement.is_empty():
+			replacement = old_offer
+		next.append(replacement)
+	return next
 
 
 func _on_shop_closed() -> void:
@@ -1892,6 +1959,87 @@ func _shop_mercenary_info() -> Dictionary:
 func _on_ally_support(_source_id: String, kind: String, amount: float) -> void:
 	if kind == "heal":
 		player["hp"] = minf(float(player["max_hp"]), float(player["hp"]) + amount)
+
+
+func _on_encounter_triggered(index: int) -> void:
+	if index < 0 or index >= battlefield.encounter_sites.size():
+		return
+	var site := battlefield.encounter_sites[index]
+	var title := GameData.loc(site, "title")
+	var description := GameData.loc(site, "description")
+	hud.show_banner(title, description, 3.2)
+	_play_sfx(SFX_EVENT, 1.04 if bool(site.get("good", true)) else 0.86, 0.72)
+	battlefield.add_effect({
+		"type": "aura",
+		"pos": site["pos"] as Vector2,
+		"ttl": 0.8,
+		"max_ttl": 0.8,
+		"radius": 112.0,
+		"color": Color("#78c78b") if bool(site.get("good", true)) else Color("#d06a54"),
+	})
+	var effect := str(site.get("effect", ""))
+	match effect:
+		"ally":
+			var candidates: Array[String] = []
+			for mercenary_id in mercenary_defs.keys():
+				if not mercenaries.has(str(mercenary_id)):
+					candidates.append(str(mercenary_id))
+			if not candidates.is_empty():
+				candidates.shuffle()
+				if not _hire_mercenary(candidates[0]):
+					_add_xp(45.0)
+			else:
+				_add_xp(45.0)
+		"stat":
+			var stat := str(site.get("stat", ""))
+			if not stat.is_empty():
+				event_stat_bonuses[stat] = float(event_stat_bonuses.get(stat, 0.0)) + float(
+					site.get("amount", 0.0)
+				)
+				_recompute_stats()
+		"oil":
+			player["oil"] = mini(
+				int(player["oil_max"]),
+				int(player["oil"]) + int(site.get("amount", 3))
+			)
+		"xp":
+			_add_xp(float(site.get("amount", 40.0)))
+		"coin":
+			run_coin += int(site.get("amount", 40))
+		"heal":
+			player["hp"] = minf(
+				float(player["max_hp"]),
+				float(player["hp"]) + float(player["max_hp"]) * float(site.get("amount", 0.25))
+			)
+		"slow":
+			_event_slow_factor = clampf(float(site.get("factor", 0.72)), 0.35, 1.0)
+			_event_slow_timer = maxf(_event_slow_timer, float(site.get("duration", 10.0)))
+		"enemy_haste":
+			_event_enemy_haste_amount = maxf(0.0, float(site.get("amount", 0.18)))
+			_event_enemy_haste_timer = maxf(_event_enemy_haste_timer, float(site.get("duration", 12.0)))
+		"ambush":
+			_spawn_encounter_ambush(site)
+	_sync_gameplay_cursor()
+
+
+func _spawn_encounter_ambush(site: Dictionary) -> void:
+	var phase := _phase_at(elapsed)
+	var mix: Array = phase.get("mix", []) as Array
+	if mix.is_empty():
+		mix = [{"id": "scout", "weight": 100}]
+	var count := maxi(1, int(site.get("count", 8)))
+	var center := player["pos"] as Vector2
+	for index in range(count):
+		var angle := TAU * float(index) / float(count) + _rng.randf_range(-0.24, 0.24)
+		var distance := _rng.randf_range(
+			float(site.get("radius_min", 280.0)),
+			float(site.get("radius_max", 460.0))
+		)
+		var position := center + Vector2(cos(angle), sin(angle)) * distance
+		var enemy_id := _pick_weighted(mix)
+		if enemy_id.is_empty():
+			enemy_id = "scout"
+		battlefield.spawn_enemy_at(enemy_id, position)
 
 
 func _apply_card(option: Dictionary) -> void:
@@ -2015,6 +2163,9 @@ func _on_scale_collected(color: String) -> void:
 		merit += 500
 		_add_xp(180.0)
 		_play_sfx(SFX_WIN)
+		# 龙鳞是消耗品：清屏后归零，下一轮重新收集；同时清掉场上残留鳞片。
+		scales.clear()
+		battlefield.clear_scale_drops()
 
 
 func _on_boss_spawned(_enemy_id: String, _max_hp: float) -> void:

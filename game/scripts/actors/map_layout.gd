@@ -4,6 +4,7 @@ extends RefCounted
 const TILE_SIZE := 32.0
 const CARDINAL_DIRECTIONS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
 const FLOW_MIN_REQUEST_CELLS := 2
+const PATH_CACHE_LIMIT := 96
 const MINIMAP_BRIDGE := Color("#c4a06b")
 const MINIMAP_BRIDGE_RAILING := Color("#4e3527")
 
@@ -46,6 +47,10 @@ var _flow_pending_target_cell := Vector2i(-1, -1)
 var _flow_build_head := 0
 var _flow_build_tail := 0
 var _flow_build_active := false
+var _path_cache: Dictionary = {}
+var _path_cache_order: Array[int] = []
+var path_queries := 0
+var path_cache_hits := 0
 
 
 func setup(map_key: String, definition: Dictionary) -> void:
@@ -62,6 +67,10 @@ func setup(map_key: String, definition: Dictionary) -> void:
 	_flow_target_cell = Vector2i(-1, -1)
 	_flow_build_target_cell = Vector2i(-1, -1)
 	_flow_pending_target_cell = Vector2i(-1, -1)
+	_path_cache.clear()
+	_path_cache_order.clear()
+	path_queries = 0
+	path_cache_hits = 0
 	minimap_texture = null
 	initial_blocked_points.clear()
 	var layout: Dictionary = definition.get("layout", {}) as Dictionary
@@ -505,10 +514,200 @@ func navigation_direction(from: Vector2, to: Vector2, direct_range: float = 190.
 	var direct := to - from
 	if direct.length_squared() <= direct_range * direct_range:
 		return direct.normalized()
+	# 长距离追击只做一次粗粒度通视判定：开阔地直接切向目标，
+	# 避免单位明明看得见却沿流场走折线；被建筑挡住时才回到共享流场。
+	if direct.length_squared() <= 360.0 * 360.0 and is_segment_walkable(from, to, 10.0):
+		return direct.normalized()
 	var flow := flow_direction(from)
 	if flow != Vector2.ZERO:
 		return flow
 	return direct.normalized()
+
+
+## RTS 式路径请求：A* 只在友军、少量特殊单位或重寻路时使用，
+## 大群敌人继续共享流场，避免 460 个单位各自搜索。
+## 返回经过视线简化的世界坐标路点；空数组表示不可达。
+func find_path(from: Vector2, to: Vector2, radius: float = 14.0) -> PackedVector2Array:
+	var start_cell := world_to_cell(from)
+	var goal_cell := world_to_cell(to)
+	if not cell_in_bounds(start_cell) or not cell_in_bounds(goal_cell):
+		return PackedVector2Array()
+	if not is_cell_walkable(start_cell):
+		start_cell = world_to_cell(find_walkable_position(from, radius))
+	if not is_cell_walkable(goal_cell):
+		goal_cell = world_to_cell(find_walkable_position(to, radius))
+	var cache_key := _path_key(start_cell, goal_cell, radius)
+	if _path_cache.has(cache_key):
+		path_cache_hits += 1
+		return _path_cache[cache_key] as PackedVector2Array
+	path_queries += 1
+	var cells := _astar_cells(start_cell, goal_cell)
+	var path := PackedVector2Array()
+	if cells.is_empty():
+		return path
+	var raw := PackedVector2Array()
+	for cell in cells:
+		raw.append(_tile_center(cell))
+	# 视线简化（string pulling）：只保留能相互直达的关键路点。
+	var anchor := 0
+	path.append(from)
+	while anchor < raw.size() - 1:
+		var farthest := anchor + 1
+		for probe in range(raw.size() - 1, anchor, -1):
+			if is_segment_walkable(raw[anchor], raw[probe], radius):
+				farthest = probe
+				break
+		path.append(raw[farthest])
+		anchor = farthest
+	if path.size() > 1 and path[path.size() - 1].distance_squared_to(from) < 4.0:
+		path.remove_at(path.size() - 1)
+	_path_cache[cache_key] = path
+	_path_cache_order.append(cache_key)
+	while _path_cache_order.size() > PATH_CACHE_LIMIT:
+		var stale: int = _path_cache_order.pop_front()
+		_path_cache.erase(stale)
+	return path
+
+
+func _path_key(start_cell: Vector2i, goal_cell: Vector2i, radius: float) -> int:
+	var bucket := clampi(roundi(radius), 0, 63)
+	return (((start_cell.y * world_tiles.x + start_cell.x) * world_tiles.x * world_tiles.y
+		+ goal_cell.y * world_tiles.x + goal_cell.x) << 6) | bucket
+
+
+func _astar_cells(start_cell: Vector2i, goal_cell: Vector2i) -> Array[Vector2i]:
+	var width := world_tiles.x
+	var total := width * world_tiles.y
+	var start_index := start_cell.y * width + start_cell.x
+	var goal_index := goal_cell.y * width + goal_cell.x
+	var g_score := PackedInt32Array()
+	g_score.resize(total)
+	g_score.fill(1_000_000_000)
+	var came_from := PackedInt32Array()
+	came_from.resize(total)
+	came_from.fill(-1)
+	var closed := PackedByteArray()
+	closed.resize(total)
+	closed.fill(0)
+	var heap_indices := PackedInt32Array()
+	var heap_f := PackedInt32Array()
+	g_score[start_index] = 0
+	_heap_push(heap_indices, heap_f, start_index, _octile_heuristic(start_cell, goal_cell))
+	var found := false
+	var guard := 0
+	while not heap_indices.is_empty() and guard < total:
+		guard += 1
+		var current := _heap_pop(heap_indices, heap_f)
+		if closed[current] != 0:
+			continue
+		closed[current] = 1
+		if current == goal_index:
+			found = true
+			break
+		var cell := Vector2i(current % width, current / width)
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				if dx == 0 and dy == 0:
+					continue
+				var next := cell + Vector2i(dx, dy)
+				if not cell_in_bounds(next) or not is_cell_walkable(next):
+					continue
+				if dx != 0 and dy != 0:
+					# 禁止穿墙角：两个正交邻格都必须是空的。
+					if not is_cell_walkable(cell + Vector2i(dx, 0)):
+						continue
+					if not is_cell_walkable(cell + Vector2i(0, dy)):
+						continue
+				var next_index := next.y * width + next.x
+				if closed[next_index] != 0:
+					continue
+				var step_cost := 10 if dx == 0 or dy == 0 else 14
+				# 贴近墙体的格子增加代价，单位自然走通道中心。
+				step_cost += _wall_pressure_cost(next) * 3
+				var tentative := g_score[current] + step_cost
+				if tentative >= g_score[next_index]:
+					continue
+				came_from[next_index] = current
+				g_score[next_index] = tentative
+				_heap_push(
+					heap_indices,
+					heap_f,
+					next_index,
+					tentative + _octile_heuristic(next, goal_cell)
+				)
+	var result: Array[Vector2i] = []
+	if not found:
+		return result
+	var cursor := goal_index
+	while cursor >= 0:
+		result.append(Vector2i(cursor % width, cursor / width))
+		if cursor == start_index:
+			break
+		cursor = came_from[cursor]
+	result.reverse()
+	return result
+
+
+func _octile_heuristic(from: Vector2i, to: Vector2i) -> int:
+	var dx := absi(from.x - to.x)
+	var dy := absi(from.y - to.y)
+	return 10 * maxi(dx, dy) + 4 * mini(dx, dy)
+
+
+func _wall_pressure_cost(cell: Vector2i) -> int:
+	var pressure := 0
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			if dx == 0 and dy == 0:
+				continue
+			if is_solid_cell(cell + Vector2i(dx, dy)):
+				pressure += 1
+	return pressure
+
+
+func _heap_push(indices: PackedInt32Array, costs: PackedInt32Array, index: int, cost: int) -> void:
+	indices.append(index)
+	costs.append(cost)
+	var cursor := indices.size() - 1
+	while cursor > 0:
+		var parent := (cursor - 1) / 2
+		if costs[parent] <= costs[cursor]:
+			break
+		var tmp_i := indices[parent]
+		var tmp_c := costs[parent]
+		indices[parent] = indices[cursor]
+		costs[parent] = costs[cursor]
+		indices[cursor] = tmp_i
+		costs[cursor] = tmp_c
+		cursor = parent
+
+
+func _heap_pop(indices: PackedInt32Array, costs: PackedInt32Array) -> int:
+	var result := indices[0]
+	var last_index := indices.size() - 1
+	indices[0] = indices[last_index]
+	costs[0] = costs[last_index]
+	indices.resize(last_index)
+	costs.resize(last_index)
+	var cursor := 0
+	while true:
+		var left := cursor * 2 + 1
+		var right := left + 1
+		var smallest := cursor
+		if left < indices.size() and costs[left] < costs[smallest]:
+			smallest = left
+		if right < indices.size() and costs[right] < costs[smallest]:
+			smallest = right
+		if smallest == cursor:
+			break
+		var tmp_i := indices[cursor]
+		var tmp_c := costs[cursor]
+		indices[cursor] = indices[smallest]
+		costs[cursor] = costs[smallest]
+		indices[smallest] = tmp_i
+		costs[smallest] = tmp_c
+		cursor = smallest
+	return result
 
 
 func is_segment_wall_blocked(from: Vector2, to: Vector2, radius: float = 4.0) -> bool:
@@ -547,6 +746,16 @@ func move_circle_known_walkable(from: Vector2, to: Vector2, radius: float = 18.0
 	var y_candidate := Vector2(result.x, to.y)
 	if is_point_walkable(y_candidate, radius):
 		result.y = to.y
+	# 凹角/塔基边缘：轴向滑动失败时沿墙面切向探步，避免原地卡死。
+	if result.distance_squared_to(from) < 0.01:
+		var desired := to - from
+		var step := desired.length()
+		if step > 0.01:
+			var base := desired / step
+			for angle in [30.0, -30.0, 60.0, -60.0, 90.0, -90.0]:
+				var candidate := from + base.rotated(deg_to_rad(angle)) * step
+				if is_point_walkable(candidate, radius):
+					return candidate
 	return result
 
 
@@ -613,6 +822,10 @@ func landmark_entries() -> Array[Dictionary]:
 
 func world_to_cell(position: Vector2) -> Vector2i:
 	return Vector2i(floori(position.x / TILE_SIZE), floori(position.y / TILE_SIZE))
+
+
+func cell_center(cell: Vector2i) -> Vector2:
+	return _tile_center(cell)
 
 
 func cell_in_bounds(cell: Vector2i) -> bool:

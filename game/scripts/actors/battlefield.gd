@@ -12,6 +12,7 @@ signal xp_collected(amount: float)
 signal ally_support(source_id: String, kind: String, amount: float)
 signal tower_destroyed(tower_id: String, world_position: Vector2)
 signal tower_damaged(tower_id: String, ratio: float)
+signal encounter_triggered(index: int)
 
 const CELL_SIZE := 64.0
 const VIEW_HALF := Vector2(720.0, 430.0)
@@ -36,6 +37,9 @@ const TOWER_BURST_INTERVAL := 0.12
 const TOWER_MAX_BURST_LANES := 2
 const FLOW_REQUEST_INTERVAL_WEB := 0.50
 const FLOW_REQUEST_INTERVAL_NATIVE := 0.30
+const ALLY_REPATH_INTERVAL := 0.65
+const UNIT_SEPARATION_WEIGHT := 0.62
+const STUCK_RECOVERY_SECONDS := 0.55
 
 var enemies: Array[Dictionary] = []
 var allies: Array[Dictionary] = []
@@ -78,6 +82,7 @@ var tower_defs: Dictionary = {}
 var tower_stats: Dictionary = {}
 var tower_textures: Dictionary = {}
 var textures: Dictionary = {}
+var encounter_sites: Array[Dictionary] = []
 var enemy_sprite_frames: Dictionary = {}
 var player_idle_frames: Array[Texture2D] = []
 var player_walk_frames: Array[Texture2D] = []
@@ -130,6 +135,7 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 	map_renderer.name = "MapRenderer"
 	add_child(map_renderer)
 	map_renderer.build(map_layout, map_definition, seed_value)
+	_load_encounters()
 	_load_attack_fx()
 	player_pos = map_layout.start_pos
 	_last_player_pos = player_pos
@@ -274,6 +280,37 @@ func _load_towers() -> void:
 		tower_textures[tower_id] = texture
 
 
+func _load_encounters() -> void:
+	encounter_sites.clear()
+	var data := GameData.get_encounters()
+	var events: Dictionary = data.get("events", {}) as Dictionary
+	var sites_by_map: Dictionary = data.get("sites", {}) as Dictionary
+	var map_sites: Array = sites_by_map.get(str(map_definition.get("id", "tideland")), []) as Array
+	for entry in map_sites:
+		if not entry is Dictionary:
+			continue
+		var site_data := entry as Dictionary
+		var tile: Array = site_data.get("tile", [0, 0]) as Array
+		if tile.size() < 2:
+			continue
+		var event_id := str(site_data.get("event", ""))
+		var event: Dictionary = events.get(event_id, {}) as Dictionary
+		if event.is_empty():
+			continue
+		var cell := Vector2i(int(tile[0]), int(tile[1]))
+		var site := event.duplicate(true)
+		site["event_id"] = event_id
+		site["cell"] = cell
+		site["pos"] = map_layout.find_walkable_position(
+			map_layout.cell_center(cell),
+			18.0
+		)
+		site["used"] = false
+		var icon_path := str(site.get("icon", ""))
+		site["texture"] = GameData.texture(icon_path)
+		encounter_sites.append(site)
+
+
 func tower_definition(tower_id: String) -> Dictionary:
 	return tower_defs.get(tower_id, {}) as Dictionary
 
@@ -330,6 +367,8 @@ func spawn_tower(tower_id: String, position: Vector2) -> int:
 		"flash": 0.0,
 		"hit_cd": 0.0,
 		"heat": 0.0,
+		"xp": 0.0,
+		"xp_pulse": 0.0,
 		"alive": true,
 		"rebuild_timer": 0.0,
 		"tex": tower_textures.get(tower_id, null) as Texture2D,
@@ -350,7 +389,8 @@ func live_tower_count() -> int:
 func tower_summary() -> Array[Dictionary]:
 	"""给 HUD 用的轻量快照，避免 UI 侧直接摸实体池。"""
 	var views: Array[Dictionary] = []
-	for tower in towers:
+	for tower_index in range(towers.size()):
+		var tower := towers[tower_index]
 		if not bool(tower.get("alive", false)):
 			continue
 		var definition := tower_definition(str(tower["id"]))
@@ -401,7 +441,8 @@ func _update_towers(delta: float) -> void:
 	var volley := int(tower_stats.get("tower_volley", 0))
 	var burst_shots := int(tower_stats.get("tower_burst_shots", 0))
 	var overcharge := clampf(float(tower_stats.get("tower_overcharge", 0.0)), 0.0, 0.55)
-	for tower in towers:
+	for tower_index in range(towers.size()):
+		var tower := towers[tower_index]
 		if not bool(tower.get("alive", false)):
 			continue
 		tower["flash"] = maxf(0.0, float(tower["flash"]) - delta)
@@ -413,6 +454,7 @@ func _update_towers(delta: float) -> void:
 			tower["hp"] = minf(float(tower["max_hp"]), float(tower["hp"]) + tower_regen * delta)
 		tower["attack_timer"] = float(tower["attack_timer"]) - delta
 		tower["heat"] = maxf(0.0, float(tower["heat"]) - delta * 1.6)
+		tower["xp_pulse"] = maxf(0.0, float(tower.get("xp_pulse", 0.0)) - delta * 2.4)
 		var position := tower["pos"] as Vector2
 		var size := TOWER_SPRITE_BASE * float(tower.get("sprite_scale", 1.0))
 		var pivot := position + Vector2(0.0, -size * 0.30)
@@ -427,10 +469,10 @@ func _update_towers(delta: float) -> void:
 			if float(tower["attack_timer"]) <= 0.0 and absf(angle_difference(aim_angle, desired_angle)) <= 0.32:
 				tower["heat"] = minf(1.0, float(tower["heat"]) + 0.34)
 				var spread := 1.0 + overcharge * float(tower["heat"])
-				if _fire_tower_volley(tower, target, 1 + volley):
+				if _fire_tower_volley(tower, target, 1 + volley, tower_index):
 					_queue_tower_burst(tower, burst_shots)
 					tower["attack_timer"] = maxf(0.08, float(tower["cooldown"]) * rate_mult / spread)
-		_update_tower_bursts(tower, delta)
+		_update_tower_bursts(tower, delta, tower_index)
 
 
 func _ensure_tower_burst_lanes(tower: Dictionary, lane_count: int) -> void:
@@ -462,7 +504,7 @@ func _queue_tower_burst(tower: Dictionary, shots: int) -> void:
 	tower["burst_cursor"] = cursor
 
 
-func _update_tower_bursts(tower: Dictionary, delta: float) -> void:
+func _update_tower_bursts(tower: Dictionary, delta: float, tower_index: int) -> void:
 	var target := nearest_enemy(tower["pos"] as Vector2, float(tower["range"]) * float(tower_stats.get("tower_range_mult", 1.0)))
 	var lanes: Array = tower["burst_lanes"] as Array
 	for lane in lanes:
@@ -472,19 +514,17 @@ func _update_tower_bursts(tower: Dictionary, delta: float) -> void:
 		lane["timer"] = float(lane["timer"]) - delta
 		if float(lane["timer"]) > 0.0 or target.is_empty():
 			continue
-		if _fire_tower_volley(tower, target, 1):
+		if _fire_tower_volley(tower, target, 1, tower_index):
 			lane["remaining"] = remaining - 1
 			lane["timer"] = TOWER_BURST_INTERVAL
 
 
-func _fire_tower_volley(tower: Dictionary, target: Dictionary, shots: int) -> bool:
+func _fire_tower_volley(tower: Dictionary, target: Dictionary, shots: int, tower_index: int) -> bool:
 	var position := tower["pos"] as Vector2
 	var size := TOWER_SPRITE_BASE * float(tower.get("sprite_scale", 1.0))
 	var pivot := position + Vector2(0.0, -size * 0.30)
 	var aim_dir := tower["aim_dir"] as Vector2
 	var bow_origin := pivot + aim_dir * (size * 0.18)
-	if map_layout != null and map_layout.is_segment_wall_blocked(pivot, bow_origin, 3.0):
-		bow_origin = position
 	var target_pos := target["pos"] as Vector2
 	var aim_vector := target_pos - pivot
 	var speed := float(tower["projectile_speed"]) * float(tower_stats.get("tower_arrow_speed", 1.0))
@@ -507,14 +547,25 @@ func _fire_tower_volley(tower: Dictionary, target: Dictionary, shots: int) -> bo
 			pierce,
 			tower["arrow_color"] as Color,
 			critical,
-			position
+			position,
+			tower_index
 		)
 	tower["recoil"] = 1.0
 	tower["muzzle"] = 0.10
 	return true
 
 
-func _fire_tower_arrow(origin: Vector2, direction: Vector2, speed: float, damage: float, pierce: int, color: Color, critical: bool, tower_origin: Vector2 = Vector2.ZERO) -> void:
+func _fire_tower_arrow(
+	origin: Vector2,
+	direction: Vector2,
+	speed: float,
+	damage: float,
+	pierce: int,
+	color: Color,
+	critical: bool,
+	tower_origin: Vector2 = Vector2.ZERO,
+	tower_index: int = -1
+) -> void:
 	if tower_shots.size() > 220:
 		return
 	var shot := _take_pooled(_free_tower_shots)
@@ -539,6 +590,7 @@ func _fire_tower_arrow(origin: Vector2, direction: Vector2, speed: float, damage
 	shot["lifesteal"] = float(tower_stats.get("tower_lifesteal", 0.0))
 	shot["marksman"] = float(tower_stats.get("tower_marksman", 0.0))
 	shot["origin"] = tower_origin
+	shot["tower_index"] = tower_index
 	tower_shots.append(shot)
 
 
@@ -551,9 +603,6 @@ func _update_tower_shots(delta: float) -> void:
 		shot["ttl"] = float(shot["ttl"]) - delta
 		var previous_position := shot["pos"] as Vector2
 		var position := previous_position + (shot["vel"] as Vector2) * delta
-		if map_layout != null and map_layout.is_segment_wall_blocked(previous_position, position, 3.0):
-			shot["ttl"] = 0.0
-			continue
 		shot["pos"] = position
 		var hit_list: Array = shot["hit"] as Array
 		var candidates := _borrow_query_array()
@@ -579,24 +628,34 @@ func _update_tower_shots(delta: float) -> void:
 			var execute := float(shot.get("execute", 0.0))
 			if execute > 0.0 and float(enemy["hp"]) <= float(enemy["max_hp"]) * execute:
 				damage = maxf(damage, float(enemy["hp"]) + 1.0)
-			damage_enemy(index, damage, direction * float(shot.get("knockback", 0.0)), shot["color"] as Color, bool(shot["critical"]))
+			var tower_index := int(shot.get("tower_index", -1))
+			damage_enemy(
+				index,
+				damage,
+				direction * float(shot.get("knockback", 0.0)),
+				shot["color"] as Color,
+				bool(shot["critical"]),
+				true,
+				tower_index
+			)
 			var burn := float(shot.get("burn", 0.0))
 			if burn > 0.0:
 				enemy["burn_timer"] = maxf(float(enemy.get("burn_timer", 0.0)), 2.4)
 				enemy["burn_dps"] = maxf(float(enemy.get("burn_dps", 0.0)), burn)
+				enemy["burn_tower"] = tower_index
 			var slow := float(shot.get("slow", 0.0))
 			if slow > 0.0:
 				enemy["slow_timer"] = maxf(float(enemy.get("slow_timer", 0.0)), 1.8)
 				enemy["slow_factor"] = minf(float(enemy.get("slow_factor", 1.0)), clampf(1.0 - slow, 0.25, 1.0))
 			var splash := float(shot.get("splash", 0.0))
 			if splash > 0.0:
-				damage_circle(enemy_pos, splash, damage * 0.45, 0.0, shot["color"] as Color)
+				damage_circle(enemy_pos, splash, damage * 0.45, 0.0, shot["color"] as Color, tower_index)
 			var lifesteal := float(shot.get("lifesteal", 0.0))
 			if lifesteal > 0.0:
 				ally_support.emit("tower", "heal", damage * lifesteal)
 			var chain := int(shot.get("chain", 0))
 			if chain > 0:
-				_chain_tower_arrow(enemy_pos, index, damage * 0.6, chain, shot["color"] as Color)
+				_chain_tower_arrow(enemy_pos, index, damage * 0.6, chain, shot["color"] as Color, tower_index)
 			shot["pierce"] = int(shot["pierce"]) - 1
 			if int(shot["pierce"]) <= 0:
 				shot["ttl"] = 0.0
@@ -604,7 +663,14 @@ func _update_tower_shots(delta: float) -> void:
 		_release_query_array(candidates)
 
 
-func _chain_tower_arrow(origin: Vector2, skip_index: int, damage: float, jumps: int, color: Color) -> void:
+func _chain_tower_arrow(
+	origin: Vector2,
+	skip_index: int,
+	damage: float,
+	jumps: int,
+	color: Color,
+	tower_index: int = -1
+) -> void:
 	var current := origin
 	var visited: Array[int] = [skip_index]
 	for i in range(jumps):
@@ -632,7 +698,7 @@ func _chain_tower_arrow(origin: Vector2, skip_index: int, damage: float, jumps: 
 			"direction": (next_pos - current).normalized(),
 			"length": current.distance_to(next_pos), "color": color,
 		})
-		damage_enemy(best, damage, Vector2.ZERO, color, false)
+		damage_enemy(best, damage, Vector2.ZERO, color, false, true, tower_index)
 		current = next_pos
 		damage *= 0.8
 
@@ -663,6 +729,10 @@ func _destroy_tower(index: int) -> void:
 	tower["alive"] = false
 	tower["hp"] = 0.0
 	var position := tower["pos"] as Vector2
+	var stored_xp := float(tower.get("xp", 0.0))
+	tower["xp"] = 0.0
+	if stored_xp > 0.001:
+		_spawn_xp_orbs(position, stored_xp)
 	add_effect({
 		"type": "death", "pos": position, "ttl": 0.85, "max_ttl": 0.85,
 		"radius": 96.0, "color": Color("#c4573d"),
@@ -678,6 +748,18 @@ func _destroy_tower(index: int) -> void:
 		tower["rebuild_timer"] = TOWER_REBUILD_DELAY * clampf(1.0 - rebuild, 0.25, 1.0)
 	else:
 		tower["rebuild_timer"] = -1.0
+
+
+func _spawn_xp_orbs(position: Vector2, xp_value: float) -> void:
+	var orb_count := 1 if xp_value <= 8.0 else 2
+	for i in range(orb_count):
+		var offset := Vector2(rng.randf_range(-18.0, 18.0), rng.randf_range(-18.0, 18.0))
+		var orb := _take_pooled(_free_orbs)
+		orb["pos"] = position + offset
+		orb["value"] = maxf(1.0, xp_value / float(orb_count))
+		orb["taken"] = false
+		orb["magnet"] = false
+		orbs.append(orb)
 
 
 func _revive_towers(delta: float) -> void:
@@ -728,6 +810,8 @@ func reset(seed_value: int = 20261123) -> void:
 	effects.clear()
 	jeff_effects.clear()
 	floaters.clear()
+	for site in encounter_sites:
+		site["used"] = false
 	_reset_spatial()
 	time = 0.0
 	_contact_cd = 0.0
@@ -767,6 +851,8 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	_update_tower_shots(delta)
 	_update_enemy_shots(delta, player)
 	_update_pickups(delta, player)
+	_collect_tower_xp(player_pos)
+	_update_encounters(player_pos)
 	_update_effects(delta)
 	_update_wade_splashes(delta)
 	_cleanup_dead()
@@ -873,6 +959,9 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"sprite_fps": float(definition.get("sprite_fps", 10.0)),
 		"facing_x": -1.0,
 		"tex": textures.get(enemy_id, null) as Texture2D,
+		"stuck_timer": 0.0,
+		"avoid_timer": 0.0,
+		"avoid_dir": Vector2.ZERO,
 		"alive": true,
 	}
 	enemies.append(enemy)
@@ -933,6 +1022,10 @@ func spawn_ally(mercenary_id: String, position: Vector2) -> bool:
 		"tint": Color(str(definition.get("tint", "#ffffff"))),
 		"facing_x": 1.0,
 		"moving": false,
+		"path": PackedVector2Array(),
+		"path_index": 0,
+		"repath_timer": 0.0,
+		"path_goal": Vector2.ZERO,
 	})
 	return true
 
@@ -1023,7 +1116,14 @@ func _release_query_array(result: Array) -> void:
 	_query_arrays.append(result)
 
 
-func damage_circle(center: Vector2, radius: float, damage: float, knockback: float = 0.0, color: Color = GOLD) -> int:
+func damage_circle(
+	center: Vector2,
+	radius: float,
+	damage: float,
+	knockback: float = 0.0,
+	color: Color = GOLD,
+	source_tower: int = -1
+) -> int:
 	var hits := 0
 	var candidates := _borrow_query_array()
 	_query_circle_into(center, radius, candidates)
@@ -1037,7 +1137,7 @@ func damage_circle(center: Vector2, radius: float, damage: float, knockback: flo
 		if center.distance_to(enemy_pos) > radius + float(enemy["radius"]):
 			continue
 		var direction := (enemy_pos - center).normalized()
-		damage_enemy(index, damage, direction * knockback, color, false)
+		damage_enemy(index, damage, direction * knockback, color, false, true, source_tower)
 		hits += 1
 	_release_query_array(candidates)
 	return hits
@@ -1123,6 +1223,7 @@ func apply_burn(center: Vector2, radius: float, dps: float, duration: float) -> 
 			continue
 		enemy["burn_timer"] = maxf(float(enemy.get("burn_timer", 0.0)), duration)
 		enemy["burn_dps"] = maxf(float(enemy.get("burn_dps", 0.0)), dps)
+		enemy["burn_tower"] = -1
 		hits += 1
 	_release_query_array(candidates)
 	return hits
@@ -1188,7 +1289,15 @@ func magnet_all() -> void:
 	})
 
 
-func damage_enemy(index: int, damage: float, impulse: Vector2, color: Color = GOLD, critical: bool = false, show_fx: bool = true) -> void:
+func damage_enemy(
+	index: int,
+	damage: float,
+	impulse: Vector2,
+	color: Color = GOLD,
+	critical: bool = false,
+	show_fx: bool = true,
+	source_tower: int = -1
+) -> void:
 	if index < 0 or index >= enemies.size():
 		return
 	var enemy := enemies[index]
@@ -1225,7 +1334,7 @@ func damage_enemy(index: int, damage: float, impulse: Vector2, color: Color = GO
 			impact_kind = "armored"
 		play_impact_fx(enemy["pos"] as Vector2, impact_kind, clampf(float(enemy["radius"]) / 20.0, 0.75, 1.4))
 	if float(enemy["hp"]) <= 0.0:
-		_kill_enemy(index)
+		_kill_enemy(index, source_tower)
 
 
 func _take_pooled(free: Array[Dictionary]) -> Dictionary:
@@ -1441,6 +1550,12 @@ func trigger_five_dragon(center: Vector2) -> void:
 			damage_enemy(index, 999999.0, Vector2.ZERO, GOLD, true)
 	for index in range(enemy_shots.size()):
 		enemy_shots[index]["ttl"] = 0.0
+	clear_scale_drops()
+
+
+func clear_scale_drops() -> void:
+	for index in range(scale_drops.size() - 1, -1, -1):
+		_return_pooled(_free_scale_drops, _swap_remove_at(scale_drops, index))
 
 
 func clear_all_effects() -> void:
@@ -1492,6 +1607,8 @@ func _update_allies(delta: float, player: Dictionary) -> void:
 		var target := nearest_enemy(position, 520.0)
 		var movement := Vector2.ZERO
 		var facing := float(ally.get("facing_x", 1.0))
+		var goal := position
+		var wants_path := false
 		if not target.is_empty():
 			var target_pos := target["pos"] as Vector2
 			var to_target := target_pos - position
@@ -1504,13 +1621,22 @@ func _update_allies(delta: float, player: Dictionary) -> void:
 					_ally_attack(ally, target, direction)
 					ally["attack_timer"] = float(ally["attack_cooldown"]) * rng.randf_range(0.92, 1.08)
 			elif can_engage and target_distance > float(ally["attack_range"]) * 0.72:
+				goal = target_pos
+				wants_path = target_distance > 96.0
 				movement = direction
 		var follow := player_pos - position
 		var follow_distance := follow.length()
 		if follow_distance > 236.0:
+			goal = player_pos
+			wants_path = true
 			movement = follow.normalized()
 		elif follow_distance < 64.0 and target.is_empty():
 			movement = -follow.normalized() * 0.4 if follow_distance > 0.01 else Vector2.ZERO
+		if wants_path and map_layout != null:
+			movement = _ally_path_direction(ally, position, goal, delta)
+			var separation := _ally_separation(position, ally)
+			if separation.length_squared() > 0.001:
+				movement = (movement + separation * UNIT_SEPARATION_WEIGHT).normalized()
 		if movement.length_squared() > 0.001:
 			movement = movement.normalized()
 			var previous := position
@@ -1529,8 +1655,55 @@ func _update_allies(delta: float, player: Dictionary) -> void:
 			ally["facing_x"] = signf(movement.x) if absf(movement.x) > 0.01 else facing
 		else:
 			ally["facing_x"] = facing
+			ally["path"] = PackedVector2Array()
+			ally["path_index"] = 0
 		ally["pos"] = position
 		ally["moving"] = movement.length_squared() > 0.001
+
+
+func _ally_path_direction(ally: Dictionary, position: Vector2, goal: Vector2, delta: float) -> Vector2:
+	var radius := clampf(float(ally.get("radius", 17.0)) * 0.72, 9.0, 20.0)
+	var path := ally.get("path", PackedVector2Array()) as PackedVector2Array
+	var path_index := int(ally.get("path_index", 0))
+	var path_goal := ally.get("path_goal", Vector2.ZERO) as Vector2
+	ally["repath_timer"] = float(ally.get("repath_timer", 0.0)) - delta
+	if (
+		path_index >= path.size()
+		or float(ally["repath_timer"]) <= 0.0
+		or path_goal.distance_squared_to(goal) > 64.0 * 64.0
+	):
+		if map_layout.is_segment_walkable(position, goal, radius):
+			path = PackedVector2Array([goal])
+			path_index = 0
+		else:
+			path = map_layout.find_path(position, goal, radius)
+			path_index = 0
+			if path.size() > 1 and path[0].distance_squared_to(position) < 100.0:
+				path_index = 1
+		ally["path"] = path
+		ally["path_index"] = path_index
+		ally["path_goal"] = goal
+		ally["repath_timer"] = ALLY_REPATH_INTERVAL + rng.randf_range(-0.08, 0.12)
+	while path_index < path.size() and position.distance_squared_to(path[path_index]) < 26.0 * 26.0:
+		path_index += 1
+	ally["path_index"] = path_index
+	if path_index >= path.size():
+		return (goal - position).normalized()
+	return (path[path_index] - position).normalized()
+
+
+func _ally_separation(position: Vector2, skip_ally: Dictionary) -> Vector2:
+	var push := Vector2.ZERO
+	var radius := 46.0
+	for ally in allies:
+		if ally == skip_ally:
+			continue
+		var offset := position - (ally["pos"] as Vector2)
+		var distance := offset.length()
+		if distance <= 0.001 or distance >= radius:
+			continue
+		push += offset / distance * (1.0 - distance / radius)
+	return push.limit_length(1.0)
 
 
 func _ally_attack(ally: Dictionary, target: Dictionary, direction: Vector2) -> void:
@@ -1600,6 +1773,7 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 		enemy["charge_timer"] = float(enemy["charge_timer"]) - delta
 		enemy["slow_timer"] = maxf(0.0, float(enemy.get("slow_timer", 0.0)) - delta)
 		enemy["stun_timer"] = maxf(0.0, float(enemy.get("stun_timer", 0.0)) - delta)
+		enemy["avoid_timer"] = maxf(0.0, float(enemy.get("avoid_timer", 0.0)) - delta)
 		if float(enemy.get("burn_timer", 0.0)) > 0.0:
 			enemy["burn_timer"] = maxf(0.0, float(enemy["burn_timer"]) - delta)
 			damage_enemy(
@@ -1608,7 +1782,8 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 				Vector2.ZERO,
 				Color("#e07845"),
 				false,
-				false
+				false,
+				int(enemy.get("burn_tower", -1))
 			)
 			if not bool(enemy.get("alive", false)):
 				continue
@@ -1662,6 +1837,19 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 				enemy["charge_timer"] = float(enemy["charge_cooldown"])
 		if float(enemy.get("stun_timer", 0.0)) > 0.0:
 			movement = Vector2.ZERO
+		if movement.length_squared() > 0.001:
+			var separation := _enemy_separation(
+				position,
+				index,
+				clampf(float(enemy["radius"]) * 1.7, 28.0, 58.0)
+			)
+			if separation.length_squared() > 0.001:
+				movement = (movement + separation * UNIT_SEPARATION_WEIGHT).normalized()
+			if float(enemy.get("avoid_timer", 0.0)) > 0.0:
+				movement = (
+					movement * 0.45
+					+ (enemy.get("avoid_dir", Vector2.ZERO) as Vector2) * 0.85
+				).normalized()
 		var slow_factor := float(enemy.get("slow_factor", 1.0)) if float(enemy.get("slow_timer", 0.0)) > 0.0 else 1.0
 		var speed := float(enemy["speed"]) * speed_mult * dark_speed * slow_factor
 		if map_layout != null:
@@ -1687,6 +1875,15 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			)
 		# 箭塔是实体：把敌兵挡在塔基外，避免走进塔身里原地翻转。
 		position = _resolve_tower_collision(position, clampf(float(enemy["radius"]) * 0.72, 9.0, 26.0))
+		_update_enemy_stuck_state(
+			enemy,
+			previous_position,
+			position,
+			navigation,
+			distance,
+			speed * delta,
+			delta
+		)
 		enemy["pos"] = position
 		if siege_index >= 0 and siege_index < towers.size():
 			# 逼近到塔基座就动手拆塔
@@ -1727,6 +1924,58 @@ func _resolve_tower_collision(position: Vector2, body_radius: float) -> Vector2:
 	return position
 
 
+func _enemy_separation(position: Vector2, skip_index: int, search_radius: float) -> Vector2:
+	var candidates := _borrow_query_array()
+	_query_circle_into(position, search_radius, candidates)
+	var push := Vector2.ZERO
+	var count := 0
+	for index in candidates:
+		if index == skip_index or index < 0 or index >= enemies.size():
+			continue
+		var other := enemies[index]
+		if not bool(other.get("alive", false)):
+			continue
+		var offset := position - (other["pos"] as Vector2)
+		var distance := offset.length()
+		if distance <= 0.001 or distance >= search_radius:
+			continue
+		push += offset / distance * (1.0 - distance / search_radius)
+		count += 1
+		if count >= 10:
+			break
+	_release_query_array(candidates)
+	return push.limit_length(1.0)
+
+
+func _update_enemy_stuck_state(
+	enemy: Dictionary,
+	previous_position: Vector2,
+	position: Vector2,
+	navigation: Vector2,
+	distance_to_goal: float,
+	expected_step: float,
+	delta: float
+) -> void:
+	if navigation.length_squared() <= 0.001 or distance_to_goal <= 90.0 or expected_step <= 0.01:
+		enemy["stuck_timer"] = maxf(0.0, float(enemy.get("stuck_timer", 0.0)) - delta)
+		return
+	var travelled := previous_position.distance_to(position)
+	if travelled < expected_step * 0.32:
+		enemy["stuck_timer"] = float(enemy.get("stuck_timer", 0.0)) + delta
+	else:
+		enemy["stuck_timer"] = maxf(0.0, float(enemy.get("stuck_timer", 0.0)) - delta * 2.0)
+	if float(enemy.get("stuck_timer", 0.0)) < STUCK_RECOVERY_SECONDS:
+		return
+	enemy["stuck_timer"] = 0.0
+	enemy["avoid_timer"] = 0.75
+	var perpendicular := Vector2(-navigation.y, navigation.x)
+	var body_radius := clampf(float(enemy.get("radius", 20.0)) * 0.72, 9.0, 26.0)
+	var probe := position + perpendicular * 42.0
+	if map_layout != null and not map_layout.is_point_walkable(probe, body_radius):
+		perpendicular = -perpendicular
+	enemy["avoid_dir"] = perpendicular
+
+
 func _fire_enemy_shot(origin: Vector2, direction: Vector2, damage: float, speed: float) -> void:
 	var shot := _take_pooled(_free_enemy_shots)
 	shot["pos"] = origin
@@ -1743,9 +1992,6 @@ func _update_player_shots(delta: float) -> void:
 		shot["ttl"] = float(shot["ttl"]) - delta
 		var previous_position := shot["pos"] as Vector2
 		var position := previous_position + (shot["vel"] as Vector2) * delta
-		if map_layout != null and map_layout.is_segment_wall_blocked(previous_position, position, 3.0):
-			shot["ttl"] = 0.0
-			continue
 		shot["pos"] = position
 		var hit_list: Array = shot["hit"] as Array
 		var candidates := _borrow_query_array()
@@ -1905,7 +2151,7 @@ func _cleanup_dead() -> void:
 		_spatial_dirty = true
 
 
-func _kill_enemy(index: int) -> void:
+func _kill_enemy(index: int, source_tower: int = -1) -> void:
 	var enemy := enemies[index]
 	if not bool(enemy.get("alive", false)):
 		return
@@ -1913,15 +2159,24 @@ func _kill_enemy(index: int) -> void:
 	_dead_count += 1
 	var position := enemy["pos"] as Vector2
 	var xp_value := float(enemy.get("xp", 1.0))
-	var orb_count := 1 if xp_value <= 8.0 else 2
-	for i in range(orb_count):
-		var offset := Vector2(rng.randf_range(-18.0, 18.0), rng.randf_range(-18.0, 18.0))
-		var orb := _take_pooled(_free_orbs)
-		orb["pos"] = position + offset
-		orb["value"] = maxf(1.0, xp_value / float(orb_count))
-		orb["taken"] = false
-		orb["magnet"] = false
-		orbs.append(orb)
+	var stored_in_tower := (
+		source_tower >= 0
+		and source_tower < towers.size()
+		and bool(towers[source_tower].get("alive", false))
+	)
+	if stored_in_tower:
+		var xp_multiplier := maxf(0.0, 1.0 + float(tower_stats.get("tower_xp_gain", 0.0)))
+		towers[source_tower]["xp"] = float(towers[source_tower].get("xp", 0.0)) + xp_value * xp_multiplier
+	else:
+		var orb_count := 1 if xp_value <= 8.0 else 2
+		for i in range(orb_count):
+			var offset := Vector2(rng.randf_range(-18.0, 18.0), rng.randf_range(-18.0, 18.0))
+			var orb := _take_pooled(_free_orbs)
+			orb["pos"] = position + offset
+			orb["value"] = maxf(1.0, xp_value / float(orb_count))
+			orb["taken"] = false
+			orb["magnet"] = false
+			orbs.append(orb)
 	if rng.randf() < 0.045:
 		spawn_oil(position, 1)
 	if bool(enemy.get("elite", false)) or bool(enemy.get("boss", false)):
@@ -1941,6 +2196,40 @@ func _kill_enemy(index: int) -> void:
 	enemy_killed.emit(str(enemy["id"]), position, bool(enemy.get("elite", false)))
 	if bool(enemy.get("boss", false)):
 		boss_defeated.emit(str(enemy["id"]))
+
+
+func _collect_tower_xp(player_position: Vector2) -> void:
+	for tower in towers:
+		if not bool(tower.get("alive", false)):
+			continue
+		var stored := float(tower.get("xp", 0.0))
+		if stored <= 0.001:
+			continue
+		var harvest_radius := float(tower["radius"]) * 1.45 + 54.0
+		if player_position.distance_to(tower["pos"] as Vector2) > harvest_radius:
+			continue
+		tower["xp"] = 0.0
+		tower["xp_pulse"] = 1.0
+		xp_collected.emit(stored)
+		add_effect({
+			"type": "aura",
+			"pos": tower["pos"],
+			"ttl": 0.42,
+			"max_ttl": 0.42,
+			"radius": harvest_radius,
+			"color": Color("#d9b35f"),
+		})
+
+
+func _update_encounters(player_position: Vector2) -> void:
+	for index in range(encounter_sites.size()):
+		var site := encounter_sites[index]
+		if bool(site.get("used", false)):
+			continue
+		if player_position.distance_squared_to(site["pos"] as Vector2) > 58.0 * 58.0:
+			continue
+		site["used"] = true
+		encounter_triggered.emit(index)
 
 
 func _add_floater(_position: Vector2, _text: String, _color: Color, _critical: bool) -> void:
@@ -1971,6 +2260,7 @@ func _draw() -> void:
 		draw_rect(Rect2(center - VIEW_HALF, VIEW_HALF * 2.0), Color("#111a19"))
 	_draw_light(center)
 	_draw_towers()
+	_draw_encounters()
 	_draw_pickups()
 	_draw_enemies()
 	_draw_allies()
@@ -2029,7 +2319,51 @@ func _draw_towers() -> void:
 				Color("#6d5a42")
 			)
 		_draw_tower_weapon(tower, position + Vector2(0.0, -size * 0.30), size)
+		var stored_xp := float(tower.get("xp", 0.0))
+		if stored_xp > 0.5:
+			var stored_ratio := clampf(stored_xp / 36.0, 0.08, 1.0)
+			var pulse := float(tower.get("xp_pulse", 0.0))
+			var ring_radius := float(tower["radius"]) * 1.08 + pulse * 4.0
+			for tick in 8:
+				if float(tick) / 8.0 > stored_ratio:
+					break
+				var angle := TAU * float(tick) / 8.0 - PI * 0.5
+				var inner := position + Vector2(cos(angle), sin(angle)) * ring_radius
+				var outer := position + Vector2(cos(angle), sin(angle)) * (ring_radius + 6.0)
+				draw_line(inner, outer, Color(0.92, 0.77, 0.36, 0.72 + pulse * 0.2), 2.0)
 		# 血条统一在 _draw_health_bars() 中绘制，避免与敌兵/佣兵血条层叠错位。
+
+
+func _draw_encounters() -> void:
+	for site in encounter_sites:
+		var position := site["pos"] as Vector2
+		if not _world_position_visible(position, 60.0):
+			continue
+		var used := bool(site.get("used", false))
+		var good := bool(site.get("good", true))
+		var accent := Color("#78c78b") if good else Color("#d06a54")
+		if used:
+			accent = Color(0.45, 0.44, 0.40, 0.45)
+		var bob := sin(time * 2.4 + position.x * 0.013) * 2.0
+		var center := position + Vector2(0.0, -22.0 + bob)
+		draw_circle(center + Vector2(0.0, 18.0), 10.0, Color(0.0, 0.0, 0.0, 0.28))
+		draw_circle(center, 17.0 if not used else 10.0, Color(accent, 0.18))
+		var texture := site.get("texture", null) as Texture2D
+		if texture != null:
+			draw_texture_rect(
+				texture,
+				Rect2(center - Vector2(12.0, 12.0), Vector2(24.0, 24.0)),
+				false,
+				Color(1.0, 1.0, 1.0, 0.82 if not used else 0.34)
+			)
+		else:
+			var diamond := PackedVector2Array([
+				center + Vector2(0.0, -8.0),
+				center + Vector2(8.0, 0.0),
+				center + Vector2(0.0, 8.0),
+				center + Vector2(-8.0, 0.0),
+			])
+			draw_colored_polygon(diamond, Color(accent, 0.88))
 
 
 func _world_position_visible(position: Vector2, margin: float = 160.0) -> bool:
@@ -2449,6 +2783,7 @@ func _draw_allies() -> void:
 		var scale_value := float(ally.get("scale", 0.62))
 		var size := PLAYER_SPRITE_SIZE * scale_value
 		draw_circle(position + Vector2(0, size * 0.16), size * 0.28, Color(0.0, 0.0, 0.0, 0.25))
+		_draw_ally_ring(position, size)
 		var frames: Array = (
 			ally["walk_frames"] as Array
 			if bool(ally.get("moving", false))
@@ -2473,6 +2808,22 @@ func _draw_allies() -> void:
 			ally.get("tint", Color.WHITE) as Color
 		)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _draw_ally_ring(position: Vector2, size: float) -> void:
+	var center := position + Vector2(0.0, size * 0.22)
+	var ring_color := Color(0.28, 0.78, 0.42, 0.82)
+	var inner_color := Color(0.22, 0.72, 0.38, 0.18)
+	draw_circle(center, size * 0.36, inner_color)
+	for tick in 12:
+		var angle := TAU * float(tick) / 12.0
+		var direction := Vector2(cos(angle), sin(angle) * 0.48)
+		draw_line(
+			center + direction * (size * 0.31),
+			center + direction * (size * 0.40),
+			ring_color,
+			2.0
+		)
 
 
 func _draw_projectiles() -> void:

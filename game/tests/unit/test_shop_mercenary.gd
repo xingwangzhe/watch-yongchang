@@ -56,7 +56,8 @@ func test_shop_catalog_offers_weapon_equipment_and_mercenary() -> void:
 	var passives := {"gaiters": 1}
 	var hired: Array[String] = []
 	var offers := ShopCatalog.build_offers(weapons, passives, hired, rng)
-	assert_eq(offers.size(), 3)
+	assert_eq(offers.size(), int(ShopCatalog.data().get("max_offers", 12)))
+	assert_gte(offers.size(), 9, "the market must fill the screen with many compact cards")
 	var families: Array[String] = []
 	for offer in offers:
 		families.append(str(offer.get("family", "")))
@@ -74,6 +75,36 @@ func test_shop_catalog_offers_weapon_equipment_and_mercenary() -> void:
 		"shop must offer equipment"
 	)
 	assert_true(families.has("mercenary"), "shop must offer a mercenary when slots remain")
+
+
+func test_shop_reroll_keeps_already_purchased_cards() -> void:
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	run.story._skip_all()
+	await wait_process_frames(2)
+	run.run_coin = 1000
+	run._open_shop()
+	var bought_index := 0
+	run._on_shop_buy(bought_index)
+	var bought_id := str(run._current_shop_offers[bought_index].get("option_id", ""))
+	var coin_before := int(run.run_coin)
+	run._on_shop_reroll()
+	assert_true(
+		bool(run._current_shop_offers[bought_index].get("sold", false)),
+		"reroll must not clear a sold card"
+	)
+	assert_eq(
+		str(run._current_shop_offers[bought_index].get("option_id", "")),
+		bought_id,
+		"reroll must keep the same purchased card in its slot"
+	)
+	assert_eq(
+		int(run.run_coin),
+		coin_before - int(run.shop_data.get("reroll_cost", 25)),
+		"reroll still costs coin"
+	)
+	run._on_shop_closed()
 
 
 func test_shop_purchases_weapon_equipment_and_mercenary_and_resumes() -> void:

@@ -124,7 +124,7 @@ func test_pause_and_main_menu_can_replay_tutorial() -> void:
 func test_tutorial_copy_covers_controls_culture_and_systems_in_both_languages() -> void:
 	Locale.set_language("zh", false)
 	var controls := Locale.t("tutorial.page1.body")
-	for phrase in ["WASD", "Space", "鼠标", "长按点击持续攻击", "单点工具攻击", "按 X", "最近敌人", "Esc", "首 1 秒"]:
+	for phrase in ["WASD", "Space", "鼠标", "长按点击持续攻击", "单点工具攻击", "按 X", "最近敌人", "Esc", "首 0.2 秒"]:
 		assert_string_contains(controls, phrase)
 	assert_string_contains(Locale.t("tutorial.page2.body"), "1386")
 	assert_string_contains(Locale.t("tutorial.page2.body"), "1559")
@@ -133,7 +133,7 @@ func test_tutorial_copy_covers_controls_culture_and_systems_in_both_languages() 
 
 	Locale.set_language("en", false)
 	controls = Locale.t("tutorial.page1.body")
-	for phrase in ["WASD", "Space", "Hold-click", "single click", "Press X", "nearest enemy", "Esc", "1 second"]:
+	for phrase in ["WASD", "Space", "Hold-click", "single click", "Press X", "nearest enemy", "Esc", "0.2 seconds"]:
 		assert_string_contains(controls, phrase)
 	assert_string_contains(Locale.t("tutorial.page2.body"), "1386")
 	assert_string_contains(Locale.t("tutorial.page2.body"), "1559")

@@ -136,7 +136,7 @@ func test_level_up_overlay_renders_three_cultural_cards() -> void:
 		assert_not_null((card.find_child("CardIcon", true, false) as TextureRect).texture)
 
 
-func test_level_up_blocks_mouse_and_number_input_for_one_second() -> void:
+func test_level_up_blocks_mouse_and_number_input_for_point_two_seconds() -> void:
 	var options: Array[Dictionary] = []
 	var pool := UpgradeCatalog.build_card_pool({}, {}, 0.8)
 	for family in ["attribute", "skill", "event"]:
@@ -165,7 +165,7 @@ func test_level_up_blocks_mouse_and_number_input_for_one_second() -> void:
 		assert_true(overlay.get_viewport().is_input_handled(), "number input must be consumed while locked")
 	assert_eq(selected.size(), 0, "mouse and 1/2/3 input must not choose during the lock")
 
-	await wait_seconds(1.05)
+	await wait_seconds(0.25)
 	assert_false(overlay.is_locked())
 	assert_true(overlay.can_choose(0))
 	assert_eq(str(overlay._hint.text), Locale.t("levelup.hint", {"pool": options.size()}))
@@ -173,7 +173,7 @@ func test_level_up_blocks_mouse_and_number_input_for_one_second() -> void:
 		var card := overlay.find_child("UpgradeCard%d" % (i + 1), true, false) as Button
 		assert_false(card.disabled)
 	overlay._unhandled_input(_number_key_event(KEY_2))
-	assert_eq(selected, [1], "number selection must work after exactly one second")
+	assert_eq(selected, [1], "number selection must work after the 0.2 second lock")
 
 	overlay.hide_options()
 	assert_false(overlay.is_locked())

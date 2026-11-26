@@ -17,7 +17,8 @@ static func build_offers(
 	weapons: Array,
 	passives: Dictionary,
 	mercenaries: Array[String],
-	rng: RandomNumberGenerator
+	rng: RandomNumberGenerator,
+	offer_count: int = -1
 ) -> Array[Dictionary]:
 	var weapon_pool := _weapon_pool(weapons)
 	var equipment_pool := _equipment_pool(passives)
@@ -37,9 +38,10 @@ static func build_offers(
 	leftovers.append_array(weapon_pool)
 	leftovers.append_array(equipment_pool)
 	leftovers.append_array(mercenary_pool)
-	while offers.size() < int(data().get("max_offers", 3)) and not leftovers.is_empty():
+	var target_count := int(data().get("max_offers", 12)) if offer_count < 0 else maxi(1, offer_count)
+	while offers.size() < target_count and not leftovers.is_empty():
 		_take_random(offers, leftovers, rng)
-	while offers.size() < int(data().get("max_offers", 3)):
+	while offers.size() < target_count:
 		offers.append(_supply_offer("supply_heal" if offers.size() % 2 == 0 else "supply_oil"))
 	return offers
 

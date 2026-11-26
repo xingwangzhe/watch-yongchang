@@ -140,3 +140,7 @@ static func get_shop() -> Dictionary:
 
 static func get_mercenaries() -> Dictionary:
 	return load_json("res://data/mercenaries.json").get("mercenaries", {}) as Dictionary
+
+
+static func get_encounters() -> Dictionary:
+	return load_json("res://data/encounters.json")

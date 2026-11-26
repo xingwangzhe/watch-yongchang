@@ -746,6 +746,53 @@ func test_flow_field_routes_outer_spawns_through_fort_gates() -> void:
 		)
 
 
+func test_astar_routes_around_walls_without_corner_cutting() -> void:
+	var layout := MapLayout.new()
+	layout.setup("astar_test", {
+		"layout": {
+			"world_tiles": [24, 24],
+			"start_tile": [3, 3],
+			"base_tile": "mud_a",
+		}
+	})
+	layout.mark_solid_rect(Rect2i(10, 0, 1, 16))
+	layout.finalize()
+	var from := layout.cell_center(Vector2i(5, 6))
+	var to := layout.cell_center(Vector2i(16, 6))
+	var path := layout.find_path(from, to, 10.0)
+	assert_gt(path.size(), 2, "A* must detour around the wall instead of returning a straight line")
+	for point in path:
+		assert_true(layout.is_point_walkable(point, 10.0), "every smoothed waypoint must be walkable")
+	var detour := 0.0
+	var previous := from
+	for point in path:
+		detour += previous.distance_to(point)
+		previous = point
+	assert_gt(detour, from.distance_to(to) * 1.2, "wall detour must be longer than the blocked straight line")
+	assert_gt(layout.path_queries, 0)
+	var cached := layout.find_path(from, to, 10.0)
+	assert_eq(cached, path, "same start/goal query must reuse the A* cache")
+	assert_gt(layout.path_cache_hits, 0)
+
+
+func test_wall_slide_finds_tangential_escape_when_axis_slide_is_blocked() -> void:
+	var layout := MapLayout.new()
+	layout.setup("slide_test", {
+		"layout": {
+			"world_tiles": [24, 24],
+			"start_tile": [3, 3],
+			"base_tile": "mud_a",
+		}
+	})
+	layout.mark_solid_rect(Rect2i(10, 0, 1, 24))
+	layout.finalize()
+	var from := layout.cell_center(Vector2i(8, 8)) + Vector2(14, 0)
+	var to := from + Vector2(50, 0)
+	var moved := layout.move_circle_known_walkable(from, to, 10.0)
+	assert_ne(moved, from, "a blocked axis slide must not freeze the unit")
+	assert_gt(absf(moved.y - from.y), 1.0, "escape step must move along the wall")
+
+
 func test_incremental_flow_field_matches_synchronous_build() -> void:
 	var definition: Dictionary = (GameData.get_maps()["watergate"] as Dictionary).duplicate(true)
 	var synchronous: MapLayout = MapLayout.new()

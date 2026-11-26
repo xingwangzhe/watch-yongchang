@@ -27,7 +27,7 @@ func test_enemy_sprites_are_larger_but_below_player() -> void:
 		if enemy_id == "general" or enemy_id == "daimyo":
 			assert_gt(drawn, player_size, "%s elite should be larger than the player" % enemy_id)
 			continue
-		assert_gte(drawn, 80.0, "%s must not look miniature" % enemy_id)
+		assert_gte(drawn, 72.0, "%s must stay readable after the Wokou size cut" % enemy_id)
 		assert_lt(drawn, player_size, "%s must stay below the player" % enemy_id)
 		assert_gte(float(definition.get("radius", 0.0)), 23.0, "%s collision must match its new size" % enemy_id)
 

@@ -867,7 +867,9 @@ func test_five_scales_trigger_dragon_clear() -> void:
 	run.story._skip_all()
 	for scale_color in ["red", "yellow", "blue", "green", "black"]:
 		run._on_scale_collected(scale_color)
-	assert_eq(run.scales.size(), 5)
+	assert_eq(run.scales.size(), 0, "five-dragon trigger must consume the scales")
+	run._on_scale_collected("red")
+	assert_eq(run.scales.size(), 1, "a new scale cycle must start after the clear")
 	assert_gte(run.merit, 500)
 	assert_gt(float(run.battlefield._screen_clear_timer), 0.0)
 

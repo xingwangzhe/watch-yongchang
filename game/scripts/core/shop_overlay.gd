@@ -95,6 +95,20 @@ func _unhandled_input(event: InputEvent) -> void:
 				index = 1
 			KEY_3:
 				index = 2
+			KEY_4:
+				index = 3
+			KEY_5:
+				index = 4
+			KEY_6:
+				index = 5
+			KEY_7:
+				index = 6
+			KEY_8:
+				index = 7
+			KEY_9:
+				index = 8
+			KEY_0:
+				index = 9
 		if index >= 0 and index < _offers.size() and not bool(_offers[index].get("sold", false)):
 			buy_requested.emit(index)
 			get_viewport().set_input_as_handled()
@@ -155,15 +169,18 @@ func _build() -> void:
 	rule.custom_minimum_size = Vector2(0, 1)
 	column.add_child(rule)
 
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 16)
-	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	column.add_child(row)
-	for i in range(3):
+	var grid := GridContainer.new()
+	grid.columns = 4
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(grid)
+	for i in range(12):
 		var card := Button.new()
 		card.name = "ShopCard%d" % (i + 1)
-		card.custom_minimum_size = Vector2(354, 466)
+		card.custom_minimum_size = Vector2(272, 152)
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		card.clip_contents = true
 		card.add_theme_stylebox_override(
 			"normal",
@@ -178,7 +195,7 @@ func _build() -> void:
 			_card_style(Color(0.082, 0.074, 0.050, 1.0), Color(GOLD, 1.0))
 		)
 		card.pressed.connect(_choose.bind(i))
-		row.add_child(card)
+		grid.add_child(card)
 		_cards.append(card)
 		_build_card(card, i)
 
@@ -198,72 +215,72 @@ func _build() -> void:
 
 
 func _build_card(card: Button, index: int) -> void:
-	var cw := 354.0
-	var ch := 466.0
+	var cw := 272.0
+	var ch := 152.0
 	var accent := ColorRect.new()
 	accent.name = "CardAccent"
 	accent.color = Color(GOLD, 0.9)
-	UILayout.place_in(accent, 0, 0, 354, 4, cw, ch)
+	UILayout.place_in(accent, 0, 0, 272, 3, cw, ch)
 	accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.add_child(accent)
-	var number := _label(str(index + 1), 12, Color(MUTED, 0.58))
-	UILayout.place_in(number, 14, 10, 20, 20, cw, ch)
+	var number := _label(str(index + 1) if index < 9 else "·", 10, Color(MUTED, 0.58))
+	UILayout.place_in(number, 7, 5, 18, 16, cw, ch)
 	card.add_child(number)
-	var kind := _label("", 11, MUTED)
+	var kind := _label("", 9, MUTED)
 	kind.name = "CardKind"
-	UILayout.place_in(kind, 180, 10, 158, 20, cw, ch, 1.0, 0.0)
+	UILayout.place_in(kind, 54, 5, 208, 16, cw, ch, 1.0, 0.0)
 	kind.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	card.add_child(kind)
 
 	var icon_plate := PanelContainer.new()
 	icon_plate.name = "CardIconPlate"
-	UILayout.place_in(icon_plate, 124, 34, 106, 106, cw, ch, 0.5, 0.0)
+	UILayout.place_in(icon_plate, 8, 25, 42, 42, cw, ch)
 	icon_plate.add_theme_stylebox_override("panel", _icon_style(Color(GOLD, 0.20)))
 	card.add_child(icon_plate)
 	var center := CenterContainer.new()
 	icon_plate.add_child(center)
 	var icon := TextureRect.new()
 	icon.name = "CardIcon"
-	icon.custom_minimum_size = Vector2(74, 74)
+	icon.custom_minimum_size = Vector2(30, 30)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	center.add_child(icon)
 
-	var title := _label("", 25, GOLD)
+	var title := _label("", 16, GOLD)
 	title.name = "CardTitle"
-	UILayout.place_in(title, 16, 146, 322, 54, cw, ch, 0.5, 0.0)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UILayout.place_in(title, 57, 23, 205, 24, cw, ch)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(title)
-	var description := _label("", 13, PAPER)
+	var description := _label("", 10, PAPER)
 	description.name = "CardDescription"
-	UILayout.place_in(description, 22, 205, 310, 54, cw, ch, 0.5, 0.0)
-	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UILayout.place_in(description, 8, 72, 255, 26, cw, ch)
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	description.max_lines_visible = 2
 	card.add_child(description)
-	var effect := _label("", 12, Color("#f0c363"))
+	var effect := _label("", 10, Color("#f0c363"))
 	effect.name = "CardEffect"
-	UILayout.place_in(effect, 22, 262, 310, 40, cw, ch, 0.5, 0.0)
-	effect.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UILayout.place_in(effect, 8, 99, 255, 22, cw, ch)
 	effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	effect.max_lines_visible = 2
 	card.add_child(effect)
 	var culture_title := _label(Locale.t("shop.culture_label"), 10, Color(VERMILION, 0.94))
-	UILayout.place_in(culture_title, 22, 306, 310, 16, cw, ch, 0.5, 0.0)
+	culture_title.visible = false
+	UILayout.place_in(culture_title, 0, 0, 1, 1, cw, ch)
 	card.add_child(culture_title)
-	var culture := _label("", 12, Color(PAPER, 0.80))
+	var culture := _label("", 9, Color(PAPER, 0.80))
 	culture.name = "CardCulture"
-	UILayout.place_in(culture, 22, 324, 310, 86, cw, ch, 0.5, 0.0)
+	culture.visible = false
+	UILayout.place_in(culture, 0, 0, 1, 1, cw, ch)
 	culture.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card.add_child(culture)
-	var meta := _label("", 10, Color(MUTED, 0.72))
+	var meta := _label("", 8, Color(MUTED, 0.72))
 	meta.name = "CardMeta"
-	UILayout.place_in(meta, 22, 412, 310, 16, cw, ch, 0.5, 0.0)
+	UILayout.place_in(meta, 150, 128, 112, 16, cw, ch, 1.0, 0.0)
 	meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(meta)
-	var price := _label("", 22, GOLD)
+	var price := _label("", 14, GOLD)
 	price.name = "CardPrice"
-	UILayout.place_in(price, 22, 430, 310, 30, cw, ch, 0.5, 0.0)
-	price.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UILayout.place_in(price, 8, 126, 138, 20, cw, ch)
 	card.add_child(price)
 
 
@@ -282,14 +299,15 @@ func _apply_offer(card: Button, offer: Dictionary, index: int, coin: int) -> voi
 	(card.find_child("CardDescription", true, false) as Label).text = str(offer.get("description", ""))
 	(card.find_child("CardEffect", true, false) as Label).text = str(offer.get("effect_summary", ""))
 	(card.find_child("CardCulture", true, false) as Label).text = str(offer.get("culture", ""))
-	card.tooltip_text = "%s\n%s" % [GameData.source_label(offer), offer.get("effect_summary", "")]
-	(card.find_child("CardMeta", true, false) as Label).text = "%s · %s · %s" % [
-		str(offer.get("category", "")),
+	card.tooltip_text = "%s\n%s\n%s\n%s" % [
+		str(offer.get("effect_summary", "")),
+		str(offer.get("culture", "")),
+		GameData.source_label(offer),
+		str(offer.get("description", "")),
+	]
+	(card.find_child("CardMeta", true, false) as Label).text = "%s · Lv.%d" % [
 		str(offer.get("rarity_label", "")),
-		Locale.t("shop.level", {
-			"level": int(offer.get("level", 1)),
-			"max": int(offer.get("max_level", 1)),
-		}),
+		int(offer.get("level", 1)),
 	]
 	var price_label := card.find_child("CardPrice", true, false) as Label
 	if sold:
@@ -331,8 +349,8 @@ func _animate_card(card: Button, index: int) -> void:
 	card.pivot_offset = card.size * 0.5
 	var tween := create_tween()
 	tween.set_parallel(true)
-	tween.tween_property(card, "modulate:a", 1.0, 0.20).set_delay(float(index) * 0.05)
-	tween.tween_property(card, "scale", Vector2.ONE, 0.22).set_delay(float(index) * 0.05)
+	tween.tween_property(card, "modulate:a", 1.0, 0.16).set_delay(minf(float(index) * 0.018, 0.18))
+	tween.tween_property(card, "scale", Vector2.ONE, 0.18).set_delay(minf(float(index) * 0.018, 0.18))
 
 
 func _label(text: String, font_size: int, color: Color) -> Label:

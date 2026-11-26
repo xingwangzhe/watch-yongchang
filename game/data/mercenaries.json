@@ -39,7 +39,7 @@
       "attack_arc": 42.0,
       "knockback": 34.0,
       "radius": 17.0,
-      "scale": 0.62,
+      "scale": 0.92,
       "tint": "#ffffff",
       "shop_note_zh": "稳定近战，适合补足枪线。",
       "shop_note_en": "Steady melee pressure for a thin spear line."
@@ -83,7 +83,7 @@
       "pierce": 1,
       "knockback": 10.0,
       "radius": 16.0,
-      "scale": 0.60,
+      "scale": 0.88,
       "tint": "#ffffff",
       "shop_note_zh": "远距持续输出，攻速稳定。",
       "shop_note_en": "Reliable ranged pressure at a steady cadence."
@@ -125,7 +125,7 @@
       "attack_kind": "circle",
       "knockback": 42.0,
       "radius": 20.0,
-      "scale": 0.64,
+      "scale": 0.94,
       "tint": "#ffffff",
       "party_bonus": {
         "armor": 0.02
@@ -172,7 +172,7 @@
       "pierce": 2,
       "knockback": 24.0,
       "radius": 16.0,
-      "scale": 0.60,
+      "scale": 0.88,
       "tint": "#ffffff",
       "shop_note_zh": "慢速高伤，弹丸可穿透两人。",
       "shop_note_en": "Slow, heavy shot that pierces two foes."
@@ -218,7 +218,7 @@
         "damage_mult": 0.06
       },
       "radius": 18.0,
-      "scale": 0.62,
+      "scale": 0.90,
       "tint": "#ffffff",
       "shop_note_zh": "全队伤害 +6%，周期震退敌潮。",
       "shop_note_en": "Party damage +6% and a periodic knockback pulse."
@@ -261,7 +261,7 @@
       "attack_arc": 86.0,
       "knockback": 48.0,
       "radius": 20.0,
-      "scale": 0.66,
+      "scale": 0.96,
       "tint": "#ffffff",
       "shop_note_zh": "高伤高频精锐，价格昂贵。",
       "shop_note_en": "Expensive elite with high damage and attack speed."
@@ -307,7 +307,7 @@
         "damage_mult": 0.09
       },
       "radius": 18.0,
-      "scale": 0.66,
+      "scale": 0.94,
       "tint": "#d8e8e4",
       "shop_note_zh": "全队伤害 +9%，周期回血。",
       "shop_note_en": "Party damage +9% and periodic healing."
@@ -354,7 +354,7 @@
         "armor": 0.05
       },
       "radius": 19.0,
-      "scale": 0.66,
+      "scale": 0.94,
       "tint": "#d8e8e4",
       "shop_note_zh": "全队减伤 +5%，英魂长枪压阵。",
       "shop_note_en": "Party armour +5% while the spirit spear holds the line."

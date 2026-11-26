@@ -3,7 +3,7 @@
   "interval_seconds": 120.0,
   "starting_coin": 35,
   "reroll_cost": 25,
-  "max_offers": 3,
+  "max_offers": 12,
   "max_mercenaries": 3,
   "coin_per_xp": 0.55,
   "minimum_kill_coin": 1,
