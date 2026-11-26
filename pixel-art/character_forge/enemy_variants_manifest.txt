@@ -1,0 +1,167 @@
+CharacterForge enemy variant manifest
+generated_by=game/data/enemy_variants.json
+cell=128
+foot_frames=8
+mounted_frames=8
+
+[scout] 12
+scout_foot_00	res://assets/units/forge/enemy_variants/scout/scout_foot_00/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_00/walk.png
+scout_foot_01	res://assets/units/forge/enemy_variants/scout/scout_foot_01/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_01/walk.png
+scout_foot_02	res://assets/units/forge/enemy_variants/scout/scout_foot_02/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_02/walk.png
+scout_foot_03	res://assets/units/forge/enemy_variants/scout/scout_foot_03/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_03/walk.png
+scout_foot_04	res://assets/units/forge/enemy_variants/scout/scout_foot_04/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_04/walk.png
+scout_foot_05	res://assets/units/forge/enemy_variants/scout/scout_foot_05/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_05/walk.png
+scout_foot_06	res://assets/units/forge/enemy_variants/scout/scout_foot_06/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_06/walk.png
+scout_foot_07	res://assets/units/forge/enemy_variants/scout/scout_foot_07/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_07/walk.png
+scout_foot_08	res://assets/units/forge/enemy_variants/scout/scout_foot_08/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_08/walk.png
+scout_foot_09	res://assets/units/forge/enemy_variants/scout/scout_foot_09/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_09/walk.png
+scout_foot_10	res://assets/units/forge/enemy_variants/scout/scout_foot_10/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_10/walk.png
+scout_foot_11	res://assets/units/forge/enemy_variants/scout/scout_foot_11/walk.webp	res://assets/units/forge/enemy_variants/scout/scout_foot_11/walk.png
+
+[ronin] 12
+ronin_foot_00	res://assets/units/forge/enemy_variants/ronin/ronin_foot_00/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_00/walk.png
+ronin_foot_01	res://assets/units/forge/enemy_variants/ronin/ronin_foot_01/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_01/walk.png
+ronin_foot_02	res://assets/units/forge/enemy_variants/ronin/ronin_foot_02/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_02/walk.png
+ronin_foot_03	res://assets/units/forge/enemy_variants/ronin/ronin_foot_03/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_03/walk.png
+ronin_foot_04	res://assets/units/forge/enemy_variants/ronin/ronin_foot_04/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_04/walk.png
+ronin_foot_05	res://assets/units/forge/enemy_variants/ronin/ronin_foot_05/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_05/walk.png
+ronin_foot_06	res://assets/units/forge/enemy_variants/ronin/ronin_foot_06/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_06/walk.png
+ronin_foot_07	res://assets/units/forge/enemy_variants/ronin/ronin_foot_07/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_07/walk.png
+ronin_foot_08	res://assets/units/forge/enemy_variants/ronin/ronin_foot_08/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_08/walk.png
+ronin_foot_09	res://assets/units/forge/enemy_variants/ronin/ronin_foot_09/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_09/walk.png
+ronin_foot_10	res://assets/units/forge/enemy_variants/ronin/ronin_foot_10/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_10/walk.png
+ronin_foot_11	res://assets/units/forge/enemy_variants/ronin/ronin_foot_11/walk.webp	res://assets/units/forge/enemy_variants/ronin/ronin_foot_11/walk.png
+
+[shield] 12
+shield_foot_00	res://assets/units/forge/enemy_variants/shield/shield_foot_00/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_00/walk.png
+shield_foot_01	res://assets/units/forge/enemy_variants/shield/shield_foot_01/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_01/walk.png
+shield_foot_02	res://assets/units/forge/enemy_variants/shield/shield_foot_02/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_02/walk.png
+shield_foot_03	res://assets/units/forge/enemy_variants/shield/shield_foot_03/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_03/walk.png
+shield_foot_04	res://assets/units/forge/enemy_variants/shield/shield_foot_04/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_04/walk.png
+shield_foot_05	res://assets/units/forge/enemy_variants/shield/shield_foot_05/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_05/walk.png
+shield_foot_06	res://assets/units/forge/enemy_variants/shield/shield_foot_06/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_06/walk.png
+shield_foot_07	res://assets/units/forge/enemy_variants/shield/shield_foot_07/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_07/walk.png
+shield_foot_08	res://assets/units/forge/enemy_variants/shield/shield_foot_08/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_08/walk.png
+shield_foot_09	res://assets/units/forge/enemy_variants/shield/shield_foot_09/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_09/walk.png
+shield_foot_10	res://assets/units/forge/enemy_variants/shield/shield_foot_10/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_10/walk.png
+shield_foot_11	res://assets/units/forge/enemy_variants/shield/shield_foot_11/walk.webp	res://assets/units/forge/enemy_variants/shield/shield_foot_11/walk.png
+
+[gun] 12
+gun_foot_00	res://assets/units/forge/enemy_variants/gun/gun_foot_00/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_00/walk.png
+gun_foot_01	res://assets/units/forge/enemy_variants/gun/gun_foot_01/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_01/walk.png
+gun_foot_02	res://assets/units/forge/enemy_variants/gun/gun_foot_02/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_02/walk.png
+gun_foot_03	res://assets/units/forge/enemy_variants/gun/gun_foot_03/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_03/walk.png
+gun_foot_04	res://assets/units/forge/enemy_variants/gun/gun_foot_04/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_04/walk.png
+gun_foot_05	res://assets/units/forge/enemy_variants/gun/gun_foot_05/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_05/walk.png
+gun_foot_06	res://assets/units/forge/enemy_variants/gun/gun_foot_06/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_06/walk.png
+gun_foot_07	res://assets/units/forge/enemy_variants/gun/gun_foot_07/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_07/walk.png
+gun_foot_08	res://assets/units/forge/enemy_variants/gun/gun_foot_08/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_08/walk.png
+gun_foot_09	res://assets/units/forge/enemy_variants/gun/gun_foot_09/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_09/walk.png
+gun_foot_10	res://assets/units/forge/enemy_variants/gun/gun_foot_10/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_10/walk.png
+gun_foot_11	res://assets/units/forge/enemy_variants/gun/gun_foot_11/walk.webp	res://assets/units/forge/enemy_variants/gun/gun_foot_11/walk.png
+
+[archer] 12
+archer_foot_00	res://assets/units/forge/enemy_variants/archer/archer_foot_00/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_00/walk.png
+archer_foot_01	res://assets/units/forge/enemy_variants/archer/archer_foot_01/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_01/walk.png
+archer_foot_02	res://assets/units/forge/enemy_variants/archer/archer_foot_02/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_02/walk.png
+archer_foot_03	res://assets/units/forge/enemy_variants/archer/archer_foot_03/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_03/walk.png
+archer_foot_04	res://assets/units/forge/enemy_variants/archer/archer_foot_04/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_04/walk.png
+archer_foot_05	res://assets/units/forge/enemy_variants/archer/archer_foot_05/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_05/walk.png
+archer_foot_06	res://assets/units/forge/enemy_variants/archer/archer_foot_06/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_06/walk.png
+archer_foot_07	res://assets/units/forge/enemy_variants/archer/archer_foot_07/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_07/walk.png
+archer_foot_08	res://assets/units/forge/enemy_variants/archer/archer_foot_08/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_08/walk.png
+archer_foot_09	res://assets/units/forge/enemy_variants/archer/archer_foot_09/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_09/walk.png
+archer_foot_10	res://assets/units/forge/enemy_variants/archer/archer_foot_10/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_10/walk.png
+archer_foot_11	res://assets/units/forge/enemy_variants/archer/archer_foot_11/walk.webp	res://assets/units/forge/enemy_variants/archer/archer_foot_11/walk.png
+
+[banner] 12
+banner_foot_00	res://assets/units/forge/enemy_variants/banner/banner_foot_00/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_00/walk.png
+banner_foot_01	res://assets/units/forge/enemy_variants/banner/banner_foot_01/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_01/walk.png
+banner_foot_02	res://assets/units/forge/enemy_variants/banner/banner_foot_02/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_02/walk.png
+banner_foot_03	res://assets/units/forge/enemy_variants/banner/banner_foot_03/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_03/walk.png
+banner_foot_04	res://assets/units/forge/enemy_variants/banner/banner_foot_04/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_04/walk.png
+banner_foot_05	res://assets/units/forge/enemy_variants/banner/banner_foot_05/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_05/walk.png
+banner_foot_06	res://assets/units/forge/enemy_variants/banner/banner_foot_06/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_06/walk.png
+banner_foot_07	res://assets/units/forge/enemy_variants/banner/banner_foot_07/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_07/walk.png
+banner_foot_08	res://assets/units/forge/enemy_variants/banner/banner_foot_08/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_08/walk.png
+banner_foot_09	res://assets/units/forge/enemy_variants/banner/banner_foot_09/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_09/walk.png
+banner_foot_10	res://assets/units/forge/enemy_variants/banner/banner_foot_10/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_10/walk.png
+banner_foot_11	res://assets/units/forge/enemy_variants/banner/banner_foot_11/walk.webp	res://assets/units/forge/enemy_variants/banner/banner_foot_11/walk.png
+
+[cavalry] 24
+cavalry_foot_00	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_00/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_00/walk.png
+cavalry_foot_01	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_01/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_01/walk.png
+cavalry_foot_02	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_02/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_02/walk.png
+cavalry_foot_03	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_03/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_03/walk.png
+cavalry_foot_04	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_04/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_04/walk.png
+cavalry_foot_05	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_05/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_05/walk.png
+cavalry_foot_06	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_06/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_06/walk.png
+cavalry_foot_07	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_07/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_07/walk.png
+cavalry_foot_08	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_08/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_08/walk.png
+cavalry_foot_09	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_09/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_09/walk.png
+cavalry_foot_10	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_10/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_10/walk.png
+cavalry_foot_11	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_11/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_foot_11/walk.png
+cavalry_mounted_00	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_00/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_00/walk.png
+cavalry_mounted_01	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_01/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_01/walk.png
+cavalry_mounted_02	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_02/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_02/walk.png
+cavalry_mounted_03	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_03/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_03/walk.png
+cavalry_mounted_04	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_04/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_04/walk.png
+cavalry_mounted_05	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_05/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_05/walk.png
+cavalry_mounted_06	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_06/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_06/walk.png
+cavalry_mounted_07	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_07/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_07/walk.png
+cavalry_mounted_08	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_08/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_08/walk.png
+cavalry_mounted_09	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_09/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_09/walk.png
+cavalry_mounted_10	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_10/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_10/walk.png
+cavalry_mounted_11	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_11/walk.webp	res://assets/units/forge/enemy_variants/cavalry/cavalry_mounted_11/walk.png
+
+[general] 24
+general_foot_00	res://assets/units/forge/enemy_variants/general/general_foot_00/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_00/walk.png
+general_foot_01	res://assets/units/forge/enemy_variants/general/general_foot_01/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_01/walk.png
+general_foot_02	res://assets/units/forge/enemy_variants/general/general_foot_02/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_02/walk.png
+general_foot_03	res://assets/units/forge/enemy_variants/general/general_foot_03/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_03/walk.png
+general_foot_04	res://assets/units/forge/enemy_variants/general/general_foot_04/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_04/walk.png
+general_foot_05	res://assets/units/forge/enemy_variants/general/general_foot_05/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_05/walk.png
+general_foot_06	res://assets/units/forge/enemy_variants/general/general_foot_06/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_06/walk.png
+general_foot_07	res://assets/units/forge/enemy_variants/general/general_foot_07/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_07/walk.png
+general_foot_08	res://assets/units/forge/enemy_variants/general/general_foot_08/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_08/walk.png
+general_foot_09	res://assets/units/forge/enemy_variants/general/general_foot_09/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_09/walk.png
+general_foot_10	res://assets/units/forge/enemy_variants/general/general_foot_10/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_10/walk.png
+general_foot_11	res://assets/units/forge/enemy_variants/general/general_foot_11/walk.webp	res://assets/units/forge/enemy_variants/general/general_foot_11/walk.png
+general_mounted_00	res://assets/units/forge/enemy_variants/general/general_mounted_00/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_00/walk.png
+general_mounted_01	res://assets/units/forge/enemy_variants/general/general_mounted_01/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_01/walk.png
+general_mounted_02	res://assets/units/forge/enemy_variants/general/general_mounted_02/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_02/walk.png
+general_mounted_03	res://assets/units/forge/enemy_variants/general/general_mounted_03/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_03/walk.png
+general_mounted_04	res://assets/units/forge/enemy_variants/general/general_mounted_04/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_04/walk.png
+general_mounted_05	res://assets/units/forge/enemy_variants/general/general_mounted_05/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_05/walk.png
+general_mounted_06	res://assets/units/forge/enemy_variants/general/general_mounted_06/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_06/walk.png
+general_mounted_07	res://assets/units/forge/enemy_variants/general/general_mounted_07/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_07/walk.png
+general_mounted_08	res://assets/units/forge/enemy_variants/general/general_mounted_08/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_08/walk.png
+general_mounted_09	res://assets/units/forge/enemy_variants/general/general_mounted_09/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_09/walk.png
+general_mounted_10	res://assets/units/forge/enemy_variants/general/general_mounted_10/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_10/walk.png
+general_mounted_11	res://assets/units/forge/enemy_variants/general/general_mounted_11/walk.webp	res://assets/units/forge/enemy_variants/general/general_mounted_11/walk.png
+
+[daimyo] 24
+daimyo_foot_00	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_00/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_00/walk.png
+daimyo_foot_01	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_01/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_01/walk.png
+daimyo_foot_02	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_02/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_02/walk.png
+daimyo_foot_03	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_03/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_03/walk.png
+daimyo_foot_04	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_04/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_04/walk.png
+daimyo_foot_05	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_05/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_05/walk.png
+daimyo_foot_06	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_06/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_06/walk.png
+daimyo_foot_07	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_07/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_07/walk.png
+daimyo_foot_08	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_08/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_08/walk.png
+daimyo_foot_09	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_09/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_09/walk.png
+daimyo_foot_10	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_10/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_10/walk.png
+daimyo_foot_11	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_11/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_foot_11/walk.png
+daimyo_mounted_00	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_00/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_00/walk.png
+daimyo_mounted_01	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_01/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_01/walk.png
+daimyo_mounted_02	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_02/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_02/walk.png
+daimyo_mounted_03	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_03/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_03/walk.png
+daimyo_mounted_04	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_04/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_04/walk.png
+daimyo_mounted_05	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_05/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_05/walk.png
+daimyo_mounted_06	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_06/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_06/walk.png
+daimyo_mounted_07	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_07/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_07/walk.png
+daimyo_mounted_08	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_08/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_08/walk.png
+daimyo_mounted_09	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_09/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_09/walk.png
+daimyo_mounted_10	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_10/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_10/walk.png
+daimyo_mounted_11	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_11/walk.webp	res://assets/units/forge/enemy_variants/daimyo/daimyo_mounted_11/walk.png

@@ -37,6 +37,13 @@ const RARITY_LABEL_EN := {
 	"rare": "Rare",
 	"legendary": "Legendary",
 }
+const CATEGORY_LABEL_EN := {
+	"史实": "Historical record",
+	"制度": "Institution",
+	"民俗": "Local custom",
+	"演绎": "Dramatisation",
+	"工事": "Fortification",
+}
 const STAT_PERCENT := [
 	"damage_mult", "speed_mult", "pickup_mult", "area_mult", "xp_mult",
 	"max_hp_mult", "projectile_speed_mult", "gold_mult", "light_mult",
@@ -193,6 +200,12 @@ static func rarity_label(rarity: String) -> String:
 	if Locale.current == "en":
 		return str(RARITY_LABEL_EN.get(rarity, RARITY_LABEL_EN["common"]))
 	return str(RARITY_LABEL.get(rarity, RARITY_LABEL["common"]))
+
+
+static func localized_category(category: String) -> String:
+	if Locale.current == "en":
+		return str(CATEGORY_LABEL_EN.get(category, category))
+	return category
 
 
 static func family_color(family: String) -> Color:

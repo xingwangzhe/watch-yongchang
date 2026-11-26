@@ -27,30 +27,45 @@ func test_every_map_has_outer_good_and_bad_encounter_sites() -> void:
 		assert_true(has_bad, "%s needs at least one risky encounter" % map_id)
 
 
-func test_encounter_sites_are_walkable_peripheral_and_trigger_once() -> void:
+func test_encounter_sites_are_walkable_peripheral_and_refresh_after_cooldown() -> void:
 	var field := Battlefield.new()
 	add_child_autofree(field)
 	field.setup(77)
 	assert_gte(field.encounter_sites.size(), 4)
 	for site in field.encounter_sites:
 		assert_true(field.map_layout.is_point_walkable(site["pos"] as Vector2, 18.0))
+		assert_true(
+			field.map_layout.is_position_reachable_from(
+				field.map_layout.start_pos,
+				site["pos"] as Vector2
+			),
+			"encounter point %s must be reachable from the player spawn" % site["event_id"]
+		)
 		assert_gt(
 			(site["pos"] as Vector2).distance_to(field.map_layout.start_pos),
 			520.0,
 			"encounter points must pull the player away from the central tower"
 		)
+		assert_gte(float(site.get("refresh_seconds", 0.0)), 20.0)
 	var triggered: Array[int] = []
+	var refreshed: Array[int] = []
 	field.encounter_triggered.connect(func(index: int) -> void: triggered.append(index))
+	field.encounter_refreshed.connect(func(index: int) -> void: refreshed.append(index))
 	var site_pos: Vector2 = field.encounter_sites[0]["pos"]
-	field.update_world(1.0 / 60.0, {
-		"pos": site_pos,
-		"radius": 18.0,
-		"pickup_radius": 0.0,
-	})
-	field.update_world(1.0 / 60.0, {
-		"pos": site_pos,
-		"radius": 18.0,
-		"pickup_radius": 0.0,
-	})
-	assert_eq(triggered, [0], "an encounter point must fire exactly once per run")
+	field.tick_encounters(1.0 / 60.0, site_pos)
+	field.tick_encounters(1.0 / 60.0, site_pos)
+	assert_eq(triggered, [0], "an encounter point must not retrigger while the player stays inside")
 	assert_true(bool(field.encounter_sites[0].get("used", false)))
+	field.tick_encounters(
+		float(field.encounter_sites[0]["refresh_seconds"]) + 0.1,
+		site_pos
+	)
+	assert_eq(refreshed, [0], "the site must announce when it becomes available again")
+	assert_false(bool(field.encounter_sites[0].get("used", false)))
+	assert_false(bool(field.encounter_sites[0].get("rearmed", true)))
+	field.tick_encounters(0.1, site_pos)
+	assert_eq(triggered, [0], "a refreshed site must wait until the player leaves its radius")
+	field.tick_encounters(0.1, site_pos + Vector2(200.0, 0.0))
+	assert_true(bool(field.encounter_sites[0].get("rearmed", false)))
+	field.tick_encounters(0.1, site_pos)
+	assert_eq(triggered, [0, 0], "leaving and returning must arm the same site again")

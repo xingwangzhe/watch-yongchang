@@ -1,6 +1,8 @@
 extends GutTest
 
 const INDEX_PATH := "res://data/yongchang_tiles.json"
+const WATER_MAP_IDS := ["tideland", "watergate", "crossstreet"]
+const WATER_COMPONENT_MIN_CELLS := 16
 
 
 func test_tile_atlases_match_declared_grid() -> void:
@@ -93,6 +95,24 @@ func test_bridge_decks_and_railings_have_continuous_joining_edges() -> void:
 		if north.a > 0.0:
 			assert_eq(north, south, "vertical railing north/south visible seam")
 	assert_ne(horizontal_railing.get_pixel(16, 9), vertical_railing.get_pixel(16, 9), "railing orientations must use distinct art")
+
+
+func test_water_networks_are_continuous_with_finished_shorelines() -> void:
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
+	assert_not_null(parsed, "tile index must parse")
+	if parsed == null:
+		return
+	var maps := GameData.get_maps()
+	for map_id in WATER_MAP_IDS:
+		var definition: Dictionary = (maps[map_id] as Dictionary).duplicate(true)
+		var layout := MapLayout.new()
+		layout.setup(map_id, definition)
+		var renderer := MapRenderer.new()
+		renderer.name = "WaterMapRenderer_%s" % map_id
+		add_child_autofree(renderer)
+		renderer.build(layout, definition, 20261123)
+		_assert_water_network(map_id, layout, renderer)
+		_maybe_save_water_preview(map_id, layout, renderer, parsed)
 
 
 func test_roofs_read_warm_and_eaves_expose_a_visible_facade() -> void:
@@ -271,3 +291,128 @@ func _average_opaque_color(image: Image) -> Color:
 		return Color(0.0, 0.0, 0.0, 0.0)
 	total /= float(pixels)
 	return Color(total.x, total.y, total.z, 1.0)
+
+
+func _assert_water_network(map_id: String, layout: MapLayout, renderer: MapRenderer) -> void:
+	var water_cells: Array[Vector2i] = []
+	for y in layout.world_tiles.y:
+		for x in layout.world_tiles.x:
+			var cell := Vector2i(x, y)
+			if layout.is_water_cell(cell):
+				water_cells.append(cell)
+	assert_gte(water_cells.size(), WATER_COMPONENT_MIN_CELLS, "%s must keep real water" % map_id)
+	var visited: Dictionary = {}
+	var components := 0
+	for start in water_cells:
+		if visited.has(start):
+			continue
+		components += 1
+		var component_size := 0
+		var queue: Array[Vector2i] = [start]
+		visited[start] = true
+		var head := 0
+		while head < queue.size():
+			var cell := queue[head]
+			head += 1
+			component_size += 1
+			for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+				var next := cell + (direction as Vector2i)
+				if not layout.is_water_cell(next) or visited.has(next):
+					continue
+				visited[next] = true
+				queue.append(next)
+		assert_gte(
+			component_size,
+			WATER_COMPONENT_MIN_CELLS,
+			"%s must not leave tiny isolated water spots" % map_id
+		)
+	assert_gt(components, 0, "%s needs at least one water network" % map_id)
+	var minimap := layout.minimap_texture.get_image()
+	var deep_color := layout.minimap_color_for_tile("water_deep_a")
+	var shallow_color := layout.minimap_color_for_tile("water_shallow_a")
+	var tile_counts := {}
+	for cell in water_cells:
+		var cardinal_water := 0
+		var shoreline := false
+		for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+			var neighbor := cell + (direction as Vector2i)
+			if layout.is_water_cell(neighbor):
+				cardinal_water += 1
+			elif (
+				layout.cell_in_bounds(neighbor)
+				and not layout.is_bridge_cell(neighbor)
+			):
+				shoreline = true
+		assert_gte(
+			cardinal_water,
+			2,
+			"%s water at %s must not form a one-cell spike" % [map_id, cell]
+		)
+		if layout.is_bridge_cell(cell):
+			continue
+		var tile_name := renderer.terrain_tile_name(cell)
+		tile_counts[tile_name] = int(tile_counts.get(tile_name, 0)) + 1
+		if shoreline:
+			assert_true(
+				tile_name.begins_with("shore_") or tile_name.begins_with("water_shallow"),
+				"%s shoreline at %s must use shallow/shore art, got %s" % [map_id, cell, tile_name]
+			)
+		else:
+			assert_true(
+				tile_name.begins_with("water_deep"),
+				"%s water interior at %s must stay deep, got %s" % [map_id, cell, tile_name]
+			)
+		var minimap_color := minimap.get_pixel(cell.x, cell.y)
+		assert_true(
+			minimap_color.is_equal_approx(deep_color) or minimap_color.is_equal_approx(shallow_color),
+			"%s minimap at %s must keep the water color, got %s" % [map_id, cell, minimap_color]
+		)
+	if not OS.get_environment("WATER_DEBUG").is_empty():
+		print("WATER_DEBUG %s %s" % [map_id, tile_counts])
+
+
+func _maybe_save_water_preview(
+	map_id: String,
+	layout: MapLayout,
+	renderer: MapRenderer,
+	parsed: Dictionary
+) -> void:
+	var preview_dir := OS.get_environment("WATER_PREVIEW_DIR")
+	if preview_dir.is_empty():
+		return
+	assert_eq(DirAccess.make_dir_recursive_absolute(preview_dir), OK, "preview directory")
+	var terrain: Dictionary = parsed["atlases"]["terrain"]
+	var names: Array = terrain["tiles"]
+	var name_to_index := {}
+	for index in names.size():
+		name_to_index[str(names[index])] = index
+	var atlas_image := (load(str(terrain["path"])) as Texture2D).get_image()
+	assert_not_null(atlas_image, "terrain atlas image must load")
+	if atlas_image == null:
+		return
+	var tile_size := int(parsed["tile_size"])
+	var preview := Image.create(
+		layout.world_tiles.x * tile_size,
+		layout.world_tiles.y * tile_size,
+		false,
+		Image.FORMAT_RGBA8
+	)
+	for y in layout.world_tiles.y:
+		for x in layout.world_tiles.x:
+			var cell := Vector2i(x, y)
+			var tile_name := renderer.terrain_tile_name(cell)
+			var tile_index := int(name_to_index.get(tile_name, 0))
+			var source := Rect2i(
+				Vector2i(tile_index % 8, tile_index / 8) * tile_size,
+				Vector2i.ONE * tile_size
+			)
+			preview.blit_rect(atlas_image, source, cell * tile_size)
+	var target_width := mini(1400, preview.get_width())
+	var scale := float(target_width) / float(preview.get_width())
+	preview.resize(
+		target_width,
+		roundi(float(preview.get_height()) * scale),
+		Image.INTERPOLATE_BILINEAR
+	)
+	var output := preview_dir.path_join("water_%s.png" % map_id)
+	assert_eq(preview.save_png(output), OK, "water preview must save")

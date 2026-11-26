@@ -318,7 +318,7 @@ func _apply_option(card: Button, option: Dictionary, index: int) -> void:
 		str(option.get("rarity_label", "")),
 	]
 	rarity_label.add_theme_color_override("font_color", rarity_color)
-	var category := str(option.get("category", ""))
+	var category := UpgradeCatalog.localized_category(str(option.get("category", "")))
 	var category_label := card.find_child("CardCategory", true, false) as Label
 	category_label.text = category if not category.is_empty() else str(option.get("kind_label", ""))
 	var source_text := GameData.source_label(option)

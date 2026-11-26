@@ -14,6 +14,7 @@ func test_codex_defaults_to_six_live_wanglu_cards() -> void:
 	assert_eq(codex.current_tab_id(), "cards")
 	assert_eq(codex.card_entry_count(), 6)
 	assert_not_null(codex.find_child("TabCards", true, false))
+	assert_not_null(codex.find_child("TabUpgrades", true, false))
 	assert_not_null(codex.find_child("TabHistory", true, false))
 	for character_id in ["wanglu", "amei", "ashi", "achong", "agong", "aqi"]:
 		assert_not_null(codex.find_child("Card_%s" % character_id, true, false))
@@ -22,6 +23,9 @@ func test_codex_defaults_to_six_live_wanglu_cards() -> void:
 	assert_string_contains(card_text, "生命 140")
 	assert_string_contains(card_text, "腰刀")
 	assert_string_contains(card_text, "绑腿")
+	var portrait := codex.find_child("Portrait_wanglu", true, false) as Control
+	assert_not_null(portrait)
+	assert_true(portrait.custom_minimum_size.x >= 160.0)
 	var ally_text := _node_text(codex.find_child("Ally_wangpei_spirit", true, false))
 	assert_string_contains(ally_text, "传世")
 	assert_string_contains(ally_text, "全队：伤害 +9%")
@@ -78,6 +82,105 @@ func test_catalog_tabs_use_live_json_counts() -> void:
 	assert_string_contains(tideland_text, "适合绕行拉怪")
 
 
+func test_upgrade_tab_contains_the_full_one_of_three_pool() -> void:
+	var codex = await _open_codex()
+	codex.select_tab("upgrades")
+	await wait_process_frames(2)
+	var upgrades := GameData.load_json("res://data/upgrades.json")
+	var expected := 0
+	for family in ["attributes", "skills", "events", "towers"]:
+		expected += (upgrades.get(family, {}) as Dictionary).size()
+	assert_eq(_count_name_prefix(codex, "Upgrade_"), expected)
+	assert_eq(expected, 143)
+	assert_not_null(codex.find_child("Upgrade_attributes_whetstone", true, false))
+	assert_not_null(codex.find_child("Upgrade_skills_watch_volley", true, false))
+	assert_not_null(codex.find_child("Upgrade_events_pirate_tide", true, false))
+	assert_not_null(codex.find_child("Upgrade_towers_tower_ascent", true, false))
+	var skill_text := _node_text(codex.find_child("Upgrade_skills_watch_volley", true, false))
+	assert_string_contains(skill_text, "望楼箭雨")
+	assert_string_contains(skill_text, "每 2.4 秒向最近敌人齐射 2 箭")
+	assert_string_contains(skill_text, "上限 Lv.5")
+	var tower_text := _node_text(codex.find_child("Upgrade_towers_tower_ascent", true, false))
+	assert_string_contains(tower_text, "箭塔升阶")
+	assert_string_contains(tower_text, "所有箭塔升一阶")
+
+
+func test_every_catalog_entry_has_a_detail_target() -> void:
+	var codex = await _open_codex()
+	var expected := {
+		"cards": 16,
+		"upgrades": 143,
+		"equipment": 63,
+		"weapons": 7,
+		"enemies": 9,
+		"maps": 25,
+		"history": 14,
+	}
+	for tab_id in expected.keys():
+		codex.select_tab(str(tab_id))
+		await wait_process_frames(2)
+		assert_eq(
+			_count_detail_hits(codex),
+			int(expected[tab_id]),
+			"detail target count on %s" % tab_id
+		)
+
+
+func test_detail_opens_and_closes_with_button_backdrop_and_escape() -> void:
+	var codex = await _open_codex()
+	var card: Node = codex.find_child("Card_wanglu", true, false)
+	var hit := card.find_child("DetailHit", true, false) as Button
+	assert_not_null(hit)
+	hit.pressed.emit()
+	await wait_process_frames(2)
+	assert_true(codex.detail_is_open())
+	var overlay := codex.find_child("CodexDetailOverlay", true, false) as Control
+	assert_not_null(overlay)
+	assert_true(overlay.visible)
+	assert_string_contains(_node_text(overlay), "王陆")
+	assert_string_contains(_node_text(overlay), "均衡位")
+	var detail_body := overlay.find_child("DetailSections", true, false)
+	for label in detail_body.find_children("*", "Label", true, false):
+		assert_ne((label as Label).autowrap_mode, TextServer.AUTOWRAP_OFF)
+	var close := overlay.find_child("DetailClose", true, false) as Button
+	assert_not_null(close)
+	close.pressed.emit()
+	assert_false(codex.detail_is_open())
+
+	hit.pressed.emit()
+	var backdrop := overlay.find_child("DetailBackdrop", true, false) as Button
+	assert_not_null(backdrop)
+	backdrop.pressed.emit()
+	assert_false(codex.detail_is_open())
+
+	hit.pressed.emit()
+	var cancel := InputEventKey.new()
+	cancel.keycode = KEY_ESCAPE
+	cancel.physical_keycode = KEY_ESCAPE
+	cancel.pressed = true
+	codex._unhandled_input(cancel)
+	assert_false(codex.detail_is_open())
+
+
+func test_history_culture_notes_expand_to_full_text() -> void:
+	var codex = await _open_codex()
+	codex.select_tab("history")
+	await wait_process_frames(2)
+	var culture: Node = codex.find_child("Culture_garrison", true, false)
+	assert_not_null(culture)
+	var preview := _node_text(culture)
+	assert_string_contains(preview, "宁村所：把海防落到乡里")
+	assert_string_contains(preview, "卫所")
+	assert_string_contains(preview, "点击阅读全文")
+	var hit := culture.find_child("DetailHit", true, false) as Button
+	hit.pressed.emit()
+	await wait_process_frames(2)
+	var overlay_text := _node_text(codex.find_child("CodexDetailOverlay", true, false))
+	assert_string_contains(overlay_text, "洪武十九年")
+	assert_string_contains(overlay_text, "屯田")
+	assert_string_contains(overlay_text, "《汤和信俗·抵御倭患》")
+
+
 func test_forge_first_frames_are_used_for_cards_and_enemies() -> void:
 	var codex = await _open_codex()
 	var player_texture := _portrait_texture(codex, "Portrait_wanglu")
@@ -115,9 +218,26 @@ func test_codex_keys_and_ui_are_bilingual() -> void:
 	Locale.set_language("en", false)
 	await wait_process_frames(2)
 	var text := _all_text(codex)
-	assert_string_contains(text, "Card Codex")
+	assert_string_contains(text, "Hero Codex")
 	assert_string_contains(text, "Wang Lu")
-	assert_string_contains(text, "Fort History & Background")
+	assert_string_contains(text, "History")
+	assert_string_contains(text, "Heroes")
+	assert_string_contains(text, "Upgrades")
+	codex.select_tab("upgrades")
+	await wait_process_frames(2)
+	var upgrade_text := _all_text(codex)
+	assert_string_contains(upgrade_text, "One-of-Three Upgrade Codex")
+	assert_string_contains(upgrade_text, "Watchtower Volley")
+	assert_string_contains(upgrade_text, "Attribute Cards")
+	assert_false(upgrade_text.contains("属性牌"))
+	var first_upgrade: Node = codex.find_child("Upgrade_skills_watch_volley", true, false)
+	var detail_hit := first_upgrade.find_child("DetailHit", true, false) as Button
+	detail_hit.pressed.emit()
+	await wait_process_frames(2)
+	var detail_text := _node_text(codex.find_child("CodexDetailOverlay", true, false))
+	assert_string_contains(detail_text, "Press Esc")
+	assert_string_contains(detail_text, "Card-Pool Rule")
+	assert_false(detail_text.contains("制度"))
 
 
 func test_arrow_keys_switch_tabs() -> void:
@@ -127,7 +247,7 @@ func test_arrow_keys_switch_tabs() -> void:
 	right.physical_keycode = KEY_RIGHT
 	right.pressed = true
 	codex._unhandled_input(right)
-	assert_eq(codex.current_tab_id(), "equipment")
+	assert_eq(codex.current_tab_id(), "upgrades")
 	var left := InputEventKey.new()
 	left.keycode = KEY_LEFT
 	left.physical_keycode = KEY_LEFT
@@ -162,6 +282,14 @@ func _count_name_prefix(root: Node, prefix: String) -> int:
 	var count := 0
 	for control in root.find_children("*", "Control", true, false):
 		if str((control as Control).name).begins_with(prefix):
+			count += 1
+	return count
+
+
+func _count_detail_hits(root: Node) -> int:
+	var count := 0
+	for button in root.find_children("DetailHit", "Button", true, false):
+		if (button as Button).is_visible_in_tree():
 			count += 1
 	return count
 

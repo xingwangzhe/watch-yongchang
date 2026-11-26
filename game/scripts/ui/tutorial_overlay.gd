@@ -21,6 +21,8 @@ const JADE := Color("#7fb7a8")
 var _page := 0
 var _first_run := false
 var _page_label: Label
+var _kicker_label: Label
+var _title_label: Label
 var _page_title: Label
 var _body: Label
 var _note: Label
@@ -104,6 +106,8 @@ func _refresh(_code: String = "") -> void:
 	if _page_title == null:
 		return
 	var page_number := _page + 1
+	_kicker_label.text = Locale.t("tutorial.kicker")
+	_title_label.text = Locale.t("tutorial.title")
 	_page_label.text = Locale.t("tutorial.page", {"page": page_number, "pages": PAGE_COUNT})
 	_page_title.text = Locale.t("tutorial.page%d.title" % page_number)
 	_body.text = Locale.t("tutorial.page%d.body" % page_number)
@@ -115,8 +119,10 @@ func _refresh(_code: String = "") -> void:
 		_next_button.text = Locale.t("tutorial.next")
 	_skip_button.text = Locale.t("tutorial.skip" if _first_run else "tutorial.close")
 	_hint.text = Locale.t("tutorial.hint")
+	_prev_button.text = Locale.t("tutorial.prev")
 	for index in range(_tabs.size()):
 		var tab := _tabs[index]
+		tab.text = Locale.t("tutorial.tab_%s" % ["controls", "culture", "systems"][index])
 		tab.button_pressed = index == _page
 		tab.add_theme_stylebox_override("normal", _tab_style(index == _page))
 
@@ -161,10 +167,10 @@ func _build() -> void:
 	heading.add_theme_constant_override("separation", 0)
 	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(heading)
-	var kicker := _label(Locale.t("tutorial.kicker"), 12, Color(MUTED, 0.82))
-	heading.add_child(kicker)
-	var title := _label(Locale.t("tutorial.title"), 29, GOLD)
-	heading.add_child(title)
+	_kicker_label = _label(Locale.t("tutorial.kicker"), 12, Color(MUTED, 0.82))
+	heading.add_child(_kicker_label)
+	_title_label = _label(Locale.t("tutorial.title"), 29, GOLD)
+	heading.add_child(_title_label)
 	_page_label = _label("", 14, Color(MUTED, 0.82))
 	_page_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	header.add_child(_page_label)

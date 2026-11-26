@@ -57,6 +57,12 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 - `game/assets/units/forge/`：正式角色、敌兵与佣兵的待机/行走条。由
   `pixel-art/character_forge/bake_battle_sprites.py` 从合法
   `character_recipe` 烘焙；战斗、选择页与序章只使用这些文件。
+- `game/assets/units/forge/enemy_variants/`：九类敌兵共 144 组随机外观变体，
+  由 `pixel-art/character_forge/bake_enemy_variants.py` 从合法
+  `character_recipe` 烘焙（8 帧 128×128，步行/骑乘、12 种武器、10 种服装、
+  8 种头饰、3 种马色）。运行时按 `game/data/enemy_variants.json` 抽样，
+  单局每类限制 4 组以保持 MultiMesh 批处理效率；帧用 AtlasTexture 共享
+  条带纹理，不额外复制像素。
 - `game/assets/units/forge/cavalry/`：3 种未骑乘马与 6 个骑手变体，每种
   4 帧待机 + 8 帧行走。由 `pixel-art/character_forge/build_cavalry.py` 与
   `cavalry_data.py` 按斜对角快步、马身分层和骑手滞后一帧绘制；战斗、佣兵与

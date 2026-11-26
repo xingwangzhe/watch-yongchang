@@ -9,6 +9,8 @@ const MUTED := Color("#baa98a")
 const DOT_CAPACITY := 2048
 const WEB_REFRESH_INTERVAL := 0.20
 const NATIVE_REFRESH_INTERVAL := 0.075
+const ENCOUNTER_MARKER_RADIUS := 8.0
+const ENCOUNTER_ICON_SIZE := 14.0
 
 var battlefield: Battlefield
 var map_def: Dictionary = {}
@@ -24,7 +26,7 @@ var _dot_count := 0
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(200, 128)
+	custom_minimum_size = Vector2(212, 144)
 	if size.x < 2.0 or size.y < 2.0:
 		size = custom_minimum_size
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -95,10 +97,10 @@ func _draw_panel() -> void:
 	draw_string(UI_FONT, Vector2(9, 17), map_title, HORIZONTAL_ALIGNMENT_LEFT, 180, 13, Color(PAPER, 0.94))
 	draw_string(
 		UI_FONT,
-		Vector2(size.x - 46, 17),
+		Vector2(size.x - 52, 17),
 		Locale.t("hud.live_map"),
 		HORIZONTAL_ALIGNMENT_RIGHT,
-		38,
+		44,
 		10,
 		Color(MUTED, 0.72)
 	)
@@ -149,29 +151,58 @@ func _draw_encounters() -> void:
 			continue
 		var used := bool(site.get("used", false))
 		var good := bool(site.get("good", true))
-		var color := Color("#78c78b") if good else Color("#d06a54")
+		var color := Color("#8dde9c") if good else Color("#ef826c")
+		draw_circle(point + Vector2(0.0, 0.8), ENCOUNTER_MARKER_RADIUS + 1.3, Color(0.0, 0.0, 0.0, 0.72))
+		draw_circle(point, ENCOUNTER_MARKER_RADIUS, Color(0.035, 0.052, 0.052, 0.96))
+		draw_circle(point, ENCOUNTER_MARKER_RADIUS, Color(color, 0.18 if used else 0.34))
+		draw_arc(
+			point,
+			ENCOUNTER_MARKER_RADIUS - 0.6,
+			0.0,
+			TAU,
+			20,
+			Color(color, 0.48 if used else 0.96),
+			2.0,
+			true
+		)
 		if used:
-			color = Color(0.52, 0.50, 0.44, 0.62)
+			var progress := _encounter_refresh_progress(site)
+			if progress > 0.0:
+				draw_arc(
+					point,
+					ENCOUNTER_MARKER_RADIUS - 1.2,
+					-PI * 0.5,
+					-PI * 0.5 + TAU * progress,
+					20,
+					Color(GOLD, 0.96),
+					2.4,
+					true
+				)
 		var texture := site.get("texture", null) as Texture2D
 		if texture != null:
-			var icon_size := 9.0 if not used else 6.0
+			var icon_size := ENCOUNTER_ICON_SIZE if not used else 11.0
 			draw_texture_rect(
 				texture,
 				Rect2(point - Vector2.ONE * icon_size * 0.5, Vector2.ONE * icon_size),
 				false,
-				Color(1.0, 1.0, 1.0, 0.92 if not used else 0.45)
+				Color(1.0, 1.0, 1.0, 0.98 if not used else 0.58)
 			)
 		else:
-			draw_circle(point, 2.4 if not used else 1.6, Color(color, 0.82))
+			draw_circle(point, 3.4 if not used else 2.4, Color(color, 0.98))
 		if not used:
-			var diamond := PackedVector2Array([
-				point + Vector2(0.0, -5.2),
-				point + Vector2(5.2, 0.0),
-				point + Vector2(0.0, 5.2),
-				point + Vector2(-5.2, 0.0),
-				point + Vector2(0.0, -5.2),
-			])
-			draw_polyline(diamond, Color(color, 0.90), 1.0, true)
+			draw_line(
+				point + Vector2(-4.0, -ENCOUNTER_MARKER_RADIUS - 2.0),
+				point + Vector2(4.0, -ENCOUNTER_MARKER_RADIUS - 2.0),
+				Color(color, 0.92),
+				1.5,
+				true
+			)
+
+
+func _encounter_refresh_progress(site: Dictionary) -> float:
+	var total := maxf(0.001, float(site.get("refresh_seconds", 1.0)))
+	var remaining := clampf(float(site.get("refresh_remaining", 0.0)), 0.0, total)
+	return 1.0 - remaining / total
 
 
 func _draw_entities() -> void:
@@ -244,9 +275,9 @@ func _draw_player() -> void:
 	var facing := battlefield.player_facing.normalized()
 	if facing.length_squared() <= 0.001:
 		facing = Vector2.RIGHT
-	draw_circle(point, 3.2, Color("#ffe2a1"))
-	draw_line(point, point + facing * 6.0, Color("#fff5cf"), 1.8, true)
-	draw_arc(point, 5.2, 0.0, TAU, 12, Color(GOLD, 0.56), 1.0, true)
+	draw_circle(point, 4.6, Color("#ffe2a1"))
+	draw_line(point, point + facing * 7.0, Color("#fff5cf"), 2.2, true)
+	draw_arc(point, 7.0, 0.0, TAU, 14, Color(GOLD, 0.68), 1.3, true)
 
 
 func _draw_compass() -> void:

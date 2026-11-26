@@ -15,15 +15,21 @@ const GREEN := Color("#9bc27e")
 
 const TAB_SPECS := [
 	{"id": "cards", "label": "codex.tab.cards", "accent": "#e1b35a"},
+	{"id": "upgrades", "label": "codex.tab.upgrades", "accent": "#79a9bf"},
 	{"id": "equipment", "label": "codex.tab.equipment", "accent": "#7fb7a8"},
 	{"id": "weapons", "label": "codex.tab.weapons", "accent": "#d8a548"},
 	{"id": "enemies", "label": "codex.tab.enemies", "accent": "#c05a41"},
 	{"id": "maps", "label": "codex.tab.maps", "accent": "#79a9bf"},
 	{"id": "history", "label": "codex.tab.history", "accent": "#d1ad62"},
 ]
+const UPGRADE_FAMILY_SPECS := [
+	{"id": "attributes", "label": "codex.upgrades.family.attributes", "accent": "#79a9bf"},
+	{"id": "skills", "label": "codex.upgrades.family.skills", "accent": "#c05a41"},
+	{"id": "events", "label": "codex.upgrades.family.events", "accent": "#9b7fbf"},
+	{"id": "towers", "label": "codex.upgrades.family.towers", "accent": "#c9a04e"},
+]
 const RARITY_ORDER := ["legendary", "rare", "uncommon", "common"]
 const TONE_ORDER := ["boon", "mixed", "risk"]
-
 var _data: Dictionary = {}
 var _characters: Dictionary = {}
 var _weapons: Dictionary = {}
@@ -37,6 +43,18 @@ var _content: Control
 var _scroll: ScrollContainer
 var _page_host: VBoxContainer
 var _tab_buttons: Dictionary = {}
+var _detail_overlay: Control
+var _detail_panel: PanelContainer
+var _detail_title: Label
+var _detail_subtitle: Label
+var _detail_badges: HFlowContainer
+var _detail_image_plate: PanelContainer
+var _detail_image: TextureRect
+var _detail_sections: VBoxContainer
+var _detail_source: Label
+var _detail_hint: Label
+var _detail_close: Button
+var _detail_scroll: ScrollContainer
 var active_tab := "cards"
 var embedded := false
 
@@ -53,6 +71,7 @@ func _ready() -> void:
 	_content.name = "CodexContentRoot"
 	_content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_content)
+	_build_detail_overlay()
 	_rebuild()
 	Locale.language_changed.connect(_on_language_changed)
 
@@ -71,6 +90,11 @@ func _load_catalog_data() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and (event as InputEventKey).echo:
+		return
+	if detail_is_open():
+		if event.is_action_pressed("ui_cancel") or event.is_action_pressed("toggle_codex"):
+			close_detail()
+			get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("toggle_codex"):
 		_return_to_menu()
@@ -95,6 +119,7 @@ func current_tab_id() -> String:
 func select_tab(tab_id: String) -> void:
 	if not _valid_tab(tab_id):
 		return
+	close_detail()
 	active_tab = tab_id
 	_update_tab_styles()
 	_build_active_page()
@@ -106,7 +131,15 @@ func card_entry_count() -> int:
 	return _card_ids().size()
 
 
+func detail_is_open() -> bool:
+	return _detail_overlay != null and _detail_overlay.visible
+
+
 func _rebuild() -> void:
+	close_detail()
+	if _detail_close != null:
+		_detail_close.text = Locale.t("codex.detail.close")
+		_detail_hint.text = Locale.t("codex.detail.hint")
 	if not _valid_tab(active_tab):
 		active_tab = "cards"
 	for child in _content.get_children():
@@ -250,6 +283,8 @@ func _tab_count(tab_id: String) -> int:
 	match tab_id:
 		"cards":
 			return _card_ids().size()
+		"upgrades":
+			return _upgrade_card_count()
 		"equipment":
 			return _passives.size() + (_upgrades.get("attributes", {}) as Dictionary).size()
 		"weapons":
@@ -317,6 +352,8 @@ func _build_active_page() -> void:
 	match active_tab:
 		"cards":
 			_build_cards_page()
+		"upgrades":
+			_build_upgrades_page()
 		"equipment":
 			_build_equipment_page()
 		"weapons":
@@ -344,6 +381,9 @@ func _build_cards_page() -> void:
 	var disclaimer := _label(Locale.t("codex.cards.disclaimer"), 12, Color(VERMILION, 0.88))
 	disclaimer.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_page_host.add_child(disclaimer)
+	var read_more := _label(Locale.t("codex.cards.read_more"), 11, Color(MUTED, 0.72))
+	read_more.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_page_host.add_child(read_more)
 	var grid := _grid(3, 14)
 	var ids := _card_ids()
 	for index in range(ids.size()):
@@ -364,38 +404,37 @@ func _character_card(character_id: String, index: int) -> PanelContainer:
 	var character: Dictionary = _characters[character_id] as Dictionary
 	var panel := _card_panel(str(character.get("tint", "#e1b35a")))
 	panel.name = "Card_%s" % character_id
-	panel.custom_minimum_size = Vector2(0, 254)
+	panel.custom_minimum_size = Vector2(0, 370)
+	panel.clip_contents = true
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 7)
+	column.add_theme_constant_override("separation", 8)
 	panel.add_child(column)
-	var head := HBoxContainer.new()
-	head.add_theme_constant_override("separation", 12)
-	column.add_child(head)
-	head.add_child(_portrait(
+	var portrait_row := CenterContainer.new()
+	portrait_row.add_child(_portrait(
 		str(character.get("battle_idle", "")),
 		int(character.get("battle_idle_frames", 1)),
 		"Portrait_%s" % character_id,
-		104,
+		160,
 		Color(str(character.get("tint", "#e1b35a")))
 	))
-	var title_box := VBoxContainer.new()
-	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title_box.add_theme_constant_override("separation", 4)
-	head.add_child(title_box)
+	column.add_child(portrait_row)
 	var title := _label(
 		"%s · %s" % [
 			GameData.loc(character, "name"),
 			GameData.loc(character, "preset_name"),
 		],
-		20,
+		22,
 		PAPER
 	)
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	title_box.add_child(title)
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(title)
 	var alias := _label(GameData.loc(character, "preset_alias"), 13, Color(MUTED, 0.88))
 	alias.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	title_box.add_child(alias)
+	alias.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(alias)
 	var badge_row := HBoxContainer.new()
+	badge_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	badge_row.add_theme_constant_override("separation", 6)
 	badge_row.add_child(_badge(Locale.t("codex.cards.post", {"index": index + 1}), GOLD))
 	var unlocked := int(SaveSystem.data.get("total_merit", 0)) >= int(character.get("unlock_merit", 0))
@@ -403,7 +442,7 @@ func _character_card(character_id: String, index: int) -> PanelContainer:
 		Locale.t("codex.unlocked" if unlocked else "codex.locked"),
 		GREEN if unlocked else MUTED
 	))
-	title_box.add_child(badge_row)
+	column.add_child(badge_row)
 	var stats := _label(
 		Locale.t("codex.cards.stats", {
 			"hp": _num(float(character.get("hp", 0.0))),
@@ -414,6 +453,8 @@ func _character_card(character_id: String, index: int) -> PanelContainer:
 		12,
 		Color(BLUE, 0.92)
 	)
+	stats.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(stats)
 	var weapon := _weapons.get(str(character.get("starting_weapon", "")), {}) as Dictionary
 	var passive := _passives.get(str(character.get("starting_passive", "")), {}) as Dictionary
@@ -426,9 +467,11 @@ func _character_card(character_id: String, index: int) -> PanelContainer:
 		Color(GOLD, 0.92)
 	)
 	loadout.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	loadout.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(loadout)
 	var note := _label(GameData.loc(character, "note"), 12, Color(PAPER, 0.80))
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	note.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(note)
 	var unlock_text := Locale.t("codex.cards.unlock_initial")
@@ -438,7 +481,49 @@ func _character_card(character_id: String, index: int) -> PanelContainer:
 		unlock_text,
 		Locale.t("codex.cards.source", {"role": GameData.loc(character, "role")}),
 	]))
+	_attach_detail(panel, _character_detail(character, index, unlocked))
 	return panel
+
+
+func _character_detail(character: Dictionary, index: int, unlocked: bool) -> Dictionary:
+	var weapon := _weapons.get(str(character.get("starting_weapon", "")), {}) as Dictionary
+	var passive := _passives.get(str(character.get("starting_passive", "")), {}) as Dictionary
+	var unlock_text := Locale.t("codex.cards.unlock_initial")
+	if int(character.get("unlock_merit", 0)) > 0:
+		unlock_text = Locale.t("codex.cards.unlock_merit", {
+			"value": int(character.get("unlock_merit", 0)),
+		})
+	var stats_text := Locale.t("codex.cards.stats", {
+		"hp": _num(float(character.get("hp", 0.0))),
+		"speed": _num(float(character.get("speed", 0.0))),
+		"pickup": _num(float(character.get("pickup_radius", 0.0))),
+		"oil": _num(float(character.get("oil_max", 0.0))),
+	})
+	return {
+		"title": "%s · %s" % [
+			GameData.loc(character, "name"),
+			GameData.loc(character, "preset_name"),
+		],
+		"subtitle": GameData.loc(character, "alias"),
+		"accent": Color(str(character.get("tint", "#e1b35a"))),
+		"image_path": str(character.get("battle_idle", "")),
+		"image_frames": int(character.get("battle_idle_frames", 1)),
+		"badges": [
+			{"text": Locale.t("codex.cards.post", {"index": index + 1}), "color": GOLD},
+			{"text": Locale.t("codex.unlocked" if unlocked else "codex.locked"), "color": GREEN if unlocked else MUTED},
+			{"text": GameData.loc(character, "role"), "color": BLUE},
+		],
+		"sections": [
+			{"heading": Locale.t("codex.detail.identity"), "body": GameData.loc(character, "note")},
+			{"heading": Locale.t("codex.detail.stats"), "body": stats_text},
+			{"heading": Locale.t("codex.detail.loadout"), "body": "%s\n%s" % [
+				Locale.t("codex.cards.starter", {"weapon": GameData.loc(weapon, "name")}),
+				Locale.t("codex.cards.passive", {"passive": GameData.loc(passive, "name")}),
+			]},
+			{"heading": Locale.t("codex.detail.unlock"), "body": unlock_text},
+		],
+		"source": Locale.t("codex.cards.source", {"role": GameData.loc(character, "role")}),
+	}
 
 
 func _mercenary_card(mercenary_id: String) -> PanelContainer:
@@ -505,7 +590,217 @@ func _mercenary_card(mercenary_id: String) -> PanelContainer:
 			Color(GREEN, 0.92)
 		))
 	column.add_child(_source_line(GameData.source_label(mercenary)))
+	_attach_detail(panel, _mercenary_detail(mercenary, note_text, bonus))
 	return panel
+
+
+func _mercenary_detail(mercenary: Dictionary, note_text: String, bonus: String) -> Dictionary:
+	var stats_text := Locale.t("codex.cards.ally_stats", {
+		"hp": _num(float(mercenary.get("hp", 0.0))),
+		"speed": _num(float(mercenary.get("speed", 0.0))),
+		"damage": _num(float(mercenary.get("damage", 0.0))),
+		"range": _num(float(mercenary.get("attack_range", 0.0))),
+	})
+	var sections: Array = [
+		{"heading": Locale.t("codex.detail.identity"), "body": GameData.loc(mercenary, "role")},
+		{"heading": Locale.t("codex.detail.stats"), "body": stats_text},
+		{"heading": Locale.t("codex.detail.description"), "body": note_text},
+	]
+	if not bonus.is_empty():
+		sections.append({
+			"heading": Locale.t("codex.detail.party_bonus"),
+			"body": bonus,
+		})
+	return {
+		"title": GameData.loc(mercenary, "name"),
+		"subtitle": Locale.t("codex.cards.allies_heading"),
+		"accent": TEAL,
+		"image_path": str(mercenary.get("battle_idle", "")),
+		"image_frames": int(mercenary.get("battle_idle_frames", 1)),
+		"badges": [
+			{"text": Locale.t("codex.cards.ally_price", {"value": int(mercenary.get("price", 0))}), "color": GOLD},
+			{"text": UpgradeCatalog.rarity_label(str(mercenary.get("rarity", "common"))), "color": _rarity_color(str(mercenary.get("rarity", "common")))},
+		],
+		"sections": sections,
+		"source": GameData.source_label(mercenary),
+	}
+
+
+func _build_upgrades_page() -> void:
+	_build_page_header("codex.upgrades.title", "codex.upgrades.lead")
+	var summary := _label(
+		Locale.t("codex.upgrades.summary", {
+			"cards": _upgrade_card_count(),
+			"offers": _upgrade_offer_count(),
+		}),
+		13,
+		Color(BLUE, 0.92)
+	)
+	summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_page_host.add_child(summary)
+	var rule := _label(Locale.t("codex.upgrades.rule"), 11, Color(GOLD, 0.82))
+	rule.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_page_host.add_child(rule)
+	for raw_spec in UPGRADE_FAMILY_SPECS:
+		var spec := raw_spec as Dictionary
+		var family := str(spec.get("id", ""))
+		var entries := _upgrades.get(family, {}) as Dictionary
+		if entries.is_empty():
+			continue
+		_add_section_heading(
+			Locale.t(str(spec.get("label", ""))),
+			entries.size(),
+			Color(str(spec.get("accent", "#79a9bf")))
+		)
+		var ids: Array[String] = []
+		for raw_id in entries.keys():
+			ids.append(str(raw_id))
+		ids.sort()
+		var grid := _grid(3, 12)
+		for card_id in ids:
+			grid.add_child(_upgrade_card(family, card_id, entries[card_id] as Dictionary))
+		_page_host.add_child(grid)
+	_source_footer()
+
+
+func _upgrade_card_count() -> int:
+	var total := 0
+	for raw_spec in UPGRADE_FAMILY_SPECS:
+		var family := str((raw_spec as Dictionary).get("id", ""))
+		total += (_upgrades.get(family, {}) as Dictionary).size()
+	return total
+
+
+func _upgrade_offer_count() -> int:
+	var total := 0
+	for raw_spec in UPGRADE_FAMILY_SPECS:
+		var family := str((raw_spec as Dictionary).get("id", ""))
+		var entries := _upgrades.get(family, {}) as Dictionary
+		for definition in entries.values():
+			total += int((definition as Dictionary).get("max_level", 1))
+	return total
+
+
+func _upgrade_family_spec(family: String) -> Dictionary:
+	for raw_spec in UPGRADE_FAMILY_SPECS:
+		var spec := raw_spec as Dictionary
+		if str(spec.get("id", "")) == family:
+			return spec
+	return {}
+
+
+func _upgrade_kind_label(family: String) -> String:
+	var spec := _upgrade_family_spec(family)
+	if spec.is_empty():
+		return family
+	return Locale.t(str(spec.get("label", "")))
+
+
+func _upgrade_card(family: String, card_id: String, definition: Dictionary) -> PanelContainer:
+	var spec := _upgrade_family_spec(family)
+	var accent := Color(str(spec.get("accent", "#79a9bf")))
+	var rarity := str(definition.get("rarity", "common"))
+	var panel := _card_panel(str(spec.get("accent", "#79a9bf")))
+	panel.name = "Upgrade_%s_%s" % [family, card_id]
+	panel.custom_minimum_size = Vector2(0, 214)
+	panel.clip_contents = true
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 6)
+	panel.add_child(column)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 9)
+	column.add_child(head)
+	head.add_child(_icon_frame(str(definition.get("icon", "")), 46, accent))
+	var title_box := VBoxContainer.new()
+	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_box.add_theme_constant_override("separation", 3)
+	head.add_child(title_box)
+	var title := _label(GameData.loc(definition, "name"), 17, PAPER)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title_box.add_child(title)
+	var badges := HBoxContainer.new()
+	badges.add_theme_constant_override("separation", 5)
+	badges.add_child(_badge(_upgrade_kind_label(family), accent))
+	badges.add_child(_badge(UpgradeCatalog.rarity_label(rarity), _rarity_color(rarity)))
+	title_box.add_child(badges)
+	column.add_child(_label(
+		Locale.t("codex.upgrades.max", {"level": int(definition.get("max_level", 1))}),
+		10,
+		Color(MUTED, 0.82)
+	))
+	var description := _label(GameData.loc(definition, "desc"), 12, Color(PAPER, 0.86))
+	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(description)
+	var effects := _upgrade_effect_text(definition)
+	if not effects.is_empty():
+		var effect_label := _label(
+			Locale.t("codex.upgrades.effect", {"effect": effects}),
+			11,
+			Color(BLUE, 0.92)
+		)
+		effect_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		column.add_child(effect_label)
+	var culture_text := GameData.loc(definition, "culture")
+	var culture := _label(culture_text, 10, Color(MUTED, 0.74))
+	culture.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	culture.max_lines_visible = 3
+	culture.clip_text = true
+	culture.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	culture.tooltip_text = culture_text
+	culture.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(culture)
+	column.add_child(_source_line("%s · %s" % [
+		Locale.t("codex.upgrades.source"),
+		GameData.source_label(definition),
+	]))
+	_attach_detail(panel, _upgrade_detail(family, definition))
+	return panel
+
+
+func _upgrade_detail(family: String, definition: Dictionary) -> Dictionary:
+	var spec := _upgrade_family_spec(family)
+	var accent := Color(str(spec.get("accent", "#79a9bf")))
+	var rarity := str(definition.get("rarity", "common"))
+	var effects := _upgrade_effect_text(definition)
+	var badges: Array = [
+		{"text": _upgrade_kind_label(family), "color": accent},
+		{"text": UpgradeCatalog.rarity_label(rarity), "color": _rarity_color(rarity)},
+		{"text": Locale.t("codex.upgrades.max", {"level": int(definition.get("max_level", 1))}), "color": MUTED},
+	]
+	if family == "events":
+		badges.append({"text": Locale.t("codex.upgrades.once"), "color": PURPLE})
+	var sections: Array = [
+		{"heading": Locale.t("codex.detail.description"), "body": GameData.loc(definition, "desc")},
+	]
+	if not effects.is_empty():
+		sections.append({"heading": Locale.t("codex.detail.effect"), "body": effects})
+	var category := _category_label(str(definition.get("category", "")))
+	if not category.is_empty():
+		badges.append({"text": category, "color": GOLD})
+	sections.append({
+		"heading": Locale.t("codex.detail.culture"),
+		"body": GameData.loc(definition, "culture"),
+	})
+	sections.append({
+		"heading": Locale.t("codex.detail.rule"),
+		"body": Locale.t("codex.upgrades.detail_rule"),
+	})
+	return {
+		"title": GameData.loc(definition, "name"),
+		"subtitle": _upgrade_kind_label(family),
+		"accent": accent,
+		"icon_path": str(definition.get("icon", "")),
+		"badges": badges,
+		"sections": sections,
+		"source": GameData.source_label(definition),
+	}
+
+
+func _upgrade_effect_text(definition: Dictionary) -> String:
+	var effects := UpgradeCatalog.effect_summary(definition, 1)
+	if effects.contains("skill.") or effects.contains("event."):
+		return ""
+	return effects
 
 
 func _build_equipment_page() -> void:
@@ -580,6 +875,20 @@ func _passive_card(passive_id: String) -> PanelContainer:
 		Locale.t("codex.equipment.shop_source"),
 		GameData.source_label(passive),
 	]))
+	_attach_detail(panel, {
+		"title": GameData.loc(passive, "name"),
+		"subtitle": Locale.t("codex.equipment.shop_heading"),
+		"accent": TEAL,
+		"icon_path": str(passive.get("icon", "")),
+		"badges": [
+			{"text": Locale.t("codex.equipment.max", {"level": int(passive.get("max_level", 1))}), "color": TEAL},
+		],
+		"sections": [
+			{"heading": Locale.t("codex.detail.description"), "body": GameData.loc(passive, "description")},
+			{"heading": Locale.t("codex.detail.culture"), "body": GameData.loc(passive, "culture")},
+		],
+		"source": GameData.source_label(passive),
+	})
 	return panel
 
 
@@ -612,7 +921,7 @@ func _attribute_card(attribute_id: String, definition: Dictionary) -> PanelConta
 	title_box.add_child(badges)
 	var category := str(definition.get("category", ""))
 	if not category.is_empty():
-		column.add_child(_label(category, 10, Color(MUTED, 0.74)))
+		column.add_child(_label(_category_label(category), 10, Color(MUTED, 0.74)))
 	var description := _label(GameData.loc(definition, "desc"), 12, Color(PAPER, 0.86))
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -621,6 +930,7 @@ func _attribute_card(attribute_id: String, definition: Dictionary) -> PanelConta
 		Locale.t("codex.equipment.trait_source"),
 		GameData.source_label(definition),
 	]))
+	_attach_detail(panel, _upgrade_detail("attributes", definition))
 	return panel
 
 
@@ -705,6 +1015,32 @@ func _weapon_card(weapon_id: String, starters: Dictionary) -> PanelContainer:
 		Locale.t("codex.weapons.source"),
 		GameData.source_label(weapon),
 	]))
+	var detail_badges: Array = [
+		{"text": _weapon_type_label(str(weapon.get("type", ""))), "color": GOLD},
+	]
+	if not starter_posts.is_empty():
+		detail_badges.append({
+			"text": "%s：%s" % [Locale.t("codex.weapons.starter"), ", ".join(starter_posts)],
+			"color": GREEN,
+		})
+	_attach_detail(panel, {
+		"title": GameData.loc(weapon, "name"),
+		"subtitle": _weapon_type_label(str(weapon.get("type", ""))),
+		"accent": GOLD,
+		"icon_path": str(weapon.get("icon", "")),
+		"badges": detail_badges,
+		"sections": [
+			{"heading": Locale.t("codex.detail.description"), "body": GameData.loc(weapon, "description")},
+			{"heading": Locale.t("codex.detail.stats"), "body": Locale.t("codex.weapons.stats", {
+				"damage": _num(float(weapon.get("damage", 0.0))),
+				"cooldown": _num(float(weapon.get("cooldown", 0.0))),
+				"range": _num(float(weapon.get("range", 0.0))),
+			})},
+			{"heading": Locale.t("codex.detail.evolution"), "body": _weapon_evolution_text(weapon)},
+			{"heading": Locale.t("codex.detail.culture"), "body": GameData.loc(weapon, "culture")},
+		],
+		"source": GameData.source_label(weapon),
+	})
 	return panel
 
 
@@ -820,7 +1156,48 @@ func _enemy_card(enemy_id: String) -> PanelContainer:
 	tip.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(tip)
 	column.add_child(_source_line(Locale.t("codex.enemies.source")))
+	_attach_detail(panel, _enemy_detail(enemy_id, enemy, tip_entry, tier, accent))
 	return panel
+
+
+func _enemy_detail(
+	enemy_id: String,
+	enemy: Dictionary,
+	tip_entry: Dictionary,
+	tier: String,
+	accent: Color
+) -> Dictionary:
+	var badges: Array = [
+		{"text": Locale.t("codex.enemies.tier.%s" % tier), "color": accent},
+		{"text": Locale.t("codex.enemies.first_seen", {"time": _time_label(_first_enemy_seconds(enemy_id))}), "color": MUTED},
+	]
+	if float(enemy.get("armor", 0.0)) > 0.0:
+		badges.append({
+			"text": Locale.t("codex.enemies.armor", {"value": _num(float(enemy.get("armor", 0.0)) * 100.0)}),
+			"color": BLUE,
+		})
+	return {
+		"title": GameData.loc(enemy, "name"),
+		"subtitle": Locale.t("codex.enemies.lead"),
+		"accent": accent,
+		"image_path": str(enemy.get("texture", "")),
+		"image_frames": int(enemy.get("sprite_frames", 1)),
+		"badges": badges,
+		"sections": [
+			{"heading": Locale.t("codex.detail.stats"), "body": Locale.t("codex.enemies.stats", {
+				"hp": _num(float(enemy.get("hp", 0.0))),
+				"speed": _num(float(enemy.get("speed", 0.0))),
+				"damage": _num(float(enemy.get("damage", 0.0))),
+				"xp": _num(float(enemy.get("xp", 0.0))),
+			})},
+			{"heading": Locale.t("codex.detail.tactics"), "body": "%s\n%s" % [
+				_enemy_attack_text(enemy),
+				Locale.t("codex.enemies.tip", {"tip": GameData.loc(tip_entry, "tip")}),
+			]},
+			{"heading": Locale.t("codex.detail.record"), "body": Locale.t("codex.enemies.source")},
+		],
+		"source": "",
+	}
 
 
 func _enemy_ids() -> Array[String]:
@@ -954,7 +1331,45 @@ func _map_card(map_id: String) -> PanelContainer:
 	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tip.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(tip)
+	_attach_detail(panel, _map_detail(map, tip_entry))
 	return panel
+
+
+func _map_detail(map: Dictionary, tip_entry: Dictionary) -> Dictionary:
+	var unlock_value := int(map.get("unlock_merit", 0))
+	var badges: Array = [
+		{
+			"text": Locale.t("codex.maps.unlock_initial" if unlock_value <= 0 else "codex.maps.unlock_merit", {
+				"value": unlock_value,
+			}),
+			"color": GREEN if unlock_value <= 0 else GOLD,
+		},
+	]
+	var landmarks := _map_landmarks_text(map)
+	if not landmarks.is_empty():
+		badges.append({"text": Locale.t("codex.maps.landmarks", {"names": landmarks}), "color": BLUE})
+	return {
+		"title": GameData.loc(map, "name"),
+		"subtitle": GameData.loc(map, "subtitle"),
+		"accent": BLUE,
+		"badges": badges,
+		"sections": [
+			{"heading": Locale.t("codex.detail.description"), "body": GameData.loc(map, "description")},
+			{"heading": Locale.t("codex.detail.stats"), "body": "%s\n%s" % [
+				Locale.t("codex.maps.stats", {
+					"speed": _ratio(float(map.get("enemy_speed_mult", 1.0))),
+					"hp": _ratio(float(map.get("enemy_hp_mult", 1.0))),
+					"spawn": _ratio(float(map.get("spawn_rate_mult", 1.0))),
+				}),
+				"%s · %s" % [
+					Locale.t("codex.maps.oil", {"value": int(map.get("oil_interval", 30))}),
+					Locale.t("codex.maps.light", {"value": _ratio(float(map.get("light_scale", 1.0)))}),
+				],
+			]},
+			{"heading": Locale.t("codex.detail.tactics"), "body": GameData.loc(tip_entry, "tip")},
+		],
+		"source": "",
+	}
 
 
 func _map_landmarks_text(map: Dictionary) -> String:
@@ -1039,6 +1454,13 @@ func _encounter_card(event_id: String, definition: Dictionary) -> PanelContainer
 		Locale.t("codex.maps.encounter_source"),
 		GameData.source_label(definition),
 	]))
+	var detail := _upgrade_detail("events", definition)
+	detail["subtitle"] = Locale.t("codex.maps.encounters_heading", {"count": 1})
+	detail["accent"] = tone_color
+	var detail_badges := detail.get("badges", []) as Array
+	detail_badges.push_front({"text": Locale.t("codex.maps.tone.%s" % tone), "color": tone_color})
+	detail["badges"] = detail_badges
+	_attach_detail(panel, detail)
 	return panel
 
 
@@ -1059,15 +1481,25 @@ func _build_history_page() -> void:
 		facts_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_page_host.add_child(facts_label)
 	var grid := _grid(3, 14)
-	grid.add_child(_history_panel(_data.get("left", {}) as Dictionary, Color("#d1ad62")))
+	grid.add_child(_history_panel(_data.get("left", {}) as Dictionary, Color("#d1ad62"), "HistoryLeft"))
 	grid.add_child(_bridge_panel())
-	grid.add_child(_history_panel(_data.get("right", {}) as Dictionary, Color("#b95a43")))
+	grid.add_child(_history_panel(_data.get("right", {}) as Dictionary, Color("#b95a43"), "HistoryRight"))
 	_page_host.add_child(grid)
+	var culture_sections := _data.get("culture_sections", []) as Array
+	_add_section_heading(Locale.t("codex.history.deep_heading"), culture_sections.size(), PURPLE)
+	var deep_lead := _label(Locale.t("codex.history.deep_lead"), 13, Color(PAPER, 0.82))
+	deep_lead.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_page_host.add_child(deep_lead)
+	var culture_grid := _grid(2, 14)
+	for raw_section in culture_sections:
+		culture_grid.add_child(_culture_card(raw_section as Dictionary))
+	_page_host.add_child(culture_grid)
 	_add_section_heading(Locale.t("codex.timeline"), (_data.get("timeline", []) as Array).size(), GOLD)
 	var timeline_grid := _grid(3, 10)
 	for raw_entry in _data.get("timeline", []) as Array:
 		var entry := raw_entry as Dictionary
 		var panel := _flat_panel(Color(0.045, 0.058, 0.058, 0.92), Color(GOLD, 0.20))
+		panel.name = "Timeline_%s" % str(entry.get("year", ""))
 		panel.custom_minimum_size = Vector2(0, 104)
 		var column := VBoxContainer.new()
 		column.add_theme_constant_override("separation", 4)
@@ -1082,6 +1514,7 @@ func _build_history_page() -> void:
 		text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(text)
+		_attach_detail(panel, _timeline_detail(entry))
 		timeline_grid.add_child(panel)
 	_page_host.add_child(timeline_grid)
 	_add_section_heading(Locale.t("codex.sources"), _localized_array(_data, "sources").size(), MUTED)
@@ -1090,8 +1523,105 @@ func _build_history_page() -> void:
 	_page_host.add_child(sources)
 
 
-func _history_panel(section: Dictionary, accent: Color) -> PanelContainer:
+func _culture_card(section: Dictionary) -> PanelContainer:
+	var category_key := str(section.get("category_zh", ""))
+	var accent := _culture_accent(category_key)
+	var panel := _flat_panel(Color(0.045, 0.058, 0.058, 0.94), Color(accent, 0.34))
+	panel.name = "Culture_%s" % str(section.get("id", ""))
+	panel.custom_minimum_size = Vector2(0, 252)
+	panel.clip_contents = true
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 7)
+	panel.add_child(column)
+	var badge_row := HBoxContainer.new()
+	badge_row.add_theme_constant_override("separation", 7)
+	badge_row.add_child(_badge(GameData.loc(section, "category"), accent))
+	badge_row.add_child(_badge(Locale.t("codex.history.read_more"), Color(MUTED, 0.84)))
+	column.add_child(badge_row)
+	var title := _label(GameData.loc(section, "title"), 21, accent)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(title)
+	var rule := ColorRect.new()
+	rule.color = Color(accent, 0.28)
+	rule.custom_minimum_size = Vector2(0, 1)
+	column.add_child(rule)
+	var body_text := GameData.loc(section, "body")
+	var body := _label(body_text, 12, Color(PAPER, 0.84))
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	body.max_lines_visible = 5
+	body.clip_text = true
+	body.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	body.tooltip_text = body_text
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(body)
+	column.add_child(_source_line(GameData.source_label(section)))
+	_attach_detail(panel, {
+		"title": GameData.loc(section, "title"),
+		"subtitle": GameData.loc(section, "category"),
+		"accent": accent,
+		"badges": [
+			{"text": GameData.loc(section, "category"), "color": accent},
+			{"text": Locale.t("codex.history.deep_heading"), "color": GOLD},
+		],
+		"sections": [
+			{"heading": Locale.t("codex.detail.record"), "body": body_text},
+		],
+		"source": GameData.source_label(section),
+	})
+	return panel
+
+
+func _culture_accent(category: String) -> Color:
+	match category:
+		"史实":
+			return GOLD
+		"制度":
+			return BLUE
+		"民俗":
+			return TEAL
+		"演绎":
+			return PURPLE
+	return MUTED
+
+
+func _history_detail(section: Dictionary, accent: Color) -> Dictionary:
+	var points: Array[String] = []
+	for raw_point in _localized_array(section, "points"):
+		points.append("· %s" % str(raw_point))
+	return {
+		"title": GameData.loc(section, "title"),
+		"subtitle": GameData.loc(section, "lead"),
+		"accent": accent,
+		"badges": [
+			{"text": Locale.t("codex.history.deep_heading"), "color": accent},
+		],
+		"sections": [
+			{"heading": Locale.t("codex.detail.record"), "body": GameData.loc(section, "lead")},
+			{"heading": Locale.t("codex.detail.timeline"), "body": "\n".join(points)},
+		],
+		"source": GameData.source_label(section),
+	}
+
+
+func _timeline_detail(entry: Dictionary) -> Dictionary:
+	var body := str(entry.get("zh" if Locale.current == "zh" else "en", entry.get("zh", "")))
+	return {
+		"title": str(entry.get("year", "")),
+		"subtitle": body,
+		"accent": GOLD,
+		"badges": [
+			{"text": Locale.t("codex.timeline"), "color": GOLD},
+		],
+		"sections": [
+			{"heading": Locale.t("codex.detail.timeline"), "body": body},
+		],
+		"source": "",
+	}
+
+
+func _history_panel(section: Dictionary, accent: Color, node_name: String) -> PanelContainer:
 	var panel := _flat_panel(Color(0.045, 0.058, 0.058, 0.92), Color(accent, 0.34))
+	panel.name = node_name
 	panel.custom_minimum_size = Vector2(0, 330)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
@@ -1114,12 +1644,14 @@ func _history_panel(section: Dictionary, accent: Color) -> PanelContainer:
 	grow.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(grow)
 	column.add_child(_source_line(GameData.source_label(section)))
+	_attach_detail(panel, _history_detail(section, accent))
 	return panel
 
 
 func _bridge_panel() -> PanelContainer:
 	var bridge := _data.get("bridge", {}) as Dictionary
 	var panel := _flat_panel(Color(0.060, 0.064, 0.054, 0.96), Color(GOLD, 0.42))
+	panel.name = "HistoryBridge"
 	panel.custom_minimum_size = Vector2(0, 330)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 8)
@@ -1147,6 +1679,21 @@ func _bridge_panel() -> PanelContainer:
 	forbidden.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(forbidden)
 	column.add_child(_source_line(GameData.source_label(bridge)))
+	_attach_detail(panel, {
+		"title": GameData.loc(bridge, "title"),
+		"subtitle": Locale.t("codex.bridge"),
+		"accent": GOLD,
+		"badges": [
+			{"text": Locale.t("codex.bridge"), "color": GOLD},
+			{"text": Locale.t("codex.forbidden"), "color": VERMILION},
+		],
+		"sections": [
+			{"heading": Locale.t("codex.detail.record"), "body": GameData.loc(bridge, "body")},
+			{"heading": Locale.t("codex.timeline"), "body": Locale.t("codex.chain")},
+			{"heading": Locale.t("codex.forbidden"), "body": GameData.loc(_data, "do_not_claim")},
+		],
+		"source": GameData.source_label(bridge),
+	})
 	return panel
 
 
@@ -1380,6 +1927,230 @@ func _localized_array(dictionary: Dictionary, field: String) -> Array:
 	if dictionary.has(chinese_key):
 		return dictionary[chinese_key] as Array
 	return dictionary.get(field, []) as Array
+
+
+func _build_detail_overlay() -> void:
+	_detail_overlay = Control.new()
+	_detail_overlay.name = "CodexDetailOverlay"
+	_detail_overlay.z_index = 80
+	_detail_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	_detail_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_detail_overlay)
+
+	var backdrop := Button.new()
+	backdrop.name = "DetailBackdrop"
+	backdrop.focus_mode = Control.FOCUS_NONE
+	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	backdrop.add_theme_stylebox_override(
+		"normal",
+		_flat_box(Color(0.004, 0.007, 0.008, 0.90), Color(0, 0, 0, 0), 0, 0)
+	)
+	backdrop.add_theme_stylebox_override(
+		"hover",
+		_flat_box(Color(0.004, 0.007, 0.008, 0.90), Color(0, 0, 0, 0), 0, 0)
+	)
+	backdrop.add_theme_stylebox_override(
+		"pressed",
+		_flat_box(Color(0.004, 0.007, 0.008, 0.94), Color(0, 0, 0, 0), 0, 0)
+	)
+	backdrop.pressed.connect(close_detail)
+	_detail_overlay.add_child(backdrop)
+
+	_detail_panel = PanelContainer.new()
+	_detail_panel.name = "CodexDetailDialog"
+	_detail_panel.anchor_left = 0.5
+	_detail_panel.anchor_top = 0.5
+	_detail_panel.anchor_right = 0.5
+	_detail_panel.anchor_bottom = 0.5
+	_detail_panel.offset_left = -470.0
+	_detail_panel.offset_top = -302.0
+	_detail_panel.offset_right = 470.0
+	_detail_panel.offset_bottom = 302.0
+	_detail_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_detail_panel.add_theme_stylebox_override(
+		"panel",
+		_flat_box(Color(0.026, 0.035, 0.035, 0.99), Color(GOLD, 0.54), 8, 18)
+	)
+	_detail_overlay.add_child(_detail_panel)
+
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 10)
+	_detail_panel.add_child(outer)
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 14)
+	outer.add_child(header)
+	_detail_title = _label("", 30, GOLD)
+	_detail_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_detail_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	header.add_child(_detail_title)
+	_detail_close = _button(Locale.t("codex.detail.close"), false)
+	_detail_close.name = "DetailClose"
+	_detail_close.custom_minimum_size = Vector2(150, 42)
+	_detail_close.focus_mode = Control.FOCUS_ALL
+	_detail_close.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_detail_close.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_detail_close.pressed.connect(close_detail)
+	header.add_child(_detail_close)
+	_detail_subtitle = _label("", 14, Color(MUTED, 0.92))
+	_detail_subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	outer.add_child(_detail_subtitle)
+	_detail_badges = HFlowContainer.new()
+	_detail_badges.add_theme_constant_override("h_separation", 6)
+	_detail_badges.add_theme_constant_override("v_separation", 5)
+	outer.add_child(_detail_badges)
+
+	var body := HBoxContainer.new()
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_theme_constant_override("separation", 16)
+	outer.add_child(body)
+	_detail_image_plate = PanelContainer.new()
+	_detail_image_plate.name = "DetailImagePlate"
+	_detail_image_plate.custom_minimum_size = Vector2(198, 198)
+	_detail_image_plate.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_detail_image_plate.add_theme_stylebox_override(
+		"panel",
+		_flat_box(Color(0.012, 0.020, 0.020, 0.96), Color(GOLD, 0.36), 6, 6)
+	)
+	body.add_child(_detail_image_plate)
+	_detail_image = TextureRect.new()
+	_detail_image.name = "DetailImage"
+	_detail_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_detail_image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_detail_image.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_detail_image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_detail_image_plate.add_child(_detail_image)
+
+	_detail_scroll = ScrollContainer.new()
+	_detail_scroll.name = "DetailScroll"
+	_detail_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_detail_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	body.add_child(_detail_scroll)
+	var detail_margin := MarginContainer.new()
+	detail_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	detail_margin.add_theme_constant_override("margin_left", 2)
+	detail_margin.add_theme_constant_override("margin_right", 12)
+	detail_margin.add_theme_constant_override("margin_top", 2)
+	detail_margin.add_theme_constant_override("margin_bottom", 8)
+	_detail_scroll.add_child(detail_margin)
+	_detail_sections = VBoxContainer.new()
+	_detail_sections.name = "DetailSections"
+	_detail_sections.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_detail_sections.add_theme_constant_override("separation", 13)
+	detail_margin.add_child(_detail_sections)
+
+	_detail_source = _label("", 10, Color(MUTED, 0.66))
+	_detail_source.name = "DetailSource"
+	_detail_source.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	outer.add_child(_detail_source)
+	_detail_hint = _label("", 10, Color(MUTED, 0.54))
+	_detail_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_detail_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	outer.add_child(_detail_hint)
+	_detail_overlay.visible = false
+
+
+func _attach_detail(panel: PanelContainer, detail: Dictionary) -> void:
+	if detail.is_empty():
+		return
+	var accent: Color = detail.get("accent", GOLD)
+	var hit := Button.new()
+	hit.name = "DetailHit"
+	hit.text = ""
+	hit.focus_mode = Control.FOCUS_NONE
+	hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	hit.tooltip_text = str(detail.get("title", ""))
+	hit.add_theme_stylebox_override(
+		"normal",
+		_flat_box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 6, 0)
+	)
+	hit.add_theme_stylebox_override(
+		"hover",
+		_flat_box(Color(accent, 0.03), Color(accent, 0.58), 6, 0)
+	)
+	hit.add_theme_stylebox_override(
+		"pressed",
+		_flat_box(Color(accent, 0.07), Color(accent, 0.80), 6, 0)
+	)
+	hit.add_theme_stylebox_override(
+		"focus",
+		_flat_box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 6, 0)
+	)
+	hit.pressed.connect(_show_detail.bind(detail))
+	panel.add_child(hit)
+	hit.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+
+func _show_detail(detail: Dictionary) -> void:
+	if _detail_overlay == null:
+		_build_detail_overlay()
+	var accent: Color = detail.get("accent", GOLD)
+	for child in _detail_badges.get_children():
+		_detail_badges.remove_child(child)
+		child.free()
+	for raw_badge in detail.get("badges", []) as Array:
+		var badge := raw_badge as Dictionary
+		var text := str(badge.get("text", ""))
+		if text.is_empty():
+			continue
+		var badge_color: Color = badge.get("color", accent)
+		_detail_badges.add_child(_badge(text, badge_color))
+	for child in _detail_sections.get_children():
+		_detail_sections.remove_child(child)
+		child.free()
+	for raw_section in detail.get("sections", []) as Array:
+		var section := raw_section as Dictionary
+		var body_text := str(section.get("body", ""))
+		if body_text.is_empty():
+			continue
+		var block := VBoxContainer.new()
+		block.add_theme_constant_override("separation", 4)
+		var heading := _label(str(section.get("heading", "")), 13, accent)
+		heading.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		block.add_child(heading)
+		var body := _label(body_text, 14, Color(PAPER, 0.92))
+		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		block.add_child(body)
+		_detail_sections.add_child(block)
+	var image_path := str(detail.get("image_path", ""))
+	if image_path.is_empty():
+		image_path = str(detail.get("icon_path", ""))
+	var image_texture: Texture2D = _first_frame_texture(
+		image_path,
+		int(detail.get("image_frames", 1))
+	)
+	_detail_image.texture = image_texture
+	_detail_image_plate.visible = image_texture != null
+	_detail_image_plate.add_theme_stylebox_override(
+		"panel",
+		_flat_box(Color(0.012, 0.020, 0.020, 0.96), Color(accent, 0.46), 6, 6)
+	)
+	_detail_title.text = str(detail.get("title", ""))
+	_detail_title.add_theme_color_override("font_color", accent)
+	_detail_subtitle.text = str(detail.get("subtitle", ""))
+	var source_text := str(detail.get("source", ""))
+	_detail_source.visible = not source_text.is_empty()
+	_detail_source.text = Locale.t("codex.detail.source", {"source": source_text})
+	_detail_panel.add_theme_stylebox_override(
+		"panel",
+		_flat_box(Color(0.026, 0.035, 0.035, 0.99), Color(accent, 0.62), 8, 18)
+	)
+	_detail_close.text = Locale.t("codex.detail.close")
+	_detail_hint.text = Locale.t("codex.detail.hint")
+	_detail_overlay.visible = true
+	_detail_scroll.scroll_vertical = 0
+	_detail_close.grab_focus()
+
+
+func close_detail() -> void:
+	if _detail_overlay == null:
+		return
+	_detail_overlay.visible = false
+
+
+func _category_label(category: String) -> String:
+	return UpgradeCatalog.localized_category(category)
 
 
 func _return_to_menu() -> void:

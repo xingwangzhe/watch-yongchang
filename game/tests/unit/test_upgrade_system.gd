@@ -191,6 +191,8 @@ func test_touch_controls_use_lantern_patrol_language() -> void:
 	assert_true(controls.visible)
 	assert_eq(controls._patrol_label.text, Locale.t("touch.patrol"))
 	assert_eq(controls._dash_label.text, Locale.t("touch.dash"))
+	assert_eq(controls._attack_label.text, Locale.t("touch.attack"))
+	assert_eq(controls._auto_label.text, Locale.t("touch.auto"))
 	controls._update_joystick(controls._joystick_center + Vector2(31, 0))
 	assert_gt(controls.move_vector.length(), 0.0)
 	controls.release_all()
@@ -235,3 +237,37 @@ func _number_key_event(code: int) -> InputEventKey:
 	event.keycode = code
 	event.pressed = true
 	return event
+
+
+
+func test_touch_attack_and_auto_buttons_emit_actions() -> void:
+	var controls := TouchControls.new()
+	controls.force_visible = true
+	add_child_autofree(controls)
+	await wait_process_frames(2)
+	# GDScript lambda captures local scalars by value; use a reference type so
+	# signal handlers can mutate the counter observed by the test.
+	var hits := {"attack": 0, "release": 0, "auto": 0}
+	controls.attack_pressed.connect(func() -> void: hits.attack += 1)
+	controls.attack_released.connect(func() -> void: hits.release += 1)
+	controls.auto_toggle_requested.connect(func() -> void: hits.auto += 1)
+	var press := InputEventScreenTouch.new()
+	press.index = 3
+	press.pressed = true
+	press.position = controls._attack_center
+	controls._input(press)
+	assert_eq(hits.attack, 1)
+	var release := InputEventScreenTouch.new()
+	release.index = 3
+	release.pressed = false
+	release.position = controls._attack_center
+	controls._input(release)
+	assert_eq(hits.release, 1)
+	var auto_press := InputEventScreenTouch.new()
+	auto_press.index = 4
+	auto_press.pressed = true
+	auto_press.position = controls._auto_center
+	controls._input(auto_press)
+	assert_eq(hits.auto, 1)
+	assert_true(controls.auto_active)
+	controls.release_all()

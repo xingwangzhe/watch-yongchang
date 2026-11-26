@@ -704,7 +704,7 @@ func test_main_menu_exposes_night_anchor_icons() -> void:
 	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
 	add_child_autofree(menu)
 	await wait_process_frames(3)
-	var anchors: HBoxContainer = menu.find_child("NightAnchors", true, false)
+	var anchors: HFlowContainer = menu.find_child("NightAnchors", true, false)
 	assert_not_null(anchors, "the main menu must show the night-anchor icon row")
 	assert_eq(anchors.get_child_count(), 5)
 	for chip in anchors.get_children():
@@ -744,6 +744,22 @@ func test_run_scene_builds_survivor_loop() -> void:
 	run._on_upgrade_chosen(0)
 	await wait_process_frames(2)
 	assert_false(run.level_up_overlay.visible, "choosing a card must close the overlay")
+
+
+func test_debug_invincible_mode_blocks_player_damage() -> void:
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	run.story._skip_all()
+	await wait_process_frames(2)
+	var start_hp := float(run.player["hp"])
+	run.set_invincible_mode(true)
+	run._on_player_hit(50.0)
+	assert_eq(float(run.player["hp"]), start_hp, "invincible mode must ignore all hits")
+	run.set_invincible_mode(false)
+	run._invuln = 0.0
+	run._on_player_hit(12.0)
+	assert_lt(float(run.player["hp"]), start_hp, "damage must resume after the toggle")
 
 
 func test_character_select_enforces_unlocks_and_keeps_choice() -> void:

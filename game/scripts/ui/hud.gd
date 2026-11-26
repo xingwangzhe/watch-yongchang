@@ -219,12 +219,12 @@ func _build() -> void:
 
 	_minimap = MINIMAP.new()
 	_minimap.name = "Minimap"
-	_minimap.custom_minimum_size = Vector2(200, 128)
-	UILayout.place(_minimap, 1066, 10, 200, 128, 1.0, 0.0)
+	_minimap.custom_minimum_size = Vector2(212, 144)
+	UILayout.place(_minimap, 1054, 10, 212, 144, 1.0, 0.0)
 	_root.add_child(_minimap)
 
 	# 左下：灯火 / 阵法小条
-	var oil_chip := _chip("OilChip", 14, 662, 186, 44, 0, 1)
+	var oil_chip := _chip("OilChip", 14, 658, 182, 44, 0, 1)
 	var oil_box := VBoxContainer.new()
 	oil_box.add_theme_constant_override("separation", 2)
 	oil_chip.add_child(oil_box)
@@ -235,7 +235,7 @@ func _build() -> void:
 	_oil_meter.custom_minimum_size = Vector2(168, 18)
 	oil_box.add_child(_oil_meter)
 
-	var scale_chip := _chip("ScaleChip", 208, 662, 168, 44, 0, 1)
+	var scale_chip := _chip("ScaleChip", 202, 658, 168, 44, 0, 1)
 	var scale_box := VBoxContainer.new()
 	scale_box.add_theme_constant_override("separation", 2)
 	scale_chip.add_child(scale_box)
@@ -249,7 +249,7 @@ func _build() -> void:
 	# 底部居中：兵器槽 / 被动
 	var weapon_row := HBoxContainer.new()
 	weapon_row.name = "WeaponRow"
-	UILayout.place(weapon_row, 640, 662, 541, 44, 0.5, 1.0)
+	UILayout.place(weapon_row, 377.5, 650, 625, 48, 0.5, 1.0)
 	weapon_row.add_theme_constant_override("separation", 5)
 	_root.add_child(weapon_row)
 	for i in range(6):
@@ -259,17 +259,20 @@ func _build() -> void:
 
 	_passive_label = _label("PassiveLabel", "", 10, Color(MUTED, 0.72))
 	_passive_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UILayout.place(_passive_label, 640, 708, 620, 14, 0.5, 1.0)
+	UILayout.place(_passive_label, 190, 624, 900, 20, 0.5, 1.0)
 	_root.add_child(_passive_label)
 
-	var build_chip := _chip("BuildChip", 1048, 670, 218, 38, 1, 1)
+	var build_chip := _chip("BuildChip", 1036, 660, 230, 38, 1, 1)
 	_build_label = _label("BuildLabel", "", 9, Color(MUTED, 0.62))
 	_build_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_build_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_build_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	build_chip.add_child(_build_label)
 
 	_move_hint = _label("MoveHint", "", 9, Color(MUTED, 0.52))
 	_move_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	UILayout.place(_move_hint, 14, 708, 320, 14, 0.0, 1.0)
+	_move_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	UILayout.place(_move_hint, 14, 704, 420, 16, 0.0, 1.0)
 	_root.add_child(_move_hint)
 
 	# 顶部居中弹窗：横幅 / Boss 条
@@ -341,22 +344,27 @@ func _chip_style() -> StyleBoxFlat:
 func _build_weapon_slot(index: int) -> Dictionary:
 	var panel := PanelContainer.new()
 	panel.name = "WeaponSlot%d" % (index + 1)
-	panel.custom_minimum_size = Vector2(86, 44)
+	panel.custom_minimum_size = Vector2(100, 48)
 	panel.add_theme_stylebox_override("panel", _slot_style(false))
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 4)
 	panel.add_child(row)
 	var icon := TextureRect.new()
 	icon.name = "Icon"
-	icon.custom_minimum_size = Vector2(24, 24)
+	icon.custom_minimum_size = Vector2(20, 20)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	row.add_child(icon)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", -3)
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(column)
 	var name_label := _label("Name", "", 10, Color(PAPER, 0.90))
-	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.add_theme_font_size_override("font_size", 9)
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.max_lines_visible = 2
+	name_label.custom_minimum_size = Vector2(0, 24)
+	name_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(name_label)
 	var level_label := _label("Level", "", 9, Color(GOLD, 0.82))
 	column.add_child(level_label)

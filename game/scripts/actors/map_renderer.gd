@@ -3,6 +3,9 @@ extends Node2D
 
 const TILE := 32
 const TILE_INDEX_PATH := "res://data/yongchang_tiles.json"
+const WATER_COMPONENT_MIN_CELLS := 16
+const DEEP_WATER_VARIANTS := ["water_deep_a", "water_deep_b"]
+const SHALLOW_WATER_VARIANTS := ["water_shallow_a", "water_shallow_b"]
 
 ## 程序化覆盖层：阴影层在地形与建筑之间，立面层在建筑之上、道具之下。
 class OverlayLayer extends Node2D:
@@ -209,9 +212,11 @@ func build(map_layout: MapLayout, _map_definition: Dictionary, seed_value: int) 
 	_build_tile_index()
 	_make_layers()
 	_paint_base()
+	_paint_water_system()
 	for area in layout.areas:
 		if area is Dictionary:
 			_paint_area(area as Dictionary)
+	_prune_water_network()
 	_scatter_ground_details()
 	_beautify_water_edges()
 	layout.finalize()
@@ -304,8 +309,7 @@ func _paint_area(area: Dictionary) -> void:
 	if kind in ["path", "trail"]:
 		_paint_path_area(area)
 		return
-	if kind in ["water_path", "creek"]:
-		_paint_water_path_area(area)
+	if kind in ["water_path", "creek", "water"]:
 		return
 	if kind in ["patch", "organic"]:
 		_paint_patch_area(area)
@@ -321,8 +325,6 @@ func _paint_area(area: Dictionary) -> void:
 			_paint_terrain_area(area, rect)
 		"road", "plaza":
 			_paint_road_area(area, rect)
-		"water":
-			_paint_water_area(area, rect)
 		"bridge":
 			_paint_bridge_area(area, rect)
 		"wall":
@@ -398,25 +400,185 @@ func _paint_path_area(area: Dictionary) -> void:
 		layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
 
 
-func _paint_water_path_area(area: Dictionary) -> void:
-	var points := _area_points(area)
-	if points.size() < 2:
-		return
-	var variants := _area_tiles(area)
-	if variants.is_empty():
-		variants = ["water_deep_a", "water_deep_b"]
-	var width := float(area.get("width", 6.0))
-	var cells := _ribbon_cells(points, width, 113, 0.55)
-	for cell in cells:
-		if not layout.cell_in_bounds(cell) or layout.is_bridge_cell(cell):
+func _paint_water_system() -> void:
+	var raw_water := _collect_water_seed_cells()
+	var water_cells := _refine_water_mask(raw_water)
+	for value in water_cells.keys():
+		var cell := value as Vector2i
+		if not layout.cell_in_bounds(cell):
 			continue
-		var tile_name := _pick_clustered_name(variants, cell, 117, 4)
+		var tile_name := _pick_water_variant(DEEP_WATER_VARIANTS, cell, 117, 6)
 		if not _place_terrain(cell, tile_name):
 			continue
 		layout.mark_water_rect(Rect2i(cell, Vector2i.ONE))
 		_water_cells[cell] = true
 		_road_cells.erase(cell)
 		layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
+
+
+func _collect_water_seed_cells() -> Dictionary:
+	var cells: Dictionary = {}
+	for area in layout.areas:
+		if not area is Dictionary:
+			continue
+		var item := area as Dictionary
+		var kind := str(item.get("kind", ""))
+		if kind == "water":
+			for cell in _cells_in_rect(_area_rect(item)):
+				cells[cell] = true
+			continue
+		if kind != "water_path" and kind != "creek":
+			continue
+		var points := _area_points(item)
+		if points.size() < 2:
+			continue
+		var width := maxf(2.0, float(item.get("width", 6.0)))
+		for cell in _ribbon_cells(points, width, 113, 0.0):
+			if layout.cell_in_bounds(cell):
+				cells[cell] = true
+	return cells
+
+
+func _cells_in_rect(rect: Rect2i) -> Array[Vector2i]:
+	var cells: Array[Vector2i] = []
+	for y in range(rect.position.y, rect.end.y):
+		for x in range(rect.position.x, rect.end.x):
+			var cell := Vector2i(x, y)
+			if layout.cell_in_bounds(cell):
+				cells.append(cell)
+	return cells
+
+
+## 先统一水域，再做形态学收边：削掉单格毛刺，填平单格凹槽，最后移除孤立小水件。
+## 这样河道、护城河与桥下水体保持连续，岸线不再逐格随机抖动。
+func _refine_water_mask(raw_water: Dictionary) -> Dictionary:
+	var mask := raw_water.duplicate()
+	for _pass in 2:
+		var next: Dictionary = {}
+		for y in layout.world_tiles.y:
+			for x in layout.world_tiles.x:
+				var cell := Vector2i(x, y)
+				var cardinal := _neighbor_water_count(mask, cell, false)
+				var neighbors := _neighbor_water_count(mask, cell, true)
+				if mask.has(cell):
+					if cardinal >= 2 and neighbors >= 3:
+						next[cell] = true
+				elif cardinal >= 3 and neighbors >= 6:
+					next[cell] = true
+		mask = next
+	mask = _remove_water_tips(mask)
+	return _remove_small_water_components(mask)
+
+
+func _neighbor_water_count(mask: Dictionary, cell: Vector2i, diagonal: bool) -> int:
+	var count := 0
+	for dy in range(-1, 2):
+		for dx in range(-1, 2):
+			if dx == 0 and dy == 0:
+				continue
+			if not diagonal and dx != 0 and dy != 0:
+				continue
+			if mask.has(cell + Vector2i(dx, dy)):
+				count += 1
+	return count
+
+
+func _remove_water_tips(mask: Dictionary) -> Dictionary:
+	var refined := mask.duplicate()
+	var changed := true
+	while changed:
+		changed = false
+		var next := refined.duplicate()
+		for value in refined.keys():
+			var cell := value as Vector2i
+			if _neighbor_water_count(refined, cell, false) > 1:
+				continue
+			next.erase(cell)
+			changed = true
+		refined = next
+	return refined
+
+
+func _remove_small_water_components(mask: Dictionary) -> Dictionary:
+	var remaining := mask.duplicate()
+	var visited: Dictionary = {}
+	for value in mask.keys():
+		var start := value as Vector2i
+		if visited.has(start):
+			continue
+		var component: Array[Vector2i] = []
+		var queue: Array[Vector2i] = [start]
+		visited[start] = true
+		var head := 0
+		while head < queue.size():
+			var cell := queue[head]
+			head += 1
+			component.append(cell)
+			for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
+				var next := cell + (direction as Vector2i)
+				if not mask.has(next) or visited.has(next):
+					continue
+				visited[next] = true
+				queue.append(next)
+		if component.size() >= WATER_COMPONENT_MIN_CELLS:
+			continue
+		for cell in component:
+			remaining.erase(cell)
+	return remaining
+
+
+## 城墙、桥墩与水门会从连续水体中切出细碎残水；这里在结构铺完后再次收边。
+func _prune_water_network() -> void:
+	var mask: Dictionary = {}
+	for value in _water_cells.keys():
+		mask[value as Vector2i] = true
+	mask = _remove_water_tips(mask)
+	mask = _remove_small_water_components(mask)
+	var removed: Array[Vector2i] = []
+	for value in _water_cells.keys():
+		var cell := value as Vector2i
+		if not mask.has(cell):
+			removed.append(cell)
+	for cell in removed:
+		_restore_water_cell_as_land(cell)
+
+
+func _restore_water_cell_as_land(cell: Vector2i) -> void:
+	layout.clear_water_rect(Rect2i(cell, Vector2i.ONE))
+	_water_cells.erase(cell)
+	if layout.is_bridge_cell(cell):
+		return
+	var tile_name := _neighbor_land_tile(cell)
+	if _place_terrain(cell, tile_name):
+		layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
+
+
+func _neighbor_land_tile(cell: Vector2i) -> String:
+	for direction in [
+		Vector2i.LEFT,
+		Vector2i.RIGHT,
+		Vector2i.UP,
+		Vector2i.DOWN,
+		Vector2i(-1, -1),
+		Vector2i(1, -1),
+		Vector2i(-1, 1),
+		Vector2i(1, 1),
+	]:
+		var neighbor := cell + (direction as Vector2i)
+		if not layout.cell_in_bounds(neighbor) or _water_cells.has(neighbor):
+			continue
+		var tile_name := terrain_tile_name(neighbor)
+		if tile_name.is_empty() or tile_name.begins_with("water") or tile_name.begins_with("shore"):
+			continue
+		if tile_name == "dock_horizontal" or tile_name == "dock_vertical":
+			continue
+		return tile_name
+	var variants := [layout.base_tile]
+	if layout.base_tile.ends_with("_a"):
+		variants.append(layout.base_tile.trim_suffix("_a") + "_b")
+	elif layout.base_tile.ends_with("_b"):
+		variants.append(layout.base_tile.trim_suffix("_b") + "_a")
+	return _pick_clustered_name(variants, cell, 5, 5)
 
 
 func _paint_patch_area(area: Dictionary) -> void:
@@ -493,24 +655,6 @@ func _paint_grove_area(area: Dictionary) -> void:
 		if prop_name == "tree_a" or prop_name == "tree_b":
 			_tree_cells[cell] = prop_name
 			_place_canopy(cell, "tree_canopy_a" if prop_name == "tree_a" else "tree_canopy_b")
-
-
-func _paint_water_area(area: Dictionary, rect: Rect2i) -> void:
-	var variants := _area_tiles(area)
-	if variants.is_empty():
-		variants = ["water_deep_a", "water_deep_b"]
-	for y in range(rect.position.y, rect.position.y + rect.size.y):
-		for x in range(rect.position.x, rect.position.x + rect.size.x):
-			var cell := Vector2i(x, y)
-			if not layout.cell_in_bounds(cell):
-				continue
-			var tile_name := _pick_clustered_name(variants, cell, 121, 4)
-			if not _place_terrain(cell, tile_name):
-				continue
-			layout.mark_water_rect(Rect2i(cell, Vector2i.ONE))
-			_water_cells[cell] = true
-			_road_cells.erase(cell)
-			layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
 
 
 func _paint_bridge_area(_area: Dictionary, rect: Rect2i) -> void:
@@ -813,15 +957,71 @@ func _beautify_water_edges() -> void:
 		var water_cell := cell as Vector2i
 		if layout.is_bridge_cell(water_cell) or layout.is_solid_cell(water_cell):
 			continue
-		var edge := false
+		var land_directions: Array[Vector2i] = []
 		for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
-			if not _water_cells.has(water_cell + direction) and not layout.is_bridge_cell(water_cell + direction):
-				edge = true
-				break
-		if edge:
-			var tile_name := "water_shallow_a" if _hash_cell(water_cell, 13) % 2 == 0 else "water_shallow_b"
-			if _place_terrain(water_cell, tile_name):
-				layout.set_minimap_color(water_cell, layout.minimap_color_for_tile(tile_name))
+			var neighbor := water_cell + (direction as Vector2i)
+			if not layout.cell_in_bounds(neighbor):
+				continue
+			if _water_cells.has(neighbor) or layout.is_bridge_cell(neighbor):
+				continue
+			land_directions.append(direction as Vector2i)
+		var tile_name := ""
+		if land_directions.is_empty():
+			tile_name = _pick_water_variant(DEEP_WATER_VARIANTS, water_cell, 117, 6)
+		else:
+			tile_name = _shore_tile_for(land_directions)
+			if tile_name.is_empty():
+				tile_name = _pick_water_variant(SHALLOW_WATER_VARIANTS, water_cell, 131, 5)
+		if not _place_terrain(water_cell, tile_name):
+			continue
+		var minimap_tile := "water_shallow_a" if tile_name.begins_with("shore") else tile_name
+		layout.set_minimap_color(water_cell, layout.minimap_color_for_tile(minimap_tile))
+
+
+func _shore_tile_for(land_directions: Array[Vector2i]) -> String:
+	if land_directions.size() == 1:
+		var only := land_directions[0]
+		if only == Vector2i.UP:
+			return "shore_s"
+		if only == Vector2i.DOWN:
+			return "shore_n"
+		if only == Vector2i.LEFT:
+			return "shore_e"
+		if only == Vector2i.RIGHT:
+			return "shore_w"
+		return ""
+	if land_directions.size() != 2:
+		return ""
+	var north := land_directions.has(Vector2i.UP)
+	var south := land_directions.has(Vector2i.DOWN)
+	var west := land_directions.has(Vector2i.LEFT)
+	var east := land_directions.has(Vector2i.RIGHT)
+	if north and west:
+		return "shore_nw"
+	if north and east:
+		return "shore_ne"
+	if south and west:
+		return "shore_sw"
+	if south and east:
+		return "shore_se"
+	return ""
+
+
+## 水域纹理按大块低频取样，避免岸线出现逐格交替的麻点。
+func _pick_water_variant(variants: Array, cell: Vector2i, salt: int, block_size: int) -> String:
+	if variants.is_empty():
+		return "water_deep_a"
+	if variants.size() == 1:
+		return str(variants[0])
+	var size := maxi(2, block_size)
+	var block := Vector2i(floori(float(cell.x) / float(size)), floori(float(cell.y) / float(size)))
+	var roll := _hash_cell(block, salt) % 100
+	var index := 0
+	if roll >= 46:
+		index = 1
+	if variants.size() >= 3 and roll >= 93:
+		index = 2
+	return str(variants[index])
 
 
 func cancel_water(cell: Vector2i) -> void:
@@ -1375,6 +1575,9 @@ func _draw_shading(target: OverlayLayer) -> void:
 	for cell in _water_cells.keys():
 		var water_cell := cell as Vector2i
 		if layout.is_bridge_cell(water_cell):
+			continue
+		if terrain_tile_name(water_cell).begins_with("shore_"):
+			# 岸线瓦片自带半格水陆过渡，不要再叠整格矩形描边。
 			continue
 		var x0 := float(water_cell.x) * tile
 		var y0 := float(water_cell.y) * tile

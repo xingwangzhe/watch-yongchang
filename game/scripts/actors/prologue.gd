@@ -345,7 +345,7 @@ func _draw_tanghe() -> void:
 		Color(1.05, 0.98, 0.82, 1.0)
 	)
 	draw_circle(_player_pos + Vector2(0, -45), 5.0, Color(1.0, 0.81, 0.42, 0.55))
-	draw_string(UI_FONT, _player_pos + Vector2(-40, 60), "汤和", HORIZONTAL_ALIGNMENT_CENTER, 80, 14, Color(GOLD, 0.85))
+	draw_string(UI_FONT, _player_pos + Vector2(-40, 60), Locale.t("prologue.character_tanghe"), HORIZONTAL_ALIGNMENT_CENTER, 80, 14, Color(GOLD, 0.85))
 
 
 func _draw_forge_frame(

@@ -294,7 +294,9 @@ func test_all_maps_keep_water_walkable_and_minimap_synced() -> void:
 					expected_color = MapLayout.MINIMAP_BRIDGE
 				else:
 					wading_count += 1
-					if not layout.is_wade_position(center) or not tile_name.begins_with("water_"):
+					if (not layout.is_wade_position(center) or not (
+						tile_name.begins_with("water_") or tile_name.begins_with("shore_")
+					)):
 						visual_mismatches += 1
 					expected_color = layout.minimap_color_for_tile(tile_name)
 				if not minimap.get_pixel(cell.x, cell.y).is_equal_approx(expected_color):

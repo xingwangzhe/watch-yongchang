@@ -510,13 +510,25 @@ func flow_direction(position: Vector2) -> Vector2:
 	return (_tile_center(next_cell) - position).normalized()
 
 
-func navigation_direction(from: Vector2, to: Vector2, direct_range: float = 190.0) -> Vector2:
+func navigation_direction(
+	from: Vector2,
+	to: Vector2,
+	direct_range: float = 190.0,
+	clearance_radius: float = 10.0
+) -> Vector2:
 	var direct := to - from
 	if direct.length_squared() <= direct_range * direct_range:
-		return direct.normalized()
+		if (
+			direct.length_squared() <= 48.0 * 48.0
+			or is_segment_walkable(from, to, clearance_radius)
+		):
+			return direct.normalized()
 	# 长距离追击只做一次粗粒度通视判定：开阔地直接切向目标，
 	# 避免单位明明看得见却沿流场走折线；被建筑挡住时才回到共享流场。
-	if direct.length_squared() <= 360.0 * 360.0 and is_segment_walkable(from, to, 10.0):
+	if (
+		direct.length_squared() <= 360.0 * 360.0
+		and is_segment_walkable(from, to, clearance_radius)
+	):
 		return direct.normalized()
 	var flow := flow_direction(from)
 	if flow != Vector2.ZERO:
@@ -838,7 +850,8 @@ func minimap_color_for_tile(tile_name: String) -> Color:
 	if tile_name.begins_with("water_shallow"):
 		return Color("#235864")
 	if tile_name.begins_with("shore"):
-		return Color("#9b8c68")
+		# 岸线瓦片本质仍是可涉水水体；小地图必须按水色绘制，不能变成沙地色块。
+		return Color("#235864")
 	if tile_name == "dock_vertical" or tile_name == "dock_horizontal":
 		return MINIMAP_BRIDGE
 	if tile_name.begins_with("stone_road") or tile_name.begins_with("wet_stone"):

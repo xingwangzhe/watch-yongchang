@@ -20,6 +20,7 @@ var _passives: Dictionary = {}
 var _selected_character := "wanglu"
 var _selected_map := "tideland"
 var _char_buttons: Dictionary = {}
+var _char_labels: Dictionary = {}
 var _map_buttons: Dictionary = {}
 var _portrait: TextureRect
 var _name_label: Label
@@ -129,19 +130,20 @@ func _build_character_panel(parent: HBoxContainer) -> void:
 	for character_id in CHARACTER_ORDER:
 		if not _characters.has(character_id):
 			continue
-		var entry := _characters[character_id] as Dictionary
-		var button := _card_button("", false)
+		var card := _character_card(character_id)
+		var button := card["button"] as Button
 		button.name = "Character_%s" % character_id
-		button.custom_minimum_size = Vector2(0, 52)
 		button.pressed.connect(_select_character.bind(character_id))
 		column.add_child(button)
 		_char_buttons[character_id] = button
+		_char_labels[character_id] = card
 
 
 func _build_detail_panel(parent: HBoxContainer) -> void:
 	var panel := PanelContainer.new()
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	panel.custom_minimum_size = Vector2(768, 0)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.custom_minimum_size = Vector2(0, 0)
 	panel.add_theme_stylebox_override("panel", _panel_box(22))
 	parent.add_child(panel)
 	var column := VBoxContainer.new()
@@ -168,10 +170,13 @@ func _build_detail_panel(parent: HBoxContainer) -> void:
 	details.add_theme_constant_override("separation", 6)
 	body.add_child(details)
 	_name_label = _label("", 38, GOLD)
+	_name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	details.add_child(_name_label)
 	_alias_label = _label("", 20, PAPER)
+	_alias_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	details.add_child(_alias_label)
 	_role_label = _label("", 16, VERMILION)
+	_role_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	details.add_child(_role_label)
 	var detail_rule := ColorRect.new()
 	detail_rule.color = Color(GOLD, 0.22)
@@ -183,6 +188,7 @@ func _build_detail_panel(parent: HBoxContainer) -> void:
 	details.add_child(_note_label)
 	_loadout_label = _label("", 15, Color(MUTED, 0.94))
 	_loadout_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_loadout_label.custom_minimum_size = Vector2(0, 56)
 	details.add_child(_loadout_label)
 	var grow := Control.new()
 	grow.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -212,9 +218,7 @@ func _build_detail_panel(parent: HBoxContainer) -> void:
 		_map_buttons[map_id] = map_button
 	_map_description = _label("", 14, Color(PAPER, 0.76))
 	_map_description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_map_description.max_lines_visible = 2
-	_map_description.clip_text = true
-	_map_description.custom_minimum_size = Vector2(0, 40)
+	_map_description.custom_minimum_size = Vector2(0, 64)
 	column.add_child(_map_description)
 	_build_footer(column)
 
@@ -233,7 +237,7 @@ func _build_footer(parent: VBoxContainer) -> void:
 
 	var back := _card_button(Locale.t("select.back"), false)
 	back.name = "BackButton"
-	back.custom_minimum_size = Vector2(140, 44)
+	back.custom_minimum_size = Vector2(164, 44)
 	back.pressed.connect(_back_to_menu)
 	row.add_child(back)
 
@@ -242,12 +246,10 @@ func _build_footer(parent: VBoxContainer) -> void:
 	row.add_child(left_spacer)
 
 	var hint := _label(Locale.t("select.hint"), 13, Color(MUTED, 0.62))
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	row.add_child(hint)
-
-	var right_spacer := Control.new()
-	right_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(right_spacer)
 
 	_begin_button = _card_button(Locale.t("select.begin"), true)
 	_begin_button.name = "BeginButton"
@@ -283,15 +285,15 @@ func _refresh() -> void:
 		var button := _char_buttons[character_id] as Button
 		var unlocked := _is_unlocked(entry)
 		var selected := str(character_id) == _selected_character
-		var suffix := ""
-		if not unlocked:
-			suffix = " · %s" % Locale.t("select.lock", {"value": int(entry.get("unlock_merit", 0))})
-		button.text = "%s · %s%s" % [
-			_preset_name(entry),
-			GameData.loc(entry, "preset_alias"),
-			suffix,
-		]
+		var labels := _char_labels.get(character_id, {}) as Dictionary
+		(labels["title"] as Label).text = _preset_name(entry)
+		(labels["meta"] as Label).text = (
+			GameData.loc(entry, "alias")
+			if unlocked
+			else Locale.t("select.lock", {"value": int(entry.get("unlock_merit", 0))})
+		)
 		button.disabled = not unlocked
+		button.tooltip_text = "%s · %s" % [_preset_name(entry), GameData.loc(entry, "alias")]
 		_apply_button_style(button, selected, unlocked)
 	for map_id in _map_buttons.keys():
 		var entry := _maps.get(map_id, {}) as Dictionary
@@ -407,6 +409,33 @@ func _card_button(text: String, primary: bool) -> Button:
 	button.add_theme_stylebox_override("hover", _flat_box(Color(GOLD, 0.18), Color(GOLD, 0.72)))
 	button.add_theme_stylebox_override("focus", _flat_box(Color(GOLD, 0.18), Color(GOLD, 0.72)))
 	return button
+
+
+func _character_card(character_id: String) -> Dictionary:
+	var button := _card_button("", false)
+	button.custom_minimum_size = Vector2(0, 54)
+	button.tooltip_text = character_id
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 12)
+	margin.add_theme_constant_override("margin_right", 12)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	button.add_child(margin)
+	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var column := VBoxContainer.new()
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_theme_constant_override("separation", -1)
+	margin.add_child(column)
+	var title := _label("", 16, PAPER)
+	title.name = "CharacterTitle"
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(title)
+	var meta := _label("", 11, Color(MUTED, 0.86))
+	meta.name = "CharacterMeta"
+	meta.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(meta)
+	return {"button": button, "title": title, "meta": meta}
 
 
 func _flat_box(fill: Color, border: Color) -> StyleBoxFlat:

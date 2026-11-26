@@ -13,6 +13,7 @@ signal ally_support(source_id: String, kind: String, amount: float)
 signal tower_destroyed(tower_id: String, world_position: Vector2)
 signal tower_damaged(tower_id: String, ratio: float)
 signal encounter_triggered(index: int)
+signal encounter_refreshed(index: int)
 
 const CELL_SIZE := 64.0
 const VIEW_HALF := Vector2(720.0, 430.0)
@@ -39,10 +40,19 @@ const FLOW_REQUEST_INTERVAL_WEB := 0.50
 const FLOW_REQUEST_INTERVAL_NATIVE := 0.30
 const ALLY_REPATH_INTERVAL := 0.65
 const UNIT_SEPARATION_WEIGHT := 0.62
-const STUCK_RECOVERY_SECONDS := 0.55
+const STUCK_RECOVERY_SECONDS := 0.45
 const ENEMY_NAV_REFRESH_WEB := 0.34
 const ENEMY_NAV_REFRESH_NATIVE := 0.20
 const ENEMY_SEPARATION_REFRESH := 0.12
+const ENCOUNTER_TRIGGER_RADIUS := 58.0
+const ENCOUNTER_REARM_MARGIN := 22.0
+const ENCOUNTER_REFRESH_DEFAULT := 72.0
+const VARIANT_CATALOG_PATH := "res://data/enemy_variants.json"
+const VARIANTS_PER_ENEMY := 4
+# Web (WebGL2) has no reliable GPU headroom on low-end devices; cap the live
+# crowd lower there while keeping the full native budget for desktop builds.
+const MAX_ALIVE_ENEMIES_NATIVE := 460
+const MAX_ALIVE_ENEMIES_WEB := 280
 
 var enemies: Array[Dictionary] = []
 var allies: Array[Dictionary] = []
@@ -87,6 +97,9 @@ var tower_textures: Dictionary = {}
 var textures: Dictionary = {}
 var encounter_sites: Array[Dictionary] = []
 var enemy_sprite_frames: Dictionary = {}
+var enemy_variant_catalog: Dictionary = {}
+var _variant_pool: Dictionary = {}
+var _last_variant_ids: Dictionary = {}
 var runtime_loadout: RuntimeLoadout
 var _runtime_map_salt := ""
 var player_idle_frames: Array[Texture2D] = []
@@ -171,6 +184,7 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 	if not runtime_loadout.load_defaults():
 		push_warning("Runtime loadout data failed to load; enemies use their baked base loadout")
 		runtime_loadout = null
+	_load_enemy_variants()
 	_load_towers()
 	for enemy_id in enemy_data.keys():
 		var definition: Dictionary = enemy_data[enemy_id]
@@ -272,16 +286,19 @@ func _load_sprite_frames(path: String, frame_count: int) -> Array[Texture2D]:
 	if frame_count <= 1:
 		result.append(strip)
 		return result
-	var image := strip.get_image()
-	if image == null or image.get_width() % frame_count != 0:
+	var strip_size := strip.get_size()
+	var frame_steps := strip_size.x / float(frame_count)
+	if strip_size.x < float(frame_count) or not is_equal_approx(frame_steps, floorf(frame_steps)):
 		result.append(strip)
 		return result
-	var frame_width := image.get_width() / frame_count
+	# 帧用 AtlasTexture 共享同一张条带纹理，避免每帧复制像素：
+	# 144 组敌人变体若逐帧 ImageTexture，会额外占数十 MB 显存并拖慢 Web 首帧。
+	var frame_width := strip_size.x / float(frame_count)
 	for index in frame_count:
-		var frame_image := image.get_region(
-			Rect2i(index * frame_width, 0, frame_width, image.get_height())
-		)
-		result.append(ImageTexture.create_from_image(frame_image))
+		var frame := AtlasTexture.new()
+		frame.atlas = strip
+		frame.region = Rect2(index * frame_width, 0.0, frame_width, strip_size.y)
+		result.append(frame)
 	return result
 
 
@@ -337,6 +354,12 @@ func _load_encounters() -> void:
 			18.0
 		)
 		site["used"] = false
+		site["refresh_seconds"] = maxf(
+			20.0,
+			float(site.get("refresh_seconds", ENCOUNTER_REFRESH_DEFAULT))
+		)
+		site["refresh_remaining"] = 0.0
+		site["rearmed"] = true
 		var icon_path := str(site.get("icon", ""))
 		site["texture"] = GameData.texture(icon_path)
 		encounter_sites.append(site)
@@ -843,6 +866,8 @@ func reset(seed_value: int = 20261123) -> void:
 	floaters.clear()
 	for site in encounter_sites:
 		site["used"] = false
+		site["refresh_remaining"] = 0.0
+		site["rearmed"] = true
 	_reset_spatial()
 	time = 0.0
 	_contact_cd = 0.0
@@ -883,7 +908,7 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	_update_enemy_shots(delta, player)
 	_update_pickups(delta, player)
 	_collect_tower_xp(player_pos)
-	_update_encounters(player_pos)
+	tick_encounters(delta, player_pos)
 	_update_effects(delta)
 	_update_wade_splashes(delta)
 	_cleanup_dead()
@@ -928,10 +953,14 @@ func _update_wade_splashes(delta: float) -> void:
 			_return_pooled(_free_wade_splashes, _swap_remove_at(wade_splashes, index))
 
 
+func max_alive_enemies() -> int:
+	return MAX_ALIVE_ENEMIES_WEB if GameSettings.is_web_platform() else MAX_ALIVE_ENEMIES_NATIVE
+
+
 func spawn_enemy(enemy_id: String, center: Vector2, elite_color: String = "") -> int:
 	if not enemy_data.has(enemy_id):
 		return -1
-	if enemies.size() >= 460:
+	if enemies.size() >= max_alive_enemies():
 		return -1
 	var definition: Dictionary = enemy_data[enemy_id] as Dictionary
 	var position := center
@@ -946,18 +975,100 @@ func spawn_enemy(enemy_id: String, center: Vector2, elite_color: String = "") ->
 	return spawn_enemy_at(enemy_id, position, elite_color)
 
 
+func _load_enemy_variants() -> void:
+	enemy_variant_catalog = GameData.load_json(VARIANT_CATALOG_PATH).get("variants", {}) as Dictionary
+	_variant_pool.clear()
+	_last_variant_ids.clear()
+	var pool_rng := RandomNumberGenerator.new()
+	pool_rng.seed = _runtime_map_salt.hash()
+	for enemy_id in enemy_variant_catalog.keys():
+		var entries := enemy_variant_catalog[enemy_id] as Array
+		if entries == null or entries.is_empty():
+			continue
+		var shuffled := entries.duplicate(false)
+		for i in range(shuffled.size() - 1, 0, -1):
+			var j := pool_rng.randi_range(0, i)
+			var tmp: Variant = shuffled[i]
+			shuffled[i] = shuffled[j]
+			shuffled[j] = tmp
+		var pool: Array[Dictionary] = []
+		for raw in shuffled:
+			if raw is Dictionary:
+				pool.append(raw as Dictionary)
+			if pool.size() >= VARIANTS_PER_ENEMY:
+				break
+		_variant_pool[str(enemy_id)] = pool
+
+
+func _pick_enemy_variant(enemy_id: String, loadout: Dictionary) -> Dictionary:
+	var raw_pool: Variant = _variant_pool.get(enemy_id, null)
+	if raw_pool == null:
+		return {}
+	var pool: Array[Dictionary] = []
+	for item in (raw_pool as Array):
+		if item is Dictionary:
+			pool.append(item as Dictionary)
+	if pool.is_empty():
+		return {}
+	var role := str(loadout.get("role", ""))
+	var attack_class := str(loadout.get("attack_class", ""))
+	var recipe := loadout.get("recipe", {}) as Dictionary
+	var weapon := str(recipe.get("weapon", ""))
+	var visual_mode := "mounted" if role == "cavalry" else "foot"
+	var candidates: Array[Dictionary] = []
+	for variant in pool:
+		if str(variant.get("visual_mode", "foot")) != visual_mode:
+			continue
+		if not attack_class.is_empty() and str(variant.get("attack_class", "")) != attack_class:
+			continue
+		candidates.append(variant)
+	if candidates.is_empty():
+		for variant in pool:
+			if str(variant.get("visual_mode", "foot")) == visual_mode:
+				candidates.append(variant)
+	if candidates.is_empty():
+		for variant in pool:
+			candidates.append(variant)
+	if not weapon.is_empty():
+		var matched: Array[Dictionary] = []
+		for variant in candidates:
+			if str(variant.get("weapon", "")) == weapon:
+				matched.append(variant)
+		if not matched.is_empty():
+			candidates = matched
+	var last_id := str(_last_variant_ids.get(enemy_id, ""))
+	if candidates.size() > 1 and not last_id.is_empty():
+		var fresh: Array[Dictionary] = []
+		for variant in candidates:
+			if str(variant.get("draw_id", "")) != last_id:
+				fresh.append(variant)
+		if not fresh.is_empty():
+			candidates = fresh
+	var chosen := candidates[rng.randi() % candidates.size()]
+	_last_variant_ids[enemy_id] = str(chosen.get("draw_id", ""))
+	return chosen
+
+
 func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "") -> int:
 	if not enemy_data.has(enemy_id):
 		return -1
-	if enemies.size() >= 460:
+	if enemies.size() >= max_alive_enemies():
 		return -1
 	if map_layout != null and not map_layout.is_point_walkable(position, 14.0):
 		position = map_layout.find_walkable_position(position, 14.0)
 	var definition: Dictionary = enemy_data[enemy_id] as Dictionary
 	var base_behavior := str(definition.get("behavior", "chase"))
 	var loadout := _generate_runtime_loadout(enemy_id, definition)
-	var runtime_visual := _runtime_visual_for(definition, loadout)
+	var runtime_visual := _runtime_visual_for(definition, loadout, enemy_id)
 	var draw_id := str(runtime_visual.get("draw_id", enemy_id))
+	if not enemy_sprite_frames.has(draw_id):
+		var variant_path := str(runtime_visual.get("texture", ""))
+		if not variant_path.is_empty():
+			_cache_enemy_sprite(
+				draw_id,
+				variant_path,
+				maxi(1, int(runtime_visual.get("sprite_frames", 8)))
+			)
 	if not enemy_sprite_frames.has(draw_id):
 		draw_id = enemy_id
 	var behavior := str(runtime_visual.get("behavior", base_behavior))
@@ -1052,6 +1163,8 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"stuck_timer": 0.0,
 		"avoid_timer": 0.0,
 		"avoid_dir": Vector2.ZERO,
+		"steer_timer": rng.randf_range(0.0, 0.16),
+		"steer_dir": Vector2.ZERO,
 		"alive": true,
 	}
 	enemies.append(enemy)
@@ -1074,7 +1187,20 @@ func _generate_runtime_loadout(enemy_id: String, definition: Dictionary) -> Dict
 	)
 
 
-func _runtime_visual_for(definition: Dictionary, loadout: Dictionary) -> Dictionary:
+func _runtime_visual_for(definition: Dictionary, loadout: Dictionary, enemy_id: String = "") -> Dictionary:
+	var base := _base_runtime_visual(definition, loadout)
+	var variant := _pick_enemy_variant(enemy_id, loadout)
+	if variant.is_empty():
+		return base
+	var merged := base.duplicate(true)
+	merged["draw_id"] = str(variant.get("draw_id", enemy_id))
+	merged["texture"] = str(variant.get("texture", ""))
+	merged["sprite_frames"] = maxi(1, int(variant.get("frames", 8)))
+	merged["sprite_fps"] = float(variant.get("fps", 10.0))
+	return merged
+
+
+func _base_runtime_visual(definition: Dictionary, loadout: Dictionary) -> Dictionary:
 	if loadout.is_empty():
 		return {}
 	var visuals: Dictionary = definition.get("runtime_visuals", {}) as Dictionary
@@ -1514,7 +1640,13 @@ func _load_attack_fx() -> void:
 		fx_animations[animation_id] = animation
 
 
-func play_player_attack_fx(weapon_id: String, origin: Vector2, direction: Vector2, evolved: bool = false) -> void:
+func play_player_attack_fx(
+	weapon_id: String,
+	origin: Vector2,
+	direction: Vector2,
+	evolved: bool = false,
+	enemy_anchor: Vector2 = Vector2.ZERO
+) -> void:
 	var profiles: Dictionary = attack_fx_data.get("player_weapons", {}) as Dictionary
 	if not profiles.has(weapon_id):
 		return
@@ -1529,12 +1661,17 @@ func play_player_attack_fx(weapon_id: String, origin: Vector2, direction: Vector
 		aim = Vector2.RIGHT
 	var offset := float(profile.get("offset", 0.0))
 	var scale_value := float(profile.get("evolved_scale" if evolved else "scale", 1.0))
-	_play_jeff_fx(animation_id, origin + aim * offset, {
+	# 爆炸/命中类特效是远程结果，必须落在敌人区域；近战与环身特效仍以主角为原点。
+	var remote_fx := (
+		animation_id.contains("explosion") or animation_id.contains("hit_")
+	)
+	var anchor := enemy_anchor if remote_fx and enemy_anchor != Vector2.ZERO else origin
+	_play_jeff_fx(animation_id, anchor if remote_fx else anchor + aim * offset, {
 		"rotation": aim.angle() if bool(profile.get("rotate", true)) else 0.0,
 		"scale": scale_value,
 	})
 	if evolved and profile.has("evolved_accent"):
-		_play_jeff_fx(str(profile["evolved_accent"]), origin, {
+		_play_jeff_fx(str(profile["evolved_accent"]), anchor, {
 			"scale": float(profile.get("accent_scale", 0.75)),
 		})
 
@@ -1923,6 +2060,7 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 		var behavior := str(enemy["behavior"])
 		var movement := Vector2.ZERO
 		var navigation := direction
+		var body_radius := _enemy_body_radius(enemy)
 		if siege_index >= 0:
 			# 塔在前方近处时不走流场（流场只指向玩家），直线压上并贴塔。
 			navigation = direction
@@ -1935,8 +2073,20 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 				target,
 				direction,
 				distance,
-				delta
+				delta,
+				body_radius
 			)
+			enemy["steer_timer"] = float(enemy.get("steer_timer", 0.0)) - delta
+			if float(enemy["steer_timer"]) <= 0.0:
+				enemy["steer_dir"] = _enemy_obstacle_steering(
+					position,
+					navigation,
+					body_radius
+				)
+				enemy["steer_timer"] = 0.12 + rng.randf_range(0.0, 0.05)
+			var steering := enemy.get("steer_dir", Vector2.ZERO) as Vector2
+			if steering.length_squared() > 0.001:
+				navigation = steering
 		if behavior == "ranged":
 			if distance > float(enemy["attack_range"]) * 0.82:
 				movement = navigation
@@ -1977,8 +2127,8 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 				movement = (movement + separation * UNIT_SEPARATION_WEIGHT).normalized()
 			if float(enemy.get("avoid_timer", 0.0)) > 0.0:
 				movement = (
-					movement * 0.45
-					+ (enemy.get("avoid_dir", Vector2.ZERO) as Vector2) * 0.85
+					movement * 0.32
+					+ (enemy.get("avoid_dir", Vector2.ZERO) as Vector2) * 0.92
 				).normalized()
 		var slow_factor := float(enemy.get("slow_factor", 1.0)) if float(enemy.get("slow_timer", 0.0)) > 0.0 else 1.0
 		var speed := float(enemy["speed"]) * speed_mult * dark_speed * slow_factor
@@ -2001,10 +2151,10 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			position = map_layout.move_circle_known_walkable(
 				previous_position,
 				position,
-				clampf(float(enemy["radius"]) * 0.72, 9.0, 26.0)
+				body_radius
 			)
 		# 箭塔是实体：把敌兵挡在塔基外，避免走进塔身里原地翻转。
-		position = _resolve_tower_collision(position, clampf(float(enemy["radius"]) * 0.72, 9.0, 26.0))
+		position = _resolve_tower_collision(position, body_radius)
 		_update_enemy_stuck_state(
 			enemy,
 			previous_position,
@@ -2012,7 +2162,8 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			navigation,
 			distance,
 			speed * delta,
-			delta
+			delta,
+			body_radius
 		)
 		enemy["pos"] = position
 		if siege_index >= 0 and siege_index < towers.size():
@@ -2020,7 +2171,7 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			var tower := towers[siege_index]
 			if bool(tower.get("alive", false)):
 				var tower_pos := tower["pos"] as Vector2
-				var reach := float(tower["radius"]) * 1.45 + float(enemy["radius"]) + 16.0
+				var reach := float(tower["radius"]) * 1.45 + float(enemy["radius"]) + 30.0
 				if position.distance_to(tower_pos) <= reach and float(tower.get("hit_cd", 0.0)) <= 0.0:
 					play_enemy_attack_fx(str(enemy["id"]), tower_pos, direction)
 					damage_tower(siege_index, float(enemy["damage"]), index)
@@ -2042,7 +2193,7 @@ func _resolve_tower_collision(position: Vector2, body_radius: float) -> Vector2:
 		if not bool(tower.get("alive", false)):
 			continue
 		var tower_pos := tower["pos"] as Vector2
-		var minimum := float(tower["radius"]) * 1.45 + body_radius + 10.0
+		var minimum := float(tower["radius"]) * 1.45 + body_radius + 18.0
 		var offset := position - tower_pos
 		var distance := offset.length()
 		if distance >= minimum:
@@ -2060,7 +2211,8 @@ func _cached_enemy_navigation(
 	target: Vector2,
 	direct: Vector2,
 	distance: float,
-	delta: float
+	delta: float,
+	body_radius: float
 ) -> Vector2:
 	enemy["nav_timer"] = float(enemy.get("nav_timer", 0.0)) - delta
 	if distance <= 190.0:
@@ -2075,7 +2227,7 @@ func _cached_enemy_navigation(
 		and cached_goal.distance_squared_to(target) <= 96.0 * 96.0
 	):
 		return cached
-	var navigation := map_layout.navigation_direction(position, target)
+	var navigation := map_layout.navigation_direction(position, target, 190.0, body_radius)
 	if navigation.length_squared() <= 0.001:
 		navigation = direct
 	enemy["nav_dir"] = navigation
@@ -2086,6 +2238,48 @@ func _cached_enemy_navigation(
 		else ENEMY_NAV_REFRESH_NATIVE
 	)
 	return navigation
+
+
+func _enemy_body_radius(enemy: Dictionary) -> float:
+	return clampf(float(enemy.get("radius", 20.0)) * 1.04, 14.0, 40.0)
+
+
+func _enemy_obstacle_steering(
+	position: Vector2,
+	navigation: Vector2,
+	body_radius: float
+) -> Vector2:
+	if (
+		map_layout == null
+		or navigation.length_squared() <= 0.001
+		or not map_layout.is_point_walkable(position, body_radius)
+	):
+		return Vector2.ZERO
+	var lookahead := maxf(42.0, body_radius * 2.1)
+	if _enemy_path_clear(position, position + navigation * lookahead, body_radius):
+		return Vector2.ZERO
+	for angle in [28.0, -28.0, 52.0, -52.0, 76.0, -76.0, 104.0, -104.0]:
+		var candidate := navigation.rotated(deg_to_rad(angle))
+		if _enemy_path_clear(position, position + candidate * lookahead, body_radius):
+			return candidate
+	return Vector2.ZERO
+
+
+func _enemy_path_clear(from: Vector2, to: Vector2, body_radius: float) -> bool:
+	if map_layout == null or not map_layout.is_segment_walkable(from, to, body_radius):
+		return false
+	for tower in towers:
+		if not bool(tower.get("alive", false)):
+			continue
+		var tower_pos := tower["pos"] as Vector2
+		var radius := float(tower["radius"]) * 1.45 + body_radius + 18.0
+		if (
+			Geometry2D.get_closest_point_to_segment(tower_pos, from, to)
+			.distance_squared_to(tower_pos)
+			< radius * radius
+		):
+			return false
+	return true
 
 
 func _enemy_separation(position: Vector2, skip_index: int, search_radius: float) -> Vector2:
@@ -2118,7 +2312,8 @@ func _update_enemy_stuck_state(
 	navigation: Vector2,
 	distance_to_goal: float,
 	expected_step: float,
-	delta: float
+	delta: float,
+	body_radius: float
 ) -> void:
 	if navigation.length_squared() <= 0.001 or distance_to_goal <= 90.0 or expected_step <= 0.01:
 		enemy["stuck_timer"] = maxf(0.0, float(enemy.get("stuck_timer", 0.0)) - delta)
@@ -2131,13 +2326,29 @@ func _update_enemy_stuck_state(
 	if float(enemy.get("stuck_timer", 0.0)) < STUCK_RECOVERY_SECONDS:
 		return
 	enemy["stuck_timer"] = 0.0
-	enemy["avoid_timer"] = 0.75
+	enemy["avoid_timer"] = 1.1
+	enemy["nav_timer"] = 0.0
+	enemy["steer_timer"] = 0.0
 	var perpendicular := Vector2(-navigation.y, navigation.x)
-	var body_radius := clampf(float(enemy.get("radius", 20.0)) * 0.72, 9.0, 26.0)
-	var probe := position + perpendicular * 42.0
-	if map_layout != null and not map_layout.is_point_walkable(probe, body_radius):
-		perpendicular = -perpendicular
-	enemy["avoid_dir"] = perpendicular
+	var chosen := perpendicular
+	if map_layout != null:
+		var probe_distance := maxf(54.0, body_radius * 2.4)
+		var best_score := -INF
+		for angle in [30.0, -30.0, 62.0, -62.0, 95.0, -95.0, 128.0, -128.0]:
+			var candidate := navigation.rotated(deg_to_rad(angle))
+			var probe := position + candidate * probe_distance
+			if not _enemy_path_clear(position, probe, body_radius):
+				continue
+			var score := candidate.dot(navigation)
+			if score > best_score:
+				best_score = score
+				chosen = candidate
+		if best_score == -INF:
+			var fallback_probe := position + perpendicular * probe_distance
+			if not _enemy_path_clear(position, fallback_probe, body_radius):
+				perpendicular = -perpendicular
+			chosen = perpendicular
+	enemy["avoid_dir"] = chosen
 
 
 func _fire_enemy_shot(origin: Vector2, direction: Vector2, damage: float, speed: float) -> void:
@@ -2385,14 +2596,30 @@ func _collect_tower_xp(player_position: Vector2) -> void:
 		})
 
 
-func _update_encounters(player_position: Vector2) -> void:
+func tick_encounters(delta: float, player_position: Vector2) -> void:
 	for index in range(encounter_sites.size()):
 		var site := encounter_sites[index]
+		var radius := float(site.get("trigger_radius", ENCOUNTER_TRIGGER_RADIUS))
 		if bool(site.get("used", false)):
+			site["refresh_remaining"] = maxf(
+				0.0,
+				float(site.get("refresh_remaining", 0.0)) - delta
+			)
+			if float(site["refresh_remaining"]) <= 0.001:
+				site["used"] = false
+				site["rearmed"] = false
+				encounter_refreshed.emit(index)
 			continue
-		if player_position.distance_squared_to(site["pos"] as Vector2) > 58.0 * 58.0:
+		var distance := player_position.distance_to(site["pos"] as Vector2)
+		if not bool(site.get("rearmed", false)):
+			if distance > radius + ENCOUNTER_REARM_MARGIN:
+				site["rearmed"] = true
+			continue
+		if distance * distance > radius * radius:
 			continue
 		site["used"] = true
+		site["rearmed"] = false
+		site["refresh_remaining"] = float(site.get("refresh_seconds", ENCOUNTER_REFRESH_DEFAULT))
 		encounter_triggered.emit(index)
 
 
@@ -2428,14 +2655,15 @@ func _draw() -> void:
 	_draw_pickups()
 	_draw_enemies()
 	_draw_allies()
-	_draw_player()
 	_draw_aim_indicator()
 	_draw_health_bars()
 	_draw_wade_splashes()
 	_draw_projectiles()
 	_draw_tower_shots()
+	# 特效先画、主角后画：爆炸与刀光不会盖住主角，近战环身特效仍围绕主角可见。
 	_draw_jeff_fx()
 	_draw_effects()
+	_draw_player()
 	FeedbackManager.draw(self)
 	_draw_dragons()
 

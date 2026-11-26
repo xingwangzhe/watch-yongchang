@@ -178,7 +178,7 @@ func _build() -> void:
 	for i in range(12):
 		var card := Button.new()
 		card.name = "ShopCard%d" % (i + 1)
-		card.custom_minimum_size = Vector2(272, 152)
+		card.custom_minimum_size = Vector2(272, 168)
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		card.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		card.clip_contents = true
@@ -216,7 +216,7 @@ func _build() -> void:
 
 func _build_card(card: Button, index: int) -> void:
 	var cw := 272.0
-	var ch := 152.0
+	var ch := 168.0
 	var accent := ColorRect.new()
 	accent.name = "CardAccent"
 	accent.color = Color(GOLD, 0.9)
@@ -253,13 +253,13 @@ func _build_card(card: Button, index: int) -> void:
 	card.add_child(title)
 	var description := _label("", 10, PAPER)
 	description.name = "CardDescription"
-	UILayout.place_in(description, 8, 72, 255, 26, cw, ch)
+	UILayout.place_in(description, 8, 71, 255, 42, cw, ch)
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description.max_lines_visible = 2
+	description.max_lines_visible = 3
 	card.add_child(description)
 	var effect := _label("", 10, Color("#f0c363"))
 	effect.name = "CardEffect"
-	UILayout.place_in(effect, 8, 99, 255, 22, cw, ch)
+	UILayout.place_in(effect, 8, 115, 255, 26, cw, ch)
 	effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	effect.max_lines_visible = 2
 	card.add_child(effect)
@@ -275,12 +275,12 @@ func _build_card(card: Button, index: int) -> void:
 	card.add_child(culture)
 	var meta := _label("", 8, Color(MUTED, 0.72))
 	meta.name = "CardMeta"
-	UILayout.place_in(meta, 150, 128, 112, 16, cw, ch, 1.0, 0.0)
+	UILayout.place_in(meta, 150, 148, 112, 16, cw, ch, 1.0, 0.0)
 	meta.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(meta)
 	var price := _label("", 14, GOLD)
 	price.name = "CardPrice"
-	UILayout.place_in(price, 8, 126, 138, 20, cw, ch)
+	UILayout.place_in(price, 8, 144, 138, 20, cw, ch)
 	card.add_child(price)
 
 

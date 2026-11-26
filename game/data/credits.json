@@ -55,6 +55,7 @@
 					"新增 6 个骑手条带：明军骑枪、明军骑弓、倭寇骑刀、倭寇骑弓、精英骑枪、Boss 鬼面骑枪；骑乘姿态复用阵营合法的服装、头饰、背挂与武器层。",
 					"运行时不再只吃构建期固定样板：每个敌兵、精英与 Boss 生成时由 RuntimeLoadout 抽样配装、武器、角色、马匹、调色、纹章、旗帜与武器皮肤，结果写入实例并参与批处理缓存。",
 					"组合口径：基础合法装备 75,120；加入马匹与姿态后 974,352；再乘调色/纹章/旗帜/武器皮肤为 700,791,552。后两者共享烘焙图集与实例着色，不是 7 亿张独立 PNG。",
+				"敌兵外观另烘焙 144 组随机变体（9 类 × 12/24 组，含骑乘与步行、12 种武器、10 种服装、8 种头饰、3 种马色），每次生成按合法配方抽取，并限制单局每类 4 组以维持批处理效率；全部为项目原创程序化像素绘制，CC BY 4.0。",
 					"战斗使用共享 BFS 流场、拥挤分离与卡住恢复，并对原生/Web 分别限频刷新导航缓存；骑兵近战/远程、重装步兵、远程与支援单位共用同一套避障与推进。"
 				],
 				"lines_en": [
@@ -62,6 +63,7 @@
 					"Six mounted strips are included: Ming lancer, Ming horse archer, Wokou saber rider, Wokou horse archer, elite lancer, and the boss oni lancer. Mounted poses reuse faction-legal clothing, headgear, backgear, and weapon layers.",
 					"Runs no longer rely on a small fixed sample set: RuntimeLoadout samples gear, weapon, role, mount, palette, emblem, banner, and weapon skin per enemy, elite, or boss at spawn, stores the snapshot on the instance, and feeds batch caches.",
 					"Combination scope: 75,120 legal base loadouts; 974,352 after mounts and poses; 700,791,552 with palette, emblem, banner, and weapon-skin metadata. The latter two share baked atlases and per-instance tinting; they are not hundreds of millions of separate PNGs.",
+				"Enemy appearances add 144 baked variants (nine classes × 12/24 sets, mounted and foot, twelve weapons, ten outfits, eight headgears, three horse colours). Each spawn samples a legal recipe; each run keeps four variants per class so draw batching stays efficient. All are original procedural pixel art, CC BY 4.0.",
 					"Combat shares a BFS flow field, crowd separation, and stuck recovery, with separate native/Web navigation refresh intervals. Mounted melee/ranged, heavy infantry, ranged, and support units use the same obstacle avoidance and advance rules."
 				]
 			},

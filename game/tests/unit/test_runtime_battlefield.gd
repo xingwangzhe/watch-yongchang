@@ -30,15 +30,21 @@ func test_cavalry_enemy_rolls_melee_and_ranged_forge_variants() -> void:
 		seen_visual_keys[str(enemy.get("runtime_visual_key", ""))] = true
 		if attack_class == "ranged":
 			seen_ranged = true
-			assert_eq(draw_id, "wokou_black_bow")
+			assert_true(
+				draw_id.begins_with("cavalry_") or draw_id == "wokou_black_bow",
+				"riders must use a mounted ranged visual"
+			)
 			assert_eq(str(enemy.get("behavior", "")), "ranged")
 		else:
 			seen_melee = true
-			assert_eq(draw_id, "wokou_grey_saber")
+			assert_true(
+				draw_id.begins_with("cavalry_") or draw_id == "wokou_grey_saber",
+				"riders must use a mounted melee visual"
+			)
 			assert_eq(str(enemy.get("behavior", "")), "chase")
 		assert_true(
 			field.enemy_sprite_frames.has(draw_id),
-			"%s must be cached at setup, never loaded in the draw loop" % draw_id
+			"%s must be cached before it reaches the draw loop" % draw_id
 		)
 	assert_true(seen_melee, "the run must produce saber riders")
 	assert_true(seen_ranged, "the run must produce horse archers")
@@ -96,3 +102,27 @@ func test_runtime_visual_strips_are_forge_baked() -> void:
 				var frames := int(recipe.get("battle_%s_frames" % clip, 0))
 				assert_eq(texture.get_width(), frames * CELL)
 				assert_eq(texture.get_height(), CELL)
+
+
+
+func test_foot_enemy_spawns_sample_multiple_bounded_variants() -> void:
+	var field := Battlefield.new()
+	add_child_autofree(field)
+	field.setup(20261126)
+	var seen := {}
+	for index in 24:
+		field.rng.seed = 4200 + index
+		var enemy_index := field.spawn_enemy_at(
+			"scout",
+			Vector2(100.0 + float(index % 8) * 22.0, 100.0 + float(index / 8) * 22.0)
+		)
+		assert_gte(enemy_index, 0)
+		if enemy_index < 0:
+			continue
+		var enemy: Dictionary = field.enemies[enemy_index]
+		var draw_id := str(enemy.get("draw_id", ""))
+		assert_true(draw_id.begins_with("scout_foot_"), "foot spawns must use baked variants")
+		assert_true(field.enemy_sprite_frames.has(draw_id), "%s must be cached" % draw_id)
+		seen[draw_id] = true
+	assert_gte(seen.size(), 2, "spawns must not collapse into one look")
+	assert_lte(seen.size(), 4, "the per-run variant pool must stay batching-friendly")

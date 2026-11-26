@@ -3,6 +3,7 @@
   "events": {
     "militia_cache": {
       "good": true,
+      "refresh_seconds": 72,
       "icon": "res://assets/icons/game_icons/card_heart_armor.svg",
       "title_zh": "义民来投",
       "title_en": "Militia Answers the Lamp",
@@ -12,6 +13,7 @@
     },
     "forge_blessing": {
       "good": true,
+      "refresh_seconds": 78,
       "icon": "res://assets/icons/game_icons/card_torch.svg",
       "title_zh": "炉火未熄",
       "title_en": "The Forge Still Burns",
@@ -23,6 +25,7 @@
     },
     "hidden_oil": {
       "good": true,
+      "refresh_seconds": 64,
       "icon": "res://assets/icons/game_icons/ui_lantern.svg",
       "title_zh": "暗窖灯油",
       "title_en": "Hidden Lamp Oil",
@@ -33,6 +36,7 @@
     },
     "old_records": {
       "good": true,
+      "refresh_seconds": 84,
       "icon": "res://assets/icons/game_icons/card_books.svg",
       "title_zh": "旧堡残卷",
       "title_en": "Records of the Old Fort",
@@ -43,6 +47,7 @@
     },
     "salt_pan_cache": {
       "good": true,
+      "refresh_seconds": 68,
       "icon": "res://assets/icons/game_icons/card_treasure.svg",
       "title_zh": "盐商遗财",
       "title_en": "A Salt Trader's Cache",
@@ -53,6 +58,7 @@
     },
     "miasma": {
       "good": false,
+      "refresh_seconds": 96,
       "icon": "res://assets/icons/game_icons/card_fog.svg",
       "title_zh": "滩雾侵体",
       "title_en": "Marsh Miasma",
@@ -64,6 +70,7 @@
     },
     "ambush": {
       "good": false,
+      "refresh_seconds": 88,
       "icon": "res://assets/icons/game_icons/card_arrow_cluster.svg",
       "title_zh": "芦荡伏兵",
       "title_en": "Ambush in the Reeds",
@@ -76,6 +83,7 @@
     },
     "tide_haste": {
       "good": false,
+      "refresh_seconds": 92,
       "icon": "res://assets/icons/game_icons/card_wave.svg",
       "title_zh": "潮声催命",
       "title_en": "The Tide Urges Them On",
@@ -87,6 +95,7 @@
     },
     "broken_ground": {
       "good": false,
+      "refresh_seconds": 90,
       "icon": "res://assets/icons/game_icons/card_compass.svg",
       "title_zh": "迷途岔口",
       "title_en": "The Fork That Misleads",

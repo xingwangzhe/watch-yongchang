@@ -263,7 +263,7 @@ func _build_watch_panel() -> void:
 	panel.add_child(margin)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 11)
+	column.add_theme_constant_override("separation", 7)
 	margin.add_child(column)
 
 	var heading := HBoxContainer.new()
@@ -299,7 +299,8 @@ func _build_watch_panel() -> void:
 	grow.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(grow)
 
-	_register_label(_make_label("PanelQuote", "", 17, Color(GOLD, 0.78)), "panel.quote")
+	_register_label(_make_label("PanelQuote", "", 16, Color(GOLD, 0.78)), "panel.quote")
+	_i18n_labels[-1]["node"].autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	column.add_child(_i18n_labels[-1]["node"])
 
 	var version_row := HBoxContainer.new()
@@ -320,10 +321,12 @@ func _build_watch_panel() -> void:
 
 
 func _build_night_anchors(parent: VBoxContainer) -> void:
-	var row := HBoxContainer.new()
+	var row := HFlowContainer.new()
 	row.name = "NightAnchors"
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 8)
+	row.alignment = FlowContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("h_separation", 6)
+	row.add_theme_constant_override("v_separation", 2)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	parent.add_child(row)
 	var anchors := [
 		{"name": "AnchorLantern", "key": "anchor.lantern", "icon": ICON_LANTERN},
@@ -337,7 +340,7 @@ func _build_night_anchors(parent: VBoxContainer) -> void:
 		var chip: Dictionary = IconChips.make_inline(
 			spec["icon"] as Texture2D,
 			Locale.t(key),
-			22
+			18
 		)
 		var chip_root: Control = chip["root"]
 		chip_root.name = str(spec["name"])
@@ -384,7 +387,7 @@ func _build_settings_overlay() -> void:
 	_settings_panel.add_child(margin)
 
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
+	column.add_theme_constant_override("separation", 8)
 	margin.add_child(column)
 
 	var header := HBoxContainer.new()
@@ -484,6 +487,8 @@ func _build_settings_overlay() -> void:
 
 	column.add_child(_rule())
 	_settings_note = _make_label("SettingsNote", "", 12, Color(MUTED, 0.54))
+	_settings_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_settings_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_register_label(_settings_note, "settings.note")
 	column.add_child(_settings_note)
 
@@ -1076,15 +1081,15 @@ func _register_label(label: Label, key: String) -> Label:
 
 func _stat_row(parent: VBoxContainer, key: String, value_name: String) -> Label:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0.0, 27.0)
-	var caption := _make_label("%sLabel" % value_name, "", 15, MUTED)
-	caption.custom_minimum_size = Vector2(128.0, 0.0)
+	row.custom_minimum_size = Vector2(0.0, 24.0)
+	var caption := _make_label("%sLabel" % value_name, "", 14, MUTED)
+	caption.custom_minimum_size = Vector2(112.0, 0.0)
 	_register_label(caption, key)
 	row.add_child(caption)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
-	var value := _make_label(value_name, "", 16, PAPER)
+	var value := _make_label(value_name, "", 15, PAPER)
 	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(value)
 	parent.add_child(row)
@@ -1093,11 +1098,11 @@ func _stat_row(parent: VBoxContainer, key: String, value_name: String) -> Label:
 
 func _setting_row(parent: VBoxContainer, key: String, control: Control) -> void:
 	var row := HBoxContainer.new()
-	row.custom_minimum_size = Vector2(0.0, 44.0)
-	row.add_theme_constant_override("separation", 18)
+	row.custom_minimum_size = Vector2(0.0, 40.0)
+	row.add_theme_constant_override("separation", 16)
 	var safe_key := key.replace(".", "_")
-	var caption := _make_label("%sSettingLabel" % safe_key, "", 17, Color(PAPER, 0.86))
-	caption.custom_minimum_size = Vector2(150.0, 0.0)
+	var caption := _make_label("%sSettingLabel" % safe_key, "", 16, Color(PAPER, 0.86))
+	caption.custom_minimum_size = Vector2(140.0, 0.0)
 	caption.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_register_label(caption, key)
 	row.add_child(caption)

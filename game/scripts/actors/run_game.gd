@@ -108,8 +108,10 @@ var _invuln := 0.0
 var _last_move := Vector2.RIGHT
 var _aim_direction := Vector2.RIGHT
 var _attack_held := false
+var _touch_attack_held := false
 var _attack_buffer := 0.0
 var _auto_attack := false
+var debug_invincible := false
 var _mouse_screen_pos := Vector2.ZERO
 var _has_mouse_screen_pos := false
 var _move_trail_timer := 0.0
@@ -249,6 +251,15 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if story.visible or level_up_overlay.visible:
 		return
+	if (
+		event is InputEventKey
+		and (event as InputEventKey).pressed
+		and not (event as InputEventKey).echo
+		and (event as InputEventKey).keycode == KEY_F9
+	):
+		set_invincible_mode(not debug_invincible)
+		get_viewport().set_input_as_handled()
+		return
 	if event.is_action_pressed("ui_cancel"):
 		_set_pause(not _paused)
 		get_viewport().set_input_as_handled()
@@ -264,6 +275,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_has_mouse_screen_pos = true
 	if event.is_action_pressed("toggle_auto_attack") and not (event is InputEventKey and (event as InputEventKey).echo):
 		_auto_attack = not _auto_attack
+		if is_instance_valid(touch_controls):
+			touch_controls.set_auto_active(_auto_attack)
 		_release_attack()
 		hud.update_hud(_hud_state())
 		get_viewport().set_input_as_handled()
@@ -279,6 +292,16 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("dash"):
 		_try_dash()
 		get_viewport().set_input_as_handled()
+
+
+## 仅供测试：F9 或自动化调用；保留 HUD 提示，避免把无敌状态误当正常平衡数据。
+func set_invincible_mode(enabled: bool) -> void:
+	debug_invincible = enabled
+	hud.show_banner(
+		Locale.t("debug.invincible_on" if enabled else "debug.invincible_off"),
+		"",
+		1.8
+	)
 
 
 func _gameplay_input_allowed() -> bool:
@@ -362,6 +385,7 @@ func _build_world() -> void:
 	battlefield.heal_collected.connect(_on_heal_collected)
 	battlefield.scale_collected.connect(_on_scale_collected)
 	battlefield.encounter_triggered.connect(_on_encounter_triggered)
+	battlefield.encounter_refreshed.connect(_on_encounter_refreshed)
 	battlefield.boss_spawned.connect(_on_boss_spawned)
 	battlefield.boss_defeated.connect(_on_boss_defeated)
 	battlefield.tower_destroyed.connect(_on_tower_destroyed)
@@ -389,6 +413,9 @@ func _build_ui() -> void:
 	touch_controls = TouchControls.new()
 	hud.add_child(touch_controls)
 	touch_controls.dash_requested.connect(_on_touch_dash_requested)
+	touch_controls.attack_pressed.connect(_on_touch_attack_pressed)
+	touch_controls.attack_released.connect(_on_touch_attack_released)
+	touch_controls.auto_toggle_requested.connect(_on_touch_auto_toggled)
 	narrative = NarrativePlayer.new()
 	narrative.name = "Narrative"
 	add_child(narrative)
@@ -642,7 +669,9 @@ func _update_player(delta: float) -> void:
 	var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	if is_instance_valid(touch_controls):
 		input_vector = (input_vector + touch_controls.move_vector).limit_length(1.0)
-	_attack_held = not _auto_attack and Input.is_action_pressed("attack")
+	_attack_held = not _auto_attack and (
+		Input.is_action_pressed("attack") or _touch_attack_held
+	)
 	var mouse_world := get_global_mouse_position()
 	if _has_mouse_screen_pos:
 		mouse_world = get_viewport().get_canvas_transform().affine_inverse() * _mouse_screen_pos
@@ -655,6 +684,12 @@ func _update_player(delta: float) -> void:
 			var target_direction := (target["pos"] as Vector2) - (player["pos"] as Vector2)
 			if target_direction.length_squared() > 4.0:
 				_aim_direction = target_direction.normalized()
+	# 触屏没有鼠标指针：手动攻击时朝移动方向出刀；自动攻击仍交给上面的索敌。
+	if (
+		is_instance_valid(touch_controls) and touch_controls.using_touch
+		and not _auto_attack and input_vector.length_squared() > 0.01
+	):
+		_aim_direction = input_vector.normalized()
 	battlefield.player_aim = _aim_direction
 	if input_vector.length_squared() > 0.001:
 		_last_move = input_vector.normalized()
@@ -737,6 +772,28 @@ func _on_touch_dash_requested() -> void:
 	if _paused or _game_over or _shop_open or story.visible or tutorial_overlay.visible or level_up_overlay.visible:
 		return
 	_try_dash()
+
+
+func _on_touch_attack_pressed() -> void:
+	if not _gameplay_input_allowed():
+		return
+	_touch_attack_held = true
+	_attack_buffer = ATTACK_BUFFER_DURATION
+
+
+func _on_touch_attack_released() -> void:
+	_touch_attack_held = false
+
+
+func _on_touch_auto_toggled() -> void:
+	if not _gameplay_input_allowed():
+		return
+	_auto_attack = not _auto_attack
+	_touch_attack_held = false
+	if is_instance_valid(touch_controls):
+		touch_controls.set_auto_active(_auto_attack)
+	_release_attack()
+	hud.update_hud(_hud_state())
 
 
 func _update_oil(delta: float) -> void:
@@ -952,6 +1009,9 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 	if direction.length_squared() <= 0.001:
 		var facing := player.get("facing", Vector2.RIGHT) as Vector2
 		direction = Vector2.RIGHT if facing.x >= 0.0 else Vector2.LEFT
+	var fx_anchor := Vector2.ZERO
+	if not target.is_empty() and weapon_type in ["projectile", "shotgun"]:
+		fx_anchor = target.get("pos", Vector2.ZERO) as Vector2
 	if not target.is_empty() and float(player.get("execute_below", 0.0)) > 0.0:
 		var target_max := maxf(1.0, float(target.get("max_hp", 1.0)))
 		if float(target.get("hp", 0.0)) / target_max <= float(player["execute_below"]):
@@ -978,7 +1038,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 				"arc": deg_to_rad(arc),
 				"color": Color("#f0c363"),
 			})
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
 			_play_sfx(SFX_ENEMY_HIT, 0.96, 0.68)
 			return true
 		"line_thrust":
@@ -1004,7 +1064,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					"length": radius,
 					"color": Color("#f0d58d"),
 				})
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
 			_play_sfx(SFX_HIT)
 			return true
 		"projectile":
@@ -1026,7 +1086,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					pierce,
 					Color("#f4dc94")
 				)
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
 			_play_sfx(SFX_FIRE)
 			return true
 		"shotgun":
@@ -1052,7 +1112,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 				"length": 74.0,
 				"color": Color("#f0a957"),
 			})
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
 			_play_sfx(SFX_FIRE)
 			return true
 		"aura":
@@ -1076,7 +1136,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					"color": Color("#d65b45"),
 				})
 			weapon["cycle"] = int(weapon.get("cycle", 0)) + 1
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]))
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
 			_play_sfx(SFX_FIRE)
 			return true
 	return false
@@ -1433,7 +1493,7 @@ func _update_spawning(delta: float) -> void:
 	_spawn_accum += rate * delta
 	while _spawn_accum >= 1.0:
 		_spawn_accum -= 1.0
-		if battlefield.alive_count() >= 460:
+		if battlefield.alive_count() >= battlefield.max_alive_enemies():
 			break
 		var enemy_id := _pick_weighted(phase.get("mix", []) as Array)
 		if not enemy_id.is_empty():
@@ -1503,7 +1563,7 @@ func _pick_weighted(mix: Array) -> String:
 
 
 func _on_player_hit(raw_damage: float) -> void:
-	if _invuln > 0.0 or _game_over:
+	if debug_invincible or _invuln > 0.0 or _game_over:
 		return
 	if _rng.randf() < float(player.get("dodge", 0.0)):
 		_invuln = 0.18
@@ -2134,6 +2194,24 @@ func _on_encounter_triggered(index: int) -> void:
 	_sync_gameplay_cursor()
 
 
+func _on_encounter_refreshed(index: int) -> void:
+	if index < 0 or index >= battlefield.encounter_sites.size():
+		return
+	var site := battlefield.encounter_sites[index]
+	var title := Locale.t(
+		"hud.encounter_refresh_good" if bool(site.get("good", true)) else "hud.encounter_refresh_bad"
+	)
+	hud.show_banner(title, GameData.loc(site, "title"), 2.2)
+	battlefield.add_effect({
+		"type": "aura",
+		"pos": site["pos"] as Vector2,
+		"ttl": 0.55,
+		"max_ttl": 0.55,
+		"radius": 78.0,
+		"color": Color("#78c78b") if bool(site.get("good", true)) else Color("#d06a54"),
+	})
+
+
 func _spawn_encounter_ambush(site: Dictionary) -> void:
 	var phase := _phase_at(elapsed)
 	var mix: Array = phase.get("mix", []) as Array
@@ -2387,6 +2465,7 @@ func _set_pause(paused: bool) -> void:
 
 func _release_attack() -> void:
 	_attack_held = false
+	_touch_attack_held = false
 	_attack_buffer = 0.0
 
 
