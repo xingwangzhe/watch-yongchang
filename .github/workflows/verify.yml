@@ -32,6 +32,7 @@ jobs:
         run: |
           bun run tools/sync_project_env.ts --check
           bun test tools/sync_project_env.test.ts
+          python3 tools/test_package_release.py
 
       - name: Retired unit paths and static.png must stay gone
         shell: bash
@@ -87,8 +88,9 @@ jobs:
           test "v${GAME_VERSION}" = "${GITHUB_REF_NAME}"
           echo "Tag ${GITHUB_REF_NAME} matches game version ${GAME_VERSION}."
 
-  linux-gut:
-    name: Linux GUT
+  gut:
+    name: GUT quality gate
+    needs: asset-guard
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -130,15 +132,70 @@ jobs:
 
       - name: Run GUT
         run: |
-          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+          set -o pipefail
+          mkdir -p ci-artifacts/gut
+          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit \
+            2>&1 | tee ci-artifacts/gut/gut.log
+
+      - name: Upload GUT log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gut-log
+          path: ci-artifacts/gut/gut.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  linux-platform:
+    name: Linux platform smoke
+    needs: gut
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GODOT_BIN: ${{ github.workspace }}/.tools/godot
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          if [ -z "$VERSION" ]; then
+            echo "game/.godot-version is empty" >&2
+            exit 1
+          fi
+          echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Godot
+        run: |
+          set -euo pipefail
+          mkdir -p .tools
+          curl -fL --retry 3 \
+            -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d .tools
+          mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          ACTUAL="$("$GODOT_BIN" --version)"
+          EXPECTED_BASE="${GODOT_VERSION%-*}"
+          EXPECTED_STATUS="${GODOT_VERSION#*-}"
+          echo "expected=${GODOT_VERSION} actual=${ACTUAL}"
+          if [[ "$ACTUAL" != "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]; then
+            echo "Godot binary does not match game/.godot-version" >&2
+            exit 1
+          fi
+
+      - name: Import project
+        run: timeout 300 "$GODOT_BIN" --headless --path game --import
 
       - name: Smoke test Linux launcher
         run: |
           WATCH_RENDERER=opengl GDA_GODOT="$GODOT_BIN" \
             timeout 60 ./game/launch.sh --headless --quit-after 2
 
-  windows-gut:
-    name: Windows GUT (native)
+  windows-platform:
+    name: Windows platform smoke (native)
+    needs: gut
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
@@ -190,14 +247,6 @@ jobs:
             exit $LASTEXITCODE
           }
 
-      - name: Run GUT
-        shell: pwsh
-        run: |
-          & $env:GODOT_BIN --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
-          if ($LASTEXITCODE -ne 0) {
-            exit $LASTEXITCODE
-          }
-
       - name: Smoke test Windows launcher
         shell: pwsh
         run: |
@@ -215,8 +264,9 @@ jobs:
             throw "Windows launcher did not select OpenGL."
           }
 
-  macos-gut:
-    name: macOS GUT (native)
+  macos-platform:
+    name: macOS platform smoke (native)
+    needs: gut
     runs-on: macos-latest
     timeout-minutes: 20
     env:
@@ -257,13 +307,14 @@ jobs:
         run: |
           "$GODOT_BIN" --headless --path game --import
 
-      - name: Run GUT
+      - name: Smoke test macOS runtime
         run: |
-          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit
+          WATCH_RENDERER=opengl GDA_GODOT="$GODOT_BIN" \
+            ./game/launch.sh --headless --quit-after 2
 
   web-engine:
     name: Web engine template
-    needs: asset-guard
+    needs: gut
     runs-on: ubuntu-latest
     timeout-minutes: 70
     steps:
@@ -298,7 +349,7 @@ jobs:
   web-build:
     name: Web build
     needs:
-      - asset-guard
+      - gut
       - web-engine
     runs-on: ubuntu-latest
     timeout-minutes: 40

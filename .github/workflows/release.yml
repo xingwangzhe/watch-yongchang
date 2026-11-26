@@ -30,6 +30,7 @@ jobs:
         run: |
           bun run tools/sync_project_env.ts --check
           bun test tools/sync_project_env.test.ts
+          python3 tools/test_package_release.py
 
       - name: Verify tag matches game version
         run: |
@@ -66,9 +67,63 @@ jobs:
       - name: Dora compatibility check
         run: python3 dora/build.py --check
 
+  gut:
+    name: GUT quality gate
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GODOT_BIN: ${{ github.workspace }}/.tools/godot
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          test -n "$VERSION"
+          echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Godot
+        run: |
+          set -euo pipefail
+          mkdir -p .tools
+          curl -fL --retry 3 \
+            -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
+          mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          ACTUAL="$("$GODOT_BIN" --version)"
+          EXPECTED_BASE="${GODOT_VERSION%-*}"
+          EXPECTED_STATUS="${GODOT_VERSION#*-}"
+          echo "expected=${GODOT_VERSION} actual=${ACTUAL}"
+          if [[ "$ACTUAL" != "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]; then
+            echo "Godot binary does not match game/.godot-version" >&2
+            exit 1
+          fi
+
+      - name: Import project
+        run: timeout 300 "$GODOT_BIN" --headless --path game --import
+
+      - name: Run GUT
+        run: |
+          set -o pipefail
+          mkdir -p ci-artifacts/gut
+          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit \
+            2>&1 | tee ci-artifacts/gut/gut.log
+
+      - name: Upload GUT log
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-gut
+          path: ci-artifacts/gut/gut.log
+          if-no-files-found: error
+          retention-days: 14
+
   web-engine:
     name: Web engine template
-    needs: validate
+    needs: gut
     runs-on: ubuntu-latest
     timeout-minutes: 70
     steps:
@@ -102,7 +157,7 @@ jobs:
 
   linux:
     name: Linux export
-    needs: validate
+    needs: gut
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -149,12 +204,6 @@ jobs:
       - name: Import project
         run: timeout 300 "$GODOT_BIN" --headless --path game --import
 
-      - name: Run GUT
-        run: |
-          set -o pipefail
-          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit \
-            2>&1 | tee "$RUNNER_TEMP/gut-linux.log"
-
       - name: Export Linux
         run: |
           set -euo pipefail
@@ -162,7 +211,6 @@ jobs:
           "$GODOT_BIN" --headless --path game --export-release Linux
           cp game/build/linux/watch-yongchang.x86_64 ci-artifacts/linux/watch-yongchang-linux.x86_64
           cp game/build/linux/watch-yongchang.pck ci-artifacts/linux/watch-yongchang-linux.pck
-          cp "$RUNNER_TEMP/gut-linux.log" ci-artifacts/linux/gut.log
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
@@ -174,7 +222,7 @@ jobs:
 
   windows:
     name: Windows export
-    needs: validate
+    needs: gut
     runs-on: windows-latest
     timeout-minutes: 45
     steps:
@@ -241,13 +289,20 @@ jobs:
           & $env:GODOT_BIN --headless --path game --import
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-      - name: Run GUT
+      - name: Smoke test Windows launcher
         shell: pwsh
         run: |
-          $output = & $env:GODOT_BIN --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit 2>&1
+          $env:WATCH_GODOT = $env:GODOT_BIN
+          $env:WATCH_RENDERER = "opengl"
+          $env:WATCH_SETTINGS_PATH = Join-Path $env:RUNNER_TEMP "watch-yongchang-renderer.cfg"
+          $output = cmd.exe /d /c "game\launch.bat --headless --quit-after 2" 2>&1
           $exitCode = $LASTEXITCODE
-          $output | Tee-Object -FilePath "$env:RUNNER_TEMP\gut-windows.log"
+          $output | Write-Output
           if ($exitCode -ne 0) { exit $exitCode }
+          $joined = $output -join "`n"
+          if ($joined -notmatch "\[launch\] renderer=opengl") {
+            throw "Windows launcher did not select OpenGL."
+          }
 
       - name: Export Windows
         shell: pwsh
@@ -258,7 +313,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Copy-Item game/build/windows/watch-yongchang.exe ci-artifacts/windows/watch-yongchang-windows.exe -Force
           Copy-Item game/build/windows/watch-yongchang.pck ci-artifacts/windows/watch-yongchang-windows.pck -Force
-          Copy-Item "$env:RUNNER_TEMP\gut-windows.log" ci-artifacts/windows/gut.log -Force
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
@@ -270,7 +324,7 @@ jobs:
 
   macos:
     name: macOS export
-    needs: validate
+    needs: gut
     runs-on: macos-latest
     timeout-minutes: 45
     env:
@@ -319,11 +373,10 @@ jobs:
         run: |
           "$GODOT_BIN" --headless --path game --import
 
-      - name: Run GUT
+      - name: Smoke test macOS runtime
         run: |
-          set -o pipefail
-          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit \
-            2>&1 | tee "$RUNNER_TEMP/gut-macos.log"
+          WATCH_RENDERER=opengl GDA_GODOT="$GODOT_BIN" \
+            ./game/launch.sh --headless --quit-after 2
 
       - name: Export macOS
         run: |
@@ -331,7 +384,6 @@ jobs:
           mkdir -p game/build/macos ci-artifacts/macos
           "$GODOT_BIN" --headless --path game --export-release macOS
           cp game/build/macos/watch-yongchang.zip ci-artifacts/macos/watch-yongchang.zip
-          cp "$RUNNER_TEMP/gut-macos.log" ci-artifacts/macos/gut.log
 
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
@@ -344,7 +396,7 @@ jobs:
   web:
     name: Web export
     needs:
-      - validate
+      - gut
       - web-engine
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -402,35 +454,37 @@ jobs:
       - name: Install build dependencies
         run: bun install --frozen-lockfile
 
-      - name: Run GUT
-        run: |
-          set -o pipefail
-          "$GODOT_BIN" --headless --path game -s addons/gut/gut_cmdln.gd -gdir=res://tests/unit -gexit \
-            2>&1 | tee "$RUNNER_TEMP/gut-web.log"
-
-      - name: Export Web
+      - name: Export Web and run Web checks
         run: |
           set -euo pipefail
           mkdir -p game/build/web ci-artifacts/web/site
-          "$GODOT_BIN" --headless --path game --export-release Web
-          for file in index.html index.js index.wasm index.pck; do
-            test -s "game/build/web/$file"
-          done
-          grep -q 'const GODOT_THREADS_ENABLED = false;' game/build/web/index.html
-          grep -q '"ensureCrossOriginIsolationHeaders":false' game/build/web/index.html
-          LIMIT=$((25 * 1024 * 1024))
-          for file in index.wasm index.pck; do
-            SIZE="$(stat -c '%s' "game/build/web/$file")"
-            echo "$file bytes=$SIZE limit=$LIMIT"
-            test "$SIZE" -lt "$LIMIT"
-          done
-          find game/build/web -name '*.import' -delete
-          bun run tools/enhance_web_export.ts
-          test -s game/build/web/social-card.png
-          test -s game/build/web/icon-512.png
-          grep -q 'property="og:title"' game/build/web/index.html
+          CHECK_LOG="$RUNNER_TEMP/web-build-check.log"
+          {
+            "$GODOT_BIN" --headless --path game --export-release Web
+            for file in index.html index.js index.wasm index.pck; do
+              test -s "game/build/web/$file"
+              echo "asset=$file bytes=$(stat -c '%s' "game/build/web/$file")"
+            done
+            grep -q 'const GODOT_THREADS_ENABLED = false;' game/build/web/index.html
+            echo "threads=false"
+            grep -q '"ensureCrossOriginIsolationHeaders":false' game/build/web/index.html
+            echo "cross_origin_isolation_required=false"
+            LIMIT=$((25 * 1024 * 1024))
+            for file in index.wasm index.pck; do
+              SIZE="$(stat -c '%s' "game/build/web/$file")"
+              echo "$file bytes=$SIZE limit=$LIMIT"
+              test "$SIZE" -lt "$LIMIT"
+            done
+            find game/build/web -name '*.import' -delete
+            bun run tools/enhance_web_export.ts
+            test -s game/build/web/social-card.png
+            test -s game/build/web/icon-512.png
+            grep -q 'property="og:title"' game/build/web/index.html
+            echo "social_metadata=pass"
+            echo "WEB_BUILD_CHECKS_OK"
+          } 2>&1 | tee "$CHECK_LOG"
+          cp "$CHECK_LOG" ci-artifacts/web/build-check.log
           cp -a game/build/web/. ci-artifacts/web/site/
-          cp "$RUNNER_TEMP/gut-web.log" ci-artifacts/web/gut.log
 
       - name: Upload Web artifact
         uses: actions/upload-artifact@v4
@@ -518,6 +572,7 @@ jobs:
   publish:
     name: Audit and publish
     needs:
+      - gut
       - linux
       - windows
       - macos
@@ -529,6 +584,12 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Download GUT log
+        uses: actions/download-artifact@v4
+        with:
+          name: release-gut
+          path: ci-artifacts/gut
 
       - name: Download Linux artifact
         uses: actions/download-artifact@v4
@@ -589,6 +650,7 @@ jobs:
             echo "- Commit: \`$(jq -r .commit "$REPORT")\`"
             echo "- Godot: \`$(jq -r .godot_version "$REPORT")\`"
             echo "- GUT: \`$(jq -r '.tests.tests') / $(jq -r '.tests.tests') passed, $(jq -r '.tests.asserts') asserts\`"
+            echo "- Web checks: \`$(jq -r '.web_checks.passed' "$REPORT")\` ($(jq -r '.web_checks.log' "$REPORT"))"
             echo "- Web: $(jq -r '.web.url' "$REPORT")"
             echo ""
             echo "| Artifact | Bytes | SHA-256 |"
@@ -624,7 +686,7 @@ jobs:
           NOTES="$(printf '%s\n' \
             "《守望 · 永昌》${GITHUB_REF_NAME}。" \
             "" \
-            "Linux、Windows、macOS 与 Web 在 GitHub Actions 上按操作系统并行构建，完成 GUT、PCK/ZIP 审计、Linux 发行版 smoke 与 Web 静态产物检查。" \
+            "GUT 作为单次前置质量门禁；Linux、Windows、macOS 与 Web 随后独立构建，保留 Windows 原生 smoke、PCK/ZIP 审计、Linux 发行版 smoke 与 Web 静态检查。" \
             "Web 版已并行部署至 EdgeOne Makers 与 Cloudflare Pages；生产入口：https://2026shouwang.needhelp.icu")"
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release upload "$GITHUB_REF_NAME" "${FILES[@]}" --clobber

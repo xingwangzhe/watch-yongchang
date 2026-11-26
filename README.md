@@ -2,7 +2,7 @@
 
 《守望 · 永昌》是一款以明代沿海卫所文化为背景的 2D 割草生存 Roguelite，参加 2026 OSGJ 开源游戏开发大赛。玩家扮演虚构守灯乡勇王陆，在永昌堡度过 16 分钟守夜：移动、自动或手动攻击、升级三选一、管理灯火风险，并抵御敌兵与 Boss。
 
-当前游戏版本为 **`1.1.0`**；公开 Release 资产由 `v1.1.0` 标签的 CI 重新构建。
+当前游戏版本为 **`1.2.0`**；公开 Release 资产由 `v1.2.0` 标签的 CI 重新构建。
 
 当前版本包含三张地图、王陆六种守夜阵位、七种兵器与十二种被动、箭塔连发/并发与塔内经验、外围奇遇、RTS 式流场寻路、双堡玩法图鉴、双语界面与字幕、首次游玩教程及完整结算流程。敌兵、精英与 Boss 在运行时抽取随机配装；CharacterForge 提供 3 种马与 6 个骑手动作条带。1386 年汤和序章与 1559 年王陆正篇分开叙事；六张选择卡是阵位，不是六名独立人物。
 
@@ -43,9 +43,8 @@
 - **原创资产许可**：CC BY 4.0，见 [`LICENSE-CC-BY-4.0.txt`](LICENSE-CC-BY-4.0.txt)；
   第三方素材保留原许可，逐项来源见 [`素材授权清单.csv`](素材授权清单.csv)。
 - **AI 使用声明**：见 [`AI使用与素材声明.md`](AI使用与素材声明.md)。
-- **公开构建与在线版**：GitHub Actions 按 Linux、Windows、macOS、Web 并行验证；
-  `main` 的 Web 构建部署到 <https://2026shouwang.needhelp.icu>。已核验的四平台全绿记录见
-  [Verify #45594130561](https://github.com/xingwangzhe/watch-yongchang/actions/runs/45594130561)。
+- **公开构建与在线版**：GitHub Actions 先串行运行单次 GUT 质量门禁，再并行验证 Linux、Windows、macOS 与 Web；
+  `main` 的 Web 构建部署到 <https://2026shouwang.needhelp.icu>。最近一次全绿记录以 Actions 页面为准。
 - **开发者日志**：三篇公开日志见下方“文档”列表。
 
 ## 快速运行
@@ -108,7 +107,7 @@ Dora 只保留源码兼容与静态检查，不作为 GitHub Release 发布路�
 bun run verify:env
 ```
 
-测试框架为 GUT 9.7.1。当前 Linux 基线为 **189 tests / 189 passed / 50518 asserts**。CI 并行执行 Linux、Windows、macOS GUT 与 Web 构建；Windows 原生结果以 CI 为准，Wine 仅作本地预检。
+测试框架为 GUT 9.7.1。最近基线为 **221 tests / 221 passed / 75850 asserts**。CI 只运行一次 Linux GUT 作为前置质量门禁；Linux、Windows、macOS 平台任务只做导入、导出与启动 smoke，Web 构建与静态检查单独执行。Windows 原生结果以 CI 为准，Wine 仅作本地预检。
 
 `main` 分支的 Web 构建会以单线程模式导出，并并行部署至 Cloudflare Pages 项目
 `shouwang` 与 EdgeOne Makers 镜像。自定义域名 <https://2026shouwang.needhelp.icu>
@@ -120,8 +119,8 @@ Cloudflare Pages 与 EdgeOne 自动压缩传输。
 
 推送 `v*.*.*` 标签会触发 `.github/workflows/release.yml`：工作流校验标签与根
 `.env` 的 `APP_VERSION` 一致；`game/project.godot` 等文件由该配置生成，提交前用
-`bun run env:check` 可提前发现版本漂移。随后按操作系统并行执行
-Linux、Windows、macOS、Web 四个构建作业，每个平台都运行 GUT 并导出原生产物。汇总作业
+`bun run env:check` 可提前发现版本漂移。随后先串行执行一次 GUT 质量门禁，再并行执行
+Linux、Windows、macOS 原生导出与独立 Web 构建；平台作业不再重复运行 GUT。汇总作业
 执行 PCK/ZIP/许可证审计、Linux 发行版 smoke、Web 静态产物检查与 EdgeOne / Cloudflare
 Pages 并行部署，最后通过 GitHub CLI 创建 GitHub Release。发布包包含 Linux / Windows
 可执行文件及外部 PCK、macOS
@@ -155,7 +154,7 @@ Release 发布。
 
 ## 尚未完成的外部验收
 
-Windows 原生 CI 与 macOS 原生 GUT 已通过；macOS 发行包实机运行、公开仓库
+Windows 与 macOS 原生 smoke 由 CI 保留；macOS 发行包实机运行、公开仓库
 Release 页面重建、AtomGit 仓库与提交标识、原子派社区 20 个点赞及赛事互评仍需
 对应平台或账号操作，不能由本地构建结果推定完成。赛事提交要求 AtomGit 仓库；
 当前 GitHub 仓库不能替代该提交入口。Dora 兼容运行不再是普通发行门槛，但申请

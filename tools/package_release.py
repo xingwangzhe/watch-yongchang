@@ -15,8 +15,8 @@ sys.path.insert(0, str(TOOLS))
 import release as r
 
 
-PLATFORMS = ("linux", "windows", "macos", "web")
 WEB_REQUIRED = ("index.html", "index.js", "index.wasm", "index.pck")
+WEB_CHECK_MARKER = "WEB_BUILD_CHECKS_OK"
 
 
 def require_file(path: Path) -> None:
@@ -25,20 +25,27 @@ def require_file(path: Path) -> None:
 
 
 def read_tests(root: Path) -> dict:
-    platforms = {}
-    for platform in PLATFORMS:
-        log = root / platform / "gut.log"
-        require_file(log)
-        summary = r.parse_gut_summary(log.read_text(encoding="utf-8", errors="replace"))
-        if not summary["passed"]:
-            raise RuntimeError(f"{platform} GUT failed: {summary}")
-        platforms[platform] = summary
-    counts = {(value["tests"], value["asserts"]) for value in platforms.values()}
-    if len(counts) != 1:
-        raise RuntimeError(f"platform GUT summaries differ: {platforms}")
-    result = dict(platforms["linux"])
-    result["platforms"] = platforms
-    return result
+    log = root / "gut" / "gut.log"
+    require_file(log)
+    summary = r.parse_gut_summary(log.read_text(encoding="utf-8", errors="replace"))
+    if not summary["passed"]:
+        raise RuntimeError(f"GUT quality gate failed: {summary}")
+    summary["runner"] = "single GUT quality gate (Linux)"
+    summary["log"] = "gut/gut.log"
+    return summary
+
+
+def read_web_checks(root: Path) -> dict:
+    log = root / "web" / "build-check.log"
+    require_file(log)
+    text = log.read_text(encoding="utf-8", errors="replace")
+    if WEB_CHECK_MARKER not in text:
+        raise RuntimeError(f"Web build checks did not report {WEB_CHECK_MARKER}: {log}")
+    return {
+        "passed": True,
+        "log": "web/build-check.log",
+        "marker": WEB_CHECK_MARKER,
+    }
 
 
 def copy_artifacts(root: Path, output: Path) -> None:
@@ -158,7 +165,12 @@ CC0 或 CC BY 4.0；第三方内容、字体和运行库保留各自许可。范
 
 
 def write_build_report(
-    output: Path, tests: dict, commit: str, game_version: str, godot_version: str
+    output: Path,
+    tests: dict,
+    web_checks: dict,
+    commit: str,
+    game_version: str,
+    godot_version: str,
 ) -> None:
     rows = [
         "# CI 发布构建报告",
@@ -166,24 +178,23 @@ def write_build_report(
         f"- 版本：`v{game_version}`",
         f"- 提交：`{commit}`",
         f"- Godot：`{godot_version}`",
-        f"- GUT：**{tests['tests']} / {tests['tests']} passed / {tests['asserts']} asserts**",
-        "- 构建拓扑：Linux、Windows、macOS、Web 四个平台作业并行执行。",
+        f"- GUT（单次前置门禁）：**{tests['tests']} / {tests['tests']} passed / {tests['asserts']} asserts**",
+        f"- Web 构建检查：**PASS**（`{web_checks['log']}`）",
+        "- 构建拓扑：GUT 先串行通过；Linux、Windows、macOS 与 Web 构建作业再依赖该门禁独立执行，不重复运行 GUT。",
         "",
-        "| 平台 | GUT | 结果 |",
-        "|---|---:|---|",
+        "| 门禁 / 平台检查 | 结果 | 日志 |",
+        "|---|---|---|",
+        f"| GUT 单次前置门禁 | {tests['tests']} / {tests['tests']} PASS | `{tests['log']}` |",
+        f"| Web 构建静态检查 | PASS | `{web_checks['log']}` |",
     ]
-    for platform, summary in tests["platforms"].items():
-        rows.append(
-            f"| {platform} | {summary['tests']} / {summary['tests']} | PASS |"
-        )
     rows.extend(["", "| 检查 | 结果 |", "|---|---|"])
     for name, value in r.RESULTS["checks"].items():
         rows.append(f"| `{name}` | {'PASS' if value.get('passed') else 'FAIL'} |")
     rows.extend(
         [
             "",
-            "发布流程执行四平台原生导出、PCK v4 内容/MD5/法律文件审计、ZIP CRC/路径/敏感文件名审计、",
-            "Linux 发行版启动 smoke、Web 单线程静态产物检查与哈希清单。",
+            "发布流程执行四平台原生导出、Windows 原生 smoke、PCK v4 内容/MD5/法律文件审计、",
+            "ZIP CRC/路径/敏感文件名审计、Linux 发行版启动 smoke、Web 单线程静态检查与哈希清单。",
             "Web 产物由 GitHub Actions 使用 `EDGEONE_API_TOKEN` 部署到 EdgeOne Makers 项目 `shouwang`。",
             "",
         ]
@@ -237,6 +248,9 @@ def main() -> int:
     tests = read_tests(root)
     r.RESULTS["tests"] = tests
     r.save_results(output)
+    web_checks = read_web_checks(root)
+    r.RESULTS["web_checks"] = web_checks
+    r.save_results(output)
 
     copy_artifacts(root, output)
 
@@ -271,7 +285,7 @@ def main() -> int:
     )
 
     write_readme(output, commit, godot_version, game_version)
-    write_build_report(output, tests, commit, game_version, godot_version)
+    write_build_report(output, tests, web_checks, commit, game_version, godot_version)
     legal = r.legal_entries(output)
     stored = {".exe", ".x86_64", ".pck", ".zip", ".png", ".jpg", ".jpeg", ".ogg", ".ttf", ".woff2"}
     common_required = (
@@ -321,7 +335,7 @@ def main() -> int:
             "watch-yongchang/dora/init.lua",
         ),
     )
-    write_build_report(output, tests, commit, game_version, godot_version)
+    write_build_report(output, tests, web_checks, commit, game_version, godot_version)
 
     r.RESULTS["processes_after_cleanup"] = r.process_snapshot()
     r.RESULTS["finished_at"] = r.now()
@@ -346,13 +360,14 @@ def main() -> int:
     ]
     records = [r.artifact_record(output / name, "release") for name in artifact_names]
     manifest = {
-        "schema_version": 3,
+        "schema_version": 4,
         "project": "守望 · 永昌 / Watch of Yongchang",
         "generated_at": r.RESULTS["finished_at"],
         "commit": commit,
         "game_version": game_version,
         "godot_version": godot_version,
         "tests": tests,
+        "web_checks": web_checks,
         "artifacts": records,
         "web": {
             "platform": "EdgeOne Makers",

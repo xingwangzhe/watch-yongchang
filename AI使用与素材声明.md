@@ -5,7 +5,7 @@
 | 作品 | 《守望 · 永昌》 / Watch of Yongchang |
 | 作者 | xingwangzhe |
 | 联系方式 | xingwangzhe@outlook.com |
-| 版本 | 1.1.0 |
+| 版本 | 1.2.0 |
 | 声明更新 | 2026-11-26 |
 | 赛事 | 2026 OSGJ 开源游戏开发大赛 |
 | 代码许可 | AGPL-3.0-or-later |

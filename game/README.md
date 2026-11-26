@@ -1,6 +1,6 @@
 # game/ — Godot 工程
 
-状态（2026-11-26）：v1.1.0 骑兵、RTS 寻路与 Web About 基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
+状态（2026-11-26）：v1.2.0 骑兵、RTS 寻路与 Web About 基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
 3 张地图、7 兵器/12 被动、16 分钟完整胜利流程、双堡图鉴、结算解锁、灯火风险收益、
 龙鳞清屏、Boss 与双语定时字幕已接入；未核实输出授权的 MOSS-TTS-Nano 语音已停止分发。
 三选一卡池扩至 51 属性 / 38 技能 / 22 事件 / 32 箭塔，共 143 张来源可追溯的卡牌，并接入 101 个
@@ -133,8 +133,8 @@ game\launch.bat
   角色图集与瓦片图集、143 张卡的双语/来源/图标完整性、149+ 条目规模、
   三选一唯一性、减速/灼烧/眩晕/收魂、选项卡渲染、事件结算、
   触屏巡灯语言、敌兵组合配方与批渲染方向、引擎补丁版本与 `.godot-version` 一致性。
-- 最近一次 Linux 基线：**189 tests / 189 passed / 50518 asserts**（Godot 4.7.2-stable）。
-  Windows 原生 GUT 与启动器 smoke test 仍由 CI 复验。
+- 最近一次 Linux 基线：**221 tests / 221 passed / 75850 asserts**（Godot 4.7.2-stable）。
+  CI 只在 Linux 运行一次 GUT 前置门禁；Windows 与 macOS 平台任务负责原生导入、导出与启动 smoke。
 - 敌兵外观由 `game/data/enemies.json` 的 `character_recipe` 驱动，
   `pixel-art/character_forge/bake_battle_sprites.py` 从裸体基底、服装、头饰、
   背挂、主副手图集烘焙 8 帧行走条；战斗仍按 MultiMesh 批次绘制。
@@ -143,8 +143,9 @@ game\launch.bat
   `static.png` 角色，旧兵种目录已删除。
 - 16 分钟无头平衡跑测入口：`tests/balance/balance_bot.gd`；运行日志属于本地临时产物，
   不随公开仓库分发。
-- CI 使用 `ubuntu-latest` 与原生 `windows-latest` 两套 GUT；Windows 任务直接运行
-  Godot win64，不使用 Wine。本地 Wine 11 + Godot 4.7.2-stable 仅作额外预检，
+- CI 使用 `ubuntu-latest` 的单次 GUT 前置门禁；原生 `windows-latest` 只运行导入与
+  launcher smoke，不重复跑 GUT。Windows 任务直接运行 Godot win64，不使用 Wine。
+  本地 Wine 11 + Godot 4.7.2-stable 仅作额外预检，
   已验证 `auto`、`opengl` 与镜像配置读取。
 - 数据与平衡模拟走 Bun + TypeScript，不启动引擎。
 - 版本与元数据漂移检查：`bun run verify:env`。
@@ -183,7 +184,7 @@ game\launch.bat
 ## 导出
 
 四平台预设已写入 `export_presets.cfg`。2026-11-23 的旧忽略产物早于音频/许可整改，
-在重新导出与复查前不得分发。当前版本为 `1.1.0`；重建与审计结果记录在
+在重新导出与复查前不得分发。当前版本为 `1.2.0`；重建与审计结果记录在
 GitHub Actions 的 `release.yml` 构建报告中。GitHub Release 只由 `v*.*.*` 标签触发
 `.github/workflows/release.yml` 生成。
 历史验收记录：
@@ -213,7 +214,7 @@ CLI 运行方式、可选 PCK 流程、平台运行库与许可范围见 `../DOR
 
 ## 下一步
 
-1. 补 Windows 原生 GUT 与启动器 smoke test，确认新增 M3 内容跨平台。
+1. 保持 Windows 原生启动 smoke test，确认新增 M3 内容跨平台。
 2. 在正常唤醒的原生桌面复测 400–460 敌人；当前已把压力场景 draw calls 从 930 降到 14，
    但本机会话被显示器/合成器限到约 1 帧/秒，绝对 FPS 仍需实机复测。
 3. 在原生 Windows 与 macOS 上跑构建启动 smoke test；Windows 任务仍以 CI 为准。
