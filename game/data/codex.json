@@ -1,8 +1,95 @@
 {
-  "title_zh": "双堡对照 · 汤和与永昌堡",
-  "title_en": "Two Forts · Tang He and Yongchang",
-  "subtitle_zh": "汤和布网，王德过桥，王叔杲筑堡，守灯人点灯。",
-  "subtitle_en": "Tang He cast the net, Wang De crossed the bridge, Wang Shugao built the fort, and the lamp-watch lit the flame.",
+  "title_zh": "守望图鉴",
+  "title_en": "Watch Codex",
+  "subtitle_zh": "阵位、装备、兵器、敌情与奇遇，一页备战。",
+  "subtitle_en": "Posts, gear, weapons, threats, and encounters for the next watch.",
+  "tab_order": ["cards", "equipment", "weapons", "enemies", "maps", "history"],
+  "card_order": ["wanglu", "amei", "ashi", "achong", "agong", "aqi"],
+  "mercenary_order": [
+    "yishi_spear",
+    "yishi_archer",
+    "tengpai_militia",
+    "bird_gunner",
+    "standard_bearer",
+    "qijia_guest",
+    "wangpei_spirit",
+    "wangde_spirit"
+  ],
+  "enemy_order": ["scout", "ronin", "shield", "gun", "archer", "banner", "general", "daimyo"],
+  "weapon_order": ["saber", "spear", "bow", "musket", "dragon_lantern", "cannon", "banner"],
+  "map_order": ["tideland", "watergate", "crossstreet"],
+  "enemy_tips": {
+    "scout": {
+      "tip_zh": "数量多、生命低；用范围与穿透兵器压住第一波。",
+      "tip_en": "Many and fragile; area and piercing weapons control the opening wave."
+    },
+    "ronin": {
+      "tip_zh": "中速近战，常混在斥候后推进；保持侧向移动，别被包夹。",
+      "tip_en": "Medium-speed melee that follows the scouts; keep sidestepping so they cannot surround you."
+    },
+    "shield": {
+      "tip_zh": "有 18% 减伤且移动慢；用击退、穿透和灼烧磨开盾线。",
+      "tip_en": "Slow with 18% damage reduction; wear the shield line down with knockback, pierce, and burn."
+    },
+    "gun": {
+      "tip_zh": "近距离单发火铳，横向移动即可躲开；贴近后它装填很慢。",
+      "tip_en": "A single close-range shot: strafe to dodge it, then close while it reloads."
+    },
+    "archer": {
+      "tip_zh": "射程最远；优先借掩体贴近，先清远程再收近战。",
+      "tip_en": "Longest reach; use cover to close in and clear the ranged line before the melee."
+    },
+    "banner": {
+      "tip_zh": "携带支援光环，优先击杀；旗倒后周围压力会明显下降。",
+      "tip_en": "A support aura makes it a priority target; the pressure drops when the banner falls."
+    },
+    "general": {
+      "tip_zh": "2:00 起随龙鳞事件出现；冲锋前横向位移，别沿直线后退。",
+      "tip_en": "Appears with the 2:00 dragon-scale event; sidestep the charge instead of backing away in a straight line."
+    },
+    "daimyo": {
+      "tip_zh": "15:30 Boss，高血高伤；保留龙鳞清屏与爆发，绕背躲冲锋。",
+      "tip_en": "The 15:30 boss: high health and damage. Save a dragon-scale clear and burst, and circle behind its charge."
+    }
+  },
+  "map_tips": {
+    "tideland": {
+      "tip_zh": "开阔滩涂，潮沟会切割追击线；适合绕行拉怪，但不要在浅水区停步。",
+      "tip_en": "Open flats and tidal cuts break pursuit lines; kite around them, but never stop in the shallows."
+    },
+    "watergate": {
+      "tip_zh": "水门与桥面形成瓶颈；把敌潮拉进窄口，再用范围兵器收割。",
+      "tip_en": "Water gates and bridges form chokepoints; draw the tide into a narrow mouth and harvest with area weapons."
+    },
+    "crossstreet": {
+      "tip_zh": "敌血与敌速更高，刷新反而更少；沿十字主街机动，别在巷口被合围。",
+      "tip_en": "Enemies are faster and tougher but spawn less often; move along the crossroads and avoid being boxed in at lane mouths."
+    }
+  },
+  "encounter_tones": {
+    "night_patrol_event": "risk",
+    "sea_offering": "mixed",
+    "smugglers_cache": "risk",
+    "beacon_fire": "risk",
+    "broken_wall": "mixed",
+    "refugee_crowd": "mixed",
+    "oath_at_dawn": "mixed",
+    "five_dragon_blessing": "mixed",
+    "ancestral_dream": "mixed",
+    "pirate_tide": "risk",
+    "typhoon": "mixed",
+    "plague": "risk",
+    "black_market": "mixed",
+    "temple_fire": "mixed",
+    "missing_soldier": "risk",
+    "iron_oath": "mixed",
+    "lantern_offering": "mixed",
+    "fish_goddess": "boon",
+    "tide_tablet": "mixed",
+    "old_map": "risk",
+    "widow_thread": "mixed",
+    "dawn_bell": "boon"
+  },
   "facts_zh": [
     "宁村所与永昌堡相隔一百七十余年，同守浙南沿海。",
     "汤和巡海筑所、王德移师殉国、王氏聚族筑堡，串起两堡记忆。",
