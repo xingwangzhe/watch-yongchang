@@ -1,0 +1,359 @@
+{
+  "version": 1,
+  "weapon_gameplay_map": {
+    "dao": "saber",
+    "jian": "saber",
+    "gou": "saber",
+    "qijia_dao": "saber",
+    "wokou_dao": "saber",
+    "fu": "saber",
+    "yue": "saber",
+    "qiang": "spear",
+    "ji": "spear",
+    "langxian": "spear",
+    "tangpa": "spear",
+    "cha": "spear",
+    "gong": "bow",
+    "nu": "bow",
+    "niaochong": "musket",
+    "longdeng": "dragon_lantern",
+    "lingqi": "banner",
+    "dun": "saber",
+    "tengpai": "saber"
+  },
+  "tiers": {
+    "normal": {
+      "exclusive_multiplier": 0.32,
+      "offhand_chance": 0.58,
+      "role_weights": {
+        "infantry": 55,
+        "ranged": 30,
+        "cavalry": 15
+      },
+      "cavalry_melee_weight": 68,
+      "cavalry_ranged_weight": 32,
+      "rarity_weights": {
+        "common": 72,
+        "veteran": 24,
+        "elite": 4,
+        "boss": 0.01
+      },
+      "visual_rarity_weights": {
+        "common": 78,
+        "veteran": 19,
+        "elite": 2.9,
+        "boss": 0.1
+      }
+    },
+    "elite": {
+      "exclusive_multiplier": 1.55,
+      "offhand_chance": 0.72,
+      "role_weights": {
+        "infantry": 35,
+        "ranged": 30,
+        "cavalry": 35
+      },
+      "cavalry_melee_weight": 62,
+      "cavalry_ranged_weight": 38,
+      "rarity_weights": {
+        "common": 0,
+        "veteran": 48,
+        "elite": 48,
+        "boss": 4
+      },
+      "visual_rarity_weights": {
+        "common": 18,
+        "veteran": 48,
+        "elite": 29,
+        "boss": 5
+      }
+    },
+    "boss": {
+      "exclusive_multiplier": 2.65,
+      "offhand_chance": 0.86,
+      "role_weights": {
+        "infantry": 22,
+        "ranged": 28,
+        "cavalry": 50
+      },
+      "cavalry_melee_weight": 58,
+      "cavalry_ranged_weight": 42,
+      "rarity_weights": {
+        "common": 0,
+        "veteran": 0,
+        "elite": 60,
+        "boss": 40
+      },
+      "visual_rarity_weights": {
+        "common": 3,
+        "veteran": 16,
+        "elite": 50,
+        "boss": 31
+      }
+    }
+  },
+  "mounts": {
+    "ming": [
+      {
+        "id": "ming_bay",
+        "name_zh": "明军枣骝马",
+        "name_en": "Ming Bay Warhorse",
+        "rarity": "common",
+        "tint": "#8b4f33",
+        "motions": ["walk", "trot", "gallop"]
+      },
+      {
+        "id": "ming_grey",
+        "name_zh": "明军青骢马",
+        "name_en": "Ming Grey Charger",
+        "rarity": "veteran",
+        "tint": "#777f86",
+        "motions": ["walk", "trot", "gallop"]
+      },
+      {
+        "id": "ming_white",
+        "name_zh": "明军白义马",
+        "name_en": "Ming White Steed",
+        "rarity": "elite",
+        "tint": "#d6d0bd",
+        "motions": ["trot", "gallop", "charge"]
+      },
+      {
+        "id": "ming_black_banner",
+        "name_zh": "明军玄甲麾骑",
+        "name_en": "Ming Black-Banner Rider",
+        "rarity": "boss",
+        "tint": "#34383b",
+        "motions": ["gallop", "charge", "rear"]
+      }
+    ],
+    "wokou": [
+      {
+        "id": "wokou_dun",
+        "name_zh": "倭寇栗毛驮马",
+        "name_en": "Wokou Chestnut Nag",
+        "rarity": "common",
+        "tint": "#765039",
+        "motions": ["walk", "trot", "gallop"]
+      },
+      {
+        "id": "wokou_salt",
+        "name_zh": "倭寇灰潮马",
+        "name_en": "Wokou Salt-Tide Horse",
+        "rarity": "veteran",
+        "tint": "#77736c",
+        "motions": ["trot", "gallop", "charge"]
+      },
+      {
+        "id": "wokou_oni",
+        "name_zh": "倭寇鬼面黑马",
+        "name_en": "Wokou Oni-Mask Black",
+        "rarity": "elite",
+        "tint": "#302b2a",
+        "motions": ["gallop", "charge", "rear"]
+      },
+      {
+        "id": "wokou_daimyo",
+        "name_zh": "大名紫鞍军马",
+        "name_en": "Daimyo Purple-Saddle Charger",
+        "rarity": "boss",
+        "tint": "#57405f",
+        "motions": ["charge", "rear", "gallop"]
+      }
+    ],
+    "neutral": [
+      {
+        "id": "neutral_mule",
+        "name_zh": "乡勇役马",
+        "name_en": "Militia Packhorse",
+        "rarity": "common",
+        "tint": "#8a7459",
+        "motions": ["walk", "trot", "gallop"]
+      },
+      {
+        "id": "neutral_piebald",
+        "name_zh": "杂色民马",
+        "name_en": "Piebald Farm Horse",
+        "rarity": "veteran",
+        "tint": "#a3957d",
+        "motions": ["trot", "gallop", "rear"]
+      }
+    ]
+  },
+  "visuals": {
+    "palettes": [
+      {
+        "id": "salt_field",
+        "rarity": "common",
+        "tint": "#b9af96"
+      },
+      {
+        "id": "river_dusk",
+        "rarity": "common",
+        "tint": "#73818f"
+      },
+      {
+        "id": "ember_night",
+        "rarity": "veteran",
+        "tint": "#a64b38"
+      },
+      {
+        "id": "moon_jade",
+        "rarity": "veteran",
+        "tint": "#538f7a"
+      },
+      {
+        "id": "lacquer_gold",
+        "rarity": "elite",
+        "tint": "#b88c3d"
+      },
+      {
+        "id": "oni_crimson",
+        "rarity": "boss",
+        "tint": "#8f2630"
+      }
+    ],
+    "emblems": {
+      "ming": [
+        {
+          "id": "none",
+          "rarity": "common"
+        },
+        {
+          "id": "dragon_lantern",
+          "rarity": "veteran"
+        },
+        {
+          "id": "tide_wave",
+          "rarity": "veteran"
+        },
+        {
+          "id": "plum_guard",
+          "rarity": "elite"
+        },
+        {
+          "id": "gold_dragon",
+          "rarity": "boss"
+        }
+      ],
+      "wokou": [
+        {
+          "id": "none",
+          "rarity": "common"
+        },
+        {
+          "id": "oni_eye",
+          "rarity": "veteran"
+        },
+        {
+          "id": "black_tide",
+          "rarity": "veteran"
+        },
+        {
+          "id": "storm_claw",
+          "rarity": "elite"
+        },
+        {
+          "id": "daimyo_crown",
+          "rarity": "boss"
+        }
+      ],
+      "neutral": [
+        {
+          "id": "none",
+          "rarity": "common"
+        },
+        {
+          "id": "river_knot",
+          "rarity": "veteran"
+        },
+        {
+          "id": "compass_rose",
+          "rarity": "elite"
+        },
+        {
+          "id": "night_watch",
+          "rarity": "boss"
+        }
+      ]
+    },
+    "banners": {
+      "ming": [
+        {
+          "id": "none",
+          "rarity": "common"
+        },
+        {
+          "id": "red_signal",
+          "rarity": "veteran"
+        },
+        {
+          "id": "lantern_streamer",
+          "rarity": "elite"
+        },
+        {
+          "id": "gold_dragon_banner",
+          "rarity": "boss"
+        }
+      ],
+      "wokou": [
+        {
+          "id": "none",
+          "rarity": "common"
+        },
+        {
+          "id": "black_tide_banner",
+          "rarity": "veteran"
+        },
+        {
+          "id": "oni_banner",
+          "rarity": "elite"
+        },
+        {
+          "id": "daimyo_war_fan",
+          "rarity": "boss"
+        }
+      ],
+      "neutral": [
+        {
+          "id": "none",
+          "rarity": "common"
+        },
+        {
+          "id": "frayed_watch_flag",
+          "rarity": "veteran"
+        },
+        {
+          "id": "river_ferry_flag",
+          "rarity": "elite"
+        }
+      ]
+    },
+    "weapon_skins": [
+      {
+        "id": "plain",
+        "rarity": "common"
+      },
+      {
+        "id": "salt_worn",
+        "rarity": "common"
+      },
+      {
+        "id": "lacquered",
+        "rarity": "veteran"
+      },
+      {
+        "id": "etched",
+        "rarity": "veteran"
+      },
+      {
+        "id": "gilded",
+        "rarity": "elite"
+      },
+      {
+        "id": "blackened_oni",
+        "rarity": "boss"
+      }
+    ]
+  }
+}
