@@ -30,6 +30,12 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "skills" / "pixel-art-studio" / "scripts"))
 
 from pixelstudio import Sprite  # noqa: E402
+from cavalry_data import (  # noqa: E402
+    ACTIONS as CAVALRY_ACTIONS,
+    MOUNTS as CAVALRY_MOUNTS,
+    cavalry_document_fields,
+    validate_cavalry_recipe,
+)
 
 
 CELL = 128
@@ -4637,6 +4643,9 @@ def recipe_faction(recipe: dict) -> str:
 
 
 def validate_recipe_faction(recipe: dict) -> None:
+    validate_cavalry_recipe(recipe)
+    if recipe.get("kind") == "mount":
+        return
     resolved = recipe_faction(recipe)
     if resolved == "mixed":
         raise ValueError(f"mixed faction recipe: {recipe}")
@@ -5331,7 +5340,20 @@ def data_document() -> dict:
         for faction in ("ming", "wokou")
     }
     combinations = sum(faction_combinations.values())
-    return {
+    cavalry_rider_looks = {
+        faction: (
+            len(SKINS)
+            * len(faction_items(OUTFITS, faction))
+            * len(faction_items(HEADGEAR, faction))
+            * len(faction_items(BACKGEAR, faction))
+        )
+        for faction in FACTION_IDS
+    }
+    cavalry_faction_counts = {
+        faction: len(CAVALRY_MOUNTS) * len(CAVALRY_ACTIONS) * looks
+        for faction, looks in cavalry_rider_looks.items()
+    }
+    document = {
         "version": 4,
         "license": "CC BY 4.0",
         "author": "xingwangzhe",
@@ -5502,6 +5524,11 @@ def data_document() -> dict:
             },
         },
     }
+    document.update(cavalry_document_fields())
+    document["cavalry_rider_style_counts"] = cavalry_rider_looks
+    document["cavalry_faction_combination_counts"] = cavalry_faction_counts
+    document["cavalry_combination_count"] = sum(cavalry_faction_counts.values())
+    return document
 
 
 def write_data(target: Path) -> None:
