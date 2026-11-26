@@ -91,7 +91,6 @@ func _ready() -> void:
 	SaveSystem.autosave({"last_mode": "menu"})
 	AudioBus.resume_bgm()
 	_start_button.grab_focus()
-	_schedule_about_prewarm()
 
 
 func open_settings() -> void:
@@ -165,6 +164,9 @@ func _build_theme() -> void:
 func _build_backdrop() -> void:
 	var backdrop := BackdropScript.new()
 	backdrop.name = "Backdrop"
+	backdrop.configure_reduced_motion(
+		WebExitBridge.is_web_platform(web_platform_override) or GameSettings.is_web_platform()
+	)
 	add_child(backdrop)
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
@@ -859,12 +861,12 @@ func _prewarm_about_overlay() -> void:
 		return
 	if not WebExitBridge.is_web_platform(web_platform_override):
 		return
-	AudioBus.warm_about_bgm()
 	_about_overlay = ABOUT_SCENE.instantiate()
 	_about_overlay.overlay_mode = true
 	_about_overlay.prewarm_mode = true
-	_about_overlay.visible = true
-	_about_overlay.modulate = Color.WHITE
+	_about_overlay.defer_content = true
+	_about_overlay.visible = false
+	_about_overlay.process_mode = Node.PROCESS_MODE_DISABLED
 	_about_overlay.closed.connect(_close_about_overlay)
 	var menu_index := get_index()
 	get_tree().root.add_child(_about_overlay)

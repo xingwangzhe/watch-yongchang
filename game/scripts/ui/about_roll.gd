@@ -15,9 +15,13 @@ const INK := Color("#06090c")
 
 const SCROLL_SPEED := 38.0
 const START_DELAY := 1.0
-const WEB_SCROLL_INTERVAL := 0.0
-const WEB_NODES_PER_FRAME := 8
-const WEB_PREWARM_NODES_PER_FRAME := 3
+const WEB_SCROLL_INTERVAL := 1.0 / 30.0
+const WEB_MIN_SCROLL_STEP := 2.0
+const WEB_SKELETON_SLOTS_PER_FRAME := 32
+const WEB_INITIAL_MATERIALIZE := 12
+const WEB_MATERIALIZE_PER_PASS := 6
+const WEB_MATERIALIZE_INTERVAL := 0.12
+const WEB_MATERIALIZE_LOOKAHEAD := 520.0
 const RICH_ENTRIES_PER_BLOCK := 12
 const PRIORITY_SECTION_TITLES := ["致谢", "版权与许可"]
 
@@ -36,16 +40,20 @@ var _auto_scroll := true
 var _delay_left := START_DELAY
 var _scroll_accum := 0.0
 var _web_scroll_accum := 0.0
+var _materialize_clock := 0.0
 var _progress_ratio := -1.0
 var _end_reached := false
 var _build_queue: Array[Dictionary] = []
+var _web_slots: Array[Dictionary] = []
 var _build_index := 0
 var _building := false
 var _ready_for_scroll := false
 var _pending_content := false
+var _web_content_started := false
 var _activated := false
 var overlay_mode := false
 var prewarm_mode := false
+var defer_content := false
 
 
 func _ready() -> void:
@@ -56,9 +64,10 @@ func _ready() -> void:
 	GameSettings.changed.connect(_sync_about_volume)
 	if GameSettings.is_web_platform():
 		_pending_content = true
-		_building = true
+		_building = false
 		_status.text = Locale.t("about.loading", {"percent": 0})
-		call_deferred("_start_web_roll_build")
+		if not prewarm_mode or not defer_content:
+			call_deferred("_start_web_roll_build")
 	else:
 		_load_roll_content()
 		while _build_index < _build_queue.size():
@@ -66,9 +75,10 @@ func _ready() -> void:
 			_build_index += 1
 		_finish_build()
 	if prewarm_mode:
-		visible = true
+		visible = not defer_content
 		modulate = Color.WHITE
 		_auto_scroll = false
+		set_process(false)
 	else:
 		activate()
 
@@ -76,10 +86,14 @@ func _ready() -> void:
 func activate() -> void:
 	if _activated:
 		return
+	var start_deferred_content := defer_content
 	_activated = true
 	prewarm_mode = false
+	defer_content = false
+	process_mode = Node.PROCESS_MODE_INHERIT
 	visible = true
 	modulate = Color.WHITE
+	set_process(true)
 	AudioBus.stop_bgm()
 	call_deferred("_start_about_music")
 	SaveSystem.autosave({"last_mode": "about"})
@@ -87,7 +101,10 @@ func activate() -> void:
 	_scroll.grab_focus()
 	_auto_scroll = true
 	_delay_left = START_DELAY
-	if _pending_content or _building:
+	if start_deferred_content and not _web_content_started:
+		_status.text = Locale.t("about.loading", {"percent": 0})
+		call_deferred("_start_web_roll_build")
+	elif _pending_content or _building:
 		_update_build_status()
 	elif _ready_for_scroll:
 		_status.text = Locale.t("about.auto")
@@ -117,10 +134,15 @@ func _process(delta: float) -> void:
 	if _pending_content:
 		return
 	if _building:
-		_build_chunk()
+		_build_web_skeleton_chunk()
 		if _building:
 			return
-		_finish_build()
+		_finish_web_build()
+	if _ready_for_scroll:
+		_materialize_clock -= delta
+		if _materialize_clock <= 0.0:
+			_materialize_visible_window()
+			_materialize_clock = WEB_MATERIALIZE_INTERVAL
 	if not _auto_scroll or not _ready_for_scroll:
 		return
 	if _delay_left > 0.0:
@@ -131,6 +153,8 @@ func _process(delta: float) -> void:
 	if max_scroll <= 0:
 		return
 	if _scroll.scroll_vertical >= max_scroll:
+		if _materialize_visible_window(true) > 0:
+			return
 		_finish_roll()
 		return
 	if GameSettings.is_web_platform():
@@ -141,6 +165,8 @@ func _process(delta: float) -> void:
 		_web_scroll_accum = 0.0
 	else:
 		_scroll_accum += SCROLL_SPEED * delta
+	if GameSettings.is_web_platform() and _scroll_accum < WEB_MIN_SCROLL_STEP:
+		return
 	var step := int(_scroll_accum)
 	if step > 0:
 		_scroll.scroll_vertical = mini(_scroll.scroll_vertical + step, max_scroll)
@@ -148,14 +174,15 @@ func _process(delta: float) -> void:
 	_update_progress(max_scroll)
 
 
-func _build_chunk() -> void:
-	var budget := WEB_PREWARM_NODES_PER_FRAME if prewarm_mode else WEB_NODES_PER_FRAME
+func _build_web_skeleton_chunk() -> void:
+	var budget := WEB_SKELETON_SLOTS_PER_FRAME
 	while _build_index < _build_queue.size() and budget > 0:
-		_instantiate_spec(_build_queue[_build_index])
+		_add_web_slot(_build_queue[_build_index])
 		_build_index += 1
 		budget -= 1
 	if _build_index >= _build_queue.size():
 		_building = false
+		_finish_web_build()
 		return
 	_update_build_status()
 
@@ -169,15 +196,126 @@ func _update_build_status() -> void:
 
 
 func _finish_build() -> void:
+	if _ready_for_scroll:
+		return
 	_building = false
-	_build_queue.clear()
-	_build_index = 0
 	_ready_for_scroll = true
 	_delay_left = START_DELAY
 	if is_instance_valid(_status) and _auto_scroll:
 		_status.text = Locale.t("about.auto")
 		_status.add_theme_color_override("font_color", Color(GOLD, 0.80))
 	content_ready.emit()
+
+
+func _finish_web_build() -> void:
+	if _ready_for_scroll:
+		return
+	if _build_index < _build_queue.size():
+		return
+	_build_queue.clear()
+	_build_index = 0
+	_materialize_initial_page()
+	_finish_build()
+	_materialize_clock = WEB_MATERIALIZE_INTERVAL
+
+
+func _add_web_slot(spec: Dictionary) -> void:
+	var slot := VBoxContainer.new()
+	slot.name = "CreditSlot%03d" % _web_slots.size()
+	slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slot.custom_minimum_size = Vector2(0.0, _estimate_spec_height(spec))
+	slot.mouse_filter = Control.MOUSE_FILTER_PASS
+	_content.add_child(slot)
+	_web_slots.append({
+		"spec": spec,
+		"node": slot,
+		"materialized": false,
+	})
+
+
+func _materialize_initial_page() -> void:
+	var count := mini(WEB_INITIAL_MATERIALIZE, _web_slots.size())
+	for index in count:
+		_materialize_slot(index)
+
+
+func _materialize_visible_window(force_tail: bool = false) -> int:
+	if _web_slots.is_empty() or not is_instance_valid(_scroll) or not is_instance_valid(_content):
+		return 0
+	var page := maxf(_scroll.size.y, 480.0)
+	var top := float(_scroll.scroll_vertical) - WEB_MATERIALIZE_LOOKAHEAD * 0.35
+	var bottom := float(_scroll.scroll_vertical) + page + WEB_MATERIALIZE_LOOKAHEAD
+	if force_tail:
+		top = maxf(0.0, float(_scroll.scroll_vertical) - page)
+		bottom = float(_scroll.scroll_vertical) + page * 2.0
+	var first := -1
+	var count := 0
+	for index in _web_slots.size():
+		if bool(_web_slots[index].get("materialized", false)):
+			continue
+		var slot: Control = _web_slots[index]["node"] as Control
+		var slot_top := slot.position.y
+		var slot_bottom := slot_top + maxf(slot.size.y, slot.custom_minimum_size.y)
+		if slot_bottom < top or slot_top > bottom:
+			continue
+		if first < 0:
+			first = index
+		count += 1
+		if count >= WEB_MATERIALIZE_PER_PASS:
+			break
+	if first < 0:
+		return 0
+	var built := 0
+	for offset in count:
+		var index := first + offset
+		if index >= _web_slots.size():
+			break
+		if bool(_web_slots[index].get("materialized", false)):
+			continue
+		_materialize_slot(index)
+		built += 1
+	return built
+
+
+func _materialize_slot(index: int) -> void:
+	if index < 0 or index >= _web_slots.size():
+		return
+	var record := _web_slots[index]
+	if bool(record.get("materialized", false)):
+		return
+	var slot := record["node"] as VBoxContainer
+	if not is_instance_valid(slot):
+		return
+	slot.custom_minimum_size.y = 0.0
+	slot.add_child(_create_spec_node(record["spec"] as Dictionary))
+	record["materialized"] = true
+	_web_slots[index] = record
+
+
+func _estimate_spec_height(spec: Dictionary) -> float:
+	match str(spec.get("type", "")):
+		"line":
+			var font_size := maxi(12, int(spec.get("font_size", 18)))
+			var text := str(spec.get("text", ""))
+			var chars_per_line := maxi(12, int(820.0 / float(font_size)))
+			var line_count := maxi(1, int(ceil(float(text.length()) / float(chars_per_line))))
+			return float(line_count * int(ceil(float(font_size) * 1.45))) + 4.0
+		"link":
+			return float(maxi(24, int(spec.get("font_size", 14)))) + 8.0
+		"rule":
+			return 1.0
+		"spacer":
+			return float(spec.get("height", 0.0))
+		"rich":
+			return float(spec.get("estimated_height", 120.0))
+	return 8.0
+
+
+func _on_scroll_value_changed(_value: float) -> void:
+	if not _activated:
+		return
+	_materialize_clock = 0.0
+	_update_progress_from_scroll()
 
 
 func _input(event: InputEvent) -> void:
@@ -220,6 +358,8 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_VISIBILITY_CHANGED and not visible:
+		set_process(false)
 	if prewarm_mode or not _activated:
 		return
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -269,6 +409,7 @@ func _build_roll_shell() -> void:
 	_scroll.focus_mode = Control.FOCUS_ALL
 	_scroll.gui_input.connect(_on_scroll_gui_input)
 	add_child(_scroll)
+	_scroll.get_v_scroll_bar().value_changed.connect(_on_scroll_value_changed)
 	_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_scroll.offset_top = 48.0
 	_scroll.offset_bottom = -56.0
@@ -287,19 +428,29 @@ func _build_roll_shell() -> void:
 	_content.add_theme_constant_override("separation", 8)
 	page_margin.add_child(_content)
 	_build_queue.clear()
+	_web_slots.clear()
 	_build_index = 0
 	_building = false
 	_ready_for_scroll = false
 
 
 func _start_web_roll_build() -> void:
+	if _web_content_started:
+		return
+	_web_content_started = true
 	_pending_content = false
 	_load_roll_content()
 	_building = not _build_queue.is_empty()
 	if _building:
 		_update_build_status()
+		if prewarm_mode:
+			while _build_index < _build_queue.size():
+				_add_web_slot(_build_queue[_build_index])
+				_build_index += 1
+			_building = false
+			_finish_web_build()
 	else:
-		_finish_build()
+		_finish_web_build()
 
 
 func _load_roll_content() -> void:
@@ -454,11 +605,11 @@ func _render_link_entries(
 		)
 		block_entries += 1
 		if block_entries >= RICH_ENTRIES_PER_BLOCK:
-			_add_rich_block(block)
+			_add_rich_block(block, block_entries)
 			block = ""
 			block_entries = 0
 	if not block.is_empty():
-		_add_rich_block(block)
+		_add_rich_block(block, block_entries)
 
 
 func _entry_bbcode(
@@ -518,11 +669,11 @@ func _render_tools(entries: Array) -> void:
 		block += "\n\n"
 		block_entries += 1
 		if block_entries >= RICH_ENTRIES_PER_BLOCK:
-			_add_rich_block(block)
+			_add_rich_block(block, block_entries)
 			block = ""
 			block_entries = 0
 	if not block.is_empty():
-		_add_rich_block(block)
+		_add_rich_block(block, block_entries)
 
 
 func _credit_links_bbcode(entry: Dictionary) -> String:
@@ -731,6 +882,13 @@ func _update_progress(max_scroll: int) -> void:
 	UILayout.set_size(_progress_fill, size.x * ratio, 2.0)
 
 
+func _update_progress_from_scroll() -> void:
+	if not is_instance_valid(_scroll) or not is_instance_valid(_progress_fill):
+		return
+	var bar := _scroll.get_v_scroll_bar()
+	_update_progress(int(maxf(0.0, bar.max_value - bar.page)))
+
+
 func _return_to_menu() -> void:
 	if is_instance_valid(_about_player):
 		if OS.has_feature("web") and _about_player == AudioBus.about_player:
@@ -848,11 +1006,19 @@ func _add_spacer(height: float) -> void:
 	_build_queue.append({"type": "spacer", "height": height})
 
 
-func _add_rich_block(bbcode: String) -> void:
-	_build_queue.append({"type": "rich", "bbcode": bbcode})
+func _add_rich_block(bbcode: String, entries: int = 1) -> void:
+	_build_queue.append({
+		"type": "rich",
+		"bbcode": bbcode,
+		"estimated_height": float(maxi(1, entries) * 120),
+	})
 
 
 func _instantiate_spec(spec: Dictionary) -> void:
+	_content.add_child(_create_spec_node(spec))
+
+
+func _create_spec_node(spec: Dictionary) -> Control:
 	match str(spec.get("type", "")):
 		"line":
 			var label := Label.new()
@@ -867,7 +1033,7 @@ func _instantiate_spec(spec: Dictionary) -> void:
 			var label_name := str(spec.get("name", ""))
 			if not label_name.is_empty():
 				label.name = label_name
-			_content.add_child(label)
+			return label
 		"link":
 			var link := LinkButton.new()
 			link.text = str(spec.get("text", ""))
@@ -883,17 +1049,17 @@ func _instantiate_spec(spec: Dictionary) -> void:
 			var link_name := str(spec.get("name", ""))
 			if not link_name.is_empty():
 				link.name = link_name
-			_content.add_child(link)
+			return link
 		"rule":
 			var rule := ColorRect.new()
 			rule.custom_minimum_size = Vector2(0.0, 1.0)
 			rule.color = Color(GOLD, 0.28)
 			rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			_content.add_child(rule)
+			return rule
 		"spacer":
 			var spacer := Control.new()
 			spacer.custom_minimum_size = Vector2(0.0, float(spec.get("height", 0.0)))
-			_content.add_child(spacer)
+			return spacer
 		"rich":
 			var rich := RichTextLabel.new()
 			rich.bbcode_enabled = true
@@ -907,4 +1073,5 @@ func _instantiate_spec(spec: Dictionary) -> void:
 			rich.add_theme_color_override("default_color", PAPER)
 			rich.meta_clicked.connect(_open_url)
 			rich.text = str(spec.get("bbcode", ""))
-			_content.add_child(rich)
+			return rich
+	return Control.new()

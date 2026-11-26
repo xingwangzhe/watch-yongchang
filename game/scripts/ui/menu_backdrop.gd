@@ -26,6 +26,13 @@ var _stars: Array[Vector3] = []
 var _embers: Array[Vector4] = []
 var _mist: Array[Vector4] = []
 var _moon_shimmer: Array[Vector4] = []
+var reduced_motion := false
+
+
+func configure_reduced_motion(enabled: bool) -> void:
+	reduced_motion = enabled
+	if is_inside_tree():
+		_apply_motion_mode()
 
 
 func _ready() -> void:
@@ -61,10 +68,24 @@ func _ready() -> void:
 			rng.randf_range(5.0, 22.0),
 			rng.randf_range(0.0, TAU)
 		))
+	if GameSettings.is_web_platform():
+		reduced_motion = true
+	_apply_motion_mode()
+
+
+func _apply_motion_mode() -> void:
+	if reduced_motion:
+		set_process(false)
+		if not resized.is_connected(queue_redraw):
+			resized.connect(queue_redraw)
+		queue_redraw()
+		return
 	set_process(true)
 
 
 func _process(delta: float) -> void:
+	if reduced_motion:
+		return
 	_time += delta
 	queue_redraw()
 
@@ -72,7 +93,11 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var w := maxf(size.x, 1280.0)
 	var h := maxf(size.y, 720.0)
-	var drift := Vector2(sin(_time * 0.035) * 5.0, cos(_time * 0.025) * 2.5)
+	var drift := (
+		Vector2.ZERO
+		if reduced_motion
+		else Vector2(sin(_time * 0.035) * 5.0, cos(_time * 0.025) * 2.5)
+	)
 	draw_texture_rect(BACKDROP, Rect2(-8.0 + drift.x, -5.0 + drift.y, w + 16.0, h + 10.0), false)
 	_draw_clouds(drift)
 	_draw_waves(drift)
