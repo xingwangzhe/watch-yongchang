@@ -42,6 +42,9 @@ python3 pixel-art/character_forge/test_cavalry.py
 | `ming_zhaohong_lancer` | 明军 | 枣红马 | 骑枪近战 / `lance_charge` | `game/assets/units/forge/cavalry/ming_zhaohong_lancer/{idle,walk}.png` |
 | `ming_black_bow` | 明军 | 乌骓马 | 骑弓远程 / `mounted_bow` | `game/assets/units/forge/cavalry/ming_black_bow/{idle,walk}.png` |
 | `wokou_grey_saber` | 倭寇 | 霜灰马 | 骑刀近战 / `saber_cut` | `game/assets/units/forge/cavalry/wokou_grey_saber/{idle,walk}.png` |
+| `wokou_black_bow` | 倭寇 | 乌骓马 | 骑弓远程 / `mounted_bow` | `game/assets/units/forge/cavalry/wokou_black_bow/{idle,walk}.png` |
+| `wokou_black_lancer` | 倭寇精英 | 乌骓马 | 骑枪近战 / `lance_charge` | `game/assets/units/forge/cavalry/wokou_black_lancer/{idle,walk}.png` |
+| `wokou_oni_lancer` | 倭寇 Boss | 乌骓马 | 鬼面骑枪近战 / `lance_charge` | `game/assets/units/forge/cavalry/wokou_oni_lancer/{idle,walk}.png` |
 
 ## 元数据
 
@@ -67,6 +70,12 @@ python3 pixel-art/character_forge/test_cavalry.py
 该数字是样式组合容量，不是掉落权重或运行时实际生成分布。旧步兵
 `combination_count = 74,752` 保持不变。
 
+运行时由 `RuntimeLoadout` 生成独立配装快照，`Battlefield` 每个敌兵只抽样一次。
+骑兵近战在 `wokou_grey_saber` / `wokou_black_lancer` / `wokou_oni_lancer` 之间
+按角色档位选择，骑兵远程统一使用 `wokou_black_bow`；调色、纹章与武器皮肤作为
+实例视觉键参与批处理缓存。佣兵 `yishi_rider` 与 `yishi_horse_archer` 分别读取
+明军骑枪与骑弓条带。
+
 ## 预览
 
 以下预览由 `build_cavalry.py` 自动生成：
@@ -78,6 +87,6 @@ python3 pixel-art/character_forge/test_cavalry.py
 
 ## 范围
 
-本提交只建立 CharacterForge 资产与数据管线，不修改
-`battlefield.gd`、`run_game.gd`、`characters.json`、`enemies.json`，
-不登记 credits，也不替换旧兵种目录。
+马匹与骑手条带属于 `game/assets/units/forge/cavalry/` 正式运行时资产；
+战斗、佣兵与图鉴均只引用该目录，不引用旧兵种目录。新增变体仍须由
+`build_cavalry.py` 重建并同步授权清单、`credits.json` 与设计文档。

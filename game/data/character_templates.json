@@ -2972,6 +2972,78 @@
       "battle_walk": "res://assets/units/forge/cavalry/wokou_grey_saber/walk.png",
       "battle_idle_frames": 4,
       "battle_walk_frames": 8
+    },
+    {
+      "id": "wokou_black_bow",
+      "kind": "cavalry",
+      "faction": "wokou",
+      "mount": "black",
+      "action": "mounted_bow",
+      "skin": "tan",
+      "outfit": "wokou_haramaki",
+      "headgear": "wokou_kasa",
+      "backgear": "none",
+      "weapon": "gong",
+      "offhand": "none",
+      "gait": "diagonal_trot",
+      "facing": "right",
+      "anchor": {
+        "x": 64,
+        "y": 122
+      },
+      "battle_cell": 128,
+      "battle_idle": "res://assets/units/forge/cavalry/wokou_black_bow/idle.png",
+      "battle_walk": "res://assets/units/forge/cavalry/wokou_black_bow/walk.png",
+      "battle_idle_frames": 4,
+      "battle_walk_frames": 8
+    },
+    {
+      "id": "wokou_black_lancer",
+      "kind": "cavalry",
+      "faction": "wokou",
+      "mount": "black",
+      "action": "lance_charge",
+      "skin": "deep",
+      "outfit": "wokou_haramaki",
+      "headgear": "wokou_helmet",
+      "backgear": "wokou_cloak_dark",
+      "weapon": "qiang",
+      "offhand": "none",
+      "gait": "diagonal_trot",
+      "facing": "right",
+      "anchor": {
+        "x": 64,
+        "y": 122
+      },
+      "battle_cell": 128,
+      "battle_idle": "res://assets/units/forge/cavalry/wokou_black_lancer/idle.png",
+      "battle_walk": "res://assets/units/forge/cavalry/wokou_black_lancer/walk.png",
+      "battle_idle_frames": 4,
+      "battle_walk_frames": 8
+    },
+    {
+      "id": "wokou_oni_lancer",
+      "kind": "cavalry",
+      "faction": "wokou",
+      "mount": "black",
+      "action": "lance_charge",
+      "skin": "tan",
+      "outfit": "oni_red",
+      "headgear": "oni_mask",
+      "backgear": "wokou_cloak_dark",
+      "weapon": "qiang",
+      "offhand": "none",
+      "gait": "diagonal_trot",
+      "facing": "right",
+      "anchor": {
+        "x": 64,
+        "y": 122
+      },
+      "battle_cell": 128,
+      "battle_idle": "res://assets/units/forge/cavalry/wokou_oni_lancer/idle.png",
+      "battle_walk": "res://assets/units/forge/cavalry/wokou_oni_lancer/walk.png",
+      "battle_idle_frames": 4,
+      "battle_walk_frames": 8
     }
   ],
   "cavalry_gait": {
@@ -2998,7 +3070,10 @@
     "representative_mounted_assets": [
       "ming_zhaohong_lancer",
       "ming_black_bow",
-      "wokou_grey_saber"
+      "wokou_grey_saber",
+      "wokou_black_bow",
+      "wokou_black_lancer",
+      "wokou_oni_lancer"
     ],
     "representative_mount_assets": [
       "mount_zhaohong",

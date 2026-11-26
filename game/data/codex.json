@@ -12,10 +12,12 @@
     "bird_gunner",
     "standard_bearer",
     "qijia_guest",
+    "yishi_rider",
+    "yishi_horse_archer",
     "wangpei_spirit",
     "wangde_spirit"
   ],
-  "enemy_order": ["scout", "ronin", "shield", "gun", "archer", "banner", "general", "daimyo"],
+  "enemy_order": ["scout", "ronin", "shield", "gun", "archer", "banner", "cavalry", "general", "daimyo"],
   "weapon_order": ["saber", "spear", "bow", "musket", "dragon_lantern", "cannon", "banner"],
   "map_order": ["tideland", "watergate", "crossstreet"],
   "enemy_tips": {
@@ -43,13 +45,17 @@
       "tip_zh": "携带支援光环，优先击杀；旗倒后周围压力会明显下降。",
       "tip_en": "A support aura makes it a priority target; the pressure drops when the banner falls."
     },
+    "cavalry": {
+      "tip_zh": "每次生成会随机成为骑刀近战或骑弓远程；用枪线、击退与横向移动拆开马速。",
+      "tip_en": "Each spawn rolls either a saber rider or a horse archer; break their speed with spear lines, knockback, and lateral movement."
+    },
     "general": {
-      "tip_zh": "2:00 起随龙鳞事件出现；冲锋前横向位移，别沿直线后退。",
-      "tip_en": "Appears with the 2:00 dragon-scale event; sidestep the charge instead of backing away in a straight line."
+      "tip_zh": "2:00 起随龙鳞事件出现；装备与坐骑按局内种子随机，可能步行、骑枪或骑射。冲锋前横向位移。",
+      "tip_en": "Appears with the 2:00 dragon-scale event; gear and mount roll from the run seed, so it may fight on foot, with a lance, or as a horse archer. Sidestep the charge."
     },
     "daimyo": {
-      "tip_zh": "15:30 Boss，高血高伤；保留龙鳞清屏与爆发，绕背躲冲锋。",
-      "tip_en": "The 15:30 boss: high health and damage. Save a dragon-scale clear and burst, and circle behind its charge."
+      "tip_zh": "15:30 Boss，高血高伤，也会随机骑乘或使用远程兵装；保留龙鳞清屏与爆发，绕背躲冲锋。",
+      "tip_en": "The 15:30 boss has high health and damage, and can also roll a mount or ranged loadout. Save a dragon-scale clear and burst, and circle behind its charge."
     }
   },
   "map_tips": {

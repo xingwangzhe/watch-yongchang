@@ -5,8 +5,8 @@
 | 作品 | 《守望 · 永昌》 / Watch of Yongchang |
 | 作者 | xingwangzhe |
 | 联系方式 | xingwangzhe@outlook.com |
-| 版本 | 0.1.0 |
-| 声明更新 | 2026-11-25 |
+| 版本 | 1.1.0 |
+| 声明更新 | 2026-11-26 |
 | 赛事 | 2026 OSGJ 开源游戏开发大赛 |
 | 代码许可 | AGPL-3.0-or-later |
 | 原创非代码资产 | CC BY 4.0；明确标注的原创音频另可选 CC0 1.0 |
@@ -57,6 +57,10 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 - `game/assets/units/forge/`：正式角色、敌兵与佣兵的待机/行走条。由
   `pixel-art/character_forge/bake_battle_sprites.py` 从合法
   `character_recipe` 烘焙；战斗、选择页与序章只使用这些文件。
+- `game/assets/units/forge/cavalry/`：3 种未骑乘马与 6 个骑手变体，每种
+  4 帧待机 + 8 帧行走。由 `pixel-art/character_forge/build_cavalry.py` 与
+  `cavalry_data.py` 按斜对角快步、马身分层和骑手滞后一帧绘制；战斗、佣兵与
+  图鉴只读取这些正式条带，禁止手改导出的 PNG。
 - `game/assets/tiles/yongchang/`：原创明式抗倭瓦片与环境动效。
 - `game/assets/ui/menu_*.png`、`watch_cursor.png`：原创主菜单分层夜景与游戏光标。
 - `game/assets/**/*.webp`：由 `tools/optimize_runtime_images.ts` 从对应 PNG
@@ -81,6 +85,9 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 
 - GDScript、测试、构建工具和文档在 AI 辅助下编写，由作者确定架构、审查差异、
   运行 GUT、检查场景与导出产物。
+- `RuntimeLoadout` 在运行时按种子、阵营、档位、角色、地图与波次生成配装快照；
+  组合计数用于说明可抽样空间，不等于逐个烘焙的 PNG 数量。实际渲染共享
+  CharacterForge 烘焙图集、实例调色、纹章与缓存键。
 - CharacterForge、瓦片、UI 和菜单背景的 Python 生成器可由对应 `build.py`
   重建；导出的 PNG 不手工修改。
 - Web 构建使用 Godot 官方 SCons 参数、Emscripten 稳定工具链和 Binaryen

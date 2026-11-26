@@ -62,7 +62,7 @@ func test_catalog_tabs_use_live_json_counts() -> void:
 	assert_string_contains(cannon_text, "无进化 · 直接成型")
 	codex.select_tab("enemies")
 	await wait_process_frames(2)
-	assert_eq(_count_name_prefix(codex, "Enemy_"), 8)
+	assert_eq(_count_name_prefix(codex, "Enemy_"), 9)
 	assert_not_null(codex.find_child("Enemy_general", true, false))
 	assert_not_null(codex.find_child("Enemy_daimyo", true, false))
 	var shield_text := _node_text(codex.find_child("Enemy_shield", true, false))

@@ -2376,7 +2376,7 @@ func debug_prepare_capture(mode: String, page: int = 0) -> Dictionary:
 		hud.update_hud(_hud_state())
 		_set_gameplay_cursor(false)
 		return {"mode": mode, "enemies": battlefield.enemies.size()}
-	var ring_ids := ["scout", "ronin", "archer", "shield", "gun", "banner", "general"]
+	var ring_ids := ["scout", "ronin", "archer", "shield", "gun", "banner", "cavalry", "general"]
 	for i in range(44):
 		var angle := TAU * float(i) / 44.0
 		var radius := 150.0 + float(i % 7) * 26.0
@@ -2460,7 +2460,10 @@ func debug_prepare_capture(mode: String, page: int = 0) -> Dictionary:
 				direction,
 				i % 2 == 1
 			)
-		var enemy_ids := ["scout", "ronin", "archer", "shield", "gun", "banner", "general", "daimyo"]
+		var enemy_ids := [
+			"scout", "ronin", "archer", "shield", "gun", "banner", "cavalry",
+			"general", "daimyo",
+		]
 		for i in range(enemy_ids.size()):
 			var angle := TAU * (float(i) + 0.5) / float(enemy_ids.size())
 			var direction := Vector2(cos(angle), sin(angle))

@@ -16,7 +16,7 @@ func after_each() -> void:
 
 func test_mercenary_data_is_ming_valid_and_forge_baked() -> void:
 	var mercenaries := GameData.get_mercenaries()
-	assert_eq(mercenaries.size(), 8)
+	assert_eq(mercenaries.size(), 10)
 	var forge := ForgeScript.new()
 	add_child_autofree(forge)
 	if not forge.load_data():

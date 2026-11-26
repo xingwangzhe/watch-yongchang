@@ -40,6 +40,9 @@ const FLOW_REQUEST_INTERVAL_NATIVE := 0.30
 const ALLY_REPATH_INTERVAL := 0.65
 const UNIT_SEPARATION_WEIGHT := 0.62
 const STUCK_RECOVERY_SECONDS := 0.55
+const ENEMY_NAV_REFRESH_WEB := 0.34
+const ENEMY_NAV_REFRESH_NATIVE := 0.20
+const ENEMY_SEPARATION_REFRESH := 0.12
 
 var enemies: Array[Dictionary] = []
 var allies: Array[Dictionary] = []
@@ -84,6 +87,8 @@ var tower_textures: Dictionary = {}
 var textures: Dictionary = {}
 var encounter_sites: Array[Dictionary] = []
 var enemy_sprite_frames: Dictionary = {}
+var runtime_loadout: RuntimeLoadout
+var _runtime_map_salt := ""
 var player_idle_frames: Array[Texture2D] = []
 var player_walk_frames: Array[Texture2D] = []
 var player_idle_fps := 6.0
@@ -161,14 +166,32 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 	_enemy_shot_core_batch = _make_pickup_batch()
 	enemy_data = GameData.get_enemies()
 	mercenary_data = GameData.get_mercenaries()
+	_runtime_map_salt = str(map_definition.get("id", map_key))
+	runtime_loadout = RuntimeLoadout.new()
+	if not runtime_loadout.load_defaults():
+		push_warning("Runtime loadout data failed to load; enemies use their baked base loadout")
+		runtime_loadout = null
 	_load_towers()
 	for enemy_id in enemy_data.keys():
 		var definition: Dictionary = enemy_data[enemy_id]
-		var texture_path := str(definition.get("texture", ""))
-		var frame_count := maxi(1, int(definition.get("sprite_frames", 1)))
-		var frames := _load_sprite_frames(texture_path, frame_count)
-		enemy_sprite_frames[enemy_id] = frames
-		textures[enemy_id] = frames[0] if not frames.is_empty() else null
+		_cache_enemy_sprite(
+			enemy_id,
+			str(definition.get("texture", "")),
+			maxi(1, int(definition.get("sprite_frames", 1)))
+		)
+		var runtime_visuals: Dictionary = definition.get("runtime_visuals", {}) as Dictionary
+		for raw_variant: Variant in runtime_visuals.values():
+			if not (raw_variant is Dictionary):
+				continue
+			var variant: Dictionary = raw_variant
+			var draw_id := str(variant.get("draw_id", ""))
+			if draw_id.is_empty():
+				continue
+			_cache_enemy_sprite(
+				draw_id,
+				str(variant.get("texture", "")),
+				maxi(1, int(variant.get("sprite_frames", 1)))
+			)
 	z_index = 0
 	set_process(true)
 
@@ -260,6 +283,14 @@ func _load_sprite_frames(path: String, frame_count: int) -> Array[Texture2D]:
 		)
 		result.append(ImageTexture.create_from_image(frame_image))
 	return result
+
+
+func _cache_enemy_sprite(draw_id: String, path: String, frame_count: int) -> void:
+	if draw_id.is_empty() or enemy_sprite_frames.has(draw_id):
+		return
+	var frames := _load_sprite_frames(path, frame_count)
+	enemy_sprite_frames[draw_id] = frames
+	textures[draw_id] = frames[0] if not frames.is_empty() else null
 
 
 # ============================================================ 箭塔（友方工事）
@@ -923,25 +954,76 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 	if map_layout != null and not map_layout.is_point_walkable(position, 14.0):
 		position = map_layout.find_walkable_position(position, 14.0)
 	var definition: Dictionary = enemy_data[enemy_id] as Dictionary
-	var is_boss := str(definition.get("behavior", "")) == "boss"
-	var is_elite := not elite_color.is_empty() or str(definition.get("behavior", "")) == "elite"
+	var base_behavior := str(definition.get("behavior", "chase"))
+	var loadout := _generate_runtime_loadout(enemy_id, definition)
+	var runtime_visual := _runtime_visual_for(definition, loadout)
+	var draw_id := str(runtime_visual.get("draw_id", enemy_id))
+	if not enemy_sprite_frames.has(draw_id):
+		draw_id = enemy_id
+	var behavior := str(runtime_visual.get("behavior", base_behavior))
+	var runtime_attack_class := str(loadout.get("attack_class", ""))
+	var runtime_role := str(loadout.get("role", ""))
+	if (
+		runtime_visual.is_empty()
+		and runtime_attack_class == "ranged"
+		and definition.has("runtime_attack_range")
+	):
+		behavior = "ranged"
+	var is_boss := base_behavior == "boss"
+	var is_elite := not elite_color.is_empty() or base_behavior == "elite"
 	var hp := float(definition.get("hp", 10.0)) * enemy_hp_mult * difficulty_hp_mult
+	var speed_multiplier := maxf(0.1, float(runtime_visual.get("speed_mult", 1.0)))
+	var visual: Dictionary = loadout.get("visual", {}) as Dictionary
+	var runtime_tint := Color.from_string(
+		str(visual.get("tint", "#ffffff")),
+		Color.WHITE
+	)
 	var enemy := {
 		"id": enemy_id,
+		"draw_id": draw_id,
 		"pos": position,
 		"hp": hp,
 		"max_hp": hp,
-		"speed": float(definition.get("speed", 70.0)) * difficulty_speed_mult,
+		"speed": (
+			float(definition.get("speed", 70.0))
+			* difficulty_speed_mult
+			* speed_multiplier
+		),
 		"damage": float(definition.get("damage", 8.0)) * difficulty_damage_mult,
-		"radius": float(definition.get("radius", 20.0)),
+		"radius": float(runtime_visual.get("radius", definition.get("radius", 20.0))),
 		"xp": float(definition.get("xp", 1.0)),
-		"scale": float(definition.get("scale", 0.66)),
-		"behavior": str(definition.get("behavior", "chase")),
+		"scale": float(runtime_visual.get("scale", definition.get("scale", 0.66))),
+		"behavior": behavior,
+		"base_behavior": base_behavior,
+		"runtime_role": runtime_role,
+		"runtime_attack_class": runtime_attack_class,
+		"runtime_tint": runtime_tint,
+		"runtime_loadout": loadout,
+		"runtime_visual_key": str(loadout.get("visual_key", "")),
+		"charger": bool(definition.get("charger", false)),
 		"armor": float(definition.get("armor", 0.0)),
-		"attack_range": float(definition.get("attack_range", 0.0)),
-		"attack_cooldown": float(definition.get("attack_cooldown", 2.0)),
+		"attack_range": float(runtime_visual.get(
+			"attack_range",
+			definition.get(
+				"runtime_attack_range" if behavior == "ranged" else "attack_range",
+				0.0
+			)
+		)),
+		"attack_cooldown": float(runtime_visual.get(
+			"attack_cooldown",
+			definition.get(
+				"runtime_attack_cooldown" if behavior == "ranged" else "attack_cooldown",
+				2.0
+			)
+		)),
 		"attack_timer": rng.randf_range(0.3, 1.6),
-		"projectile_speed": float(definition.get("projectile_speed", 280.0)),
+		"projectile_speed": float(runtime_visual.get(
+			"projectile_speed",
+			definition.get(
+				"runtime_projectile_speed" if behavior == "ranged" else "projectile_speed",
+				280.0
+			)
+		)),
 		"charge_cooldown": float(definition.get("charge_cooldown", 4.0)),
 		"charge_timer": rng.randf_range(2.0, 5.0),
 		"dash_time": 0.0,
@@ -956,9 +1038,17 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"elite": is_elite,
 		"boss": is_boss,
 		"scale_color": elite_color,
-		"sprite_fps": float(definition.get("sprite_fps", 10.0)),
+		"sprite_fps": float(runtime_visual.get(
+			"sprite_fps",
+			definition.get("sprite_fps", 10.0)
+		)),
 		"facing_x": -1.0,
-		"tex": textures.get(enemy_id, null) as Texture2D,
+		"tex": textures.get(draw_id, null) as Texture2D,
+		"nav_timer": rng.randf_range(0.0, ENEMY_NAV_REFRESH_NATIVE),
+		"nav_dir": Vector2.ZERO,
+		"nav_goal": position,
+		"separation_timer": rng.randf_range(0.0, ENEMY_SEPARATION_REFRESH),
+		"separation_dir": Vector2.ZERO,
 		"stuck_timer": 0.0,
 		"avoid_timer": 0.0,
 		"avoid_dir": Vector2.ZERO,
@@ -970,6 +1060,33 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 	if is_boss:
 		boss_spawned.emit(enemy_id, hp)
 	return enemies.size() - 1
+
+
+func _generate_runtime_loadout(enemy_id: String, definition: Dictionary) -> Dictionary:
+	if runtime_loadout == null:
+		return {}
+	return runtime_loadout.generate_for_enemy(
+		enemy_id,
+		rng.randi(),
+		_runtime_map_salt,
+		int(time / 45.0),
+		str(definition.get("runtime_role", ""))
+	)
+
+
+func _runtime_visual_for(definition: Dictionary, loadout: Dictionary) -> Dictionary:
+	if loadout.is_empty():
+		return {}
+	var visuals: Dictionary = definition.get("runtime_visuals", {}) as Dictionary
+	if visuals.is_empty():
+		return {}
+	var role := str(loadout.get("role", ""))
+	var attack_class := str(loadout.get("attack_class", ""))
+	var key := role
+	if role == "cavalry":
+		key = "cavalry_%s" % attack_class
+	var result: Variant = visuals.get(key, {})
+	return result if result is Dictionary else {}
 
 
 func set_difficulty(progress: float, curve: Dictionary) -> void:
@@ -1812,7 +1929,14 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			if map_layout != null and distance > 90.0:
 				navigation = direction
 		elif map_layout != null:
-			navigation = map_layout.navigation_direction(position, target)
+			navigation = _cached_enemy_navigation(
+				enemy,
+				position,
+				target,
+				direction,
+				distance,
+				delta
+			)
 		if behavior == "ranged":
 			if distance > float(enemy["attack_range"]) * 0.82:
 				movement = navigation
@@ -1826,7 +1950,7 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			dark_speed = 1.0
 		else:
 			movement = navigation
-		if behavior == "elite" or behavior == "boss":
+		if behavior == "elite" or behavior == "boss" or bool(enemy.get("charger", false)):
 			if float(enemy["dash_time"]) > 0.0:
 				enemy["dash_time"] = maxf(0.0, float(enemy["dash_time"]) - delta)
 				movement = (enemy["dash_dir"] as Vector2) * (3.4 if behavior == "boss" else 2.8)
@@ -1838,11 +1962,17 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 		if float(enemy.get("stun_timer", 0.0)) > 0.0:
 			movement = Vector2.ZERO
 		if movement.length_squared() > 0.001:
-			var separation := _enemy_separation(
-				position,
-				index,
-				clampf(float(enemy["radius"]) * 1.7, 28.0, 58.0)
+			enemy["separation_timer"] = (
+				float(enemy.get("separation_timer", 0.0)) - delta
 			)
+			if float(enemy["separation_timer"]) <= 0.0:
+				enemy["separation_dir"] = _enemy_separation(
+					position,
+					index,
+					clampf(float(enemy["radius"]) * 1.7, 28.0, 58.0)
+				)
+				enemy["separation_timer"] = ENEMY_SEPARATION_REFRESH + rng.randf_range(0.0, 0.025)
+			var separation := enemy.get("separation_dir", Vector2.ZERO) as Vector2
 			if separation.length_squared() > 0.001:
 				movement = (movement + separation * UNIT_SEPARATION_WEIGHT).normalized()
 			if float(enemy.get("avoid_timer", 0.0)) > 0.0:
@@ -1922,6 +2052,40 @@ func _resolve_tower_collision(position: Vector2, body_radius: float) -> Vector2:
 			distance = 1.0
 		position = tower_pos + offset / distance * minimum
 	return position
+
+
+func _cached_enemy_navigation(
+	enemy: Dictionary,
+	position: Vector2,
+	target: Vector2,
+	direct: Vector2,
+	distance: float,
+	delta: float
+) -> Vector2:
+	enemy["nav_timer"] = float(enemy.get("nav_timer", 0.0)) - delta
+	if distance <= 190.0:
+		enemy["nav_goal"] = target
+		enemy["nav_dir"] = direct
+		return direct
+	var cached := enemy.get("nav_dir", Vector2.ZERO) as Vector2
+	var cached_goal := enemy.get("nav_goal", Vector2.ZERO) as Vector2
+	if (
+		float(enemy.get("nav_timer", 0.0)) > 0.0
+		and cached.length_squared() > 0.001
+		and cached_goal.distance_squared_to(target) <= 96.0 * 96.0
+	):
+		return cached
+	var navigation := map_layout.navigation_direction(position, target)
+	if navigation.length_squared() <= 0.001:
+		navigation = direct
+	enemy["nav_dir"] = navigation
+	enemy["nav_goal"] = target
+	enemy["nav_timer"] = (
+		ENEMY_NAV_REFRESH_WEB
+		if GameSettings.is_web_platform()
+		else ENEMY_NAV_REFRESH_NATIVE
+	)
+	return navigation
 
 
 func _enemy_separation(position: Vector2, skip_index: int, search_radius: float) -> Vector2:
@@ -2515,7 +2679,7 @@ func _draw_enemies() -> void:
 			continue
 		if absf(position.y - player_pos.y) > VIEW_HALF.y + 120.0:
 			continue
-		var batch_id := str(enemy.get("id", ""))
+		var batch_id := str(enemy.get("draw_id", enemy.get("id", "")))
 		if not _draw_groups.has(batch_id):
 			_draw_groups[batch_id] = []
 		var batch := _draw_groups[batch_id] as Array
@@ -2530,7 +2694,7 @@ func _draw_enemies() -> void:
 
 func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
 	var first_enemy := batch[0] as Dictionary
-	var enemy_id := str(first_enemy.get("id", ""))
+	var enemy_id := str(first_enemy.get("draw_id", first_enemy.get("id", "")))
 	var frames: Array = enemy_sprite_frames.get(enemy_id, []) as Array
 	var frame_index := 0
 	if not frames.is_empty():
@@ -2575,12 +2739,14 @@ func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
 			color = Color(0.0, 0.0, 0.0, 0.22)
 		else:
 			position -= Vector2(0, size * 0.16)
+			var runtime_tint := enemy.get("runtime_tint", Color.WHITE) as Color
+			color = Color.WHITE.lerp(runtime_tint, 0.42)
 			if str(enemy["id"]) == "banner":
-				color = Color(1.0, 0.72, 0.68, 1.0)
+				color = color.lerp(Color(1.0, 0.72, 0.68, 1.0), 0.30)
 			if bool(enemy.get("elite", false)):
-				color = Color(1.0, 0.88, 0.58, 1.0)
+				color = color.lerp(Color(1.0, 0.88, 0.58, 1.0), 0.24)
 			if bool(enemy.get("boss", false)):
-				color = Color(1.0, 0.72, 0.58, 1.0)
+				color = color.lerp(Color(1.0, 0.72, 0.58, 1.0), 0.30)
 			if float(enemy["flash"]) > 0.0:
 				color = FeedbackManager.config.flash_color
 		var facing_x := 1.0

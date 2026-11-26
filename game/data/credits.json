@@ -31,7 +31,7 @@
 					"Vampire Survivors-like 割草生存 Roguelite",
 					"主题：守 · 望 / 永昌堡与明代抗倭记忆",
 					"2026 OSGJ 开源游戏开发大赛参赛作品",
-					"已完成：序章 1386 宁村所、正篇 1559 永昌堡割草生存、双堡图鉴、灯火风险收益、龙鳞清屏、剧情字幕（输出授权未核实的 MOSS 语音已下架）、局内军市与 CharacterForge 佣兵",
+					"已完成：序章 1386 宁村所、正篇 1559 永昌堡割草生存、双堡图鉴、灯火风险收益、龙鳞清屏、剧情字幕（输出授权未核实的 MOSS 语音已下架）、铺满屏幕的局内军市、CharacterForge 佣兵与骑兵、RTS 式流场寻路、外围奇遇点与运行时随机配装",
 					"玩法：16 分钟单局、鼠标瞄准、长按左键攻击、六兵器进化、升级三选一、每 120 秒军市、最多 3 名佣兵、五色龙鳞与 Boss；操作 W/A/S/D 移动，Space 冲刺，Esc 暂停",
 					"历史边界：汤和只做 1386 序章主角；1559 正篇主角为虚构守灯乡勇王陆/阿六",
 					"策划、程序、像素美术与整合：xingwangzhe"
@@ -41,10 +41,28 @@
 					"A Vampire Survivors-like survival roguelite",
 					"Theme: Guard · Gaze / Yongchang Fort and Ming-era coastal defense",
 					"A 2026 OSGJ open-source game development entry",
-					"Done: the 1386 Ningcun prologue, the 1559 Yongchang survival run, the two-forts codex, lantern risk/reward, dragon-scale clears, narrative subtitles (MOSS voice removed because output rights were unverified), an in-run market, and CharacterForge retinue",
+					"Done: the 1386 Ningcun prologue, the 1559 Yongchang survival run, the two-forts codex, lantern risk/reward, dragon-scale clears, narrative subtitles (MOSS voice removed because output rights were unverified), a full-screen in-run market, CharacterForge retinue and cavalry, RTS-style flow-field navigation, outer-ring encounters, and runtime-random loadouts",
 					"Gameplay: a 16-minute run with mouse aiming and hold-to-attack, six evolving weapons, one-of-three upgrades, a market every 120 seconds, up to three retinue units, five-colour dragon scales, and a boss; W/A/S/D moves, Space dashes, and Esc pauses",
 					"Historical boundary: Tang He is the prologue protagonist only in 1386; the 1559 protagonist is the fictional lamp-watch militia Wang Lu / A-Liu",
 					"Design, code, pixel art, and integration: xingwangzhe"
+				]
+			},
+			{
+				"title_zh": "骑兵、RTS 寻路与运行时配装",
+				"title_en": "Cavalry, RTS Navigation & Runtime Loadouts",
+				"lines_zh": [
+					"CharacterForge 新增 3 种马：枣红马、乌骓马、霜灰马；每种 4 帧待机 + 8 帧行走，采用斜对角快步，马腿、马身、头颈、尾巴和骑手躯干分层起伏。",
+					"新增 6 个骑手条带：明军骑枪、明军骑弓、倭寇骑刀、倭寇骑弓、精英骑枪、Boss 鬼面骑枪；骑乘姿态复用阵营合法的服装、头饰、背挂与武器层。",
+					"运行时不再只吃构建期固定样板：每个敌兵、精英与 Boss 生成时由 RuntimeLoadout 抽样配装、武器、角色、马匹、调色、纹章、旗帜与武器皮肤，结果写入实例并参与批处理缓存。",
+					"组合口径：基础合法装备 75,120；加入马匹与姿态后 974,352；再乘调色/纹章/旗帜/武器皮肤为 700,791,552。后两者共享烘焙图集与实例着色，不是 7 亿张独立 PNG。",
+					"战斗使用共享 BFS 流场、拥挤分离与卡住恢复，并对原生/Web 分别限频刷新导航缓存；骑兵近战/远程、重装步兵、远程与支援单位共用同一套避障与推进。"
+				],
+				"lines_en": [
+					"CharacterForge adds three mounts: Chestnut Bay, Black Warhorse, and Frost Grey. Each has four idle and eight walk frames using a diagonal trot, with legs, barrel, neck, tail, and rider torso rising and falling in separate layers.",
+					"Six mounted strips are included: Ming lancer, Ming horse archer, Wokou saber rider, Wokou horse archer, elite lancer, and the boss oni lancer. Mounted poses reuse faction-legal clothing, headgear, backgear, and weapon layers.",
+					"Runs no longer rely on a small fixed sample set: RuntimeLoadout samples gear, weapon, role, mount, palette, emblem, banner, and weapon skin per enemy, elite, or boss at spawn, stores the snapshot on the instance, and feeds batch caches.",
+					"Combination scope: 75,120 legal base loadouts; 974,352 after mounts and poses; 700,791,552 with palette, emblem, banner, and weapon-skin metadata. The latter two share baked atlases and per-instance tinting; they are not hundreds of millions of separate PNGs.",
+					"Combat shares a BFS flow field, crowd separation, and stuck recovery, with separate native/Web navigation refresh intervals. Mounted melee/ranged, heavy infantry, ranged, and support units use the same obstacle avoidance and advance rules."
 				]
 			},
 			{
@@ -275,9 +293,9 @@
 					"明式抗倭瓦片图集（地形 40 格、建筑与城防 32 格、道具 16 格）：项目原创程序化像素绘制，32×32，源文件 pixel-art/yongchang_tiles/build.py，按 CC BY 4.0 发布。",
 					"地图环境动效图集：红灯笼、渔舟、明军旗与烽火四组 4 帧循环，32×32×4×4，源文件 pixel-art/yongchang_tiles/build.py，按 CC BY 4.0 发布。",
 					"瓦片文化取向：明代浙南沿海抗倭堡垒；青灰石墙、黛瓦、白灰墙、红漆门、马头墙、水关、烽火、拒马、渔舟、芦苇滩与石敢当；未使用日式瓦片或日式识别物。",
-					"正式角色精灵：1386 序章主角汤和、1559 正篇唯一主角王陆（虚构守夜乡勇）的六个阵位、八类敌兵与八类佣兵；正式外观由 CharacterForge 配方烘焙到 game/assets/units/forge/，待机 4 帧、行走 8 帧。王陆六张卡是同一人物的阵位，不是六名独立人物；早期 actors 预览图已退出正式运行时。",
-					"角色锻造模板图集：4 肤色 × 16 服装 × 14 头饰 × 5 背挂 × 59 套主副手组合，共 264,320 条原始行；按阵营隔离后为明军 59,392 种、倭寇 15,360 种，合计 74,752 种；128×128×48 帧；19 类武器（含 2 件副手盾）各 5 段具名动作，并区分单手、双手、远程与副手；22 套人体骨架含 3 类双持组合与 42 个合法配对；明军专属为狼筅、戚家刀、藤牌、镋钯、戚家军甲，倭寇专属为倭刀、胴丸、腹卷、阵笠；通用装备可供双方搭配，明倭装备禁止混装；肩肘髋膝踝共享骨架端点，所有握法双臂固定在躯干前层；双持主手按真实配对行生成，盾与副手为独立层；新增明军弓手软帽、龙灯朱金抹额与明军箭囊；远射位、龙灯位与旗令位按原创造型研究重绘脸型、体态与装备；八类敌兵、七名战斗角色与八类佣兵的待机/行走条由 pixel-art/character_forge/bake_battle_sprites.py 按配装烘焙；源文件 pixel-art/character_forge/build.py，按 CC BY 4.0 发布。参考包仅研究动作结构，未打包。",
-					"佣兵外观：义师枪兵、义师弓手、藤牌乡兵、鸟铳手、令旗手、戚家军客兵、王沛英魂、王德英魂共 8 类；每类 4 帧待机 + 8 帧行走，128×128，导出到 game/assets/units/forge/allies/；配装校验限定明军阵营，前史人物只作英魂香火演绎。验收合图为 pixel-art/character_forge/mercenary_roster.png，授权原创非代码资产 CC BY 4.0。",
+					"正式角色精灵：1386 序章主角汤和、1559 正篇唯一主角王陆（虚构守夜乡勇）的六个阵位、九类敌兵、十类佣兵与三匹正式马匹；正式外观由 CharacterForge 配方烘焙到 game/assets/units/forge/，步兵待机 4 帧、行走 8 帧，骑兵另含 6 个骑手动作条带。王陆六张卡是同一人物的阵位，不是六名独立人物；早期 actors 预览图已退出正式运行时。",
+					"角色锻造模板图集：4 肤色 × 16 服装 × 14 头饰 × 5 背挂 × 59 套主副手组合，共 264,320 条原始行；按阵营隔离后为明军 59,392 种、倭寇 15,360 种，合计 74,752 种；加 3 种马 × 3 种骑乘姿态后，骑兵样式容量为明军 9,216、倭寇 5,760、通用 144，合计 15,120，旧步兵总数保持 74,752；步兵 128×128×48 帧，马与骑手各 4 帧待机 + 8 帧行走；19 类武器（含 2 件副手盾）各 5 段具名动作，并区分单手、双手、远程与副手；22 套人体骨架含 3 类双持组合与 42 个合法配对；明军专属为狼筅、戚家刀、藤牌、镋钯、戚家军甲，倭寇专属为倭刀、胴丸、腹卷、阵笠；通用装备可供双方搭配，明倭装备禁止混装；肩肘髋膝踝共享骨架端点，所有握法双臂固定在躯干前层；双持主手按真实配对行生成，盾与副手为独立层；新增明军弓手软帽、龙灯朱金抹额与明军箭囊；远射位、龙灯位与旗令位按原创造型研究重绘脸型、体态与装备；九类敌兵、七名战斗角色、十类佣兵与 3 匹马的待机/行走条由 pixel-art/character_forge/ 的烘焙脚本生成；马匹与骑手源文件 pixel-art/character_forge/build_cavalry.py 与 cavalry_data.py，按 CC BY 4.0 发布。参考包仅研究动作结构，未打包。",
+					"佣兵外观：义师枪兵、义师弓手、义师骑枪、义师骑弓、藤牌乡兵、鸟铳手、令旗手、戚家军客兵、王沛英魂、王德英魂共 10 类；步兵每类 4 帧待机 + 8 帧行走，骑兵读取 CharacterForge 骑乘条带，导出到 game/assets/units/forge/；配装校验限定明军阵营，前史人物只作英魂香火演绎。验收合图为 pixel-art/character_forge/mercenary_roster.png，授权原创非代码资产 CC BY 4.0。",
 					"倭寇类型按明代抗倭史料与项目原创设定作为反派；日式阵笠、胴丸、铁炮等仅用于敌方识别，不用于明军与主角。",
 					"UI 面板与控件素材：面板底板由 WorkBuddy ImageGen 生成；按钮、下拉、滑条、开关、滚动条与提示框由 pixel-art/ui_kit/build.py 程序化重绘（漆面底板 + 描金带 + 四角卷角），原创非代码资产 CC BY 4.0，详见《AI 使用与素材声明》。",
 					"第三方音乐、字体、音效保留原许可；署名与来源见下方音频、字体与图标条目。",
@@ -293,9 +311,9 @@
 					"Ming-era coastal-defense tile atlases (40 terrain, 32 architecture, 16 props): original procedural pixel art at 32×32, generated by pixel-art/yongchang_tiles/build.py, released under CC BY 4.0.",
 					"Animated map props: four 4-frame loops for red lanterns, fishing boats, Ming banners, and beacon fire at 32×32 per frame, generated by pixel-art/yongchang_tiles/build.py, released under CC BY 4.0.",
 					"Tile art direction: a Ming-era coastal fort in southern Zhejiang; grey stone walls, dark roof tiles, whitewashed walls, red-lacquer gates, stepped gables, water gates, beacon fires, chevaux-de-frise, fishing boats, reed flats, and stone guardians. No Japanese tiles or Japanese identity markers are used.",
-					"Formal actor sprites: Tang He in the 1386 prologue, Wang Lu (a fictional watchman and the only playable character in 1559) in six formations, eight enemy classes, and eight retinue classes. CharacterForge recipes bake the formal art into game/assets/units/forge/ with four idle and eight walk frames. Wang Lu's six cards are formations of one person; the earlier actors preview art is no longer used at runtime.",
-					"Character-forge template atlases: 4 skins × 16 outfits × 14 headgear × 5 backgear × 59 main/offhand loadouts, yielding 264,320 raw rows; faction isolation leaves 59,392 Ming and 15,360 Wokou combinations, 74,752 legal combinations total; 128×128 across 48 frames; 19 weapon classes (including two offhand shields) each with five named actions, separated into one-handed, two-handed, ranged, and offhand grips; 22 body skeletons including three dual-wield combo families and 42 legal pairs; Ming-exclusive gear is the wolf brush, Qi family saber, rattan shield, tangpa, and Qi Jia armour; Wokou-exclusive gear is the wokou saber, do-maru, haramaki, and jingasa; common gear can be used by either side, while Ming and Wokou gear are never mixed; shared shoulder/elbow/hip/knee/ankle endpoints and both arms locked to the front of the torso for every grip; dual-wield main hands use pair-specific weapon rows, with shield/offhand on a separate layer; added Ming archer soft cap, dragon-lantern gold band, and Ming arrow quiver; the ranged, dragon-lantern, and banner posts were redrawn from the author's original character studies; idle and walk strips for eight enemy classes, seven battle characters, and eight retinue classes are baked from their loadouts by pixel-art/character_forge/bake_battle_sprites.py; generated by pixel-art/character_forge/build.py, released under CC BY 4.0. Reference packs informed motion structure only and are not packaged.",
-					"Retinue art: eight classes of Righteous spearmen, archers, rattan-shield militia, bird-gun hands, standard-bearers, Qi-family guest soldiers, and the incense spirits of Wang Pei and Wang De; each has four idle and eight walk frames at 128×128, exported to game/assets/units/forge/allies/. Recipes are Ming-only; earlier historical figures appear only as incense-spirit drama. Acceptance sheet: pixel-art/character_forge/mercenary_roster.png, original non-code assets under CC BY 4.0.",
+					"Formal actor sprites: Tang He in the 1386 prologue, Wang Lu (a fictional watchman and the only playable character in 1559) in six formations, nine enemy classes, ten retinue classes, and three formal mounts. CharacterForge recipes bake the formal art into game/assets/units/forge/ with four idle and eight walk frames for infantry and six mounted rider strips. Wang Lu's six cards are formations of one person; the earlier actors preview art is no longer used at runtime.",
+					"Character-forge template atlases: 4 skins × 16 outfits × 14 headgear × 5 backgear × 59 main/offhand loadouts, yielding 264,320 raw rows; faction isolation leaves 59,392 Ming and 15,360 Wokou combinations, 74,752 legal combinations total; adding three mounts × three mounted actions gives cavalry style capacities of 9,216 Ming, 5,760 Wokou, and 144 neutral, 15,120 total, while the old infantry total stays 74,752; infantry uses 128×128 across 48 frames, while mounts and riders each use four idle and eight walk frames; 19 weapon classes (including two offhand shields) each with five named actions, separated into one-handed, two-handed, ranged, and offhand grips; 22 body skeletons including three dual-wield combo families and 42 legal pairs; Ming-exclusive gear is the wolf brush, Qi family saber, rattan shield, tangpa, and Qi Jia armour; Wokou-exclusive gear is the wokou saber, do-maru, haramaki, and jingasa; common gear can be used by either side, while Ming and Wokou gear are never mixed; shared shoulder/elbow/hip/knee/ankle endpoints and both arms locked to the front of the torso for every grip; dual-wield main hands use pair-specific weapon rows, with shield/offhand on a separate layer; added Ming archer soft cap, dragon-lantern gold band, and Ming arrow quiver; the ranged, dragon-lantern, and banner posts were redrawn from the author's original character studies; idle and walk strips for nine enemy classes, seven battle characters, ten retinue classes, and three mounts are generated by scripts under pixel-art/character_forge/; mounted sources are build_cavalry.py and cavalry_data.py, released under CC BY 4.0. Reference packs informed motion structure only and are not packaged.",
+					"Retinue art: ten classes of Righteous spearmen, archers, mounted lancers, mounted archers, rattan-shield militia, bird-gun hands, standard-bearers, Qi-family guest soldiers, and the incense spirits of Wang Pei and Wang De; infantry uses four idle and eight walk frames at 128×128 while cavalry reads CharacterForge mounted strips, exported to game/assets/units/forge/. Recipes are Ming-only; earlier historical figures appear only as incense-spirit drama. Acceptance sheet: pixel-art/character_forge/mercenary_roster.png, original non-code assets under CC BY 4.0.",
 					"Wokou types follow Ming-era coastal-defense records and original project fiction as antagonists; Japanese-style hats, armour, and matchlocks identify the enemy only and are not used for the Ming hero or allies.",
 					"UI panels and controls: the panel base is generated with WorkBuddy ImageGen; buttons, dropdowns, sliders, toggles, scrollbars, and tooltips are redrawn procedurally by pixel-art/ui_kit/build.py (lacquer field with a gilt band and corner flourishes); original non-code assets under CC BY 4.0. See the AI Use & Asset Statement.",
 					"Third-party music, fonts, and sound effects keep their original licenses; see the audio, font, and icon entries below.",

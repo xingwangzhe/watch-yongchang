@@ -61,6 +61,9 @@ class CavalryMetadataTests(unittest.TestCase):
                 "ming_zhaohong_lancer",
                 "ming_black_bow",
                 "wokou_grey_saber",
+                "wokou_black_bow",
+                "wokou_black_lancer",
+                "wokou_oni_lancer",
             ],
         )
         for group in ("mount_recipes", "cavalry_recipes"):

@@ -3,10 +3,10 @@
 	"source": "Jeff-FX-forge 1.1 (jeffstudio-dev/Jeff-FX-forge)",
 	"source_url": "https://github.com/jeffstudio-dev/Jeff-FX-forge",
 	"license": "Code MIT; original FX art CC0 1.0; project usage CC BY 4.0 attribution retained",
-	"combination_count": 48,
+	"combination_count": 52,
 	"player_combo_count": 24,
-	"enemy_combo_count": 16,
-	"ally_combo_count": 8,
+	"enemy_combo_count": 18,
+	"ally_combo_count": 10,
 	"animations": {
 		"slash_basic": {
 			"name": "基础刀光",
@@ -1529,6 +1529,13 @@
 			"offset": 0,
 			"rotate": false
 		},
+		"cavalry": {
+			"muzzle": "thrust",
+			"impact": "hit_heavy",
+			"scale": 1.15,
+			"offset": 24,
+			"rotate": true
+		},
 		"general": {
 			"muzzle": "slash_ink",
 			"impact": "hit_heavy",
@@ -1586,6 +1593,20 @@
 			"offset": 16,
 			"rotate": true,
 			"color": "#e4f3ec"
+		},
+		"yishi_rider": {
+			"muzzle": "thrust",
+			"scale": 1.35,
+			"offset": 24,
+			"rotate": true,
+			"color": "#dce9dc"
+		},
+		"yishi_horse_archer": {
+			"muzzle": "thrust",
+			"scale": 0.85,
+			"offset": 22,
+			"rotate": true,
+			"color": "#dce9dc"
 		},
 		"wangpei_spirit": {
 			"muzzle": "energy_ring",

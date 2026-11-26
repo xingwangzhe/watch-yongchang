@@ -24,12 +24,12 @@ func test_jeff_fx_catalog_covers_player_and_enemy_combinations() -> void:
 	var ally_attacks: Dictionary = data.get("ally_attacks", {}) as Dictionary
 	assert_eq(animations.size(), 16)
 	assert_eq(player_weapons.size(), 8)
-	assert_eq(enemy_attacks.size(), 8)
-	assert_eq(ally_attacks.size(), 8)
+	assert_eq(enemy_attacks.size(), 9)
+	assert_eq(ally_attacks.size(), 10)
 	assert_eq(int(data.get("player_combo_count", 0)), 24)
-	assert_eq(int(data.get("enemy_combo_count", 0)), 16)
-	assert_eq(int(data.get("ally_combo_count", 0)), 8)
-	assert_eq(int(data.get("combination_count", 0)), 48)
+	assert_eq(int(data.get("enemy_combo_count", 0)), 18)
+	assert_eq(int(data.get("ally_combo_count", 0)), 10)
+	assert_eq(int(data.get("combination_count", 0)), 52)
 
 	for animation_id in animations.keys():
 		var animation: Dictionary = animations[animation_id] as Dictionary
