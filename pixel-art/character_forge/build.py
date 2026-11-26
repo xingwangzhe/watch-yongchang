@@ -4531,10 +4531,11 @@ def render_layer(
     offhand: dict | None,
     pose_id: str,
     frame: int,
+    pose_override: dict | None = None,
 ) -> Image.Image:
     s = Canvas(CELL, CELL, palette=PAL)
     offhand_id = str(offhand["id"]) if offhand else "none"
-    pose = pose_for(frame, pose_id, offhand_id)
+    pose = pose_override if pose_override is not None else pose_for(frame, pose_id, offhand_id)
     if layer == "body":
         draw_body_layer(s, pose, skin)
     elif layer == "outfit":

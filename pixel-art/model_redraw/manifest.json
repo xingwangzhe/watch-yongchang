@@ -365,7 +365,7 @@
       ],
       "content": "complete recipe-matched Wang Lu with dao and round rattan shield; four subtle idle frames",
       "background": "transparent alpha",
-      "status": "runtime source for the exact Ming tan/navy-green/common-headwrap/dao/dun recipe; sliced and nearest-neighbor normalized by bake_battle_sprites.py"
+      "status": "research reference only; complete character strips are not used by runtime; formal actors are assembled from separate body, clothing and recipe gear layers"
     },
     {
       "source": "OpenAI ImageGen",
@@ -380,7 +380,7 @@
       ],
       "content": "complete recipe-matched Wang Lu with dao and round rattan shield; eight walk frames",
       "background": "transparent alpha",
-      "status": "runtime source for the exact Ming tan/navy-green/common-headwrap/dao/dun recipe; sliced and nearest-neighbor normalized by bake_battle_sprites.py"
+      "status": "research reference only; complete character strips are not used by runtime; formal actors are assembled from separate body, clothing and recipe gear layers"
     },
     {
       "source": "OpenAI ImageGen",
@@ -395,7 +395,7 @@
       ],
       "content": "unarmed Ming coastal militia base body, eight walking cycle frames; chroma green background",
       "background": "flat chroma green #00ff00",
-      "status": "candidate; slice, inspect and bind to body layer"
+      "status": "superseded research source; runtime uses walk_base_v4_source.png after transparency and scale review"
     },
     {
       "source": "OpenAI ImageGen",
@@ -410,7 +410,13 @@
       ],
       "content": "unarmed base body motion atlas; five rows of six empty-hand attack/guard action frames",
       "background": "flat chroma green #00ff00",
-      "status": "candidate; inspect action continuity and rig compatibility"
+      "status": "sliced from the 6x5 source atlas and visually reviewed in QA contacts; geometry animates continuously, but action-row meanings and weapon hand anchors remain unmapped, so QA only",
+      "qa_script": "pixel-art/model_redraw/bake_ground_attack_qa.py",
+      "qa_outputs": [
+        "/tmp/yongchang-ground-attack-qa/ming_ground_attack_contact.png",
+        "/tmp/yongchang-ground-attack-qa/wokou_ground_attack_contact.png"
+      ],
+      "runtime_use": false
     },
     {
       "source": "OpenAI ImageGen",
@@ -439,8 +445,8 @@
         3
       ],
       "content": "three horse coats, eight independent gait frames each; horses without tack or riders",
-      "background": "flat chroma cyan #00ffff",
-      "status": "candidate; inspect gait and normalize at 128px"
+      "background": "flat chroma cyan #00ffff; runtime key is #00ffff",
+      "status": "formal modular cavalry runtime source; keyed and layered by pixel-art/character_forge/build_cavalry.py"
     },
     {
       "source": "OpenAI ImageGen",
@@ -545,7 +551,13 @@
       ],
       "content": "thirty-frame Ming chest and sleeves overlay matching ground attack body sheet",
       "background": "flat chroma green #00ff00",
-      "status": "candidate; preserve reference grid and inspect compositing"
+      "status": "sliced from the 6x5 source atlas and visually reviewed in QA contacts; geometry animates continuously, but action-row meanings and weapon hand anchors remain unmapped, so QA only",
+      "qa_script": "pixel-art/model_redraw/bake_ground_attack_qa.py",
+      "qa_outputs": [
+        "/tmp/yongchang-ground-attack-qa/ming_ground_attack_contact.png",
+        "/tmp/yongchang-ground-attack-qa/wokou_ground_attack_contact.png"
+      ],
+      "runtime_use": false
     },
     {
       "source": "OpenAI ImageGen edit using ground_attack_bodies_v3_source.png as pose reference",
@@ -560,7 +572,13 @@
       ],
       "content": "thirty-frame Wokou chest and sleeves overlay matching ground attack body sheet",
       "background": "flat chroma green #00ff00",
-      "status": "candidate; preserve reference grid and inspect compositing"
+      "status": "sliced from the 6x5 source atlas and visually reviewed in QA contacts; geometry animates continuously, but action-row meanings and weapon hand anchors remain unmapped, so QA only",
+      "qa_script": "pixel-art/model_redraw/bake_ground_attack_qa.py",
+      "qa_outputs": [
+        "/tmp/yongchang-ground-attack-qa/ming_ground_attack_contact.png",
+        "/tmp/yongchang-ground-attack-qa/wokou_ground_attack_contact.png"
+      ],
+      "runtime_use": false
     },
     {
       "source": "OpenAI ImageGen",
@@ -574,8 +592,8 @@
         3
       ],
       "content": "saddle, blanket and bridle overlays in Ming, Wokou and neutral palettes, aligned to horse_gaits_v5_source",
-      "background": "flat chroma cyan #00ffff",
-      "status": "candidate; inspect over corresponding horse frame and keep tack separate"
+      "background": "flat chroma cyan #00ffff; runtime key is #00ffff",
+      "status": "formal modular cavalry runtime source; keyed and layered by pixel-art/character_forge/build_cavalry.py"
     },
     {
       "source": "OpenAI ImageGen",
@@ -590,7 +608,7 @@
       ],
       "content": "eight-frame unarmed rider body seated astride an invisible horse; no mount or tack",
       "background": "flat chroma green #00ff00",
-      "status": "candidate; test layering over independent horse and tack"
+      "status": "formal modular cavalry runtime source; keyed and layered by pixel-art/character_forge/build_cavalry.py"
     },
     {
       "source": "OpenAI ImageGen",
@@ -605,7 +623,7 @@
       ],
       "content": "Ming armor and sleeve overlays for eight rider walk frames, no body",
       "background": "flat chroma green #00ff00",
-      "status": "candidate; pose-matched overlay for rider_base_v1"
+      "status": "formal modular cavalry runtime source; keyed and layered by pixel-art/character_forge/build_cavalry.py"
     },
     {
       "source": "OpenAI ImageGen",
@@ -620,7 +638,7 @@
       ],
       "content": "Wokou armor and sleeve overlays for eight rider walk frames, no body",
       "background": "flat chroma green #00ff00",
-      "status": "candidate; pose-matched overlay for rider_base_v1"
+      "status": "formal modular cavalry runtime source; keyed and layered by pixel-art/character_forge/build_cavalry.py"
     },
     {
       "source": "OpenAI ImageGen",
@@ -651,6 +669,21 @@
       "content": "four Wokou outfit families repeated over an eight-frame walk cycle, clothing overlays only",
       "background": "flat chroma green #00ff00",
       "status": "candidate; inspect cell mapping and body anchors"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "walk_base_v4_source.png",
+      "size": [
+        1774,
+        887
+      ],
+      "grid": [
+        4,
+        2
+      ],
+      "content": "eight independent no-gear Ming militia base-body walk frames; bare arms, neutral trousers and boots",
+      "background": "transparent alpha; alpha values below 32 discarded during slicing",
+      "status": "runtime input for modular recipe composition; frame crops are alpha-thresholded, nearest-neighbor fitted and combined with separate faction garments and recipe gear"
     }
   ]
 }

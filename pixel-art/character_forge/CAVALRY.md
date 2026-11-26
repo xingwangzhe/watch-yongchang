@@ -1,7 +1,8 @@
 # CharacterForge 骑兵资产
 
-本管线用 `skills/pixel-art-studio` 的 Pillow 代码绘制方式生成未骑乘马匹和
-骑手动作条带。所有 PNG 都由脚本重建，禁止手改导出文件。
+本管线将 OpenAI ImageGen 生成的马匹、鞍具、骑手身体与阵营衣装分层切片，再与 CharacterForge 武器、头饰及背挂配方组合。静态/行走条带由 Pillow 烘焙，禁止手改导出 PNG。
+
+行走马体使用 `horse_gaits_v5_source.png`；马具按 `horse_tack_v1_source.png` 的阵营行选择。骑手底层来自 `rider_base_v1_source.png`，叠加明/倭寇独立衣装帧，再绘制 CharacterForge 头饰、武器和背挂。待机冻结首个生成姿态，维持 idle/walk 美术一致。
 
 ## 生成
 
@@ -21,9 +22,8 @@ python3 pixel-art/character_forge/test_cavalry.py
 - `idle`：4 帧，6 fps；`walk`：8 帧，10 fps。
 - 朝向：右向；落脚锚点 `(64, 122)`。
 - 步态：`diagonal_trot`（斜对角快步）。近前腿与远后腿同相，近后腿与远前腿反相。
-- 马体、头颈、尾巴和鞍桥分别起伏；骑手躯干比马背滞后一帧。
-- 骑手复用现有明军/倭寇 `skin`、`outfit`、`headgear`、`backgear` 层，
-  另绘坐姿躯干、缩短手臂、骑乘腿、马鞍、鞍垫、肚带和马镫。
+- 行走帧从 ImageGen 的马匹步态与鞍具图分别切片组合；骑手底图、阵营衣装、马匹与缰具保持独立。
+- 武器、头饰、背挂仍按合法 CharacterForge 配方叠加；闲置帧采用生成坐姿与马匹首帧。
 
 ## 配方
 

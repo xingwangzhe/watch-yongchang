@@ -101,7 +101,7 @@ func test_player_battle_art_uses_forge_recipes_and_baked_strips() -> void:
 			assert_eq(walk.get_height(), cell)
 	var wanglu: Dictionary = characters["wanglu"]
 	var wanglu_recipe: Dictionary = wanglu["character_recipe"]
-	assert_eq(str(wanglu_recipe.get("complete_sprite_family", "")), "ming_lampwatch_shielded_v1")
+	assert_false(wanglu_recipe.has("complete_sprite_family"))
 	assert_eq(str(wanglu_recipe.get("outfit", "")), "ming_navy_green")
 	assert_eq(str(wanglu_recipe.get("headgear", "")), "common_headwrap")
 	assert_eq(str(wanglu_recipe.get("weapon", "")), "dao")

@@ -15,11 +15,7 @@
 - `full_sprite_concepts_v2.png` 先定下明军步兵、倭寇步兵、令旗手和骑兵的完整造型；
   `modular_parts_v2.png` 再按头部、躯干、腿部、武器和旗帜拆大类。模块草图虽透明、
   边界清楚，但动作姿势与握点尚未匹配 CharacterForge 骨架，暂不进入正式拼装。
-- `wanglu_idle_strip_v1.png` 与 `wanglu_walk_strip_v1.png` 是完整角色图转向正式角色的
-  首个固定配方样例。`characters.json` 标记精确配方，`bake_battle_sprites.py` 校验
-  明军、肤色、服装、头巾、腰刀与藤牌后，切成 4 帧待机和 8 帧行走；其他配方仍按
-  CharacterForge 模块图集组合。PNG 源保留在 `game/assets/units/forge/`，WebP 由
-  `tools/optimize_runtime_images.ts` 派生。
+- `walk_base_v4_source.png` 是 4×2 的 8 帧独立行走身体底图，不含服装、武器、盾牌或坐骑。切片时先清除低透明度边缘，再按比例缩放；与独立阵营服装及 CharacterForge 配方装备组合。旧王陆完整角色条带仅保留为研究参考，正式角色全部按可组合图层烘焙。
 
 ## 切分
 
@@ -79,3 +75,7 @@ QA；尚未接入正式图集。
 ## 文化锚点
 
 方向来自项目公开文化资料：永昌堡石墙、敌台、陆水门、双渠与石桥，明代沿海卫所、抗倭乡兵，青灰砖瓦、朱红灯火与龙灯色彩。叙事不得写成汤和修筑永昌堡。
+
+### 地面攻击动作 QA
+
+`ground_attack_bodies_v3_source.png`、`ming_ground_attack_clothing_overlay_v1_source.png` 与 `wokou_ground_attack_clothing_overlay_v1_source.png` 均为 6×5 大图。运行 `python3 pixel-art/model_redraw/bake_ground_attack_qa.py`，会从原图执行色键切分并输出两阵营身体+衣装联系表和帧差 JSON 到 `/tmp/yongchang-ground-attack-qa/`。联系表不含武器、副手或完整装备角色。五行语义尚未完成武器动作映射，故仍是 QA 素材，不进入运行时。

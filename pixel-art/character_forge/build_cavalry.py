@@ -32,6 +32,50 @@ CELL = forge.CELL
 OUTPUT_ROOT = ROOT / "game" / "assets" / "units" / "forge" / "cavalry"
 PREVIEW_ROOT = HERE
 TAU = math.pi * 2.0
+MODEL_REDRAW_DIR = ROOT / "pixel-art" / "model_redraw"
+MODEL_SLICES = MODEL_REDRAW_DIR / "slices_v3"
+_MODEL_ART: dict[str, Image.Image] = {}
+
+
+def keyed_cell(sheet_name: str, columns: int, rows: int, row: int, column: int, key: tuple[int, int, int]) -> Image.Image:
+    """Crop one source cell and remove only its explicitly documented color key."""
+    cache_key = f"{sheet_name}:{rows}:{row}:{column}:{key}"
+    if cache_key in _MODEL_ART:
+        return _MODEL_ART[cache_key].copy()
+    source = Image.open(MODEL_REDRAW_DIR / sheet_name).convert("RGBA")
+    bounds = (
+        round(column * source.width / columns),
+        round(row * source.height / rows),
+        round((column + 1) * source.width / columns),
+        round((row + 1) * source.height / rows),
+    )
+    frame = source.crop(bounds)
+    pixels = frame.load()
+    kr, kg, kb = key
+    for y in range(frame.height):
+        for x in range(frame.width):
+            r, g, b, _ = pixels[x, y]
+            if (r - kr) ** 2 + (g - kg) ** 2 + (b - kb) ** 2 <= 210 ** 2:
+                pixels[x, y] = (r, g, b, 0)
+            else:
+                pixels[x, y] = (r, g, b, 255)
+    alpha = frame.getchannel("A").point(lambda value: 255 if value >= 128 else 0)
+    frame.putalpha(alpha)
+    _MODEL_ART[cache_key] = frame
+    return frame.copy()
+
+
+def fit_model_layer(frame: Image.Image, max_size: tuple[int, int], position: tuple[int, int] | None = None) -> Image.Image:
+    bbox = frame.getchannel("A").getbbox()
+    canvas = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
+    if bbox is None:
+        return canvas
+    content = frame.crop(bbox)
+    scale = min(max_size[0] / content.width, max_size[1] / content.height)
+    content = content.resize((max(1, round(content.width * scale)), max(1, round(content.height * scale))), Image.Resampling.NEAREST)
+    x, y = position if position is not None else ((CELL - content.width) // 2, CELL - 8 - content.height)
+    canvas.alpha_composite(content, (x, y))
+    return canvas
 
 
 def harness_palette(faction: str | None) -> dict:
@@ -512,7 +556,7 @@ def draw_tack(s: forge.Sprite, mount: dict, pose: dict, faction: str | None) -> 
 
 
 def draw_horse_layer(mount: dict, pose: dict, faction: str | None) -> Image.Image:
-    if mount.get("model_art_source") and pose.get("clip") == "walk":
+    if mount.get("model_art_source"):
         return draw_model_horse_layer(mount, pose, faction)
     s = forge.Canvas(CELL, CELL)
     draw_tail(s, mount, pose)
@@ -532,18 +576,11 @@ def draw_horse_layer(mount: dict, pose: dict, faction: str | None) -> Image.Imag
 def draw_model_horse_layer(mount: dict, pose: dict, faction: str | None) -> Image.Image:
     """Load one horse-only gait frame; keep tack and rider as separate layers."""
     source = ROOT / str(mount["model_art_source"])
-    atlas = Image.open(source).convert("RGBA")
     columns, rows = cd.WALK_FRAMES, len(cd.MOUNTS)
     row = int(mount["model_art_row"])
-    frame_index = int(pose["index"]) % cd.WALK_FRAMES
-    left = round(frame_index * atlas.width / columns)
-    right = round((frame_index + 1) * atlas.width / columns)
-    top = round(row * atlas.height / rows)
-    bottom = round((row + 1) * atlas.height / rows)
-    frame = atlas.crop((left, top, right, bottom))
-    alpha = frame.getchannel("A").point(lambda value: 255 if value >= 128 else 0)
-    frame.putalpha(alpha)
-    bbox = alpha.getbbox()
+    frame_index = 0 if pose["clip"] == "idle" else int(pose["index"]) % cd.WALK_FRAMES
+    frame = keyed_cell(source.name, columns, rows, row, frame_index, (0, 255, 255))
+    bbox = frame.getchannel("A").getbbox()
     if bbox is None:
         raise ValueError(f"empty model horse frame: {source} row={row} frame={frame_index}")
     frame = frame.crop(bbox)
@@ -554,10 +591,31 @@ def draw_model_horse_layer(mount: dict, pose: dict, faction: str | None) -> Imag
     x = (CELL - frame.width) // 2
     y = 119 - frame.height
     canvas.alpha_composite(frame, (x, y))
-    tack = forge.Canvas(CELL, CELL)
-    draw_tack(tack, mount, pose, faction)
-    canvas.alpha_composite(tack.composite())
-    canvas.putalpha(canvas.getchannel("A").point(lambda value: 255 if value >= 128 else 0))
+    # Tack stays an independent generated layer selected by faction and gait.
+    tack_row = {"ming": 0, "wokou": 1, None: 2}.get(faction, 2)
+    tack_frame = keyed_cell("horse_tack_v1_source.png", cd.WALK_FRAMES, 3, tack_row, frame_index, (0, 255, 255))
+    tack_image = fit_model_layer(tack_frame, (90, 52), (31, 36))
+    canvas.alpha_composite(tack_image)
+    if pose["clip"] == "idle" and int(pose["body_dy"]):
+        shifted = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
+        shifted.alpha_composite(canvas, (0, int(pose["body_dy"])))
+        canvas = shifted
+    return canvas
+
+
+def draw_model_rider_base(recipe: dict, pose: dict) -> Image.Image:
+    """Compose the generated seated body and faction clothing as separate cells."""
+    index = 0 if pose["clip"] == "idle" else int(pose["index"]) % cd.WALK_FRAMES
+    grid_row, column = divmod(index, 4)
+    body = keyed_cell("rider_base_v1_source.png", 4, 2, grid_row, column, (0, 255, 0))
+    body = body.resize((CELL, CELL), Image.Resampling.NEAREST)
+    faction = str(recipe["faction"])
+    clothing_name = f"{faction}_rider_walk_overlay_v1_source.png"
+    clothing = keyed_cell(clothing_name, 4, 2, grid_row, column, (0, 255, 0))
+    clothing = clothing.resize((CELL, CELL), Image.Resampling.NEAREST)
+    canvas = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
+    canvas.alpha_composite(body)
+    canvas.alpha_composite(clothing)
     return canvas
 
 
@@ -1184,6 +1242,25 @@ def draw_rider_layer(
     pose = rider_pose_from_action(action, horse, horse["clip"], horse["index"])
     s = forge.Canvas(CELL, CELL)
     forge.draw_backgear_layer(s, pose, backgear)
+    if horse["clip"] in ("walk", "idle"):
+        canvas = s.composite()
+        canvas.alpha_composite(draw_model_rider_base(recipe, horse))
+        gear = forge.Canvas(CELL, CELL)
+        headgear_pose = pose.copy()
+        # The generated seated rider's head sits higher than CharacterForge's
+        # standing head anchor; raise only the helmet so it clears the eyes.
+        headgear_pose["head_dy"] = float(headgear_pose["head_dy"]) - 5.0
+        forge.draw_headgear_layer(gear, headgear_pose, headgear)
+        draw_cavalry_weapon(gear, pose, action, weapon)
+        if offhand:
+            forge.draw_offhand_layer(gear, pose, offhand)
+        if action["id"] != "mounted_bow":
+            forge._draw_grip_fist(gear, pose["rein_hand"], pose["rein_aim"])
+        gear.outline(forge.OUTLINE, where="outside")
+        canvas.alpha_composite(gear.composite())
+        canvas.putalpha(canvas.getchannel("A").point(lambda value: 255 if value >= 128 else 0))
+        return canvas, pose
+
     draw_rider_leg(s, pose, outfit, "far")
     upper_x = 60.0 + float(pose["lean"])
     draw_mounted_torso(s, pose, outfit)
@@ -1201,7 +1278,6 @@ def draw_rider_layer(
     draw_cavalry_weapon(s, pose, action, weapon)
     if offhand:
         forge.draw_offhand_layer(s, pose, offhand)
-    # Rein hand is gloved even when it does not grip the weapon.
     if action["id"] != "mounted_bow":
         forge._draw_grip_fist(s, pose["rein_hand"], pose["rein_aim"])
     s.outline(forge.OUTLINE, where="outside")
@@ -1324,10 +1400,11 @@ def render_mount_frame(mount: dict, clip: str, index: int) -> Image.Image:
     canvas = Image.new("RGBA", (CELL, CELL), (0, 0, 0, 0))
     canvas.alpha_composite(draw_ground_shadow(clip, index))
     canvas.alpha_composite(draw_horse_layer(mount, horse, None))
-    pommel = (78.0, 65.0 + int(horse["body_dy"]))
-    canvas.alpha_composite(
-        draw_parked_reins(bit_point(horse), pommel, float(horse["phase"]))
-    )
+    if not mount.get("model_art_source"):
+        pommel = (78.0, 65.0 + int(horse["body_dy"]))
+        canvas.alpha_composite(
+            draw_parked_reins(bit_point(horse), pommel, float(horse["phase"]))
+        )
     return canvas
 
 

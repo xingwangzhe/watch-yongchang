@@ -36,23 +36,11 @@ REFERENCE_TRIO_SHEET = Path(__file__).resolve().parent / "reference_trio_actions
 REFERENCE_TRIO_IDS = ("agong", "amei", "aqi")
 REFERENCE_TRIO_CLIPS = ("idle", "walk", "attack_1")
 MODEL_REDRAW_DIR = ROOT / "pixel-art" / "model_redraw"
-COMPLETE_SPRITE_FAMILIES = {
-    "ming_lampwatch_shielded_v1": {
-        "recipe": {
-            "faction": "ming",
-            "skin": "tan",
-            "outfit": "ming_navy_green",
-            "headgear": "common_headwrap",
-            "backgear": "none",
-            "weapon": "dao",
-            "offhand": "dun",
-        },
-        "idle": MODEL_REDRAW_DIR / "wanglu_idle_strip_v1.png",
-        "walk": MODEL_REDRAW_DIR / "wanglu_walk_strip_v1.png",
-    }
-}
-
-
+MODEL_SLICES = MODEL_REDRAW_DIR / "slices_v3"
+MODEL_WALK_HEAD_CROP = (41, 0, 88, 44)
+MODEL_WALK_OUTFIT_SIZE = (40, 29)
+MODEL_WALK_OUTFIT_POSITION = (44, 43)
+_MODEL_WALK_CELLS: dict[str, list[Image.Image]] = {}
 def load_enemies() -> dict:
     data = json.loads(ENEMY_DATA.read_text(encoding="utf-8"))
     enemies = data.get("enemies", {})
@@ -67,6 +55,123 @@ def clip_frames(clip_name: str) -> list[int]:
     return list(range(start, start + int(clip["count"])))
 
 
+def _load_model_walk_cells(faction: str, layer: str) -> list[Image.Image]:
+    key = f"{faction}:{layer}"
+    if key not in _MODEL_WALK_CELLS:
+        if layer == "body":
+            folder = MODEL_SLICES / "walk_base_v4"
+            prefix = "walk_base_v4_source"
+        else:
+            folder = MODEL_SLICES / f"{faction}_walk_clothing_overlay_v1"
+            prefix = f"{faction}_walk_clothing_overlay_v1_source"
+        cells = []
+        for frame in range(8):
+            path = folder / f"{prefix}_r{frame // 4:02d}_c{frame % 4:02d}.png"
+            with Image.open(path) as source:
+                cell = source.convert("RGBA")
+                if layer == "outfit":
+                    # The generated overlays drifted violet; remap those cloth
+                    # pixels to late-Ming indigo or Wokou charcoal brown.
+                    pixels = cell.load()
+                    shadow, mid, light = ((19, 35, 46), (42, 61, 69), (83, 95, 94)) if faction == "ming" else ((28, 27, 27), (55, 43, 35), (92, 69, 49))
+                    for y in range(cell.height):
+                        for x in range(cell.width):
+                            red, green, blue, alpha = pixels[x, y]
+                            if alpha and blue > red * 1.12 and blue > green * 1.08:
+                                value = (red + green + blue) / (3 * 255)
+                                target = shadow if value < 0.34 else mid if value < 0.58 else light
+                                pixels[x, y] = (*target, alpha)
+                cells.append(cell)
+        _MODEL_WALK_CELLS[key] = cells
+    return _MODEL_WALK_CELLS[key]
+
+
+def _recolor_model_skin(body: Image.Image, skin: dict) -> Image.Image:
+    """Palette-shift only the generated body's face, neck, and exposed hands."""
+    from PIL import ImageColor
+
+    palette = {
+        "light": ImageColor.getrgb(skin["light"]) + (255,),
+        "base": ImageColor.getrgb(skin["base"]) + (255,),
+        "dark": ImageColor.getrgb(skin["dark"]) + (255,),
+        "deep": ImageColor.getrgb(skin["deep"]) + (255,),
+    }
+    pixels = body.load()
+    for y in range(body.height):
+        for x in range(body.width):
+            if not ((48 <= x <= 95 and 14 <= y <= 54) or
+                    (18 <= x <= 58 and 56 <= y <= 80) or
+                    (66 <= x <= 105 and 56 <= y <= 80)):
+                continue
+            red, green, blue, alpha = pixels[x, y]
+            if alpha == 0 or red < 175 or green < 85 or blue > 195 or red < green * 1.08 or green < blue * 1.08:
+                continue
+            value = (red + green + blue) / 3
+            target = "light" if value >= 225 else "base" if value >= 190 else "dark" if value >= 155 else "deep"
+            pixels[x, y] = palette[target]
+    return body
+
+
+def _model_walk_body(recipe: dict, walk_index: int) -> Image.Image:
+    faction = str(recipe["faction"])
+    skin, _, _, _, _, _, _ = forge.resolve_recipe(recipe)
+    body = _recolor_model_skin(_load_model_walk_cells(faction, "body")[walk_index].copy(), skin)
+    garment = _load_model_walk_cells(faction, "outfit")[walk_index].copy()
+    canvas = Image.new("RGBA", (forge.CELL, forge.CELL), (0, 0, 0, 0))
+    canvas.alpha_composite(body)
+    garment_box = garment.getchannel("A").getbbox()
+    if garment_box:
+        garment = garment.crop(garment_box).resize(MODEL_WALK_OUTFIT_SIZE, Image.Resampling.NEAREST)
+        canvas.alpha_composite(garment, MODEL_WALK_OUTFIT_POSITION)
+    head = body.crop(MODEL_WALK_HEAD_CROP)
+    canvas.alpha_composite(head, (MODEL_WALK_HEAD_CROP[0], MODEL_WALK_HEAD_CROP[1]))
+    return canvas
+
+
+def _model_hand_anchors(body: Image.Image) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Measure exposed hand pixels on each generated walk frame for held gear."""
+    pixels = body.load()
+    def anchor(x_min: int, x_max: int) -> tuple[float, float]:
+        points = []
+        for y in range(58, 80):
+            for x in range(x_min, x_max):
+                red, green, blue, alpha = pixels[x, y]
+                if alpha and red > 180 and green > 85 and blue < 195 and red > green * 1.08 and green > blue * 1.08:
+                    points.append((x, y))
+        if not points:
+            return (float((x_min + x_max) / 2), 70.0)
+        return (sum(point[0] for point in points) / len(points),
+                sum(point[1] for point in points) / len(points))
+    return anchor(18, 58), anchor(68, 106)
+
+
+def _render_recipe_layer(layer: str, recipe: dict, frame: int, pose: dict) -> Image.Image:
+    skin, outfit, headgear, backgear, weapon, offhand, _grip = forge.resolve_recipe(recipe)
+    pose_id = str(weapon["id"])
+    return forge.render_layer(layer, skin, outfit, headgear, backgear, weapon, offhand,
+                              pose_id, frame, pose_override=pose)
+
+
+def bake_model_walk_frame(recipe: dict, frame: int) -> Image.Image:
+    """Use independent generated body/clothing art, then compose recipe gear."""
+    _, _, _, _, weapon, offhand, _grip = forge.resolve_recipe(recipe)
+    pose_id = str(weapon["id"])
+    walk_index = frame - int(forge.CLIPS["walk"]["start"])
+    base = _model_walk_body(recipe, walk_index)
+    far_hand, near_hand = _model_hand_anchors(base)
+    pose = forge.pose_for(frame, pose_id, str(offhand["id"]) if offhand else "none")
+    pose["far_hand"] = far_hand
+    pose["near_hand"] = near_hand
+    image = Image.new("RGBA", (forge.CELL, forge.CELL), (0, 0, 0, 0))
+    image.alpha_composite(_render_recipe_layer("backgear", recipe, frame, pose))
+    image.alpha_composite(base)
+    image.alpha_composite(_render_recipe_layer("headgear", recipe, frame, pose))
+    if offhand is not None:
+        image.alpha_composite(_render_recipe_layer("offhand", recipe, frame, pose))
+    image.alpha_composite(_render_recipe_layer("weapon", recipe, frame, pose))
+    return image
+
+
 def bake_strip(
     recipe: dict,
     clip_name: str,
@@ -75,41 +180,12 @@ def bake_strip(
     frames = clip_frames(clip_name)
     strip = Image.new("RGBA", (forge.CELL * len(frames), forge.CELL), (0, 0, 0, 0))
     for column, frame in enumerate(frames):
-        image = forge.compose_recipe_frame(recipe, frame, atlases)
+        faction = recipe.get("faction")
+        if clip_name == "walk" and faction in ("ming", "wokou"):
+            image = bake_model_walk_frame(recipe, frame)
+        else:
+            image = forge.compose_recipe_frame(recipe, frame, atlases)
         strip.alpha_composite(image, (column * forge.CELL, 0))
-    return strip
-
-
-def bake_complete_sprite_strip(family_id: str, clip_name: str) -> Image.Image:
-    """Slice one fixed, recipe-matched full-character action strip."""
-    family = COMPLETE_SPRITE_FAMILIES[family_id]
-    source = Image.open(family[clip_name]).convert("RGBA")
-    frame_count = len(clip_frames(clip_name))
-    cell_frames: list[Image.Image] = []
-    for index in range(frame_count):
-        bounds = (
-            round(index * source.width / frame_count),
-            0,
-            round((index + 1) * source.width / frame_count),
-            source.height,
-        )
-        frame = source.crop(bounds)
-        frame.putalpha(frame.getchannel("A").point(lambda alpha: 255 if alpha >= 128 else 0))
-        box = frame.getchannel("A").getbbox()
-        if box is None:
-            raise ValueError(f"empty {family_id}/{clip_name} frame {index}")
-        cell_frames.append(frame.crop(box))
-
-    max_width = max(frame.width for frame in cell_frames)
-    max_height = max(frame.height for frame in cell_frames)
-    scale = min(108 / max_width, 112 / max_height)
-    strip = Image.new("RGBA", (forge.CELL * frame_count, forge.CELL), (0, 0, 0, 0))
-    for index, frame in enumerate(cell_frames):
-        size = (max(1, round(frame.width * scale)), max(1, round(frame.height * scale)))
-        resized = frame.resize(size, Image.Resampling.NEAREST)
-        target = Image.new("RGBA", (forge.CELL, forge.CELL), (0, 0, 0, 0))
-        target.alpha_composite(resized, ((forge.CELL - resized.width) // 2, 120 - resized.height))
-        strip.alpha_composite(target, (index * forge.CELL, 0))
     return strip
 
 
@@ -270,19 +346,8 @@ def main() -> None:
             continue
         if str(recipe.get("faction", "")) != "ming":
             raise ValueError(f"{character_id} must be a Ming battle character")
-        family_id = str(recipe.get("complete_sprite_family", ""))
-        if family_id:
-            family = COMPLETE_SPRITE_FAMILIES.get(family_id)
-            if family is None:
-                raise ValueError(f"unknown complete sprite family: {family_id}")
-            expected_recipe = family["recipe"]
-            if any(str(recipe.get(key, "")) != value for key, value in expected_recipe.items()):
-                raise ValueError(f"{character_id} recipe does not match {family_id}")
-            idle = bake_complete_sprite_strip(family_id, "idle")
-            walk = bake_complete_sprite_strip(family_id, "walk")
-        else:
-            idle = bake_strip(recipe, "idle", atlases)
-            walk = bake_strip(recipe, "walk", atlases)
+        idle = bake_strip(recipe, "idle", atlases)
+        walk = bake_strip(recipe, "walk", atlases)
         for clip_name, strip, path_key, frames_key in (
             ("idle", idle, "battle_idle", "battle_idle_frames"),
             ("walk", walk, "battle_walk", "battle_walk_frames"),

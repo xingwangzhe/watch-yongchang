@@ -68,9 +68,10 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
   条带纹理，不额外复制像素。
 - `game/assets/units/forge/cavalry/`：3 种未骑乘马与 6 个骑手变体，每种
   4 帧待机 + 8 帧行走。由 `pixel-art/character_forge/build_cavalry.py` 与
-  `cavalry_data.py` 烘焙；马匹行走帧来自 `pixel-art/model_redraw/horse_motion_v4.png`
-  （OpenAI ImageGen，3 种毛色 × 8 帧），骑手服装、头饰、背挂与兵器仍由
-  CharacterForge 配方绘制，待机马匹与缰具/鞍具按程序化层绘制。战斗、佣兵与
+  `cavalry_data.py` 烘焙；马匹步态、马具、骑手身体与明/倭寇骑手衣装分别来自
+  `horse_gaits_v5_source.png`、`horse_tack_v1_source.png`、`rider_base_v1_source.png`
+  与 `ming_rider_walk_overlay_v1_source.png` / `wokou_rider_walk_overlay_v1_source.png`
+  （OpenAI ImageGen）；切片去青色背景后组合，武器、头饰、背挂按 CharacterForge 配方绘制。战斗、佣兵与
   图鉴只读取这些正式条带，禁止手改导出的 PNG。
 - `game/assets/tiles/yongchang/`：地形、道具与环境动效由项目程序化绘制；
   `architecture_atlas_ai_v1.png` 有 47 格来自 OpenAI ImageGen，
@@ -84,9 +85,7 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 - `game/assets/icons/game_icons/`：第三方 game-icons.net SVG，不是 AI 生成；
   运行时仅着色，不改变图形。
 
-除已登记的 `architecture_atlas_ai_v1.png` 外，角色与其他像素资产仍由项目脚本
-确定性绘制或烘焙。模型生成图只作为输入源；切片、alpha 阈值和最近邻缩放可重跑，
-作者检查图集、地图拼接与游戏场景后才登记为运行时素材。其他候选图仍只供研究。
+角色行走身体、阵营衣装、骑乘层、武器与建筑图块由 OpenAI ImageGen 分别生成；模型不直接生成完整着装角色或骑马角色。walk_base_v4_source.png 进入正式步行角色基础层，独立衣装和 CharacterForge 装备配方叠加烘焙。所有输入大图、切片状态和用途见 pixel-art/model_redraw/manifest.json；正式素材经图集目视检查后才进入运行资源。其他候选图仍只供研究。
 
 ### 3.2 文本、数据与剧情
 
