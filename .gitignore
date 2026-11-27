@@ -70,6 +70,7 @@ docs/**
 !docs/edgeone-deploy.md
 !docs/开发者日志-*.md
 !docs/文化来源.md
+!docs/quality-guards-2026-11.md
 design/
 research/
 notes/

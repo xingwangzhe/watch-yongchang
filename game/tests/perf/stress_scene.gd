@@ -35,6 +35,11 @@ func _ready() -> void:
 	field.name = "Battlefield"
 	add_child(field)
 	field.setup(20261123)
+	# Keep the requested population in a bounded combat ring during capacity runs.
+	# The gameplay culler intentionally removes enemies over 2,100 px from the player;
+	# this benchmark isolates the 460-enemy update workload instead of measuring culling.
+	if OS.has_environment("WATCH_STRESS_PIN_ENEMIES"):
+		field.allies.clear()
 	var characters := GameData.get_characters()
 	field.set_player_sprites(characters.get("wanglu", {}) as Dictionary)
 	field.set_meta("player_tint", Color.WHITE)
@@ -54,9 +59,10 @@ func _ready() -> void:
 			"scout" if i % 5 else "ronin",
 			Vector2(cos(angle), sin(angle)) * ring
 		)
-	var ally_ids := ["yishi_spear", "yishi_archer", "tengpai_militia", "standard_bearer"]
-	for index in ally_ids.size():
-		field.spawn_ally(str(ally_ids[index]), Vector2(-100.0 + float(index) * 64.0, 90.0))
+	if not OS.has_environment("WATCH_STRESS_PIN_ENEMIES"):
+		var ally_ids := ["yishi_spear", "yishi_archer", "tengpai_militia", "standard_bearer"]
+		for index in ally_ids.size():
+			field.spawn_ally(str(ally_ids[index]), Vector2(-100.0 + float(index) * 64.0, 90.0))
 	var pickup_count := clampi(int(OS.get_environment("WATCH_STRESS_PICKUPS")), 0, 2000)
 	for i in range(pickup_count):
 		var angle := TAU * float(i) / float(maxi(1, pickup_count))
@@ -107,6 +113,13 @@ func _process(delta: float) -> void:
 		_log("[stress] process start frame=%d delta=%.6f" % [_debug_frames, delta])
 	_t += delta
 	player["pos"] = Vector2(cos(_t * 0.35), sin(_t * 0.35)) * 150.0
+	if OS.has_environment("WATCH_STRESS_PIN_ENEMIES"):
+		for index in field.enemies.size():
+			var enemy := field.enemies[index]
+			var angle := TAU * float(index) / float(maxi(1, field.enemies.size()))
+			var radius := 420.0 + float(index % 7) * 24.0
+			enemy["alive"] = true
+			enemy["pos"] = player["pos"] + Vector2.RIGHT.rotated(angle) * radius
 	field.player_facing = (player["pos"] as Vector2) - field.player_pos
 	field.player_aim = Vector2.RIGHT.rotated(_t * 0.8)
 	var update_started := Time.get_ticks_usec()

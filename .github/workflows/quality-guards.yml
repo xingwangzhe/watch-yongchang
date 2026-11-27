@@ -1,0 +1,119 @@
+name: Quality Guards
+
+on:
+  workflow_call:
+  push:
+    branches: ["**"]
+    tags: ["v*.*.*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  formal-model:
+    name: Formal gameplay model · TLC
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Java 21
+        uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Fetch pinned TLA+ tools
+        run: |
+          set -euo pipefail
+          curl -fL --retry 3 -o "$RUNNER_TEMP/tla2tools.jar" \
+            https://github.com/tlaplus/tlaplus/releases/download/v1.7.4/tla2tools.jar
+          printf '%s  %s\n' 936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88 "$RUNNER_TEMP/tla2tools.jar" | sha256sum -c -
+
+      - name: Model-check gameplay invariants
+        run: java -XX:+UseParallelGC -cp "$RUNNER_TEMP/tla2tools.jar" tlc2.TLC -workers 1 -metadir "$RUNNER_TEMP/tlc-meta" game/formal/NightWatch.tla
+
+  visual-assets:
+    name: Visual geometry and review sheets
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Build image-review sheets from source atlases
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow==13.0.0
+          python3 pixel-art/full_composed_atlas/build.py
+          bun run tools/visual_asset_guard.test.ts
+          bun run tools/visual_asset_guard.ts
+
+      - name: Verify runtime art matches generated source
+        run: git diff --exit-code -- game/assets/units/full_sheets game/assets/tiles/full_sheets
+
+      - name: Upload human-review sheets
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-review-${{ github.sha }}
+          path: pixel-art/full_composed_atlas/clean/*_checker.png
+          if-no-files-found: error
+          retention-days: 14
+
+  perf-quality:
+    name: Performance triangle · quality, latency, capacity
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GODOT_BIN: ${{ github.workspace }}/.tools/godot
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          test -n "$VERSION"
+          echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Install Godot
+        run: |
+          set -euo pipefail
+          mkdir -p .tools
+          curl -fL --retry 3 -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
+          mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          ACTUAL="$("$GODOT_BIN" --version)"
+          EXPECTED_BASE="${GODOT_VERSION%-*}"
+          EXPECTED_STATUS="${GODOT_VERSION#*-}"
+          [[ "$ACTUAL" == "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]
+
+      - name: Import Godot project
+        run: timeout 300 "$GODOT_BIN" --headless --path game --import
+
+      - name: Measure 460-enemy update cost
+        env:
+          WATCH_STRESS_LOG: ${{ runner.temp }}/stress.log
+          WATCH_STRESS_COUNT: "460"
+          WATCH_STRESS_PIN_ENEMIES: "1"
+        run: $GODOT_BIN --headless --path game --scene res://tests/perf/stress_scene.tscn --quit-after 240
+
+      - name: Measure map flow-field latency
+        run: $GODOT_BIN --headless --path game -s tests/perf/flow_bench.gd > $RUNNER_TEMP/flow.log 2>&1
+
+      - name: Check quality, latency, and capacity budgets
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.5
+
+      - name: Enforce performance budgets
+        run: bun run tools/perf_quality_guard.ts "$RUNNER_TEMP/stress.log" "$RUNNER_TEMP/flow.log"
