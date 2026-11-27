@@ -215,8 +215,8 @@ jobs:
           ANDROID_VERSION_CODE=$((VERSION_MAJOR * 10000 + VERSION_MINOR * 100 + VERSION_PATCH))
           grep -Fq "sdkVersion:'24'" <<< "$BADGING"
           grep -Fq "targetSdkVersion:'36'" <<< "$BADGING"
-          grep -Fq "versionCode:'${ANDROID_VERSION_CODE}'" <<< "$BADGING"
-          grep -Fq "versionName:'${APP_VERSION}'" <<< "$BADGING"
+          grep -Fq "versionCode='${ANDROID_VERSION_CODE}'" <<< "$BADGING"
+          grep -Fq "versionName='${APP_VERSION}'" <<< "$BADGING"
           APK_ENTRIES="$(unzip -Z1 "$APK")"
           grep -Fxq 'lib/arm64-v8a/libgodot_android.so' <<< "$APK_ENTRIES"
           grep -Fxq 'lib/armeabi-v7a/libgodot_android.so' <<< "$APK_ENTRIES"
