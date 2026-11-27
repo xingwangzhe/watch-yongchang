@@ -355,29 +355,17 @@ func _paint_terrain_area(area: Dictionary, rect: Rect2i) -> void:
 	var variants := _area_tiles(area)
 	var base_variants := _base_terrain_variants()
 	var edge_salt := int(area.get("edge_salt", 79))
-	# Terrain rectangles describe broad biomes, not man-made plots. Bend each edge
-	# with low-frequency noise so broad sand and mud fields do not end in box-shaped cuts.
-	var edge_amplitude := minf(4.0, maxf(1.0, float(mini(rect.size.x, rect.size.y)) * 0.12))
-	var paint_rect := rect.grow(4)
+	# Rectangles describe broad biome seeds, not final boundaries. Use a shared
+	# 2D contour field against the signed distance to the rectangle; perturbing
+	# each edge independently still leaves four conspicuous axis-aligned seams.
+	var edge_amplitude := minf(7.0, maxf(3.0, float(mini(rect.size.x, rect.size.y)) * 0.18))
+	var paint_rect := rect.grow(8)
 	for y in range(paint_rect.position.y, paint_rect.end.y):
 		for x in range(paint_rect.position.x, paint_rect.end.x):
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
-			var top := rect.position.y + _terrain_edge_offset(Vector2i(x, rect.position.y), edge_salt + 11, edge_amplitude)
-			var bottom := rect.end.y + _terrain_edge_offset(Vector2i(x, rect.end.y), edge_salt + 17, edge_amplitude)
-			var left := rect.position.x + _terrain_edge_offset(Vector2i(rect.position.x, y), edge_salt + 23, edge_amplitude)
-			var right := rect.end.x + _terrain_edge_offset(Vector2i(rect.end.x, y), edge_salt + 29, edge_amplitude)
-			# A biome already touching the world edge should remain flush with that edge.
-			if rect.position.x == 0:
-				left = 0
-			if rect.position.y == 0:
-				top = 0
-			if rect.end.x == layout.world_tiles.x:
-				right = rect.end.x
-			if rect.end.y == layout.world_tiles.y:
-				bottom = rect.end.y
-			if x < left or x >= right or y < top or y >= bottom:
+			if not _terrain_contour_contains(cell, rect, edge_salt, edge_amplitude):
 				var underlying_tile := terrain_tile_name(cell)
 				if not underlying_tile.is_empty():
 					layout.set_minimap_color(cell, layout.minimap_color_for_tile(underlying_tile))
@@ -385,8 +373,8 @@ func _paint_terrain_area(area: Dictionary, rect: Rect2i) -> void:
 			if layout.is_water_cell(cell) or layout.is_bridge_cell(cell) or layout.is_solid_cell(cell):
 				continue
 			var edge_depth := minf(
-				minf(float(x - left), float(right - 1 - x)),
-				minf(float(y - top), float(bottom - 1 - y))
+				minf(float(x - rect.position.x), float(rect.end.x - 1 - x)),
+				minf(float(y - rect.position.y), float(rect.end.y - 1 - y))
 			)
 			var tile_name := _pick_organic_name(variants, cell, 79, 3)
 			if edge_depth < 3.0:
@@ -399,11 +387,22 @@ func _paint_terrain_area(area: Dictionary, rect: Rect2i) -> void:
 				layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
 
 
-func _terrain_edge_offset(cell: Vector2i, salt: int, amplitude: float) -> int:
-	# Mix two smooth spatial scales: broad shoreline bends with a gentle secondary wobble.
-	var broad := _smooth_hash_noise(cell, salt, 7) - 0.5
-	var detail := _smooth_hash_noise(cell, salt + 1, 13) - 0.5
-	return roundi((broad * 0.72 + detail * 0.28) * 2.0 * amplitude)
+func _terrain_contour_contains(cell: Vector2i, rect: Rect2i, salt: int, amplitude: float) -> bool:
+	var edge_distance := minf(
+		minf(float(cell.x - rect.position.x), float(rect.end.x - 1 - cell.x)),
+		minf(float(cell.y - rect.position.y), float(rect.end.y - 1 - cell.y))
+	)
+	# Preserve a biome that touches the map boundary right to the world edge.
+	if rect.position.x == 0 and cell.x == 0:
+		return true
+	if rect.position.y == 0 and cell.y == 0:
+		return true
+	if layout != null and rect.end.x == layout.world_tiles.x and cell.x == rect.end.x - 1:
+		return true
+	if layout != null and rect.end.y == layout.world_tiles.y and cell.y == rect.end.y - 1:
+		return true
+	var contour := (_smooth_hash_noise(cell, salt + 11, 9) - 0.5) * 2.0 * amplitude
+	return edge_distance + contour >= 0.0
 
 
 func _base_terrain_variants() -> Array:

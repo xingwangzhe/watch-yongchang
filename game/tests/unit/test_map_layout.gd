@@ -912,6 +912,36 @@ func test_terrain_variant_field_is_continuous_instead_of_square_clusters() -> vo
 	assert_lt(max_neighbor_delta, 25.0, "adjacent material values must not jump at regular block boundaries")
 
 
+func test_terrain_biome_contour_breaks_axis_aligned_edges() -> void:
+	var renderer := MapRenderer.new()
+	add_child_autofree(renderer)
+	var rect := Rect2i(20, 20, 60, 45)
+	var left_edges: Array[int] = []
+	var right_edges: Array[int] = []
+	for y in range(rect.position.y + 8, rect.end.y - 8):
+		for x in range(rect.position.x - 8, rect.end.x + 8):
+			if renderer._terrain_contour_contains(Vector2i(x, y), rect, 79, 7.0):
+				left_edges.append(x)
+				break
+		for x in range(rect.end.x + 7, rect.position.x - 9, -1):
+			if renderer._terrain_contour_contains(Vector2i(x, y), rect, 79, 7.0):
+				right_edges.append(x)
+				break
+	assert_gt(left_edges.size(), 20)
+	assert_gt(right_edges.size(), 20)
+	assert_gt(_int_array_span(left_edges), 2, "left biome edge must visibly bend across rows")
+	assert_gt(_int_array_span(right_edges), 2, "right biome edge must visibly bend across rows")
+
+
+func _int_array_span(values: Array[int]) -> int:
+	var low := values[0]
+	var high := values[0]
+	for value in values:
+		low = mini(low, value)
+		high = maxi(high, value)
+	return high - low
+
+
 func _build_map(map_id: String) -> Dictionary:
 	var definition: Dictionary = (GameData.get_maps()[map_id] as Dictionary).duplicate(true)
 	return _build_definition(map_id, definition)
