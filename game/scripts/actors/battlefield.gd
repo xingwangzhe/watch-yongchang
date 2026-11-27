@@ -25,9 +25,10 @@ const WADE_SPEED_FACTOR := 0.62
 const WADE_SPLASH_CAPACITY := 90
 const ENEMY_SPRITE_BASE_SIZE := 96.0
 const PLAYER_SPRITE_SIZE := 96.0
-const AIM_INDICATOR_RADIUS := 82.0
+const AIM_INDICATOR_RADIUS := 78.0
+const AIM_INDICATOR_ARC_RADIUS := 58.0
 const AIM_INDICATOR_HALF_ANGLE := deg_to_rad(18.0)
-const AIM_INDICATOR_HALF_WIDTH := 5.0
+const AIM_INDICATOR_HALF_WIDTH := 6.0
 const TOWER_AGGRO := 360.0
 const TOWER_SPRITE_BASE := 168.0
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
@@ -45,11 +46,11 @@ const UNIT_SEPARATION_WEIGHT := 0.62
 const ENEMY_CLEARANCE_MULT := 1.42
 const STUCK_RECOVERY_SECONDS := 0.34
 const ENEMY_OBSTACLE_STEER_ANGLES := [
-	0.4537856055185257, -0.4537856055185257,
-	0.8726646259971648, -0.8726646259971648,
-	1.2915436464758039, -1.2915436464758039,
-	1.780235837034216, -1.780235837034216,
-	2.303834612632515, -2.303834612632515,
+	0.4537856055185257,
+	0.8726646259971648,
+	1.2915436464758039,
+	1.780235837034216,
+	2.303834612632515,
 ]
 const ENEMY_NAV_REFRESH_WEB := 0.34
 const ENEMY_NAV_REFRESH_NATIVE := 0.20
@@ -1088,6 +1089,7 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"avoid_dir": Vector2.ZERO,
 		"steer_timer": rng.randf_range(0.0, 0.16),
 		"steer_dir": Vector2.ZERO,
+		"steer_side": -1 if rng.randf() < 0.5 else 1,
 		"alive": true,
 	}
 	enemies.append(enemy)
@@ -1547,7 +1549,8 @@ func play_player_attack_fx(
 	origin: Vector2,
 	direction: Vector2,
 	evolved: bool = false,
-	enemy_anchor: Vector2 = Vector2.ZERO
+	enemy_anchor: Vector2 = Vector2.ZERO,
+	area_scale: float = 1.0
 ) -> void:
 	_start_player_attack(weapon_id)
 	var profiles: Dictionary = attack_fx_data.get("player_weapons", {}) as Dictionary
@@ -1562,8 +1565,9 @@ func play_player_attack_fx(
 	var aim := direction.normalized() if direction.length_squared() > 0.001 else player_facing.normalized()
 	if aim.length_squared() <= 0.001:
 		aim = Vector2.RIGHT
-	var offset := float(profile.get("offset", 0.0))
-	var scale_value := float(profile.get("evolved_scale" if evolved else "scale", 1.0))
+	var effective_area_scale := maxf(0.1, area_scale)
+	var offset := float(profile.get("offset", 0.0)) * effective_area_scale
+	var scale_value := float(profile.get("evolved_scale" if evolved else "scale", 1.0)) * effective_area_scale
 	# 远程结果特效（爆炸/命中）锚到目标敌人区域；近战环身特效以主角为原点。
 	# 锚点语义来自 attack_fx.json 的 animation.anchor，不再靠动画名字符串猜测。
 	var animation: Dictionary = fx_animations.get(animation_id, {}) as Dictionary
@@ -1990,8 +1994,10 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 						position,
 						navigation,
 						body_radius,
-						true
+						true,
+						int(enemy.get("steer_side", 1))
 					)
+					_commit_enemy_steer_side(enemy, navigation, enemy["steer_dir"] as Vector2)
 					enemy["steer_timer"] = 0.10 + rng.randf_range(0.0, 0.04)
 				var siege_steer := enemy.get("steer_dir", Vector2.ZERO) as Vector2
 				if siege_steer.length_squared() > 0.001:
@@ -2011,8 +2017,11 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 				enemy["steer_dir"] = _enemy_obstacle_steering(
 					position,
 					navigation,
-					body_radius
+					body_radius,
+					false,
+					int(enemy.get("steer_side", 1))
 				)
+				_commit_enemy_steer_side(enemy, navigation, enemy["steer_dir"] as Vector2)
 				enemy["steer_timer"] = 0.12 + rng.randf_range(0.0, 0.05)
 			var steering := enemy.get("steer_dir", Vector2.ZERO) as Vector2
 			if steering.length_squared() > 0.001:
@@ -2071,9 +2080,16 @@ func _update_enemies(delta: float, player: Dictionary, speed_mult: float) -> voi
 			if rng.randf() < 0.16:
 				spawn_wade_splash(position, clampf(float(enemy["radius"]) / 18.0, 0.7, 1.8))
 		# 朝向滞回：只有横向分量足够明确时才翻面，避免贴塔/贴人时逐帧左右抖。
-		var horizontal := absf(movement.x) if movement.length_squared() > 0.0001 else absf(direction.x)
-		if horizontal >= 0.30:
-			enemy["facing_x"] = signf(movement.x if absf(movement.x) > 0.01 else direction.x)
+		var facing_vector := movement if movement.length_squared() > 0.0001 else direction
+		var horizontal := absf(facing_vector.x)
+		var desired_facing := signf(facing_vector.x)
+		var current_facing := signf(float(enemy.get("facing_x", -1.0)))
+		# Separation can sway an enemy around the vertical axis. Keep its sprite facing
+		# until the opposite direction is clear, so crowded fights do not flash left/right.
+		if desired_facing != 0.0 and (
+			desired_facing == current_facing or horizontal >= 0.58
+		):
+			enemy["facing_x"] = desired_facing
 		var knockback := enemy["knockback"] as Vector2
 		position += knockback * delta
 		enemy["knockback"] = knockback.move_toward(Vector2.ZERO, 520.0 * delta)
@@ -2155,8 +2171,15 @@ func _cached_enemy_navigation(
 			position + direct * minf(distance, 132.0),
 			clearance
 		):
-			var detour := _enemy_obstacle_steering(position, direct, clearance)
+			var detour := _enemy_obstacle_steering(
+				position,
+				direct,
+				clearance,
+				false,
+				int(enemy.get("steer_side", 1))
+			)
 			if detour.length_squared() > 0.001:
+				_commit_enemy_steer_side(enemy, direct, detour)
 				close_dir = detour
 		enemy["nav_goal"] = target
 		enemy["nav_dir"] = close_dir
@@ -2190,7 +2213,8 @@ func _enemy_obstacle_steering(
 	position: Vector2,
 	navigation: Vector2,
 	body_radius: float,
-	ignore_towers: bool = false
+	ignore_towers: bool = false,
+	preferred_side: int = 1
 ) -> Vector2:
 	if map_layout == null or navigation.length_squared() <= 0.001:
 		return Vector2.ZERO
@@ -2200,15 +2224,19 @@ func _enemy_obstacle_steering(
 		return Vector2.ZERO
 	# 当前位置已经卡在障碍内时，旧实现直接返回 ZERO 任其原地抖动。
 	# 现在改为主动找一条能离开当前格、且通向目标的偏转方向。
-	for angle_radians in ENEMY_OBSTACLE_STEER_ANGLES:
-		var candidate := navigation.rotated(angle_radians)
-		if _enemy_path_clear(
-			position,
-			position + candidate * lookahead,
-			body_radius,
-			ignore_towers
-		):
-			return candidate
+	# Keep taking the same side around an obstacle. The previous symmetric scan
+	# always picked the first clear ray, so tiny position changes could swap sides.
+	var primary_side := -1 if preferred_side < 0 else 1
+	for side in [primary_side, -primary_side]:
+		for angle_radians in ENEMY_OBSTACLE_STEER_ANGLES:
+			var candidate := navigation.rotated(angle_radians * side)
+			if _enemy_path_clear(
+				position,
+				position + candidate * lookahead,
+				body_radius,
+				ignore_towers
+			):
+				return candidate
 	if not here_walkable:
 		# 全部角度都受建筑阻挡：朝最近可站立点逃出，后续帧再重新寻路。
 		var escape := map_layout.find_walkable_position(position, body_radius + 2.0)
@@ -2216,6 +2244,14 @@ func _enemy_obstacle_steering(
 		if offset.length_squared() > 0.01:
 			return offset.normalized()
 	return Vector2.ZERO
+
+
+func _commit_enemy_steer_side(enemy: Dictionary, navigation: Vector2, steering: Vector2) -> void:
+	if navigation.length_squared() <= 0.001 or steering.length_squared() <= 0.001:
+		return
+	var cross := navigation.cross(steering)
+	if absf(cross) >= 0.05:
+		enemy["steer_side"] = -1 if cross < 0.0 else 1
 
 
 func _enemy_path_clear(
@@ -2294,12 +2330,16 @@ func _update_enemy_stuck_state(
 	if map_layout != null:
 		var probe_distance := maxf(54.0, body_radius * 2.4)
 		var best_score := -INF
-		for angle in [30.0, -30.0, 62.0, -62.0, 95.0, -95.0, 128.0, -128.0]:
+		var preferred_side := -1 if int(enemy.get("steer_side", 1)) < 0 else 1
+		for angle in [30.0, 62.0, 95.0, 128.0, -30.0, -62.0, -95.0, -128.0]:
 			var candidate := navigation.rotated(deg_to_rad(angle))
 			var probe := position + candidate * probe_distance
 			if not _enemy_path_clear(position, probe, body_radius):
 				continue
 			var score := candidate.dot(navigation)
+			var candidate_side := -1 if navigation.cross(candidate) < 0.0 else 1
+			if candidate_side == preferred_side:
+				score += 0.04
 			if score > best_score:
 				best_score = score
 				chosen = candidate
@@ -2309,6 +2349,9 @@ func _update_enemy_stuck_state(
 				perpendicular = -perpendicular
 			chosen = perpendicular
 	enemy["avoid_dir"] = chosen
+	var chosen_cross := navigation.cross(chosen)
+	if absf(chosen_cross) >= 0.05:
+		enemy["steer_side"] = -1 if chosen_cross < 0.0 else 1
 
 
 func _fire_enemy_shot(origin: Vector2, direction: Vector2, damage: float, speed: float) -> void:
@@ -3010,20 +3053,24 @@ static func aim_indicator_geometry(center: Vector2, direction: Vector2) -> Dicti
 	var heading := aim.angle()
 	var start_angle := heading - AIM_INDICATOR_HALF_ANGLE
 	var tip_angle := heading + AIM_INDICATOR_HALF_ANGLE
-	var start := center + Vector2.from_angle(start_angle) * AIM_INDICATOR_RADIUS
-	var tip := center + Vector2.from_angle(tip_angle) * AIM_INDICATOR_RADIUS
-	var tangent := Vector2(-sin(tip_angle), cos(tip_angle))
-	var base := tip - tangent * 9.0
+	var start := center + Vector2.from_angle(start_angle) * AIM_INDICATOR_ARC_RADIUS
+	var arc_end := center + Vector2.from_angle(tip_angle) * AIM_INDICATOR_ARC_RADIUS
+	var mid := center + aim * AIM_INDICATOR_ARC_RADIUS
+	var tip := center + aim * AIM_INDICATOR_RADIUS
+	var tangent := aim.orthogonal()
+	var base := mid + aim * 5.0
 	return {
 		"center": center,
 		"radius": AIM_INDICATOR_RADIUS,
+		"arc_radius": AIM_INDICATOR_ARC_RADIUS,
 		"start_angle": start_angle,
 		"tip_angle": tip_angle,
 		"start": start,
-		"mid": center + aim * AIM_INDICATOR_RADIUS,
+		"mid": mid,
+		"arc_end": arc_end,
 		"tip": tip,
-		"left": base + tangent.orthogonal() * AIM_INDICATOR_HALF_WIDTH,
-		"right": base - tangent.orthogonal() * AIM_INDICATOR_HALF_WIDTH,
+		"left": base + tangent * AIM_INDICATOR_HALF_WIDTH,
+		"right": base - tangent * AIM_INDICATOR_HALF_WIDTH,
 	}
 
 
@@ -3032,36 +3079,42 @@ func _draw_aim_indicator() -> void:
 	var tip := geometry["tip"] as Vector2
 	var left := geometry["left"] as Vector2
 	var right := geometry["right"] as Vector2
-	var tangent := Vector2(-sin(float(geometry["tip_angle"])), cos(float(geometry["tip_angle"])))
+	var mid := geometry["mid"] as Vector2
+	var direction := (tip - player_pos).normalized()
+	var arc_radius := float(geometry["arc_radius"])
+	var start_angle := float(geometry["start_angle"])
+	var end_angle := float(geometry["tip_angle"])
+	var shaft_start := player_pos + direction * 24.0
+	var shaft_end := mid - direction * 8.0
 	draw_arc(
 		player_pos,
-		AIM_INDICATOR_RADIUS,
-		float(geometry["start_angle"]),
-		float(geometry["tip_angle"]),
+		arc_radius,
+		start_angle,
+		end_angle,
 		12,
-		Color(0.02, 0.025, 0.02, 0.72),
-		5.0,
+		Color(0.02, 0.025, 0.02, 0.82),
+		6.0,
 		true
 	)
 	draw_arc(
 		player_pos,
-		AIM_INDICATOR_RADIUS,
-		float(geometry["start_angle"]),
-		float(geometry["tip_angle"]),
+		arc_radius,
+		start_angle,
+		end_angle,
 		12,
-		Color(GOLD, 0.92),
+		Color("#f0c363"),
 		2.5,
 		true
 	)
+	draw_line(shaft_start, shaft_end, Color(0.02, 0.025, 0.02, 0.86), 6.0, true)
+	draw_line(shaft_start, shaft_end, Color("#f0c363"), 2.5, true)
+	# The curved guard sits across the aim ray; its arrowhead points downrange.
 	draw_colored_polygon(
 		PackedVector2Array([tip, left, right]),
-		Color(0.02, 0.025, 0.02, 0.78)
+		Color(0.02, 0.025, 0.02, 0.88)
 	)
-	var inner_tip := tip - tangent * 2.0
-	var inner_left := tip.lerp(left, 0.52)
-	var inner_right := tip.lerp(right, 0.52)
 	draw_colored_polygon(
-		PackedVector2Array([inner_tip, inner_left, inner_right]),
+		PackedVector2Array([tip, tip.lerp(left, 0.58), tip.lerp(right, 0.58)]),
 		Color("#f0c363")
 	)
 

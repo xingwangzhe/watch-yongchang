@@ -22,6 +22,7 @@ func default_data() -> Dictionary:
 	return {
 		"version": SAVE_VERSION,
 		"runs": 0,
+		"last_run_seed": 0,
 		"runs_won": 0,
 		"best_merit": 0,
 		"total_merit": 0,
@@ -89,9 +90,35 @@ func autosave(extra: Dictionary = {}) -> void:
 	saved.emit()
 
 
-func begin_run() -> void:
+func begin_run() -> int:
 	var runs := int(data.get("runs", 0)) + 1
-	autosave({"runs": runs, "last_mode": "run"})
+	var seed := make_run_seed(
+		runs,
+		int(Time.get_unix_time_from_system() * 1_000_000.0),
+		Time.get_ticks_usec(),
+		int(data.get("last_run_seed", 0))
+	)
+	autosave({"runs": runs, "last_mode": "run", "last_run_seed": seed})
+	return seed
+
+
+static func make_run_seed(run_number: int, wall_usec: int, monotonic_usec: int, previous_seed: int = 0) -> int:
+	var seed := _hash_seed_material("run:%d:%d:%d" % [run_number, wall_usec, monotonic_usec])
+	if seed == previous_seed:
+		seed = seed % 0x7FFFFFFF + 1
+	return seed
+
+
+static func derive_seed(run_seed: int, purpose: String) -> int:
+	return _hash_seed_material("%d:%s" % [run_seed, purpose])
+
+
+static func _hash_seed_material(material: String) -> int:
+	# FNV-1a over UTF-8 bytes keeps run and purpose seeds stable across launches.
+	var value := 2166136261
+	for byte in material.to_utf8_buffer():
+		value = int((value ^ int(byte)) * 16777619) & 0x7FFFFFFF
+	return maxi(1, value)
 
 
 func complete_tutorial() -> void:

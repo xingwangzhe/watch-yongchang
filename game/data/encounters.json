@@ -9,7 +9,9 @@
       "title_en": "Militia Answers the Lamp",
       "description_zh": "盐仓后藏着几名避乱的乡勇，他们愿意随灯守夜。",
       "description_en": "Local volunteers shelter behind the salt store and take up the watch.",
-      "effect": "ally"
+      "effect": "ally",
+      "category": "制度",
+      "source_ref": "制度性演绎；《永昌堡：十三进士与抗倭纪略》；docs/文化来源.md「玩法映射」"
     },
     "forge_blessing": {
       "good": true,
@@ -21,7 +23,9 @@
       "description_en": "A smith shares the last heat of the forge. Your weapons strike harder.",
       "effect": "stat",
       "stat": "damage_mult",
-      "amount": 0.08
+      "amount": 0.08,
+      "category": "演绎",
+      "source_ref": "游戏化演绎；守堡日常的设定依据见 design/游戏设计文档-GDD.md「文化落点与玩法映射」"
     },
     "hidden_oil": {
       "good": true,
@@ -32,7 +36,9 @@
       "description_zh": "废弃渔舍的地窖里还封着几罐灯油。",
       "description_en": "Sealed jars of lamp oil survive in an abandoned fishing hut.",
       "effect": "oil",
-      "amount": 4
+      "amount": 4,
+      "category": "演绎",
+      "source_ref": "游戏化演绎；灯油风险收益设定见 design/游戏设计文档-GDD.md「灯火」"
     },
     "old_records": {
       "good": true,
@@ -43,7 +49,9 @@
       "description_zh": "残卷记着守夜人的旧阵法，你从中悟出几分门道。",
       "description_en": "Fragments of an old watch manual sharpen your understanding.",
       "effect": "xp",
-      "amount": 55
+      "amount": 55,
+      "category": "演绎",
+      "source_ref": "游戏化演绎；地图与守夜背景见 docs/文化来源.md「空间转译」"
     },
     "salt_pan_cache": {
       "good": true,
@@ -54,7 +62,9 @@
       "description_zh": "退潮后露出一只钱匣，够买几件应急军械。",
       "description_en": "The ebb reveals a strongbox with enough coin for emergency gear.",
       "effect": "coin",
-      "amount": 55
+      "amount": 55,
+      "category": "演绎",
+      "source_ref": "游戏化演绎；沿海盐业背景参考 docs/文化来源.md「公开来源」"
     },
     "miasma": {
       "good": false,
@@ -66,7 +76,9 @@
       "description_en": "Cold marsh fog clings to your legs and slows your movement.",
       "effect": "slow",
       "factor": 0.68,
-      "duration": 12.0
+      "duration": 12,
+      "category": "演绎",
+      "source_ref": "游戏化危险事件；滩涂地图背景见 docs/文化来源.md「空间转译」"
     },
     "ambush": {
       "good": false,
@@ -78,8 +90,10 @@
       "description_en": "Blades rise from the reeds as Wokou close in from every side.",
       "effect": "ambush",
       "count": 9,
-      "radius_min": 280.0,
-      "radius_max": 460.0
+      "radius_min": 280,
+      "radius_max": 460,
+      "category": "演绎",
+      "source_ref": "游戏化演绎；倭患与乡兵背景见 docs/文化来源.md「叙事桥」"
     },
     "tide_haste": {
       "good": false,
@@ -91,7 +105,9 @@
       "description_en": "The distant tide roars and the enemy surge quickens.",
       "effect": "enemy_haste",
       "amount": 0.2,
-      "duration": 15.0
+      "duration": 15,
+      "category": "演绎",
+      "source_ref": "游戏化演绎；沿海潮汐场景依据见 docs/文化来源.md「空间转译」"
     },
     "broken_ground": {
       "good": false,
@@ -103,7 +119,9 @@
       "description_en": "A tampered guidepost leaves you heavy-footed and unsure.",
       "effect": "slow",
       "factor": 0.76,
-      "duration": 9.0
+      "duration": 9,
+      "category": "演绎",
+      "source_ref": "游戏化演绎；堡内街巷布局参考 docs/文化来源.md「空间转译」"
     }
   },
   "sites": {

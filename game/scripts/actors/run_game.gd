@@ -1062,7 +1062,10 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 				"arc": deg_to_rad(arc),
 				"color": Color("#f0c363"),
 			})
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
+			battlefield.play_player_attack_fx(
+				str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor,
+				float(player["area_mult"])
+			)
 			_play_sfx(SFX_ENEMY_HIT, 0.96, 0.68)
 			return true
 		"line_thrust":
@@ -1088,7 +1091,10 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					"length": radius,
 					"color": Color("#f0d58d"),
 				})
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
+			battlefield.play_player_attack_fx(
+				str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor,
+				float(player["area_mult"])
+			)
 			_play_sfx(SFX_HIT)
 			return true
 		"projectile":
@@ -1110,7 +1116,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					pierce,
 					Color("#f4dc94")
 				)
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor, float(player["area_mult"]))
 			_play_sfx(SFX_FIRE)
 			return true
 		"shotgun":
@@ -1136,7 +1142,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 				"length": 74.0,
 				"color": Color("#f0a957"),
 			})
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor, float(player["area_mult"]))
 			_play_sfx(SFX_FIRE)
 			return true
 		"aura":
@@ -1160,7 +1166,7 @@ func _fire_weapon(weapon: Dictionary) -> bool:
 					"color": Color("#d65b45"),
 				})
 			weapon["cycle"] = int(weapon.get("cycle", 0)) + 1
-			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor)
+			battlefield.play_player_attack_fx(str(weapon["id"]), origin, direction, bool(weapon["evolved"]), fx_anchor, float(player["area_mult"]))
 			_play_sfx(SFX_FIRE)
 			return true
 	return false

@@ -58,7 +58,8 @@ func reload_config() -> void:
 			config.sfx_thud_voices,
 			config.sfx_hit_volume,
 			config.sfx_thud_volume,
-			config.sfx_pitch_jitter
+			config.sfx_pitch_jitter,
+			config.sfx_volume_jitter_db
 		)
 	_prefill_pools()
 

@@ -122,12 +122,35 @@ func test_autosave_writes_settings_and_timestamp() -> void:
 
 func test_begin_run_increments_and_autosaves() -> void:
 	SaveSystem.data["runs"] = 2
-	SaveSystem.begin_run()
+	var first_seed := SaveSystem.begin_run()
 	assert_eq(int(SaveSystem.data.get("runs", 0)), 3)
+	assert_eq(int(SaveSystem.data.get("last_run_seed", 0)), first_seed)
 	var loaded := SaveSystem.load_from(TEST_SAVE)
 	assert_eq(int(loaded.get("runs", 0)), 3)
 	assert_eq(str(loaded.get("last_mode", "")), "run")
+	assert_eq(int(loaded.get("last_run_seed", 0)), first_seed)
 	assert_true(SaveSystem.has_progress())
+	var second_seed := SaveSystem.begin_run()
+	assert_ne(second_seed, first_seed, "separate runs must receive different root seeds")
+
+
+func test_run_purpose_seeds_are_reproducible_and_separated() -> void:
+	var seed_a := SaveSystem.make_run_seed(7, 1_700_000_000_123_456, 98_765, 0)
+	var seed_a_repeat := SaveSystem.make_run_seed(7, 1_700_000_000_123_456, 98_765, 0)
+	var seed_b := SaveSystem.make_run_seed(8, 1_700_000_000_123_456, 98_765, seed_a)
+	assert_eq(seed_a_repeat, seed_a, "same run identity must reproduce its root seed")
+	assert_ne(seed_b, seed_a, "a new run number must change its root seed")
+	assert_eq(SaveSystem.derive_seed(seed_a, "gameplay"), SaveSystem.derive_seed(seed_a, "gameplay"))
+	assert_ne(
+		SaveSystem.derive_seed(seed_a, "gameplay"),
+		SaveSystem.derive_seed(seed_a, "world"),
+		"gameplay and world must use independent purpose seeds"
+	)
+	assert_ne(
+		SaveSystem.derive_seed(seed_a, "gameplay"),
+		SaveSystem.derive_seed(seed_b, "gameplay"),
+		"different run seeds must produce different gameplay seeds"
+	)
 
 
 func test_settings_file_persists_audio_values() -> void:
@@ -385,6 +408,7 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	var icon_entries: Array = credits.get("icons", [])
 	assert_eq(icon_entries.size(), 99, "98 game-icons.net assets and the original cursor must be credited")
 	var third_party_icons := 0
+	var generated_icons := 0
 	var cursor_credited := false
 	for entry in icon_entries:
 		assert_true(entry is Dictionary)
@@ -395,11 +419,16 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 			assert_eq(str(entry.get("license_url", "")), "https://creativecommons.org/licenses/by/4.0/")
 			assert_eq(str(entry.get("artist", "")), "xingwangzhe")
 			continue
+		if str(entry.get("artist", "")) == "OpenAI ImageGen":
+			generated_icons += 1
+			assert_false(str(entry.get("file", "")).contains("weapon"), "weapon icons must use the unified game-icons set")
+			continue
 		third_party_icons += 1
 		assert_eq(str(entry.get("license", "")), "CC BY 3.0")
 		assert_eq(str(entry.get("license_url", "")), "https://creativecommons.org/licenses/by/3.0/")
 		assert_true(str(entry.get("url", "")).begins_with("https://game-icons.net/"))
-	assert_eq(third_party_icons, 101)
+	assert_eq(third_party_icons, 98)
+	assert_eq(generated_icons, 0)
 	assert_true(cursor_credited, "the gameplay cursor needs its own original-asset credit")
 	var about_sections: Array = (credits.get("about", {}) as Dictionary).get("sections", [])
 	var linked_sections: Array[Dictionary] = []
@@ -718,9 +747,23 @@ func test_main_menu_exposes_night_anchor_icons() -> void:
 
 
 func test_run_scene_builds_survivor_loop() -> void:
+	var runs_before := int(SaveSystem.data.get("runs", 0))
 	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
 	add_child_autofree(run)
 	await wait_process_frames(4)
+	assert_eq(
+		int(SaveSystem.data.get("runs", 0)),
+		runs_before + 1,
+		"entering one run scene must call begin_run exactly once"
+	)
+	assert_gt(int(SaveSystem.data.get("last_run_seed", 0)), 0)
+	assert_eq(
+		int(run._run_seed),
+		int(SaveSystem.data.get("last_run_seed", 0)),
+		"the active run must use the seed saved at its start"
+	)
+	assert_eq(int(run._rng.seed), SaveSystem.derive_seed(run._run_seed, "gameplay"))
+	assert_eq(int(run._world_seed), SaveSystem.derive_seed(run._run_seed, "world"))
 	assert_not_null(run.find_child("Battlefield", true, false), "run must own a battle field")
 	assert_not_null(run.find_child("HUD", true, false), "run must own a HUD")
 	assert_not_null(run.find_child("SubtitlePanel", true, false), "run must expose subtitles")

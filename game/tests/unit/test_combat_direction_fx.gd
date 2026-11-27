@@ -87,6 +87,9 @@ func test_jeff_fx_rotates_toward_mouse_and_stacks_impact_layers() -> void:
 	assert_eq(field.jeff_effects.size(), 2)
 	assert_eq(str(field.jeff_effects[1]["animation_id"]), "hit_crit")
 	assert_eq(field._enemy_instance_transform(Vector2.ZERO, 64.0, false, -1.0).x.x < 0.0, true)
+	field.play_player_attack_fx("saber", Vector2(100, 100), Vector2.RIGHT, false, Vector2.ZERO, 1.25)
+	assert_almost_eq(float(field.jeff_effects[-1]["scale"]), 2.15 * 1.25, 0.001)
+	assert_eq(field.jeff_effects[-1]["pos"], Vector2(100 + 18 * 1.25, 100))
 
 
 func test_player_faces_left_movement_and_manual_hold_controls_attacks() -> void:

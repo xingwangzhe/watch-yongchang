@@ -9,6 +9,36 @@ func test_enemy_caps_keep_desktop_design_and_limit_mobile_web_crowds() -> void:
 	assert_eq(Battlefield.enemy_cap_for_platform(true, true), 120)
 
 
+func test_enemy_obstacle_steering_keeps_committed_side() -> void:
+	var field := Battlefield.new()
+	add_child_autofree(field)
+	var layout := MapLayout.new()
+	layout.setup("steering_hysteresis", {
+		"layout": {
+			"world_tiles": [24, 24],
+			"start_tile": [3, 3],
+			"base_tile": "mud_a",
+		}
+	})
+	layout.mark_solid_rect(Rect2i(10, 8, 1, 8))
+	layout.finalize()
+	field.map_layout = layout
+	var position := layout.cell_center(Vector2i(8, 12))
+	var navigation := Vector2.RIGHT
+	var enemy := {"steer_side": 1}
+	var first := field._enemy_obstacle_steering(position, navigation, 10.0, false, 1)
+	assert_gt(navigation.cross(first), 0.0, "the first clear detour must honor its preferred side")
+	field._commit_enemy_steer_side(enemy, navigation, first)
+	var second := field._enemy_obstacle_steering(
+		position + Vector2(0.0, 2.0),
+		navigation,
+		10.0,
+		false,
+		int(enemy["steer_side"])
+	)
+	assert_gt(navigation.cross(second), 0.0, "small position changes must not flip the chosen side")
+
+
 func test_full_character_sheets_map_complete_rows_for_runtime_units() -> void:
 	var field := Battlefield.new()
 	add_child_autofree(field)

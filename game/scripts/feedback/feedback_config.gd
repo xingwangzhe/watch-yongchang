@@ -26,6 +26,7 @@ extends Resource
 @export_range(1, 24, 1) var sfx_hit_voices: int = 8
 @export_range(1, 16, 1) var sfx_thud_voices: int = 4
 @export_range(0.0, 0.30, 0.01) var sfx_pitch_jitter: float = 0.12
+@export_range(0.0, 3.0, 0.1) var sfx_volume_jitter_db: float = 1.2
 @export_range(0.0, 1.0, 0.01) var sfx_hit_volume: float = 0.55
 @export_range(0.0, 1.0, 0.01) var sfx_thud_volume: float = 0.42
 

@@ -106,6 +106,8 @@ func test_trauma_decays_and_offset_is_bounded() -> void:
 
 func test_sfx_pool_preallocates_voices_once() -> void:
 	var voices := FeedbackManager.sfx_pool.voice_count()
+	assert_gt(FeedbackManager.config.sfx_volume_jitter_db, 0.0, "repeated impacts need subtle level variation")
+	assert_lte(FeedbackManager.config.sfx_volume_jitter_db, 3.0, "impact variation must stay restrained")
 	assert_eq(
 		voices,
 		FeedbackManager.config.sfx_hit_voices + FeedbackManager.config.sfx_thud_voices

@@ -59,7 +59,7 @@ https://creativecommons.org/publicdomain/zero/1.0/
 | Runtime file | Original work / selected sound | Author | Source | Use and changes |
 |---|---|---|---|---|
 | `sfx_fire.ogg` | Battle Sound Effects: Bow | ogrebane | https://opengameart.org/content/battle-sound-effects | Tower/ranged attack; loudness normalized and re-encoded to Ogg. |
-| `sfx_hit.ogg` | 3 Melee Sounds | remaxim | https://opengameart.org/content/3-melee-sounds | Unit hit; loudness normalized and re-encoded to Ogg. |
+| `sfx_hit.ogg` | 3 Melee Sounds | remaxim | https://opengameart.org/content/3-melee-sounds | Unit hit; loudness normalized and re-encoded to Ogg; subtle runtime pitch and volume variation reduces repetition. |
 | `sfx_build.ogg` | RPG Audio: Chop | Kenney | https://opengameart.org/content/50-rpg-sound-effects | Build complete; loudness normalized. |
 | `sfx_wave.ogg` | Sound Pack 01: Rise01 | wobbleboxx | https://opengameart.org/content/level-up-power-up-coin-get-13-sounds | Wave start; AIF source converted to Ogg and loudness normalized. |
 | `sfx_alarm.ogg` | Sound Pack 01: Alarm | wobbleboxx | https://opengameart.org/content/level-up-power-up-coin-get-13-sounds | Fort alarm; shortened to 2.2 s, faded, loudness normalized, and re-encoded. |

@@ -1,6 +1,7 @@
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import sharp from "sharp";
+import { MOBILE_WEB_ORIENTATION, injectMobileOrientationShell } from "./web_mobile";
 
 type ProjectMeta = {
   app: {
@@ -56,6 +57,7 @@ const manifest = {
   lang: "zh-CN",
   start_url: "./",
   display: "standalone",
+  orientation: MOBILE_WEB_ORIENTATION,
   background_color: "#081014",
   theme_color: "#081014",
   icons: [
@@ -117,6 +119,7 @@ let html = readFileSync(INDEX_PATH, "utf8");
 html = html.replace(/<html\b[^>]*>/i, '<html lang="zh-CN">');
 html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(title)}</title>`);
 html = html.replace("</head>", `${tags}\t</head>`);
+html = injectMobileOrientationShell(html);
 html = html.replace(/<meta name="description"[^>]*>\s*/gi, (match, offset) =>
   offset < html.indexOf(tags) ? "" : match,
 );

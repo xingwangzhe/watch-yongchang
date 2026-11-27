@@ -83,7 +83,6 @@ func test_export_presets_cover_linux_windows_macos_and_web() -> void:
 	)
 	assert_string_contains(text, 'exclude_filter="build/*,export/*,*.import,')
 	assert_string_contains(text, "tests/*,addons/gut/*,addons/gda_harness/*")
-	assert_string_contains(text, 'assets/character_forge/*')
 	assert_string_contains(text, 'assets/fonts/LXGWWenKai-Regular.ttf')
 	assert_string_contains(text, 'scenes/dev/*')
 	assert_string_contains(

@@ -9,7 +9,7 @@ signal closed(skipped: bool)
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const UIControls := preload("res://scripts/ui/ui_control_theme.gd")
-const PAGE_COUNT := 3
+const PAGE_COUNT := 4
 
 const INK := Color("#081014")
 const PAPER := Color("#efe1c2")
@@ -111,6 +111,7 @@ func _refresh(_code: String = "") -> void:
 	_page_label.text = Locale.t("tutorial.page", {"page": page_number, "pages": PAGE_COUNT})
 	_page_title.text = Locale.t("tutorial.page%d.title" % page_number)
 	_body.text = Locale.t("tutorial.page%d.body" % page_number)
+	_body.add_theme_font_size_override("font_size", 15 if page_number == 4 else 17)
 	_note.text = Locale.t("tutorial.page%d.note" % page_number)
 	_prev_button.disabled = _page == 0
 	if _page == PAGE_COUNT - 1:
@@ -122,7 +123,7 @@ func _refresh(_code: String = "") -> void:
 	_prev_button.text = Locale.t("tutorial.prev")
 	for index in range(_tabs.size()):
 		var tab := _tabs[index]
-		tab.text = Locale.t("tutorial.tab_%s" % ["controls", "culture", "systems"][index])
+		tab.text = Locale.t("tutorial.tab_%s" % ["controls", "culture", "systems", "attributes"][index])
 		tab.button_pressed = index == _page
 		tab.add_theme_stylebox_override("normal", _tab_style(index == _page))
 
@@ -180,7 +181,7 @@ func _build() -> void:
 	tabs.add_theme_constant_override("separation", 10)
 	column.add_child(tabs)
 	for index in range(PAGE_COUNT):
-		var tab := _button("TutorialTab%d" % (index + 1), Locale.t("tutorial.tab_%s" % ["controls", "culture", "systems"][index]), false)
+		var tab := _button("TutorialTab%d" % (index + 1), Locale.t("tutorial.tab_%s" % ["controls", "culture", "systems", "attributes"][index]), false)
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tab.toggle_mode = true
 		tab.pressed.connect(_go_page.bind(index))

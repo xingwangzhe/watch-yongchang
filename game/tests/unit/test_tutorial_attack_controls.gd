@@ -62,7 +62,10 @@ func test_first_run_shows_bilingual_paged_tutorial_and_skip_persists() -> void:
 	overlay._prev_button.pressed.emit()
 	assert_eq(overlay._page, 0, "previous must read the current page after navigation")
 	overlay._go_page(2)
+	assert_eq(str(overlay._next_button.text), Locale.t("tutorial.next"))
+	overlay._go_page(3)
 	assert_eq(str(overlay._next_button.text), Locale.t("tutorial.finish"))
+	overlay._go_page(2)
 
 	Locale.set_language("en", false)
 	assert_string_contains(str(overlay._page_title.text), "Systems")
@@ -130,6 +133,9 @@ func test_tutorial_copy_covers_controls_culture_and_systems_in_both_languages() 
 	assert_string_contains(Locale.t("tutorial.page2.body"), "1559")
 	assert_string_contains(Locale.t("tutorial.page3.body"), "军市")
 	assert_string_contains(Locale.t("tutorial.page3.body"), "风险与收益")
+	var attributes := Locale.t("tutorial.page4.body")
+	for phrase in ["生命 140", "移速 154", "拾取半径 88", "灯油上限 6", "伤害 15", "0.58 秒", "攻击距离 126", "118°"]:
+		assert_string_contains(attributes, phrase)
 
 	Locale.set_language("en", false)
 	controls = Locale.t("tutorial.page1.body")
@@ -139,6 +145,9 @@ func test_tutorial_copy_covers_controls_culture_and_systems_in_both_languages() 
 	assert_string_contains(Locale.t("tutorial.page2.body"), "1559")
 	assert_string_contains(Locale.t("tutorial.page3.body"), "market")
 	assert_string_contains(Locale.t("tutorial.page3.body"), "risk-and-reward")
+	attributes = Locale.t("tutorial.page4.body")
+	for phrase in ["140 health", "154 movement speed", "88 pickup radius", "6 oil", "15 damage", "0.58 seconds", "reaches 126 units", "118°"]:
+		assert_string_contains(attributes, phrase)
 
 
 func test_tutorial_keyboard_pages_and_closes() -> void:
@@ -370,21 +379,24 @@ func test_pause_focus_and_tutorial_clear_attack_state_and_block_toggle() -> void
 	run.tutorial_overlay._finish(false)
 
 
-func test_aim_indicator_is_short_arc_and_follows_the_actual_vector() -> void:
+func test_aim_indicator_has_a_clear_guard_arc_and_downrange_arrow() -> void:
 	var center := Vector2(100, 100)
 	var right := Battlefield.aim_indicator_geometry(center, Vector2.RIGHT)
-	assert_eq(right["mid"], Vector2(182, 100))
-	assert_almost_eq((right["start"] as Vector2).distance_to(center), 82.0, 0.001)
-	assert_almost_eq((right["tip"] as Vector2).distance_to(center), 82.0, 0.001)
+	assert_eq(right["mid"], Vector2(158, 100))
+	assert_eq(right["tip"], Vector2(178, 100))
+	assert_almost_eq((right["start"] as Vector2).distance_to(center), 58.0, 0.001)
+	assert_almost_eq((right["arc_end"] as Vector2).distance_to(center), 58.0, 0.001)
 	assert_almost_eq(
-		(right["start"] as Vector2).distance_to(right["tip"] as Vector2),
-		164.0 * sin(deg_to_rad(18.0)),
+		(right["start"] as Vector2).distance_to(right["arc_end"] as Vector2),
+		116.0 * sin(deg_to_rad(18.0)),
 		0.001
 	)
 	var left := Battlefield.aim_indicator_geometry(center, Vector2.LEFT)
-	assert_eq(left["mid"], Vector2(18, 100))
+	assert_eq(left["mid"], Vector2(42, 100))
+	assert_eq(left["tip"], Vector2(22, 100))
 	var fallback := Battlefield.aim_indicator_geometry(Vector2.ZERO, Vector2.ZERO)
-	assert_eq(fallback["mid"], Vector2(82, 0))
+	assert_eq(fallback["mid"], Vector2(58, 0))
+	assert_eq(fallback["tip"], Vector2(78, 0))
 
 
 func test_cursor_asset_and_headless_lifecycle() -> void:

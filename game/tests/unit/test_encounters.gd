@@ -25,6 +25,17 @@ func test_every_map_has_outer_good_and_bad_encounter_sites() -> void:
 			has_bad = has_bad or not bool(event.get("good", true))
 		assert_true(has_good, "%s needs at least one beneficial encounter" % map_id)
 		assert_true(has_bad, "%s needs at least one risky encounter" % map_id)
+	for event_id in events:
+		var event: Dictionary = events[event_id] as Dictionary
+		assert_true(
+			["史实", "制度", "民俗", "演绎"].has(str(event.get("category", ""))),
+			"%s must identify its cultural category" % event_id
+		)
+		assert_gt(
+			str(event.get("source_ref", "")).strip_edges().length(),
+			0,
+			"%s must cite its cultural/design source" % event_id
+		)
 
 
 func test_encounter_sites_are_walkable_peripheral_and_refresh_after_cooldown() -> void:
