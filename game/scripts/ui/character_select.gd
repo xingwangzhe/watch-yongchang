@@ -314,9 +314,13 @@ func _apply_responsive_layout_for(viewport_size: Vector2, screen_size: Vector2) 
 		_panels.offset_top = 58.0 / scale
 		_panels.offset_bottom = -margin
 		_panels.add_theme_constant_override("separation", int(8.0 / scale))
-		_character_panel.custom_minimum_size.x = 112.0 / scale
+		# Keep the roster narrow enough to leave a real detail column at phone widths.
+		_character_panel.custom_minimum_size.x = 76.0 / scale
 		_detail_panel.custom_minimum_size.x = 0.0
-		_portrait_frame.custom_minimum_size = Vector2(62.0 / scale, 62.0 / scale)
+		_portrait_frame.custom_minimum_size = Vector2(48.0 / scale, 48.0 / scale)
+		var body := _portrait_frame.get_parent() as HBoxContainer
+		if body != null:
+			body.add_theme_constant_override("separation", int(8.0 / scale))
 		_footer_hint.visible = false
 		_back_button.custom_minimum_size = Vector2(74.0 / scale, 40.0 / scale)
 		_begin_button.custom_minimum_size = Vector2(88.0 / scale, 40.0 / scale)

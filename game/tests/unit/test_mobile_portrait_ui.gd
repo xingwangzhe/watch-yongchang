@@ -174,8 +174,9 @@ func test_portrait_selection_uses_readable_css_sized_panels_and_targets() -> voi
 	var portrait := select.get("_portrait_frame") as PanelContainer
 	var start := select.get("_begin_button") as Button
 	assert_gte(title.get_theme_font_size("font_size") / scale, 25.0)
-	assert_gte(roster.custom_minimum_size.x / scale, 100.0)
-	assert_gte(portrait.custom_minimum_size.x / scale, 55.0)
+	assert_lte(roster.custom_minimum_size.x / scale, 80.0, "roster must leave room for selection details")
+	assert_gte(roster.custom_minimum_size.x / scale, 65.0, "roster targets must remain usable")
+	assert_gte(portrait.custom_minimum_size.x / scale, 44.0)
 	assert_gte(start.custom_minimum_size.y / scale, 34.0)
 	assert_false((select.get("_footer_hint") as Label).visible)
 	select.queue_free()
