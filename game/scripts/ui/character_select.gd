@@ -35,6 +35,9 @@ var _title_label: Label
 var _subtitle_label: Label
 var _rule: ColorRect
 var _panels: HBoxContainer
+var _mobile_scroll: ScrollContainer
+var _mobile_stack: VBoxContainer
+var _mobile_layout_active := false
 var _character_panel: PanelContainer
 var _detail_panel: PanelContainer
 var _portrait_frame: PanelContainer
@@ -127,6 +130,16 @@ func _build_ui() -> void:
 	panels.offset_bottom = -16.0
 	panels.add_theme_constant_override("separation", 24)
 	add_child(panels)
+	_mobile_scroll = ScrollContainer.new()
+	_mobile_scroll.name = "MobileSelectionScroll"
+	_mobile_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_mobile_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_mobile_scroll.visible = false
+	add_child(_mobile_scroll)
+	_mobile_stack = VBoxContainer.new()
+	_mobile_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mobile_stack.add_theme_constant_override("separation", 10)
+	_mobile_scroll.add_child(_mobile_stack)
 	_build_character_panel(panels)
 	_build_detail_panel(panels)
 
@@ -301,6 +314,20 @@ func _apply_responsive_layout_for(viewport_size: Vector2, screen_size: Vector2) 
 	var scale := UILayout.display_scale(viewport_size, screen_size)
 	var portrait := screen_size.y > screen_size.x
 	UILayout.scale_theme_fonts(self, 1.0 / scale)
+	if portrait != _mobile_layout_active:
+		_mobile_layout_active = portrait
+		_character_panel.get_parent().remove_child(_character_panel)
+		_detail_panel.get_parent().remove_child(_detail_panel)
+		if portrait:
+			_panels.visible = false
+			_mobile_scroll.visible = true
+			_mobile_stack.add_child(_character_panel)
+			_mobile_stack.add_child(_detail_panel)
+		else:
+			_mobile_scroll.visible = false
+			_panels.visible = true
+			_panels.add_child(_character_panel)
+			_panels.add_child(_detail_panel)
 	if portrait:
 		var margin := UILayout.display_units(12.0, scale)
 		_title_label.add_theme_font_size_override("font_size", maxi(24, int(34.0 / scale)))
@@ -309,15 +336,15 @@ func _apply_responsive_layout_for(viewport_size: Vector2, screen_size: Vector2) 
 		_rule.visible = false
 		_merit_label.add_theme_font_size_override("font_size", maxi(11, int(14.0 / scale)))
 		UILayout.place(_merit_label, 220.0 / scale, 18.0 / scale, screen_size.x / scale - 232.0 / scale, 26.0 / scale, 1.0, 0.0)
-		_panels.offset_left = margin
-		_panels.offset_right = -margin
-		_panels.offset_top = 58.0 / scale
-		_panels.offset_bottom = -margin
-		_panels.add_theme_constant_override("separation", int(8.0 / scale))
-		# Keep the roster narrow enough to leave a real detail column at phone widths.
-		_character_panel.custom_minimum_size.x = 76.0 / scale
-		_detail_panel.custom_minimum_size.x = 0.0
-		_portrait_frame.custom_minimum_size = Vector2(48.0 / scale, 48.0 / scale)
+		_mobile_scroll.offset_left = margin
+		_mobile_scroll.offset_right = -margin
+		_mobile_scroll.offset_top = 58.0 / scale
+		_mobile_scroll.offset_bottom = -margin
+		_character_panel.custom_minimum_size = Vector2(0, 0)
+		_detail_panel.custom_minimum_size = Vector2(0, 0)
+		_character_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_detail_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_portrait_frame.custom_minimum_size = Vector2(72.0 / scale, 72.0 / scale)
 		var body := _portrait_frame.get_parent() as HBoxContainer
 		if body != null:
 			body.add_theme_constant_override("separation", int(8.0 / scale))
@@ -327,7 +354,12 @@ func _apply_responsive_layout_for(viewport_size: Vector2, screen_size: Vector2) 
 		for button in _char_buttons.values():
 			(button as Button).custom_minimum_size.y = 48.0 / scale
 		for button in _map_buttons.values():
-			(button as Button).custom_minimum_size.y = 38.0 / scale
+			(button as Button).custom_minimum_size = Vector2(0, 44.0 / scale)
+		_map_description.custom_minimum_size.y = 0.0
+		_note_label.custom_minimum_size.y = 0.0
+		_loadout_label.custom_minimum_size.y = 0.0
+		_back_button.custom_minimum_size.x = 112.0 / scale
+		_begin_button.custom_minimum_size.x = 128.0 / scale
 	else:
 		_title_label.add_theme_font_size_override("font_size", 48)
 		UILayout.place(_title_label, 72, 34, 640, 56)
