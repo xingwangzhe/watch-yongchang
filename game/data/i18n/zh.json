@@ -352,6 +352,7 @@
 	"prologue.goal_lamp": "第一步：走近望海灯，点亮夜巡的方向。",
 	"prologue.goal_stake": "第二步：走到界桩，划定宁村所的边界。",
 	"prologue.goal_banner": "第三步：走到乡兵旗前，召集守夜乡勇。",
+	"prologue.too_far": "再靠近当前标记一些，再进行交互。",
 	"prologue.touch_move": "移动",
 	"prologue.touch_interact": "交互",
 	"codex.title": "守望图鉴",

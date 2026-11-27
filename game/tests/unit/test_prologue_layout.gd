@@ -52,3 +52,29 @@ func test_player_follows_stage_when_viewport_becomes_wider() -> void:
 		_prologue.shift_player_x_for_view_change(960.0, 1920.0, 1280.0),
 		640.0
 	)
+
+
+func test_interacting_outside_marker_range_gives_recoverable_bilingual_feedback() -> void:
+	var scene := load("res://scenes/prologue.tscn") as PackedScene
+	var prologue := scene.instantiate()
+	add_child_autofree(prologue)
+	await wait_process_frames(2)
+	prologue.story._skip_all()
+	await wait_process_frames(1)
+
+	var objective := prologue.get("_objective") as Label
+	var player_pos: Vector2 = prologue.get("_player_pos")
+	var marker_pos: Vector2 = prologue.call("_marker_position", "lamp")
+	var done: Dictionary = prologue.get("_done")
+	assert_gt(player_pos.distance_to(marker_pos), 70.0)
+	prologue.call("_try_interact")
+	assert_eq(objective.text, Locale.t("prologue.too_far"))
+	assert_false(bool(done["lamp"]), "a rejected interaction must keep the objective pending")
+	prologue.get("_interaction_hint_timer").stop()
+	prologue.call("_restore_objective_after_interaction_hint")
+	assert_eq(objective.text, Locale.t("prologue.goal_lamp"))
+
+	var original_language := Locale.current
+	Locale.set_language("en", false)
+	assert_false(Locale.t("prologue.too_far").is_empty())
+	Locale.set_language(original_language, false)

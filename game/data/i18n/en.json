@@ -352,6 +352,7 @@
 	"prologue.goal_lamp": "First: reach the sea-watch lamp and light the patrol route.",
 	"prologue.goal_stake": "Second: reach the boundary stake and mark Ningcun's limits.",
 	"prologue.goal_banner": "Third: reach the militia banner and rally the local watch.",
+	"prologue.too_far": "Move closer to the active marker, then interact.",
 	"prologue.touch_move": "MOVE",
 	"prologue.touch_interact": "INTERACT",
 	"codex.title": "Watch Codex",

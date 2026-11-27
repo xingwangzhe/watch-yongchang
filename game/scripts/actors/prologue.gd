@@ -34,6 +34,7 @@ var _progress: Label
 var _continue: Button
 var _skip: Button
 var _narrative_timer: Timer
+var _interaction_hint_timer: Timer
 var _touch_controls: PrologueTouchControls
 var _ui_root: Control
 var _title_label: Label
@@ -134,8 +135,13 @@ func _on_intro_finished() -> void:
 
 func _try_interact() -> void:
 	var marker_id := _next_objective_marker()
-	if marker_id.is_empty() or _player_pos.distance_to(_marker_position(marker_id)) > 70.0:
+	if marker_id.is_empty():
 		return
+	if _player_pos.distance_to(_marker_position(marker_id)) > 70.0:
+		_objective.text = Locale.t("prologue.too_far")
+		_interaction_hint_timer.start(1.4)
+		return
+	_interaction_hint_timer.stop()
 	_done[marker_id] = true
 	var line_id := "narr_1386_03"
 	match marker_id:
@@ -172,6 +178,11 @@ func _refresh_objective() -> void:
 	if marker_id.is_empty():
 		return
 	_objective.text = Locale.t("prologue.goal_" + marker_id)
+
+
+func _restore_objective_after_interaction_hint() -> void:
+	if not _complete:
+		_refresh_objective()
 
 
 func _refresh_progress() -> void:
@@ -259,6 +270,11 @@ func _build_ui() -> void:
 	_narrative_timer.one_shot = true
 	_narrative_timer.timeout.connect(narrative.clear_line)
 	add_child(_narrative_timer)
+	_interaction_hint_timer = Timer.new()
+	_interaction_hint_timer.one_shot = true
+	_interaction_hint_timer.wait_time = 1.4
+	_interaction_hint_timer.timeout.connect(_restore_objective_after_interaction_hint)
+	add_child(_interaction_hint_timer)
 	get_viewport().size_changed.connect(_on_viewport_resized)
 	_apply_ui_layout(get_viewport().get_visible_rect().size, _css_view_size())
 
