@@ -67,8 +67,8 @@ jobs:
           for tier in watchtower arrow_tower dragon_tower; do
             test -f "game/assets/units/towers/${tier}.png" || { echo "missing tower sprite: $tier" >&2; exit 1; }
           done
+          grep -q 'watchtower_overhead' 素材授权清单.csv
           grep -q 'watchtower_pixel_art' game/data/credits.json
-          grep -q 'watchtower_pixel_art' 素材授权清单.csv
           echo "Tower art registered."
 
       - name: Check Dora adapter statically
