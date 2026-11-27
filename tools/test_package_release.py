@@ -17,12 +17,12 @@ Asserts 75850
 All tests passed!
 """
 
-ANDROID_LOG = """\
+ANDROID_LOG = f"""\
 package=fun.xingwangzhe.watchyongchang
 abis=arm64-v8a,armeabi-v7a
 min_sdk=24
 target_sdk=36
-version=1.11.0
+version={release.r.project_version()}
 gamepad_actions=move:left_stick,dpad;attack:A;dash:B;interact:X;codex:Y;auto_attack:Back
 gamepad_tests=GUT:test_android_gamepad.gd
 signature=verified_release_key
