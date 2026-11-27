@@ -204,7 +204,8 @@
             "tiles": [
               "water_deep_a",
               "water_deep_b"
-            ]
+            ],
+            "smooth_banks": true
           },
           {
             "kind": "water_path",
@@ -254,7 +255,8 @@
             "tiles": [
               "water_deep_a",
               "water_deep_b"
-            ]
+            ],
+            "smooth_banks": true
           },
           {
             "kind": "water",
@@ -3854,6 +3856,19 @@
               151,
               6,
               5
+            ]
+          },
+          {
+            "kind": "plaza",
+            "rect": [
+              45,
+              76,
+              10,
+              7
+            ],
+            "tiles": [
+              "stone_road_a",
+              "stone_road_b"
             ]
           },
           {

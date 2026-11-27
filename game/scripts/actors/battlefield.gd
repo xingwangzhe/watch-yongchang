@@ -1586,7 +1586,7 @@ func play_player_attack_fx(
 		_play_jeff_fx(
 			accent_id,
 			result_anchor if accent_remote and has_anchor else origin,
-			{"scale": float(profile.get("accent_scale", 0.75))}
+			{"scale": float(profile.get("accent_scale", 0.75)) * effective_area_scale}
 		)
 
 

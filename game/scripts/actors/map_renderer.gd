@@ -438,6 +438,8 @@ func _collect_water_seed_cells() -> Dictionary:
 		if points.size() < 2:
 			continue
 		var width := maxf(2.0, float(item.get("width", 6.0)))
+		if bool(item.get("smooth_banks", false)):
+			points = _smooth_polyline(points, 4)
 		for cell in _ribbon_cells(points, width, 113, 0.0):
 			if layout.cell_in_bounds(cell):
 				cells[cell] = true
@@ -743,7 +745,9 @@ func _paint_building_area(area: Dictionary, rect: Rect2i) -> void:
 		ridge_count = 2
 	ridge_count = clampi(int(area.get("ridge_count", ridge_count)), 1, 3)
 	var ridge_rows: Array[int] = [0 if rect.size.y < 3 else maxi(1, int((rect.size.y - 1) / 2.0))]
-	var roof_variant := _hash_cell(rect.position, 263) % 3
+	# Keep residential roof families consistent inside a neighborhood block.
+	var district_cell := Vector2i(floori(float(rect.position.x) / 24.0), floori(float(rect.position.y) / 26.0))
+	var roof_variant := _hash_cell(district_cell, 263) % 3
 	if style == "shop":
 		roof_variant = 1
 	elif style == "watch":
@@ -1166,6 +1170,32 @@ func _ribbon_cells(points: Array[Vector2], width: float, salt: int, wobble: floa
 			if distance <= half_width + edge_noise:
 				cells.append(cell)
 	return cells
+
+
+## Natural creeks should turn continuously between survey points while engineered canals stay straight.
+func _smooth_polyline(points: Array[Vector2], subdivisions: int) -> Array[Vector2]:
+	var smoothed: Array[Vector2] = []
+	if points.size() < 3:
+		return points.duplicate()
+	var steps := maxi(2, subdivisions)
+	for index in range(points.size() - 1):
+		var p0 := points[maxi(0, index - 1)]
+		var p1 := points[index]
+		var p2 := points[index + 1]
+		var p3 := points[mini(points.size() - 1, index + 2)]
+		for step in range(steps):
+			var t := float(step) / float(steps)
+			var t2 := t * t
+			var t3 := t2 * t
+			var point := 0.5 * (
+				(2.0 * p1)
+				+ (-p0 + p2) * t
+				+ (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2
+				+ (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3
+			)
+			smoothed.append(point)
+	smoothed.append(points[points.size() - 1])
+	return smoothed
 
 
 func _distance_to_polyline(point: Vector2, points: Array[Vector2]) -> float:

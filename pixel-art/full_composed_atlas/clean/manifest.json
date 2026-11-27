@@ -11,7 +11,7 @@
         }
       ],
       "runtime": "assets/units/full_sheets/player_actions.webp",
-      "runtime_sha256": "3612481dc4ffa6e88f049dd082fe6c003d4b57c6e2d2a7a6a418116d0d2a2b48",
+      "runtime_sha256": "181e71f4539505dd549854495edb25ccadc26c101ba0dc60726f6252cf69a86a",
       "columns": 8,
       "rows": 3,
       "cell_size": [
@@ -30,7 +30,7 @@
           "row_name": "walk",
           "frame": 0,
           "bbox": [
-            32,
+            31,
             6,
             63,
             118
@@ -40,7 +40,8 @@
             0,
             117,
             218
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -48,7 +49,7 @@
           "row_name": "walk",
           "frame": 1,
           "bbox": [
-            156,
+            157,
             7,
             71,
             117
@@ -58,7 +59,8 @@
             0,
             131,
             217
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -76,7 +78,8 @@
             0,
             133,
             210
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -94,7 +97,8 @@
             0,
             119,
             218
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -102,7 +106,7 @@
           "row_name": "walk",
           "frame": 4,
           "bbox": [
-            546,
+            545,
             8,
             59,
             116
@@ -112,7 +116,8 @@
             0,
             109,
             214
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -130,7 +135,8 @@
             0,
             111,
             215
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -138,7 +144,7 @@
           "row_name": "walk",
           "frame": 6,
           "bbox": [
-            801,
+            806,
             7,
             62,
             117
@@ -148,7 +154,8 @@
             0,
             114,
             216
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -156,7 +163,7 @@
           "row_name": "walk",
           "frame": 7,
           "bbox": [
-            929,
+            928,
             6,
             61,
             118
@@ -166,7 +173,8 @@
             0,
             113,
             218
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -174,17 +182,18 @@
           "row_name": "dao_attack",
           "frame": 0,
           "bbox": [
-            36,
-            146,
-            56,
-            106
+            38,
+            157,
+            50,
+            95
           ],
           "source_bbox": [
             0,
             0,
             116,
             221
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -192,17 +201,18 @@
           "row_name": "dao_attack",
           "frame": 1,
           "bbox": [
-            158,
-            154,
-            67,
-            98
+            159,
+            164,
+            60,
+            88
           ],
           "source_bbox": [
             0,
             0,
             139,
             204
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -211,16 +221,17 @@
           "frame": 2,
           "bbox": [
             281,
-            154,
-            78,
-            98
+            164,
+            70,
+            88
           ],
           "source_bbox": [
             0,
             0,
             162,
             203
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -228,17 +239,18 @@
           "row_name": "dao_attack",
           "frame": 3,
           "bbox": [
-            398,
-            155,
-            99,
-            97
+            405,
+            165,
+            88,
+            87
           ],
           "source_bbox": [
             0,
             0,
             205,
             202
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -246,17 +258,18 @@
           "row_name": "dao_attack",
           "frame": 4,
           "bbox": [
-            518,
-            157,
-            116,
-            95
+            530,
+            167,
+            104,
+            85
           ],
           "source_bbox": [
             0,
             0,
             241,
             197
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -264,17 +277,18 @@
           "row_name": "dao_attack",
           "frame": 5,
           "bbox": [
-            653,
-            158,
-            102,
-            94
+            670,
+            167,
+            91,
+            85
           ],
           "source_bbox": [
             0,
             0,
             211,
             196
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -282,17 +296,18 @@
           "row_name": "dao_attack",
           "frame": 6,
           "bbox": [
-            793,
-            152,
-            77,
-            100
+            808,
+            163,
+            69,
+            89
           ],
           "source_bbox": [
             0,
             0,
             159,
             207
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -300,17 +315,18 @@
           "row_name": "dao_attack",
           "frame": 7,
           "bbox": [
-            932,
-            146,
-            55,
-            106
+            933,
+            157,
+            50,
+            95
           ],
           "source_bbox": [
             0,
             0,
             115,
             221
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -318,17 +334,18 @@
           "row_name": "spear_thrust",
           "frame": 0,
           "bbox": [
-            16,
-            281,
-            95,
-            99
+            33,
+            297,
+            79,
+            83
           ],
           "source_bbox": [
             0,
             0,
             210,
             219
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -336,17 +353,18 @@
           "row_name": "spear_thrust",
           "frame": 1,
           "bbox": [
-            144,
-            287,
-            96,
-            93
+            163,
+            303,
+            80,
+            77
           ],
           "source_bbox": [
             0,
             0,
             211,
             205
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -354,17 +372,18 @@
           "row_name": "spear_thrust",
           "frame": 2,
           "bbox": [
-            273,
-            290,
-            93,
-            90
+            288,
+            305,
+            78,
+            75
           ],
           "source_bbox": [
             0,
             0,
             206,
             199
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -372,17 +391,18 @@
           "row_name": "spear_thrust",
           "frame": 3,
           "bbox": [
-            393,
-            291,
-            109,
-            89
+            413,
+            306,
+            91,
+            74
           ],
           "source_bbox": [
             0,
             0,
             240,
             196
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -390,17 +410,18 @@
           "row_name": "spear_thrust",
           "frame": 4,
           "bbox": [
-            518,
-            293,
-            116,
-            87
+            537,
+            308,
+            97,
+            72
           ],
           "source_bbox": [
             0,
             0,
             256,
             191
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -408,17 +429,18 @@
           "row_name": "spear_thrust",
           "frame": 5,
           "bbox": [
-            648,
-            294,
-            111,
-            86
+            669,
+            309,
+            92,
+            71
           ],
           "source_bbox": [
             0,
             0,
             244,
             189
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -426,17 +448,18 @@
           "row_name": "spear_thrust",
           "frame": 6,
           "bbox": [
-            785,
-            290,
-            93,
-            90
+            807,
+            305,
+            77,
+            75
           ],
           "source_bbox": [
             0,
             0,
             205,
             198
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -444,17 +467,18 @@
           "row_name": "spear_thrust",
           "frame": 7,
           "bbox": [
-            913,
-            281,
-            94,
-            99
+            930,
+            298,
+            78,
+            82
           ],
           "source_bbox": [
             0,
             0,
             207,
             218
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         }
       ],
       "source_mode": "RGBA",
@@ -466,7 +490,7 @@
         1024,
         384
       ],
-      "runtime_bytes": 238876
+      "runtime_bytes": 205980
     },
     "allies_walk": {
       "sources": [
@@ -476,7 +500,7 @@
         }
       ],
       "runtime": "assets/units/full_sheets/allies_walk.webp",
-      "runtime_sha256": "e0e8f44c27cbcc0d4b81aa9489b7c7c1d1a5784ea5f83278e43246c861ea534e",
+      "runtime_sha256": "57113c8466cf588482ef5e6d7ba164306613093eb3ddfdd4e5765eb2c49323c8",
       "columns": 8,
       "rows": 4,
       "cell_size": [
@@ -496,17 +520,18 @@
           "row_name": "spear",
           "frame": 0,
           "bbox": [
-            16,
-            6,
-            95,
-            118
+            21,
+            9,
+            93,
+            115
           ],
           "source_bbox": [
             0,
             0,
             121,
             150
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -514,17 +539,18 @@
           "row_name": "spear",
           "frame": 1,
           "bbox": [
-            147,
-            7,
-            90,
-            117
+            150,
+            10,
+            88,
+            114
           ],
           "source_bbox": [
             0,
             0,
             114,
             149
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -532,17 +558,18 @@
           "row_name": "spear",
           "frame": 2,
           "bbox": [
-            276,
-            7,
-            88,
-            117
+            277,
+            10,
+            86,
+            114
           ],
           "source_bbox": [
             0,
             0,
             112,
             149
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -550,17 +577,18 @@
           "row_name": "spear",
           "frame": 3,
           "bbox": [
-            403,
-            8,
-            89,
-            116
+            405,
+            10,
+            87,
+            114
           ],
           "source_bbox": [
             0,
             0,
             113,
             148
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -568,17 +596,18 @@
           "row_name": "spear",
           "frame": 4,
           "bbox": [
-            530,
-            8,
-            92,
-            116
+            533,
+            10,
+            90,
+            114
           ],
           "source_bbox": [
             0,
             0,
             117,
             148
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -586,17 +615,18 @@
           "row_name": "spear",
           "frame": 5,
           "bbox": [
-            657,
-            8,
-            93,
-            116
+            661,
+            11,
+            91,
+            113
           ],
           "source_bbox": [
             0,
             0,
             118,
             147
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -604,17 +634,18 @@
           "row_name": "spear",
           "frame": 6,
           "bbox": [
-            781,
-            8,
-            101,
-            116
+            789,
+            10,
+            98,
+            114
           ],
           "source_bbox": [
             0,
             0,
             128,
             148
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -622,17 +653,18 @@
           "row_name": "spear",
           "frame": 7,
           "bbox": [
-            909,
-            8,
-            102,
-            116
+            918,
+            10,
+            100,
+            114
           ],
           "source_bbox": [
             0,
             0,
             130,
             148
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -650,7 +682,8 @@
             0,
             102,
             144
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -658,7 +691,7 @@
           "row_name": "shield",
           "frame": 1,
           "bbox": [
-            149,
+            147,
             135,
             86,
             117
@@ -668,7 +701,8 @@
             0,
             105,
             143
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -676,7 +710,7 @@
           "row_name": "shield",
           "frame": 2,
           "bbox": [
-            278,
+            275,
             134,
             84,
             118
@@ -686,7 +720,8 @@
             0,
             103,
             144
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -694,7 +729,7 @@
           "row_name": "shield",
           "frame": 3,
           "bbox": [
-            406,
+            403,
             135,
             84,
             117
@@ -704,7 +739,8 @@
             0,
             102,
             143
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -712,7 +748,7 @@
           "row_name": "shield",
           "frame": 4,
           "bbox": [
-            532,
+            530,
             136,
             88,
             116
@@ -722,7 +758,8 @@
             0,
             107,
             142
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -740,7 +777,8 @@
             0,
             104,
             142
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -758,7 +796,8 @@
             0,
             103,
             142
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -766,7 +805,7 @@
           "row_name": "shield",
           "frame": 7,
           "bbox": [
-            917,
+            918,
             136,
             86,
             116
@@ -776,7 +815,8 @@
             0,
             105,
             141
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -784,7 +824,7 @@
           "row_name": "archer",
           "frame": 0,
           "bbox": [
-            24,
+            28,
             263,
             79,
             117
@@ -794,7 +834,8 @@
             0,
             97,
             143
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -802,7 +843,7 @@
           "row_name": "archer",
           "frame": 1,
           "bbox": [
-            153,
+            156,
             263,
             78,
             117
@@ -812,7 +853,8 @@
             0,
             95,
             143
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -820,7 +862,7 @@
           "row_name": "archer",
           "frame": 2,
           "bbox": [
-            280,
+            282,
             262,
             79,
             118
@@ -830,7 +872,8 @@
             0,
             97,
             144
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -838,7 +881,7 @@
           "row_name": "archer",
           "frame": 3,
           "bbox": [
-            406,
+            409,
             264,
             84,
             116
@@ -848,7 +891,8 @@
             0,
             102,
             141
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -856,7 +900,7 @@
           "row_name": "archer",
           "frame": 4,
           "bbox": [
-            535,
+            537,
             264,
             81,
             116
@@ -866,7 +910,8 @@
             0,
             99,
             141
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -874,7 +919,7 @@
           "row_name": "archer",
           "frame": 5,
           "bbox": [
-            664,
+            667,
             265,
             79,
             115
@@ -884,7 +929,8 @@
             0,
             96,
             140
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -892,7 +938,7 @@
           "row_name": "archer",
           "frame": 6,
           "bbox": [
-            792,
+            796,
             268,
             79,
             112
@@ -902,7 +948,8 @@
             0,
             97,
             137
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -910,7 +957,7 @@
           "row_name": "archer",
           "frame": 7,
           "bbox": [
-            921,
+            923,
             266,
             78,
             114
@@ -920,7 +967,8 @@
             0,
             95,
             139
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -928,7 +976,7 @@
           "row_name": "banner",
           "frame": 0,
           "bbox": [
-            19,
+            27,
             390,
             90,
             118
@@ -938,7 +986,8 @@
             0,
             122,
             160
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -946,7 +995,7 @@
           "row_name": "banner",
           "frame": 1,
           "bbox": [
-            149,
+            155,
             390,
             86,
             118
@@ -956,7 +1005,8 @@
             0,
             117,
             160
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -964,7 +1014,7 @@
           "row_name": "banner",
           "frame": 2,
           "bbox": [
-            277,
+            286,
             390,
             86,
             118
@@ -974,7 +1024,8 @@
             0,
             117,
             160
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -982,7 +1033,7 @@
           "row_name": "banner",
           "frame": 3,
           "bbox": [
-            404,
+            413,
             390,
             88,
             118
@@ -992,7 +1043,8 @@
             0,
             119,
             160
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -1000,7 +1052,7 @@
           "row_name": "banner",
           "frame": 4,
           "bbox": [
-            531,
+            540,
             390,
             89,
             118
@@ -1010,7 +1062,8 @@
             0,
             121,
             160
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -1018,7 +1071,7 @@
           "row_name": "banner",
           "frame": 5,
           "bbox": [
-            659,
+            669,
             390,
             89,
             118
@@ -1028,7 +1081,8 @@
             0,
             121,
             160
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -1036,7 +1090,7 @@
           "row_name": "banner",
           "frame": 6,
           "bbox": [
-            789,
+            801,
             390,
             86,
             118
@@ -1046,7 +1100,8 @@
             0,
             117,
             160
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -1054,7 +1109,7 @@
           "row_name": "banner",
           "frame": 7,
           "bbox": [
-            916,
+            926,
             390,
             88,
             118
@@ -1064,7 +1119,8 @@
             0,
             120,
             160
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         }
       ],
       "source_mode": "RGBA",
@@ -1076,7 +1132,7 @@
         1024,
         512
       ],
-      "runtime_bytes": 464592
+      "runtime_bytes": 459824
     },
     "enemies_walk": {
       "sources": [
@@ -1086,7 +1142,7 @@
         }
       ],
       "runtime": "assets/units/full_sheets/enemies_walk.webp",
-      "runtime_sha256": "919a78c22226cb838e3e2144e733805be8f73b2a82f4a6319b40c67b34a4eb7a",
+      "runtime_sha256": "7714f80abefc28d856d7cff144e012ecae2241c5148a954a413cea2e5dbead2b",
       "columns": 8,
       "rows": 5,
       "cell_size": [
@@ -1107,7 +1163,7 @@
           "row_name": "scout",
           "frame": 0,
           "bbox": [
-            18,
+            21,
             8,
             92,
             116
@@ -1117,7 +1173,8 @@
             0,
             150,
             188
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -1125,7 +1182,7 @@
           "row_name": "scout",
           "frame": 1,
           "bbox": [
-            148,
+            153,
             8,
             88,
             116
@@ -1135,7 +1192,8 @@
             0,
             144,
             189
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -1143,7 +1201,7 @@
           "row_name": "scout",
           "frame": 2,
           "bbox": [
-            276,
+            283,
             6,
             87,
             118
@@ -1153,7 +1211,8 @@
             0,
             141,
             192
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -1161,7 +1220,7 @@
           "row_name": "scout",
           "frame": 3,
           "bbox": [
-            404,
+            410,
             7,
             88,
             117
@@ -1171,7 +1230,8 @@
             0,
             143,
             190
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -1179,7 +1239,7 @@
           "row_name": "scout",
           "frame": 4,
           "bbox": [
-            529,
+            536,
             8,
             93,
             116
@@ -1189,7 +1249,8 @@
             0,
             151,
             189
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -1197,7 +1258,7 @@
           "row_name": "scout",
           "frame": 5,
           "bbox": [
-            655,
+            660,
             10,
             97,
             114
@@ -1207,7 +1268,8 @@
             0,
             158,
             186
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -1215,7 +1277,7 @@
           "row_name": "scout",
           "frame": 6,
           "bbox": [
-            784,
+            791,
             8,
             95,
             116
@@ -1225,7 +1287,8 @@
             0,
             154,
             188
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -1233,7 +1296,7 @@
           "row_name": "scout",
           "frame": 7,
           "bbox": [
-            914,
+            917,
             8,
             92,
             116
@@ -1243,7 +1306,8 @@
             0,
             150,
             188
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -1251,17 +1315,18 @@
           "row_name": "ronin",
           "frame": 0,
           "bbox": [
-            6,
-            135,
-            115,
-            117
+            28,
+            159,
+            91,
+            93
           ],
           "source_bbox": [
             0,
             0,
             190,
             193
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -1269,17 +1334,18 @@
           "row_name": "ronin",
           "frame": 1,
           "bbox": [
-            135,
-            134,
-            113,
-            118
+            158,
+            158,
+            90,
+            94
           ],
           "source_bbox": [
             0,
             0,
             187,
             195
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -1287,17 +1353,18 @@
           "row_name": "ronin",
           "frame": 2,
           "bbox": [
-            265,
-            134,
-            110,
-            118
+            288,
+            158,
+            87,
+            94
           ],
           "source_bbox": [
             0,
             0,
             181,
             195
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -1305,17 +1372,18 @@
           "row_name": "ronin",
           "frame": 3,
           "bbox": [
-            394,
-            135,
-            108,
-            117
+            414,
+            159,
+            86,
+            93
           ],
           "source_bbox": [
             0,
             0,
             179,
             193
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -1323,17 +1391,18 @@
           "row_name": "ronin",
           "frame": 4,
           "bbox": [
-            520,
-            136,
-            111,
-            116
+            542,
+            160,
+            89,
+            92
           ],
           "source_bbox": [
             0,
             0,
             184,
             192
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -1341,17 +1410,18 @@
           "row_name": "ronin",
           "frame": 5,
           "bbox": [
-            647,
-            137,
-            113,
-            115
+            669,
+            161,
+            90,
+            91
           ],
           "source_bbox": [
             0,
             0,
             186,
             190
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -1359,17 +1429,18 @@
           "row_name": "ronin",
           "frame": 6,
           "bbox": [
-            775,
-            137,
-            113,
-            115
+            800,
+            161,
+            90,
+            91
           ],
           "source_bbox": [
             0,
             0,
             187,
             190
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -1377,17 +1448,18 @@
           "row_name": "ronin",
           "frame": 7,
           "bbox": [
-            902,
-            135,
-            115,
-            117
+            924,
+            159,
+            91,
+            93
           ],
           "source_bbox": [
             0,
             0,
             190,
             193
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -1405,7 +1477,8 @@
             0,
             156,
             183
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -1413,7 +1486,7 @@
           "row_name": "shield",
           "frame": 1,
           "bbox": [
-            142,
+            141,
             263,
             100,
             117
@@ -1423,7 +1496,8 @@
             0,
             155,
             182
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -1431,7 +1505,7 @@
           "row_name": "shield",
           "frame": 2,
           "bbox": [
-            270,
+            271,
             262,
             99,
             118
@@ -1441,7 +1515,8 @@
             0,
             153,
             183
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -1459,7 +1534,8 @@
             0,
             150,
             182
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -1477,7 +1553,8 @@
             0,
             156,
             182
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -1485,7 +1562,7 @@
           "row_name": "shield",
           "frame": 5,
           "bbox": [
-            653,
+            651,
             265,
             101,
             115
@@ -1495,7 +1572,8 @@
             0,
             157,
             179
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -1503,7 +1581,7 @@
           "row_name": "shield",
           "frame": 6,
           "bbox": [
-            780,
+            778,
             263,
             103,
             117
@@ -1513,7 +1591,8 @@
             0,
             159,
             181
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -1531,7 +1610,8 @@
             0,
             156,
             183
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -1539,17 +1619,18 @@
           "row_name": "gunner",
           "frame": 0,
           "bbox": [
-            6,
-            393,
-            116,
-            115
+            31,
+            418,
+            91,
+            90
           ],
           "source_bbox": [
             0,
             0,
             190,
             188
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -1557,17 +1638,18 @@
           "row_name": "gunner",
           "frame": 1,
           "bbox": [
-            135,
-            394,
-            113,
-            114
+            160,
+            419,
+            88,
+            89
           ],
           "source_bbox": [
             0,
             0,
             185,
             186
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -1575,17 +1657,18 @@
           "row_name": "gunner",
           "frame": 2,
           "bbox": [
-            264,
-            393,
-            111,
-            115
+            289,
+            418,
+            86,
+            90
           ],
           "source_bbox": [
             0,
             0,
             181,
             189
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -1593,17 +1676,18 @@
           "row_name": "gunner",
           "frame": 3,
           "bbox": [
-            394,
-            394,
-            107,
-            114
+            418,
+            419,
+            84,
+            89
           ],
           "source_bbox": [
             0,
             0,
             176,
             187
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -1611,17 +1695,18 @@
           "row_name": "gunner",
           "frame": 4,
           "bbox": [
-            521,
-            395,
-            109,
-            113
+            545,
+            420,
+            85,
+            88
           ],
           "source_bbox": [
             0,
             0,
             179,
             185
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -1629,17 +1714,18 @@
           "row_name": "gunner",
           "frame": 5,
           "bbox": [
-            646,
-            397,
-            115,
-            111
+            670,
+            421,
+            90,
+            87
           ],
           "source_bbox": [
             0,
             0,
             188,
             182
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -1647,17 +1733,18 @@
           "row_name": "gunner",
           "frame": 6,
           "bbox": [
-            775,
-            396,
-            114,
-            112
+            799,
+            421,
+            89,
+            87
           ],
           "source_bbox": [
             0,
             0,
             186,
             183
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -1665,17 +1752,18 @@
           "row_name": "gunner",
           "frame": 7,
           "bbox": [
-            902,
-            393,
-            116,
-            115
+            927,
+            418,
+            91,
+            90
           ],
           "source_bbox": [
             0,
             0,
             190,
             188
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 4,
@@ -1683,7 +1771,7 @@
           "row_name": "archer",
           "frame": 0,
           "bbox": [
-            16,
+            21,
             519,
             95,
             117
@@ -1693,7 +1781,8 @@
             0,
             149,
             184
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 4,
@@ -1701,7 +1790,7 @@
           "row_name": "archer",
           "frame": 1,
           "bbox": [
-            144,
+            148,
             518,
             96,
             118
@@ -1711,7 +1800,8 @@
             0,
             151,
             185
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 4,
@@ -1719,7 +1809,7 @@
           "row_name": "archer",
           "frame": 2,
           "bbox": [
-            275,
+            281,
             519,
             90,
             117
@@ -1729,7 +1819,8 @@
             0,
             141,
             184
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 4,
@@ -1737,7 +1828,7 @@
           "row_name": "archer",
           "frame": 3,
           "bbox": [
-            404,
+            407,
             519,
             88,
             117
@@ -1747,7 +1838,8 @@
             0,
             138,
             183
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 4,
@@ -1755,7 +1847,7 @@
           "row_name": "archer",
           "frame": 4,
           "bbox": [
-            530,
+            535,
             521,
             91,
             115
@@ -1765,7 +1857,8 @@
             0,
             142,
             181
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 4,
@@ -1773,7 +1866,7 @@
           "row_name": "archer",
           "frame": 5,
           "bbox": [
-            658,
+            659,
             522,
             92,
             114
@@ -1783,7 +1876,8 @@
             0,
             145,
             179
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 4,
@@ -1791,7 +1885,7 @@
           "row_name": "archer",
           "frame": 6,
           "bbox": [
-            785,
+            788,
             520,
             94,
             116
@@ -1801,7 +1895,8 @@
             0,
             148,
             182
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 4,
@@ -1809,7 +1904,7 @@
           "row_name": "archer",
           "frame": 7,
           "bbox": [
-            912,
+            917,
             519,
             95,
             117
@@ -1819,7 +1914,8 @@
             0,
             149,
             184
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         }
       ],
       "source_mode": "RGBA",
@@ -1831,7 +1927,7 @@
         1024,
         640
       ],
-      "runtime_bytes": 520462
+      "runtime_bytes": 450578
     },
     "cavalry_walk": {
       "sources": [
@@ -1841,7 +1937,7 @@
         }
       ],
       "runtime": "assets/units/full_sheets/cavalry_walk.webp",
-      "runtime_sha256": "c39fa8990f88f6a81421849cd5e46931aca439ad215f732f9b50f07170d9f996",
+      "runtime_sha256": "efbadbef5d3fdd15a98ca141659c79d41974a98cd522f38c393f89e2c438789e",
       "columns": 8,
       "rows": 4,
       "cell_size": [
@@ -1861,17 +1957,18 @@
           "row_name": "ming_lancer",
           "frame": 0,
           "bbox": [
-            6,
-            23,
-            115,
-            101
+            10,
+            32,
+            105,
+            92
           ],
           "source_bbox": [
             0,
             0,
             216,
             189
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -1879,17 +1976,18 @@
           "row_name": "ming_lancer",
           "frame": 1,
           "bbox": [
-            134,
-            23,
-            115,
-            101
+            137,
+            32,
+            105,
+            92
           ],
           "source_bbox": [
             0,
             0,
             216,
             189
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -1897,17 +1995,18 @@
           "row_name": "ming_lancer",
           "frame": 2,
           "bbox": [
-            262,
-            24,
-            115,
-            100
+            264,
+            33,
+            105,
+            91
           ],
           "source_bbox": [
             0,
             0,
             217,
             188
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -1916,16 +2015,17 @@
           "frame": 3,
           "bbox": [
             390,
-            29,
-            116,
-            95
+            37,
+            106,
+            87
           ],
           "source_bbox": [
             0,
             0,
             218,
             179
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -1933,17 +2033,18 @@
           "row_name": "ming_lancer",
           "frame": 4,
           "bbox": [
-            518,
-            27,
-            115,
-            97
+            519,
+            35,
+            105,
+            89
           ],
           "source_bbox": [
             0,
             0,
             216,
             183
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -1952,16 +2053,17 @@
           "frame": 5,
           "bbox": [
             646,
-            22,
-            115,
-            102
+            31,
+            105,
+            93
           ],
           "source_bbox": [
             0,
             0,
             216,
             191
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -1969,17 +2071,18 @@
           "row_name": "ming_lancer",
           "frame": 6,
           "bbox": [
-            775,
-            22,
-            113,
-            102
+            777,
+            31,
+            103,
+            93
           ],
           "source_bbox": [
             0,
             0,
             213,
             191
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -1987,17 +2090,18 @@
           "row_name": "ming_lancer",
           "frame": 7,
           "bbox": [
-            902,
-            23,
-            115,
-            101
+            905,
+            32,
+            105,
+            92
           ],
           "source_bbox": [
             0,
             0,
             216,
             189
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -2005,17 +2109,18 @@
           "row_name": "ming_archer",
           "frame": 0,
           "bbox": [
-            7,
-            146,
-            114,
-            106
+            9,
+            157,
+            102,
+            95
           ],
           "source_bbox": [
             0,
             0,
             205,
             190
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -2023,17 +2128,18 @@
           "row_name": "ming_archer",
           "frame": 1,
           "bbox": [
-            134,
-            145,
-            115,
-            107
+            137,
+            157,
+            103,
+            95
           ],
           "source_bbox": [
             0,
             0,
             206,
             191
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -2041,17 +2147,18 @@
           "row_name": "ming_archer",
           "frame": 2,
           "bbox": [
-            262,
-            145,
-            116,
-            107
+            263,
+            157,
+            104,
+            95
           ],
           "source_bbox": [
             0,
             0,
             208,
             191
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -2060,16 +2167,17 @@
           "frame": 3,
           "bbox": [
             390,
-            150,
-            115,
-            102
+            161,
+            103,
+            91
           ],
           "source_bbox": [
             0,
             0,
             207,
             182
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -2077,17 +2185,18 @@
           "row_name": "ming_archer",
           "frame": 4,
           "bbox": [
-            519,
-            150,
-            114,
-            102
+            518,
+            161,
+            102,
+            91
           ],
           "source_bbox": [
             0,
             0,
             205,
             183
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -2096,16 +2205,17 @@
           "frame": 5,
           "bbox": [
             646,
-            145,
-            115,
-            107
+            156,
+            103,
+            96
           ],
           "source_bbox": [
             0,
             0,
             207,
             192
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -2113,17 +2223,18 @@
           "row_name": "ming_archer",
           "frame": 6,
           "bbox": [
-            775,
-            146,
-            114,
-            106
+            776,
+            157,
+            102,
+            95
           ],
           "source_bbox": [
             0,
             0,
             205,
             190
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -2131,17 +2242,18 @@
           "row_name": "ming_archer",
           "frame": 7,
           "bbox": [
-            902,
-            146,
-            115,
-            106
+            905,
+            157,
+            103,
+            95
           ],
           "source_bbox": [
             0,
             0,
             206,
             190
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -2149,17 +2261,18 @@
           "row_name": "wokou_saber",
           "frame": 0,
           "bbox": [
-            6,
-            277,
-            115,
-            103
+            9,
+            289,
+            101,
+            91
           ],
           "source_bbox": [
             0,
             0,
             206,
             185
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -2167,17 +2280,18 @@
           "row_name": "wokou_saber",
           "frame": 1,
           "bbox": [
-            134,
-            276,
-            116,
-            104
+            137,
+            288,
+            102,
+            92
           ],
           "source_bbox": [
             0,
             0,
             208,
             187
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -2185,17 +2299,18 @@
           "row_name": "wokou_saber",
           "frame": 2,
           "bbox": [
-            262,
-            275,
-            116,
-            105
+            264,
+            288,
+            102,
+            92
           ],
           "source_bbox": [
             0,
             0,
             208,
             188
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -2204,16 +2319,17 @@
           "frame": 3,
           "bbox": [
             390,
-            279,
-            115,
-            101
+            291,
+            101,
+            89
           ],
           "source_bbox": [
             0,
             0,
             207,
             181
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -2222,16 +2338,17 @@
           "frame": 4,
           "bbox": [
             518,
-            277,
-            115,
-            103
+            289,
+            101,
+            91
           ],
           "source_bbox": [
             0,
             0,
             207,
             185
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -2240,16 +2357,17 @@
           "frame": 5,
           "bbox": [
             646,
-            272,
-            116,
-            108
+            285,
+            102,
+            95
           ],
           "source_bbox": [
             0,
             0,
             208,
             194
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -2257,17 +2375,18 @@
           "row_name": "wokou_saber",
           "frame": 6,
           "bbox": [
-            775,
-            275,
-            114,
-            105
+            777,
+            288,
+            100,
+            92
           ],
           "source_bbox": [
             0,
             0,
             205,
             188
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -2275,17 +2394,18 @@
           "row_name": "wokou_saber",
           "frame": 7,
           "bbox": [
-            902,
-            278,
-            115,
-            102
+            905,
+            290,
+            101,
+            90
           ],
           "source_bbox": [
             0,
             0,
             206,
             183
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -2293,17 +2413,18 @@
           "row_name": "wokou_heavy",
           "frame": 0,
           "bbox": [
-            7,
-            406,
-            114,
-            102
+            10,
+            410,
+            110,
+            98
           ],
           "source_bbox": [
             0,
             0,
             215,
             191
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -2311,17 +2432,18 @@
           "row_name": "wokou_heavy",
           "frame": 1,
           "bbox": [
-            134,
-            405,
-            115,
-            103
+            138,
+            409,
+            110,
+            99
           ],
           "source_bbox": [
             0,
             0,
             216,
             193
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -2329,17 +2451,18 @@
           "row_name": "wokou_heavy",
           "frame": 2,
           "bbox": [
-            262,
-            405,
-            115,
-            103
+            264,
+            409,
+            111,
+            99
           ],
           "source_bbox": [
             0,
             0,
             217,
             193
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -2348,16 +2471,17 @@
           "frame": 3,
           "bbox": [
             390,
-            410,
-            116,
-            98
+            413,
+            111,
+            95
           ],
           "source_bbox": [
             0,
             0,
             218,
             185
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -2365,17 +2489,18 @@
           "row_name": "wokou_heavy",
           "frame": 4,
           "bbox": [
-            518,
-            407,
-            115,
-            101
+            520,
+            411,
+            110,
+            97
           ],
           "source_bbox": [
             0,
             0,
             216,
             190
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -2383,17 +2508,18 @@
           "row_name": "wokou_heavy",
           "frame": 5,
           "bbox": [
-            646,
-            402,
-            115,
-            106
+            647,
+            406,
+            111,
+            102
           ],
           "source_bbox": [
             0,
             0,
             217,
             199
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 3,
@@ -2401,17 +2527,18 @@
           "row_name": "wokou_heavy",
           "frame": 6,
           "bbox": [
-            775,
-            404,
-            114,
-            104
+            776,
+            408,
+            110,
+            100
           ],
           "source_bbox": [
             0,
             0,
             215,
             196
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 3,
@@ -2419,17 +2546,18 @@
           "row_name": "wokou_heavy",
           "frame": 7,
           "bbox": [
-            902,
-            407,
-            115,
-            101
+            905,
+            411,
+            110,
+            97
           ],
           "source_bbox": [
             0,
             0,
             216,
             190
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         }
       ],
       "source_mode": "RGBA",
@@ -2441,7 +2569,7 @@
         1024,
         512
       ],
-      "runtime_bytes": 441120
+      "runtime_bytes": 380498
     },
     "unit_attacks": {
       "sources": [
@@ -2451,7 +2579,7 @@
         }
       ],
       "runtime": "assets/units/full_sheets/unit_attacks.webp",
-      "runtime_sha256": "9509b4f0d7de22eb02e814f5d3ef9000f38d56de81aa016a65b11663d679961c",
+      "runtime_sha256": "804fdbb837fd3ba2f9ea54f14f0ad6e9291ab1d4e32c28f8db89779dea5e3386",
       "columns": 8,
       "rows": 8,
       "cell_size": [
@@ -2475,17 +2603,18 @@
           "row_name": "ally_spear",
           "frame": 0,
           "bbox": [
-            9,
-            6,
-            109,
-            118
+            28,
+            22,
+            94,
+            102
           ],
           "source_bbox": [
             0,
             0,
             127,
             138
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -2493,17 +2622,18 @@
           "row_name": "ally_spear",
           "frame": 1,
           "bbox": [
-            138,
-            9,
-            108,
-            115
+            157,
+            24,
+            93,
+            100
           ],
           "source_bbox": [
             0,
             0,
             126,
             135
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -2511,17 +2641,18 @@
           "row_name": "ally_spear",
           "frame": 2,
           "bbox": [
-            265,
-            10,
-            109,
-            114
+            283,
+            26,
+            95,
+            98
           ],
           "source_bbox": [
             0,
             0,
             128,
             133
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -2529,17 +2660,18 @@
           "row_name": "ally_spear",
           "frame": 3,
           "bbox": [
-            393,
-            13,
-            109,
-            111
+            408,
+            28,
+            95,
+            96
           ],
           "source_bbox": [
             0,
             0,
             128,
             130
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -2547,17 +2679,18 @@
           "row_name": "ally_spear",
           "frame": 4,
           "bbox": [
-            521,
-            15,
-            109,
-            109
+            534,
+            29,
+            94,
+            95
           ],
           "source_bbox": [
             0,
             0,
             127,
             128
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 0,
@@ -2565,17 +2698,18 @@
           "row_name": "ally_spear",
           "frame": 5,
           "bbox": [
-            650,
-            21,
-            108,
-            103
+            661,
+            35,
+            93,
+            89
           ],
           "source_bbox": [
             0,
             0,
             126,
             121
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -2583,17 +2717,18 @@
           "row_name": "ally_spear",
           "frame": 6,
           "bbox": [
-            779,
-            21,
-            105,
-            103
+            790,
+            35,
+            91,
+            89
           ],
           "source_bbox": [
             0,
             0,
             123,
             121
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 0,
@@ -2601,17 +2736,18 @@
           "row_name": "ally_spear",
           "frame": 7,
           "bbox": [
-            910,
-            14,
-            100,
-            110
+            923,
+            29,
+            86,
+            95
           ],
           "source_bbox": [
             0,
             0,
             117,
             129
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -2629,7 +2765,8 @@
             0,
             99,
             132
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -2637,7 +2774,7 @@
           "row_name": "ally_shield",
           "frame": 1,
           "bbox": [
-            146,
+            144,
             135,
             91,
             117
@@ -2647,7 +2784,8 @@
             0,
             102,
             131
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -2655,7 +2793,7 @@
           "row_name": "ally_shield",
           "frame": 2,
           "bbox": [
-            270,
+            266,
             135,
             100,
             117
@@ -2665,7 +2803,8 @@
             0,
             112,
             131
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -2673,7 +2812,7 @@
           "row_name": "ally_shield",
           "frame": 3,
           "bbox": [
-            399,
+            395,
             137,
             97,
             115
@@ -2683,7 +2822,8 @@
             0,
             109,
             129
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -2701,7 +2841,8 @@
             0,
             85,
             129
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -2709,7 +2850,7 @@
           "row_name": "ally_shield",
           "frame": 5,
           "bbox": [
-            656,
+            661,
             139,
             96,
             113
@@ -2719,7 +2860,8 @@
             0,
             107,
             126
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 1,
@@ -2727,7 +2869,7 @@
           "row_name": "ally_shield",
           "frame": 6,
           "bbox": [
-            788,
+            787,
             140,
             87,
             112
@@ -2737,7 +2879,8 @@
             0,
             97,
             125
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 1,
@@ -2745,7 +2888,7 @@
           "row_name": "ally_shield",
           "frame": 7,
           "bbox": [
-            917,
+            918,
             138,
             86,
             114
@@ -2755,7 +2898,8 @@
             0,
             96,
             128
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 2,
@@ -2763,17 +2907,18 @@
           "row_name": "ally_archer",
           "frame": 0,
           "bbox": [
-            23,
-            267,
-            82,
-            113
+            28,
+            272,
+            78,
+            108
           ],
           "source_bbox": [
             0,
             0,
             98,
             135
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 2,
@@ -2781,413 +2926,436 @@
           "row_name": "ally_archer",
           "frame": 1,
           "bbox": [
-            147,
-            267,
-            89,
-            113
-          ],
-          "source_bbox": [
-            0,
-            0,
-            106,
-            135
-          ]
-        },
-        {
-          "row": 2,
-          "column": 2,
-          "row_name": "ally_archer",
-          "frame": 2,
-          "bbox": [
+            156,
             272,
-            265,
-            95,
-            115
-          ],
-          "source_bbox": [
-            0,
-            0,
-            113,
-            138
-          ]
-        },
-        {
-          "row": 2,
-          "column": 3,
-          "row_name": "ally_archer",
-          "frame": 3,
-          "bbox": [
-            396,
-            264,
-            104,
-            116
-          ],
-          "source_bbox": [
-            0,
-            0,
-            124,
-            139
-          ]
-        },
-        {
-          "row": 2,
-          "column": 4,
-          "row_name": "ally_archer",
-          "frame": 4,
-          "bbox": [
-            528,
-            262,
-            96,
-            118
-          ],
-          "source_bbox": [
-            0,
-            0,
-            115,
-            141
-          ]
-        },
-        {
-          "row": 2,
-          "column": 5,
-          "row_name": "ally_archer",
-          "frame": 5,
-          "bbox": [
-            656,
-            263,
-            95,
-            117
-          ],
-          "source_bbox": [
-            0,
-            0,
-            114,
-            140
-          ]
-        },
-        {
-          "row": 2,
-          "column": 6,
-          "row_name": "ally_archer",
-          "frame": 6,
-          "bbox": [
-            785,
-            266,
-            93,
-            114
-          ],
-          "source_bbox": [
-            0,
-            0,
-            111,
-            136
-          ]
-        },
-        {
-          "row": 2,
-          "column": 7,
-          "row_name": "ally_archer",
-          "frame": 7,
-          "bbox": [
-            917,
-            267,
             85,
-            113
-          ],
-          "source_bbox": [
-            0,
-            0,
-            102,
-            135
-          ]
-        },
-        {
-          "row": 3,
-          "column": 0,
-          "row_name": "ally_banner",
-          "frame": 0,
-          "bbox": [
-            24,
-            390,
-            80,
-            118
-          ],
-          "source_bbox": [
-            0,
-            0,
-            106,
-            156
-          ]
-        },
-        {
-          "row": 3,
-          "column": 1,
-          "row_name": "ally_banner",
-          "frame": 1,
-          "bbox": [
-            150,
-            395,
-            84,
-            113
-          ],
-          "source_bbox": [
-            0,
-            0,
-            111,
-            150
-          ]
-        },
-        {
-          "row": 3,
-          "column": 2,
-          "row_name": "ally_banner",
-          "frame": 2,
-          "bbox": [
-            272,
-            401,
-            95,
-            107
-          ],
-          "source_bbox": [
-            0,
-            0,
-            125,
-            142
-          ]
-        },
-        {
-          "row": 3,
-          "column": 3,
-          "row_name": "ally_banner",
-          "frame": 3,
-          "bbox": [
-            399,
-            409,
-            98,
-            99
-          ],
-          "source_bbox": [
-            0,
-            0,
-            130,
-            131
-          ]
-        },
-        {
-          "row": 3,
-          "column": 4,
-          "row_name": "ally_banner",
-          "frame": 4,
-          "bbox": [
-            526,
-            421,
-            99,
-            87
-          ],
-          "source_bbox": [
-            0,
-            0,
-            131,
-            115
-          ]
-        },
-        {
-          "row": 3,
-          "column": 5,
-          "row_name": "ally_banner",
-          "frame": 5,
-          "bbox": [
-            653,
-            417,
-            101,
-            91
-          ],
-          "source_bbox": [
-            0,
-            0,
-            133,
-            120
-          ]
-        },
-        {
-          "row": 3,
-          "column": 6,
-          "row_name": "ally_banner",
-          "frame": 6,
-          "bbox": [
-            782,
-            415,
-            99,
-            93
-          ],
-          "source_bbox": [
-            0,
-            0,
-            131,
-            123
-          ]
-        },
-        {
-          "row": 3,
-          "column": 7,
-          "row_name": "ally_banner",
-          "frame": 7,
-          "bbox": [
-            919,
-            392,
-            81,
-            116
-          ],
-          "source_bbox": [
-            0,
-            0,
-            107,
-            153
-          ]
-        },
-        {
-          "row": 4,
-          "column": 0,
-          "row_name": "enemy_ronin",
-          "frame": 0,
-          "bbox": [
-            25,
-            523,
-            78,
-            113
-          ],
-          "source_bbox": [
-            0,
-            0,
-            89,
-            128
-          ]
-        },
-        {
-          "row": 4,
-          "column": 1,
-          "row_name": "enemy_ronin",
-          "frame": 1,
-          "bbox": [
-            154,
-            523,
-            76,
-            113
-          ],
-          "source_bbox": [
-            0,
-            0,
-            86,
-            128
-          ]
-        },
-        {
-          "row": 4,
-          "column": 2,
-          "row_name": "enemy_ronin",
-          "frame": 2,
-          "bbox": [
-            281,
-            523,
-            78,
-            113
-          ],
-          "source_bbox": [
-            0,
-            0,
-            89,
-            128
-          ]
-        },
-        {
-          "row": 4,
-          "column": 3,
-          "row_name": "enemy_ronin",
-          "frame": 3,
-          "bbox": [
-            405,
-            525,
-            86,
-            111
-          ],
-          "source_bbox": [
-            0,
-            0,
-            98,
-            126
-          ]
-        },
-        {
-          "row": 4,
-          "column": 4,
-          "row_name": "enemy_ronin",
-          "frame": 4,
-          "bbox": [
-            534,
-            518,
-            84,
-            118
-          ],
-          "source_bbox": [
-            0,
-            0,
-            95,
-            134
-          ]
-        },
-        {
-          "row": 4,
-          "column": 5,
-          "row_name": "enemy_ronin",
-          "frame": 5,
-          "bbox": [
-            648,
-            529,
-            111,
-            107
-          ],
-          "source_bbox": [
-            0,
-            0,
-            126,
-            122
-          ]
-        },
-        {
-          "row": 4,
-          "column": 6,
-          "row_name": "enemy_ronin",
-          "frame": 6,
-          "bbox": [
-            776,
-            529,
-            112,
-            107
-          ],
-          "source_bbox": [
-            0,
-            0,
-            127,
-            121
-          ]
-        },
-        {
-          "row": 4,
-          "column": 7,
-          "row_name": "enemy_ronin",
-          "frame": 7,
-          "bbox": [
-            913,
-            528,
-            93,
             108
           ],
           "source_bbox": [
             0,
             0,
             106,
+            135
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "row_name": "ally_archer",
+          "frame": 2,
+          "bbox": [
+            280,
+            270,
+            90,
+            110
+          ],
+          "source_bbox": [
+            0,
+            0,
+            113,
+            138
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 2,
+          "column": 3,
+          "row_name": "ally_archer",
+          "frame": 3,
+          "bbox": [
+            407,
+            269,
+            99,
+            111
+          ],
+          "source_bbox": [
+            0,
+            0,
+            124,
+            139
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 2,
+          "column": 4,
+          "row_name": "ally_archer",
+          "frame": 4,
+          "bbox": [
+            541,
+            267,
+            92,
+            113
+          ],
+          "source_bbox": [
+            0,
+            0,
+            115,
+            141
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 2,
+          "column": 5,
+          "row_name": "ally_archer",
+          "frame": 5,
+          "bbox": [
+            667,
+            268,
+            91,
+            112
+          ],
+          "source_bbox": [
+            0,
+            0,
+            114,
+            140
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 2,
+          "column": 6,
+          "row_name": "ally_archer",
+          "frame": 6,
+          "bbox": [
+            795,
+            271,
+            89,
+            109
+          ],
+          "source_bbox": [
+            0,
+            0,
+            111,
+            136
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 2,
+          "column": 7,
+          "row_name": "ally_archer",
+          "frame": 7,
+          "bbox": [
+            923,
+            272,
+            82,
+            108
+          ],
+          "source_bbox": [
+            0,
+            0,
+            102,
+            135
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 3,
+          "column": 0,
+          "row_name": "ally_banner",
+          "frame": 0,
+          "bbox": [
+            30,
+            400,
+            74,
+            108
+          ],
+          "source_bbox": [
+            0,
+            0,
+            106,
+            156
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 3,
+          "column": 1,
+          "row_name": "ally_banner",
+          "frame": 1,
+          "bbox": [
+            161,
+            404,
+            77,
+            104
+          ],
+          "source_bbox": [
+            0,
+            0,
+            111,
+            150
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 3,
+          "column": 2,
+          "row_name": "ally_banner",
+          "frame": 2,
+          "bbox": [
+            286,
+            409,
+            87,
+            99
+          ],
+          "source_bbox": [
+            0,
+            0,
+            125,
+            142
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 3,
+          "column": 3,
+          "row_name": "ally_banner",
+          "frame": 3,
+          "bbox": [
+            414,
+            417,
+            90,
+            91
+          ],
+          "source_bbox": [
+            0,
+            0,
+            130,
+            131
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 3,
+          "column": 4,
+          "row_name": "ally_banner",
+          "frame": 4,
+          "bbox": [
+            540,
+            428,
+            91,
+            80
+          ],
+          "source_bbox": [
+            0,
+            0,
+            131,
+            115
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 3,
+          "column": 5,
+          "row_name": "ally_banner",
+          "frame": 5,
+          "bbox": [
+            670,
+            425,
+            92,
+            83
+          ],
+          "source_bbox": [
+            0,
+            0,
+            133,
+            120
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 3,
+          "column": 6,
+          "row_name": "ally_banner",
+          "frame": 6,
+          "bbox": [
+            797,
+            423,
+            91,
+            85
+          ],
+          "source_bbox": [
+            0,
+            0,
+            131,
             123
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 3,
+          "column": 7,
+          "row_name": "ally_banner",
+          "frame": 7,
+          "bbox": [
+            928,
+            402,
+            74,
+            106
+          ],
+          "source_bbox": [
+            0,
+            0,
+            107,
+            153
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 4,
+          "column": 0,
+          "row_name": "enemy_ronin",
+          "frame": 0,
+          "bbox": [
+            28,
+            540,
+            67,
+            96
+          ],
+          "source_bbox": [
+            0,
+            0,
+            89,
+            128
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 4,
+          "column": 1,
+          "row_name": "enemy_ronin",
+          "frame": 1,
+          "bbox": [
+            157,
+            540,
+            64,
+            96
+          ],
+          "source_bbox": [
+            0,
+            0,
+            86,
+            128
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 4,
+          "column": 2,
+          "row_name": "enemy_ronin",
+          "frame": 2,
+          "bbox": [
+            286,
+            540,
+            67,
+            96
+          ],
+          "source_bbox": [
+            0,
+            0,
+            89,
+            128
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 4,
+          "column": 3,
+          "row_name": "enemy_ronin",
+          "frame": 3,
+          "bbox": [
+            416,
+            542,
+            73,
+            94
+          ],
+          "source_bbox": [
+            0,
+            0,
+            98,
+            126
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 4,
+          "column": 4,
+          "row_name": "enemy_ronin",
+          "frame": 4,
+          "bbox": [
+            543,
+            536,
+            71,
+            100
+          ],
+          "source_bbox": [
+            0,
+            0,
+            95,
+            134
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 4,
+          "column": 5,
+          "row_name": "enemy_ronin",
+          "frame": 5,
+          "bbox": [
+            668,
+            545,
+            94,
+            91
+          ],
+          "source_bbox": [
+            0,
+            0,
+            126,
+            122
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 4,
+          "column": 6,
+          "row_name": "enemy_ronin",
+          "frame": 6,
+          "bbox": [
+            793,
+            545,
+            95,
+            91
+          ],
+          "source_bbox": [
+            0,
+            0,
+            127,
+            121
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 4,
+          "column": 7,
+          "row_name": "enemy_ronin",
+          "frame": 7,
+          "bbox": [
+            928,
+            544,
+            79,
+            92
+          ],
+          "source_bbox": [
+            0,
+            0,
+            106,
+            123
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 5,
@@ -3195,17 +3363,18 @@
           "row_name": "enemy_shield",
           "frame": 0,
           "bbox": [
-            17,
-            646,
-            93,
-            118
+            27,
+            668,
+            76,
+            96
           ],
           "source_bbox": [
             0,
             0,
             101,
             128
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 5,
@@ -3213,17 +3382,18 @@
           "row_name": "enemy_shield",
           "frame": 1,
           "bbox": [
-            142,
-            651,
-            100,
-            113
+            153,
+            672,
+            82,
+            92
           ],
           "source_bbox": [
             0,
             0,
             109,
             123
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 5,
@@ -3231,17 +3401,18 @@
           "row_name": "enemy_shield",
           "frame": 2,
           "bbox": [
-            268,
-            652,
-            103,
-            112
+            277,
+            673,
+            84,
+            91
           ],
           "source_bbox": [
             0,
             0,
             112,
             122
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 5,
@@ -3249,17 +3420,18 @@
           "row_name": "enemy_shield",
           "frame": 3,
           "bbox": [
-            393,
-            651,
-            109,
-            113
+            403,
+            672,
+            88,
+            92
           ],
           "source_bbox": [
             0,
             0,
             118,
             123
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 5,
@@ -3267,17 +3439,18 @@
           "row_name": "enemy_shield",
           "frame": 4,
           "bbox": [
-            532,
-            652,
-            87,
-            112
+            540,
+            673,
+            70,
+            91
           ],
           "source_bbox": [
             0,
             0,
             94,
             121
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 5,
@@ -3285,17 +3458,18 @@
           "row_name": "enemy_shield",
           "frame": 5,
           "bbox": [
-            647,
-            654,
-            114,
-            110
+            669,
+            675,
+            93,
+            89
           ],
           "source_bbox": [
             0,
             0,
             124,
             119
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 5,
@@ -3303,17 +3477,18 @@
           "row_name": "enemy_shield",
           "frame": 6,
           "bbox": [
-            776,
-            657,
-            112,
-            107
+            793,
+            677,
+            91,
+            87
           ],
           "source_bbox": [
             0,
             0,
             121,
             116
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 5,
@@ -3321,17 +3496,18 @@
           "row_name": "enemy_shield",
           "frame": 7,
           "bbox": [
-            912,
-            652,
-            95,
-            112
+            923,
+            673,
+            77,
+            91
           ],
           "source_bbox": [
             0,
             0,
             103,
             121
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 6,
@@ -3339,17 +3515,18 @@
           "row_name": "enemy_gunner",
           "frame": 0,
           "bbox": [
-            16,
-            792,
-            95,
-            100
+            39,
+            818,
+            70,
+            74
           ],
           "source_bbox": [
             0,
             0,
             110,
             116
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 6,
@@ -3357,17 +3534,18 @@
           "row_name": "enemy_gunner",
           "frame": 1,
           "bbox": [
-            143,
-            791,
-            97,
-            101
+            168,
+            818,
+            72,
+            74
           ],
           "source_bbox": [
             0,
             0,
             113,
             117
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 6,
@@ -3375,17 +3553,18 @@
           "row_name": "enemy_gunner",
           "frame": 2,
           "bbox": [
-            270,
-            791,
-            99,
-            101
+            296,
+            818,
+            73,
+            74
           ],
           "source_bbox": [
             0,
             0,
             115,
             117
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 6,
@@ -3393,17 +3572,18 @@
           "row_name": "enemy_gunner",
           "frame": 3,
           "bbox": [
-            398,
-            791,
-            100,
-            101
+            424,
+            818,
+            74,
+            74
           ],
           "source_bbox": [
             0,
             0,
             116,
             117
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 6,
@@ -3411,17 +3591,18 @@
           "row_name": "enemy_gunner",
           "frame": 4,
           "bbox": [
-            518,
-            792,
-            116,
-            100
+            548,
+            818,
+            86,
+            74
           ],
           "source_bbox": [
             0,
             0,
             135,
             116
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 6,
@@ -3429,17 +3610,18 @@
           "row_name": "enemy_gunner",
           "frame": 5,
           "bbox": [
-            657,
-            791,
-            93,
-            101
+            681,
+            817,
+            68,
+            75
           ],
           "source_bbox": [
             0,
             0,
             108,
             118
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 6,
@@ -3447,17 +3629,18 @@
           "row_name": "enemy_gunner",
           "frame": 6,
           "bbox": [
-            782,
-            791,
-            99,
-            101
+            809,
+            817,
+            73,
+            75
           ],
           "source_bbox": [
             0,
             0,
             115,
             118
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 6,
@@ -3465,17 +3648,18 @@
           "row_name": "enemy_gunner",
           "frame": 7,
           "bbox": [
-            913,
-            791,
-            94,
-            101
+            937,
+            818,
+            69,
+            74
           ],
           "source_bbox": [
             0,
             0,
             109,
             117
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 7,
@@ -3483,17 +3667,18 @@
           "row_name": "enemy_archer",
           "frame": 0,
           "bbox": [
-            17,
-            907,
-            93,
-            113
+            27,
+            925,
+            78,
+            95
           ],
           "source_bbox": [
             0,
             0,
             99,
             121
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 7,
@@ -3501,17 +3686,18 @@
           "row_name": "enemy_archer",
           "frame": 1,
           "bbox": [
-            143,
-            908,
-            97,
-            112
+            154,
+            925,
+            82,
+            95
           ],
           "source_bbox": [
             0,
             0,
             104,
             120
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 7,
@@ -3519,17 +3705,18 @@
           "row_name": "enemy_archer",
           "frame": 2,
           "bbox": [
-            266,
-            908,
-            107,
-            112
+            282,
+            925,
+            90,
+            95
           ],
           "source_bbox": [
             0,
             0,
             114,
             120
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 7,
@@ -3537,17 +3724,18 @@
           "row_name": "enemy_archer",
           "frame": 3,
           "bbox": [
-            390,
-            908,
-            115,
-            112
+            408,
+            925,
+            97,
+            95
           ],
           "source_bbox": [
             0,
             0,
             123,
             120
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 7,
@@ -3555,17 +3743,18 @@
           "row_name": "enemy_archer",
           "frame": 4,
           "bbox": [
-            518,
-            908,
-            116,
-            112
+            536,
+            925,
+            98,
+            95
           ],
           "source_bbox": [
             0,
             0,
             124,
             120
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
         },
         {
           "row": 7,
@@ -3573,17 +3762,18 @@
           "row_name": "enemy_archer",
           "frame": 5,
           "bbox": [
-            650,
-            908,
-            108,
-            112
+            666,
+            925,
+            91,
+            95
           ],
           "source_bbox": [
             0,
             0,
             115,
             120
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 7,
@@ -3591,17 +3781,18 @@
           "row_name": "enemy_archer",
           "frame": 6,
           "bbox": [
-            778,
-            908,
-            107,
-            112
+            793,
+            925,
+            90,
+            95
           ],
           "source_bbox": [
             0,
             0,
             114,
             120
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         },
         {
           "row": 7,
@@ -3609,17 +3800,18 @@
           "row_name": "enemy_archer",
           "frame": 7,
           "bbox": [
-            909,
-            908,
-            101,
-            112
+            921,
+            925,
+            85,
+            95
           ],
           "source_bbox": [
             0,
             0,
             108,
             120
-          ]
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
         }
       ],
       "source_mode": "RGBA",
@@ -3631,7 +3823,7 @@
         1024,
         1024
       ],
-      "runtime_bytes": 966224
+      "runtime_bytes": 770508
     }
   },
   "tile_sheets": {

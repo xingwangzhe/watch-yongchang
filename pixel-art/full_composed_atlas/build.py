@@ -113,6 +113,25 @@ def remove_small_components(alpha: Image.Image, minimum: int = 240) -> Image.Ima
     return result
 
 
+def horizontal_mass_anchor(alpha: Image.Image) -> float:
+    """Return the alpha-weighted median x, so thin extended props cannot pull the body pivot."""
+    width, height = alpha.size
+    pixels = alpha.load()
+    columns = [0] * width
+    for y in range(height):
+        for x in range(width):
+            value = pixels[x, y]
+            if value >= ACTOR_ALPHA_THRESHOLD:
+                columns[x] += value
+    half_mass = sum(columns) / 2.0
+    accumulated = 0
+    for x, mass in enumerate(columns):
+        accumulated += mass
+        if accumulated >= half_mass:
+            return x + 0.5
+    return width / 2.0
+
+
 def normalize_actor_sheet(key: str, columns: int, rows: int, row_names: list[str]) -> dict:
     source_rows = SOURCE_SHEETS.get(key, [(f"{key}.png", row) for row in range(rows)])
     frames: list[list[Image.Image]] = []
@@ -148,20 +167,26 @@ def normalize_actor_sheet(key: str, columns: int, rows: int, row_names: list[str
     canvas = Image.new("RGBA", (columns * FRAME, rows * FRAME), (0, 0, 0, 0))
     placements: list[dict] = []
     for row, row_frames in enumerate(frames):
-        max_width = max(frame.width for frame in row_frames)
+        mass_anchors = [horizontal_mass_anchor(frame.getchannel("A")) for frame in row_frames]
+        max_half_width = max(
+            max(anchor, frame.width - anchor)
+            for frame, anchor in zip(row_frames, mass_anchors)
+        )
         max_height = max(frame.height for frame in row_frames)
-        scale = min((FRAME - 12) / max_width, (FRAME - 10) / max_height)
+        scale = min((FRAME / 2 - 6) / max_half_width, (FRAME - 10) / max_height)
         for column, frame in enumerate(row_frames):
             size = (max(1, round(frame.width * scale)), max(1, round(frame.height * scale)))
             normalized = frame.resize(size, Image.Resampling.LANCZOS)
             # Crisp one-pixel alpha keeps the generated silhouette intact at game scale.
             normalized.putalpha(normalized.getchannel("A"))
             normalized = clear_transparent_rgb(normalized)
+            destination_x = column * FRAME + round(FRAME / 2 - mass_anchors[column] * scale)
             destination = (
-                column * FRAME + (FRAME - size[0]) // 2,
+                destination_x,
                 row * FRAME + FRAME - size[1] - 4,
             )
             canvas.alpha_composite(normalized, destination)
+            runtime_anchor = destination_x - column * FRAME + horizontal_mass_anchor(normalized.getchannel("A"))
             placements.append({
                 "row": row,
                 "column": column,
@@ -169,6 +194,7 @@ def normalize_actor_sheet(key: str, columns: int, rows: int, row_names: list[str
                 "frame": column,
                 "bbox": [destination[0], destination[1], size[0], size[1]],
                 "source_bbox": list(frame.getbbox() or ()),
+                "runtime_horizontal_mass_anchor": round(runtime_anchor, 2),
             })
 
     output_path = UNIT_OUT / f"{key}.webp"

@@ -257,6 +257,18 @@ func test_tideland_creeks_are_crossed_by_bridges() -> void:
 	assert_eq(layout.minimap_texture.get_height(), 84)
 
 
+func test_natural_tideland_creek_smoothing_preserves_survey_endpoints() -> void:
+	var renderer := MapRenderer.new()
+	add_child_autofree(renderer)
+	var survey_points: Array[Vector2] = [Vector2(34, 4), Vector2(32, 13), Vector2(36, 21)]
+	var smoothed := renderer._smooth_polyline(survey_points, 4)
+	assert_eq(smoothed.size(), 9, "four substeps keep curve sampling deterministic")
+	assert_eq(smoothed.front(), survey_points.front(), "curve begins at surveyed creek mouth")
+	assert_eq(smoothed.back(), survey_points.back(), "curve ends at surveyed downstream point")
+	for index in range(1, smoothed.size()):
+		assert_lt(smoothed[index - 1].distance_to(smoothed[index]), 3.0, "sampled creek centerline must not jump between cells")
+
+
 func test_all_maps_keep_water_walkable_and_minimap_synced() -> void:
 	for map_id in ["tideland", "watergate", "crossstreet"]:
 		var built := _build_map(map_id)

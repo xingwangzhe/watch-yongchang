@@ -90,6 +90,13 @@ func test_jeff_fx_rotates_toward_mouse_and_stacks_impact_layers() -> void:
 	field.play_player_attack_fx("saber", Vector2(100, 100), Vector2.RIGHT, false, Vector2.ZERO, 1.25)
 	assert_almost_eq(float(field.jeff_effects[-1]["scale"]), 2.15 * 1.25, 0.001)
 	assert_eq(field.jeff_effects[-1]["pos"], Vector2(100 + 18 * 1.25, 100))
+	field.play_player_attack_fx("spear", Vector2(100, 100), Vector2.RIGHT, true, Vector2.ZERO, 1.25)
+	assert_almost_eq(
+		float(field.jeff_effects[-1]["scale"]),
+		0.55 * 1.25,
+		0.001,
+		"evolved attack accents must scale with the gameplay area multiplier"
+	)
 
 
 func test_player_faces_left_movement_and_manual_hold_controls_attacks() -> void:
