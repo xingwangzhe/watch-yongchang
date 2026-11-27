@@ -211,9 +211,16 @@ ANDROID_SDK_ROOT="$HOME/Android/Sdk" ANDROID_HOME="$HOME/Android/Sdk" \
   "Android Phone and Handheld"
 ```
 
-该 APK 使用 Godot 调试签名，可侧载验收；商店发布需自行配置正式签名密钥。
+本地 `--export-debug` APK 使用 Godot 调试签名，供开发验收。正式 Release APK 使用
+GitHub Actions Secrets 中的长期签名密钥，校验证书指纹、v2/v3 签名、版本、最低 SDK 和
+`arm64-v8a`/`armeabi-v7a` ABI。日常 CI APK仍使用调试签名，并作为 `android-debug-apk`
+工件保存 14 天；签名不同的 APK 不能覆盖安装，切换签名时需先卸载旧包。
+
+正式密钥由 OpenJDK `keytool` 创建，使用 RSA-3072/PKCS12，有效至 2036-11-27；证书使用 GitHub 用户名与邮箱。私钥、密码备份在外部盘
+`backup/watch-yongchang-android-signing/`；公有仓库只保存 GitHub Actions Secrets，绝不提交密钥文件。
+APK 证书 SHA-256：`FE2679C0E430FA76A1CBEE6C2D3C07BE4E2954E531F565028B06B47BEB20FD7E`。
 游戏手柄映射也用于桌面端：左摇杆/十字键移动，A 攻击、B 冲刺、X 互动、Y 图鉴、Back 自动攻击。
-发布 APK 会由流水线验证调试签名、arm64-v8a/armeabi-v7a、版本与最低 Android SDK；未连接设备时不代表实机安装验收。
+未连接设备时的 CI 检查不代表 Android 真机安装验收。
 构建产物在 `game/build/`，已被 `.gitignore` 排除，不入版本库。
 
 ### Dora SSR 源码包

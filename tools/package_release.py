@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import sys
 import zipfile
@@ -18,6 +19,19 @@ import release as r
 WEB_REQUIRED = ("index.html", "index.js", "index.wasm", "index.pck")
 WEB_CHECK_MARKER = "WEB_BUILD_CHECKS_OK"
 ANDROID_CHECK_MARKER = "ANDROID_BUILD_CHECKS_OK"
+ANDROID_CERT_SHA256_ENV = "ANDROID_SIGNING_CERT_SHA256"
+
+
+def expected_android_cert_sha256() -> str:
+    prefix = f"{ANDROID_CERT_SHA256_ENV}="
+    for raw_line in (r.ROOT / ".env").read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if line.startswith(prefix):
+            value = line[len(prefix) :].strip().replace(":", "").upper()
+            if re.fullmatch(r"[0-9A-F]{64}", value):
+                return value
+            break
+    raise RuntimeError(f".env is missing a valid {ANDROID_CERT_SHA256_ENV}")
 
 
 def require_file(path: Path) -> None:
@@ -66,7 +80,9 @@ def read_android_checks(root: Path) -> dict:
         "package=fun.xingwangzhe.watchyongchang",
         "gamepad_actions=move:left_stick,dpad;attack:A;dash:B;interact:X;codex:Y;auto_attack:Back",
         "gamepad_tests=GUT:test_android_gamepad.gd",
-        "signature=verified_debug_key",
+        "signature=verified_release_key",
+        "signature_fingerprint_match=true",
+        f"signature_certificate_sha256={expected_android_cert_sha256()}",
     )
     missing = [value for value in required if value not in text]
     if missing:
@@ -76,6 +92,14 @@ def read_android_checks(root: Path) -> dict:
             f"Verified using {scheme} scheme", 1
         )[1].splitlines()[0]:
             raise RuntimeError(f"Android APK signature {scheme} verification failed: {signature_log}")
+    certificate_match = re.search(
+        r"(?m)^Signer #1 certificate SHA-256 digest:\s*([0-9a-f:]+)\s*$", signature, re.IGNORECASE
+    )
+    if not certificate_match:
+        raise RuntimeError(f"Android APK certificate fingerprint missing: {signature_log}")
+    certificate_sha256 = certificate_match.group(1).replace(":", "").upper()
+    if certificate_sha256 != expected_android_cert_sha256():
+        raise RuntimeError(f"Android APK certificate does not match the pinned release key: {signature_log}")
     return {
         "passed": True,
         "log": "android/build-check.log",
@@ -85,6 +109,9 @@ def read_android_checks(root: Path) -> dict:
         "target_sdk": 36,
         "gamepad_test": "GUT:test_android_gamepad.gd",
         "signature_schemes": ["v2", "v3"],
+        "signature_type": "release",
+        "signature_fingerprint_match": True,
+        "certificate_sha256": certificate_sha256,
     }
 
 
@@ -181,12 +208,20 @@ def audit_android(root: Path, output: Path, android_checks: dict) -> None:
         "min_sdk": android_checks["min_sdk"],
         "target_sdk": android_checks["target_sdk"],
         "signature_schemes": android_checks["signature_schemes"],
+        "signature_type": android_checks["signature_type"],
+        "signature_certificate_sha256": android_checks["certificate_sha256"],
         "gamepad_test": android_checks["gamepad_test"],
     }
     r.save_results(output)
 
 
-def write_readme(output: Path, commit: str, godot_version: str, game_version: str) -> None:
+def write_readme(
+    output: Path,
+    commit: str,
+    godot_version: str,
+    game_version: str,
+    android_checks: dict,
+) -> None:
     run_url = os.environ.get("GITHUB_SERVER_URL", "https://github.com")
     repository = os.environ.get("GITHUB_REPOSITORY", "xingwangzhe/watch-yongchang")
     run_id = os.environ.get("GITHUB_RUN_ID", "")
@@ -209,7 +244,8 @@ def write_readme(output: Path, commit: str, godot_version: str, game_version: st
 - Linux：解压后执行 `./watch-yongchang-linux.x86_64`。
 - Windows：解压后执行 `watch-yongchang.exe`。
 - macOS：解压 ZIP 后运行 `.app`；本包未签名，首次打开可能需要系统允许。
-- Android：安装 `watch-yongchang-android.apk`（调试签名，侧载包；不用于应用商店上架）。手机触屏可操作，Android 手柄使用左摇杆/十字键移动、A 攻击、B 冲刺、X 互动、Y 图鉴、Back 切换自动攻击。
+- Android：安装 `watch-yongchang-android.apk`（项目长期正式密钥签名的侧载 APK）。手机触屏可操作，Android 手柄使用左摇杆/十字键移动、A 攻击、B 冲刺、X 互动、Y 图鉴、Back 切换自动攻击。Google Play 发布需另行配置 AAB 与商店流程。
+- Android 签名证书 SHA-256：`{android_checks['certificate_sha256']}`。
 - Web：解压 `watch-yongchang-web.zip` 到任意静态目录，或直接使用上面的 EdgeOne Makers 在线版。
 
 Linux / Windows 的可执行文件和同名 `.pck` 必须放在同一目录。Web 构建为单线程导出，
@@ -252,7 +288,7 @@ def write_build_report(
         f"- Godot：`{godot_version}`",
         f"- GUT（单次前置门禁）：**{tests['tests']} / {tests['tests']} passed / {tests['asserts']} asserts**",
         f"- Web 构建检查：**PASS**（`{web_checks['log']}`）",
-        f"- Android APK/手柄检查：**PASS**（`{android_checks['log']}`；签名 v2/v3，ABI arm64-v8a/armeabi-v7a；设备安装未由 CI 声明）",
+        f"- Android APK/手柄检查：**PASS**（`{android_checks['log']}`；正式密钥签名 v2/v3 且证书指纹匹配 `{android_checks['certificate_sha256']}`，ABI arm64-v8a/armeabi-v7a；设备安装未由 CI 声明）",
         "- 构建拓扑：GUT 先串行通过；Linux、Windows、macOS、Web 与 Android 构建作业再依赖该门禁独立执行，不重复运行 GUT。",
         "",
         "| 门禁 / 平台检查 | 结果 | 日志 |",
@@ -362,7 +398,7 @@ def main() -> int:
         },
     )
 
-    write_readme(output, commit, godot_version, game_version)
+    write_readme(output, commit, godot_version, game_version, android_checks)
     write_build_report(output, tests, web_checks, android_checks, commit, game_version, godot_version)
     legal = r.legal_entries(output)
     stored = {".exe", ".x86_64", ".pck", ".zip", ".png", ".jpg", ".jpeg", ".ogg", ".ttf", ".woff2"}

@@ -25,7 +25,9 @@ target_sdk=36
 version=1.10.0
 gamepad_actions=move:left_stick,dpad;attack:A;dash:B;interact:X;codex:Y;auto_attack:Back
 gamepad_tests=GUT:test_android_gamepad.gd
-signature=verified_debug_key
+signature=verified_release_key
+signature_fingerprint_match=true
+signature_certificate_sha256=FE2679C0E430FA76A1CBEE6C2D3C07BE4E2954E531F565028B06B47BEB20FD7E
 ANDROID_BUILD_CHECKS_OK
 """
 
@@ -33,6 +35,7 @@ SIGNATURE_LOG = """\
 Verifies
 Verified using v2 scheme (APK Signature Scheme v2): true
 Verified using v3 scheme (APK Signature Scheme v3): true
+Signer #1 certificate SHA-256 digest: fe:26:79:c0:e4:30:fa:76:a1:cb:ee:6c:2d:3c:07:be:4e:29:54:e5:31:f5:65:02:8b:06:b4:7b:eb:20:fd:7e
 """
 
 
@@ -93,6 +96,10 @@ class PackageReleaseTests(unittest.TestCase):
         self.assertTrue(checks["passed"])
         self.assertEqual(checks["abis"], ["arm64-v8a", "armeabi-v7a"])
         self.assertEqual(checks["gamepad_test"], "GUT:test_android_gamepad.gd")
+        self.assertEqual(
+            checks["certificate_sha256"],
+            "FE2679C0E430FA76A1CBEE6C2D3C07BE4E2954E531F565028B06B47BEB20FD7E",
+        )
 
     def test_android_checks_fail_when_v3_signature_is_missing(self) -> None:
         self.write("android/build-check.log", ANDROID_LOG)
@@ -101,6 +108,27 @@ class PackageReleaseTests(unittest.TestCase):
             "Verified using v2 scheme (APK Signature Scheme v2): true\n",
         )
 
+        with self.assertRaises(RuntimeError):
+            release.read_android_checks(self.root)
+
+    def test_android_release_checks_reject_debug_keys_or_mismatched_fingerprints(self) -> None:
+        self.write("android/build-check.log", ANDROID_LOG.replace("verified_release_key", "verified_debug_key"))
+        self.write("android/signature-check.log", SIGNATURE_LOG)
+        with self.assertRaises(RuntimeError):
+            release.read_android_checks(self.root)
+
+        self.write("android/build-check.log", ANDROID_LOG)
+        self.write(
+            "android/signature-check.log",
+            SIGNATURE_LOG.replace("fe:26:79", "de:26:79"),
+        )
+        with self.assertRaises(RuntimeError):
+            release.read_android_checks(self.root)
+
+        self.write(
+            "android/build-check.log",
+            ANDROID_LOG.replace("signature_fingerprint_match=true", "signature_fingerprint_match=false"),
+        )
         with self.assertRaises(RuntimeError):
             release.read_android_checks(self.root)
 
@@ -117,6 +145,9 @@ class PackageReleaseTests(unittest.TestCase):
             "min_sdk": 24,
             "target_sdk": 36,
             "signature_schemes": ["v2", "v3"],
+            "signature_type": "release",
+            "signature_fingerprint_match": True,
+            "certificate_sha256": "FE2679C0E430FA76A1CBEE6C2D3C07BE4E2954E531F565028B06B47BEB20FD7E",
             "gamepad_test": "GUT:test_android_gamepad.gd",
         }
         original_checks = release.r.RESULTS["checks"]

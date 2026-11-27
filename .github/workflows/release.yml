@@ -183,31 +183,58 @@ jobs:
           EXPECTED_BASE="${GODOT_VERSION%-*}"
           EXPECTED_STATUS="${GODOT_VERSION#*-}"
           [[ "$ACTUAL" == "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]
-          KEYSTORE="$HOME/.local/share/godot/keystores/debug.keystore"
-          mkdir -p "$(dirname "$KEYSTORE")"
-          keytool -genkeypair -keystore "$KEYSTORE" -storepass android -alias androiddebugkey \
-            -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US" -noprompt
           cat > "$HOME/.config/godot/editor_settings-4.7.tres" <<EOF
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
           export/android/java_sdk_path = "$JAVA_HOME"
           export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
-          export/android/debug_keystore = "$KEYSTORE"
-          export/android/debug_keystore_pass = "android"
           EOF
 
+      - name: Restore Android release signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$ANDROID_KEYSTORE_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+          SIGNING_KEYSTORE="$RUNNER_TEMP/watch-yongchang-release.keystore"
+          SIGNING_PASSWORD_FILE="$RUNNER_TEMP/watch-yongchang-release-password"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$SIGNING_KEYSTORE"
+          printf '%s' "$ANDROID_KEYSTORE_PASSWORD" > "$SIGNING_PASSWORD_FILE"
+          chmod 600 "$SIGNING_KEYSTORE" "$SIGNING_PASSWORD_FILE"
+          keytool -list -keystore "$SIGNING_KEYSTORE" \
+            -storepass:file "$SIGNING_PASSWORD_FILE" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+
       - name: Import project and export Android APK
+        env:
+          GODOT_ANDROID_KEYSTORE_RELEASE_PATH: ${{ runner.temp }}/watch-yongchang-release.keystore
+          GODOT_ANDROID_KEYSTORE_RELEASE_USER: ${{ secrets.ANDROID_KEY_ALIAS }}
+          GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: |
           set -euo pipefail
           timeout 300 "$GODOT_BIN" --headless --path game --import
           mkdir -p game/build/android ci-artifacts/android
-          "$GODOT_BIN" --headless --path game --export-debug "Android Phone and Handheld"
+          "$GODOT_BIN" --headless --path game --export-release "Android Phone and Handheld"
           APK="game/build/android/watch-yongchang.apk"
           test -s "$APK"
-          "$ANDROID_SDK_ROOT/build-tools/36.0.0/apksigner" verify --verbose "$APK" \
+          "$ANDROID_SDK_ROOT/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK" \
             2>&1 | tee ci-artifacts/android/signature-check.log
+          SIGNING_PASSWORD_FILE="$RUNNER_TEMP/watch-yongchang-release-password"
+          EXPECTED_CERT_SHA256="$(keytool -exportcert \
+            -alias "$GODOT_ANDROID_KEYSTORE_RELEASE_USER" \
+            -keystore "$GODOT_ANDROID_KEYSTORE_RELEASE_PATH" \
+            -storepass:file "$SIGNING_PASSWORD_FILE" | sha256sum | awk '{print toupper($1)}')"
+          PINNED_CERT_SHA256="$(sed -n 's/^ANDROID_SIGNING_CERT_SHA256=//p' .env | tr '[:lower:]' '[:upper:]' | tr -d ':')"
+          APK_CERT_SHA256="$(sed -n 's/^Signer #1 certificate SHA-256 digest: //p' \
+            ci-artifacts/android/signature-check.log | head -n1 | tr -d ':' | tr '[:lower:]' '[:upper:]')"
+          test -n "$PINNED_CERT_SHA256"
+          test -n "$APK_CERT_SHA256"
+          test "$APK_CERT_SHA256" = "$EXPECTED_CERT_SHA256"
+          test "$APK_CERT_SHA256" = "$PINNED_CERT_SHA256"
           BADGING="$("$ANDROID_SDK_ROOT/build-tools/36.0.0/aapt" dump badging "$APK")"
           printf '%s\n' "$BADGING" | tee ci-artifacts/android/apk-badging.txt
           APP_VERSION="$(sed -n 's/^APP_VERSION=//p' .env | head -n1)"
@@ -229,7 +256,9 @@ jobs:
             echo "version=${APP_VERSION}"
             echo "gamepad_actions=move:left_stick,dpad;attack:A;dash:B;interact:X;codex:Y;auto_attack:Back"
             echo "gamepad_tests=GUT:test_android_gamepad.gd"
-            echo "signature=verified_debug_key"
+            echo "signature=verified_release_key"
+            echo "signature_fingerprint_match=true"
+            echo "signature_certificate_sha256=${APK_CERT_SHA256}"
             echo "ANDROID_BUILD_CHECKS_OK"
           } | tee ci-artifacts/android/build-check.log
           cp "$APK" ci-artifacts/android/watch-yongchang-android.apk
