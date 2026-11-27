@@ -41,10 +41,12 @@ var _joystick_touch := -1
 var _attack_touch := -1
 var _dash_touch := -1
 var _auto_touch := -1
+var _orientation_touch := -1
 var _joystick_center := Vector2.ZERO
 var _attack_center := Vector2.ZERO
 var _dash_center := Vector2.ZERO
 var _auto_center := Vector2.ZERO
+var _orientation_center := Vector2.ZERO
 var _patrol_label: Label
 var _attack_label: Label
 var _dash_label: Label
@@ -57,7 +59,6 @@ var _safe_top := 0.0
 var _safe_right := 0.0
 var _safe_bottom := 0.0
 var _is_mobile_web := false
-var _orientation_lock_attempted := false
 var _rotate_prompt: Label
 
 
@@ -66,7 +67,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-	_is_mobile_web = OS.has_feature("web") and (OS.has_feature("web_android") or OS.has_feature("web_ios"))
+	_is_mobile_web = OS.has_feature("web") and bool(GameSettings.web_capabilities.get("touch", false))
 	if _is_mobile_web and not DisplayServer.orientation_changed.is_connected(_on_orientation_changed):
 		DisplayServer.orientation_changed.connect(_on_orientation_changed)
 
@@ -166,7 +167,7 @@ func _build_rotate_prompt() -> void:
 	if not OS.has_feature("web"):
 		return
 	_rotate_prompt = Label.new()
-	_rotate_prompt.text = "请将设备横向持握 / Rotate your device"
+	_rotate_prompt.text = "点击右上角切换横竖屏 / Tap top right to rotate"
 	_rotate_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_rotate_prompt.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_rotate_prompt.add_theme_font_override("font", UI_FONT)
@@ -185,10 +186,7 @@ func _update_rotate_prompt() -> void:
 	if not is_instance_valid(_rotate_prompt):
 		return
 	var viewport_size := get_viewport_rect().size
-	var portrait := viewport_size.y > viewport_size.x
-	_rotate_prompt.visible = portrait
-	if portrait:
-		_rotate_prompt.text = "请将设备横向持握 / Rotate your device"
+	_rotate_prompt.visible = false
 
 
 func _layout() -> void:
@@ -205,10 +203,18 @@ func _layout() -> void:
 	var safe_w := viewport_size.x - _safe_left - _safe_right
 	var safe_h := viewport_size.y - _safe_top - _safe_bottom
 
-	_joystick_center = Vector2(_safe_left + safe_w * 0.12, _safe_top + safe_h * 0.72)
-	_attack_center = Vector2(_safe_left + safe_w * 0.85, _safe_top + safe_h * 0.70)
-	_dash_center = Vector2(_safe_left + safe_w * 0.92, _safe_top + safe_h * 0.80)
-	_auto_center = Vector2(_safe_left + safe_w * 0.73, _safe_top + safe_h * 0.60)
+	var portrait := viewport_size.y > viewport_size.x
+	if portrait:
+		_joystick_center = Vector2(_safe_left + safe_w * 0.18, _safe_top + safe_h * 0.82)
+		_attack_center = Vector2(_safe_left + safe_w * 0.81, _safe_top + safe_h * 0.82)
+		_dash_center = Vector2(_safe_left + safe_w * 0.84, _safe_top + safe_h * 0.64)
+		_auto_center = Vector2(_safe_left + safe_w * 0.63, _safe_top + safe_h * 0.61)
+	else:
+		_joystick_center = Vector2(_safe_left + safe_w * 0.12, _safe_top + safe_h * 0.72)
+		_attack_center = Vector2(_safe_left + safe_w * 0.85, _safe_top + safe_h * 0.70)
+		_dash_center = Vector2(_safe_left + safe_w * 0.92, _safe_top + safe_h * 0.80)
+		_auto_center = Vector2(_safe_left + safe_w * 0.73, _safe_top + safe_h * 0.60)
+	_orientation_center = Vector2(_safe_left + safe_w - 34.0 * ui_scale, _safe_top + 34.0 * ui_scale)
 
 	# Ensure minimum distance from edges
 	_joystick_center.x = maxf(_joystick_center.x, _safe_left + joystick_radius + 12.0 * ui_scale)
@@ -225,7 +231,7 @@ func _layout() -> void:
 
 
 func _layout_labels(viewport_size: Vector2) -> void:
-	var max_width_cap := viewport_size.x * 0.26
+	var max_width_cap := viewport_size.x * (0.42 if viewport_size.y > viewport_size.x else 0.26)
 	for spec in _label_specs:
 		var label: Label = spec["label"]
 		var max_width := minf(float(spec["max_width"]) * ui_scale, max_width_cap)
@@ -271,8 +277,11 @@ func _input(event: InputEvent) -> void:
 		var position := local.position
 		if touch.pressed:
 			using_touch = true
-			_request_mobile_web_landscape_lock()
-			if _joystick_touch < 0 and position.distance_to(_joystick_center) <= joystick_radius * 1.32:
+			if _is_mobile_web and position.distance_to(_orientation_center) <= 25.0 * ui_scale:
+				_orientation_touch = touch.index
+				_toggle_mobile_web_orientation()
+				get_viewport().set_input_as_handled()
+			elif _joystick_touch < 0 and position.distance_to(_joystick_center) <= joystick_radius * 1.32:
 				_joystick_touch = touch.index
 				_update_joystick(position)
 				get_viewport().set_input_as_handled()
@@ -311,6 +320,9 @@ func _input(event: InputEvent) -> void:
 				_dash_touch = -1
 				queue_redraw()
 				get_viewport().set_input_as_handled()
+			elif touch.index == _orientation_touch:
+				_orientation_touch = -1
+				get_viewport().set_input_as_handled()
 	elif event is InputEventScreenDrag:
 		var drag := event as InputEventScreenDrag
 		if drag.index != _joystick_touch:
@@ -320,14 +332,11 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _request_mobile_web_landscape_lock() -> void:
-	if not _is_mobile_web or _orientation_lock_attempted:
+func _toggle_mobile_web_orientation() -> void:
+	if not _is_mobile_web:
 		return
-	_orientation_lock_attempted = true
-	# Browsers require a user gesture for orientation locking; PWA manifest remains the fallback.
-	JavaScriptBridge.eval(
-		"if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(() => {}); }",
-		false
+	GameSettings.set_web_orientation(
+		"landscape" if GameSettings.web_orientation == "portrait" else "portrait"
 	)
 
 
@@ -394,6 +403,13 @@ func _draw() -> void:
 	_draw_auto()
 	_draw_attack()
 	_draw_dash()
+	if _is_mobile_web:
+		var radius := 19.0 * ui_scale
+		draw_circle(_orientation_center, radius + 4.0 * ui_scale, Color(0.01, 0.02, 0.02, 0.68))
+		draw_arc(_orientation_center, radius, 0.0, TAU, 32, Color(GOLD, 0.9), 2.0 * ui_scale)
+		var viewport_size := get_viewport_rect().size
+		var icon_size := Vector2(9, 14) if viewport_size.y >= viewport_size.x else Vector2(14, 9)
+		draw_rect(Rect2(_orientation_center - icon_size * ui_scale * 0.5, icon_size * ui_scale), Color(PAPER, 0.95), false, 2.0 * ui_scale)
 
 
 func _draw_joystick() -> void:

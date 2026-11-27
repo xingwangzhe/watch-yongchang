@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="守望·永昌"
-config/version="1.10.0"
+config/version="1.11.0"
 run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 run/max_fps=60
@@ -34,7 +34,7 @@ window/stretch/aspect="expand"
 window/stretch/scale_mode="fractional"
 window/size/width_override=0
 window/size/height_override=0
-# Mobile native orientation; installed PWA orientation is set in its manifest.
+# Native handhelds keep landscape for KTR; mobile Web defaults to portrait via PWA manifest.
 window/handheld/orientation="landscape"
 
 [editor_plugins]

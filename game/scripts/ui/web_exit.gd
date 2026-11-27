@@ -22,14 +22,14 @@ static func is_web_platform(override: int = -1) -> bool:
 
 
 static func request_close() -> bool:
-	if not OS.has_feature("web"):
+	if not OS.has_feature("web") or OS.has_feature("baidu_h5"):
 		return false
 	JavaScriptBridge.eval(CLOSE_WINDOW_SCRIPT, true)
 	return true
 
 
 static func reload_page() -> bool:
-	if not OS.has_feature("web"):
+	if not OS.has_feature("web") or OS.has_feature("baidu_h5"):
 		return false
 	JavaScriptBridge.eval(RELOAD_PAGE_SCRIPT, true)
 	return true

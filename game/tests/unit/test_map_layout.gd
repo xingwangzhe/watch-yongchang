@@ -92,6 +92,26 @@ func test_watergate_opens_water_as_wade_and_keeps_bridges_dry() -> void:
 	assert_true((built["renderer"] as MapRenderer).architecture_layer.get_used_cells().size() > 0)
 	assert_eq(layout.minimap_texture.get_width(), 96)
 	assert_eq(layout.minimap_texture.get_height(), 160)
+	var renderer: MapRenderer = built["renderer"] as MapRenderer
+	var checked_water := 0
+	for y in layout.world_tiles.y:
+		for x in layout.world_tiles.x:
+			var cell := Vector2i(x, y)
+			if not layout.is_water_cell(cell):
+				continue
+			var tile_name := renderer.terrain_tile_name(cell)
+			if not tile_name.begins_with("water_"):
+				continue
+			var diagnostic := renderer.terrain_cell_debug(cell)
+			assert_eq(diagnostic.get("source_id"), diagnostic.get("expected_source_id"), "water atlas source mismatch at %s" % cell)
+			assert_eq(diagnostic.get("region_size"), Vector2i(32, 32), "water atlas cell size mismatch")
+			assert_true(diagnostic.get("tile_name", "").begins_with("water_"), "water tile name disagrees with atlas coordinates")
+			checked_water += 1
+			if checked_water >= 24:
+				break
+		if checked_water >= 24:
+			break
+	assert_gte(checked_water, 24, "water runtime atlas diagnostics must cover representative cells")
 
 
 func test_crossstreet_buildings_avoid_the_cross_and_canals() -> void:
@@ -107,89 +127,53 @@ func test_crossstreet_buildings_avoid_the_cross_and_canals() -> void:
 	assert_eq(layout.minimap_texture.get_height(), 160)
 
 
-func test_crossstreet_lots_are_courtyard_scale_and_keep_visible_eaves() -> void:
+func test_crossstreet_lots_are_courtyard_scale_and_use_whole_overhead_sprites() -> void:
 	var definition: Dictionary = GameData.get_maps()["crossstreet"] as Dictionary
 	var layout_data: Dictionary = definition["layout"] as Dictionary
-	var buildings: Array[Rect2i] = []
+	var buildings: Array[Dictionary] = []
 	var max_height := 0
 	var max_width := 0
 	for area in layout_data.get("areas", []) as Array:
 		var item := area as Dictionary
 		if str(item.get("kind", "")) != "building":
 			continue
+		buildings.append(item)
 		var rect := _area_rect(item)
-		buildings.append(rect)
 		max_height = maxi(max_height, rect.size.y)
 		max_width = maxi(max_width, rect.size.x)
-	assert_gte(buildings.size(), 90, "十字街应拆成院落尺度街坊，而不是少量长条屋顶")
-	assert_lte(max_height, 7, "街坊不应再出现 15–17 格长、没有檐口节奏的巨屋顶")
-	assert_lte(max_width, 9, "街坊宽度应保持院落尺度")
+	assert_gte(buildings.size(), 90, "十字街应拆成院落尺度街坊")
+	assert_lte(max_height, 7, "街坊保持院落尺度深度")
+	assert_lte(max_width, 9, "街坊保持院落尺度宽度")
 
-	var built := _build_map("crossstreet")
-	var renderer: MapRenderer = built["renderer"] as MapRenderer
-	var eave_rows := 0
-	var verge_rows := 0
-	var ridge_rows := 0
-	var shop_eaves := 0
-	for rect in buildings:
-		var bottom_y := rect.end.y - 1
-		for x in range(rect.position.x, rect.end.x):
-			var tile_name := renderer.architecture_tile_name(Vector2i(x, bottom_y))
-			assert_true(
-				tile_name.contains("roof_eave"),
-				"building bottom row must expose a roof eave/facade, got %s at %s" % [tile_name, Vector2i(x, bottom_y)]
-			)
-			eave_rows += 1
-		var center_x := rect.position.x + rect.size.x / 2
-		var verge_name := renderer.architecture_tile_name(Vector2i(center_x, rect.position.y))
-		assert_true(
-			verge_name.begins_with("roof_verge") or verge_name.begins_with("hall_roof_verge"),
-			"building must have a raised north roof verge, got %s at %s" % [
-				verge_name,
-				Vector2i(center_x, rect.position.y),
-			]
-		)
-		verge_rows += 1
-		var ridge_row := maxi(1, int((rect.size.y - 1) / 2.0))
-		var ridge_name := renderer.architecture_tile_name(
-			Vector2i(center_x, rect.position.y + ridge_row)
-		)
-		assert_true(
-			ridge_name.begins_with("roof_ridge") or ridge_name.begins_with("hall_roof_ridge"),
-			"building must separate its roof plane with a ridge band, got %s at %s" % [
-				ridge_name,
-				Vector2i(center_x, rect.position.y + ridge_row),
-			]
-		)
-		ridge_rows += 1
-	assert_gt(eave_rows, 300, "每排街坊都应形成连续可见的檐口和白墙立面")
-	assert_gte(verge_rows, 90, "每栋院落都应有独立的北檐，而不是共用一块巨屋顶")
-	assert_gte(ridge_rows, 90, "每栋院落都应有一条可读的屋脊分面")
-
-	var definition_areas: Array = layout_data.get("areas", []) as Array
-	for area in definition_areas:
-		var item := area as Dictionary
-		if str(item.get("kind", "")) != "building" or str(item.get("style", "")) != "shop":
+	var renderer: MapRenderer = (_build_map("crossstreet")["renderer"] as MapRenderer)
+	var sprites := _building_sprite_nodes(renderer)
+	assert_eq(sprites.size(), buildings.size(), "每栋建筑必须用一个完整屋顶精灵")
+	var shop_sprites := 0
+	for area in buildings:
+		var rect := _area_rect(area)
+		var center := (Vector2(rect.position) + Vector2(rect.size) * 0.5) * float(MapRenderer.TILE)
+		var sprite := _building_sprite_at(renderer, center)
+		assert_true(sprite != null, "缺少完整俯视建筑精灵 at %s" % rect.position)
+		if sprite == null:
 			continue
-		var rect := _area_rect(item)
-		if rect.size.x < 5:
-			continue
-		var door_cell := Vector2i(rect.position.x + rect.size.x / 2, rect.end.y - 1)
-		var door_tile := renderer.architecture_tile_name(door_cell)
-		assert_eq(door_tile, "roof_eave_shop", "storefronts need their own awning eave at %s" % door_cell)
-		shop_eaves += 1
-	assert_gt(shop_eaves, 10, "十字街必须保留可识别的店铺门面")
+		var style := str(area.get("style", "house"))
+		var key := "hall" if style == "hall" else "shop" if style == "shop" else "watchtower" if style == "watch" else "house"
+		assert_eq(sprite.texture.resource_path, "res://assets/tiles/buildings/%s.png" % key)
+		assert_gt(sprite.scale.x, 0.0, "建筑精灵必须有有效显示比例")
+		var roof_tile := renderer.architecture_tile_name(rect.position)
+		assert_false(roof_tile.begins_with("roof_") or roof_tile.begins_with("hall_roof_"), "屋顶不得回退到瓦片拼块")
+		assert_true(renderer.layout.is_solid_cell(rect.position), "屋顶覆盖区仍必须阻挡移动")
+		if style == "shop":
+			shop_sprites += 1
+	assert_gt(shop_sprites, 10, "街区店铺应使用独立完整屋顶图")
 
 
-func test_watergate_and_tideland_lots_keep_visible_roof_depth() -> void:
-	var expected_minimum := {
-		"tideland": 30,
-		"watergate": 24,
-	}
+func test_watergate_and_tideland_lots_use_whole_overhead_sprites() -> void:
+	var expected_minimum := {"tideland": 30, "watergate": 24}
 	for map_id in expected_minimum.keys():
 		var definition: Dictionary = GameData.get_maps()[map_id] as Dictionary
 		var layout_data: Dictionary = definition["layout"] as Dictionary
-		var buildings: Array[Rect2i] = []
+		var buildings: Array[Dictionary] = []
 		var styles := {}
 		var max_height := 0
 		var max_width := 0
@@ -197,52 +181,29 @@ func test_watergate_and_tideland_lots_keep_visible_roof_depth() -> void:
 			var item := area as Dictionary
 			if str(item.get("kind", "")) != "building":
 				continue
-			var rect := _area_rect(item)
-			buildings.append(rect)
+			buildings.append(item)
 			styles[str(item.get("style", "house"))] = true
+			var rect := _area_rect(item)
 			max_height = maxi(max_height, rect.size.y)
 			max_width = maxi(max_width, rect.size.x)
-		assert_gte(
-			buildings.size(),
-			int(expected_minimum[map_id]),
-			"%s must contain a settlement, not isolated landmark sheds" % map_id
-		)
-		assert_lte(max_height, 7, "%s hamlets must keep courtyard-scale depth" % map_id)
-		assert_lte(max_width, 9, "%s hamlets must keep courtyard-scale frontage" % map_id)
+		assert_gte(buildings.size(), int(expected_minimum[map_id]), "%s needs a real settlement" % map_id)
+		assert_lte(max_height, 7, "%s hamlets keep courtyard-scale depth" % map_id)
+		assert_lte(max_width, 9, "%s hamlets keep courtyard-scale frontage" % map_id)
 		assert_gte(styles.size(), 2, "%s needs varied building silhouettes" % map_id)
 
-		var built := _build_map(map_id)
-		var renderer: MapRenderer = built["renderer"] as MapRenderer
-		var eave_cells := 0
-		var ridge_count := 0
-		for rect in buildings:
-			var bottom_y := rect.end.y - 1
-			for x in range(rect.position.x, rect.end.x):
-				var tile_name := renderer.architecture_tile_name(Vector2i(x, bottom_y))
-				assert_true(
-					tile_name.contains("roof_eave"),
-					"%s bottom row must show an eave/facade, got %s" % [map_id, tile_name]
-				)
-				eave_cells += 1
-			var center_x := rect.position.x + rect.size.x / 2
-			var verge_name := renderer.architecture_tile_name(
-				Vector2i(center_x, rect.position.y)
-			)
-			assert_true(
-				verge_name.begins_with("roof_verge") or verge_name.begins_with("hall_roof_verge"),
-				"%s must give each lot a raised north verge, got %s" % [map_id, verge_name]
-			)
-			var ridge_row := maxi(1, int((rect.size.y - 1) / 2.0))
-			var ridge_name := renderer.architecture_tile_name(
-				Vector2i(center_x, rect.position.y + ridge_row)
-			)
-			assert_true(
-				ridge_name.begins_with("roof_ridge") or ridge_name.begins_with("hall_roof_ridge"),
-				"%s must separate each roof plane with a central ridge, got %s" % [map_id, ridge_name]
-			)
-			ridge_count += 1
-		assert_gt(eave_cells, 80, "%s needs visible eaves along every hamlet frontage" % map_id)
-		assert_eq(ridge_count, buildings.size(), "%s every lot needs its own ridge band" % map_id)
+		var renderer: MapRenderer = (_build_map(map_id)["renderer"] as MapRenderer)
+		var sprites := _building_sprite_nodes(renderer)
+		assert_eq(sprites.size(), buildings.size(), "%s must render one whole sprite per building" % map_id)
+		for area in buildings:
+			var rect := _area_rect(area)
+			var center := (Vector2(rect.position) + Vector2(rect.size) * 0.5) * float(MapRenderer.TILE)
+			var sprite := _building_sprite_at(renderer, center)
+			assert_true(sprite != null, "%s missing overhead building sprite at %s" % [map_id, rect.position])
+			if sprite == null:
+				continue
+			var roof_tile := renderer.architecture_tile_name(rect.position)
+			assert_false(roof_tile.begins_with("roof_") or roof_tile.begins_with("hall_roof_"), "%s roof cannot use collage tiles" % map_id)
+			assert_true(renderer.layout.is_solid_cell(rect.position), "%s roof footprint remains solid" % map_id)
 
 
 func test_tideland_creeks_are_crossed_by_bridges() -> void:
@@ -342,7 +303,12 @@ func test_all_maps_have_visible_blockers_for_every_solid_cell() -> void:
 				var terrain_name := renderer.terrain_tile_name(cell)
 				var architecture_name := renderer.architecture_tile_name(cell)
 				var prop_name := renderer.prop_tile_name(cell)
-				if not terrain_name.begins_with("mountain_") and architecture_name.is_empty() and prop_name.is_empty():
+				if (
+					not terrain_name.begins_with("mountain_")
+					and architecture_name.is_empty()
+					and prop_name.is_empty()
+					and not _building_sprite_covers_cell(renderer, cell)
+				):
 					invisible_blockers += 1
 				if terrain_name.begins_with("mountain_") and not minimap.get_pixel(cell.x, cell.y).is_equal_approx(
 					layout.minimap_color_for_tile(terrain_name)
@@ -470,7 +436,7 @@ func test_synthetic_mountain_building_and_wall_are_visibly_blocked() -> void:
 		for x in range(2, 6):
 			var cell := Vector2i(x, y)
 			assert_true(layout.is_solid_cell(cell), "building %s must block movement" % cell)
-			assert_false(renderer.architecture_tile_name(cell).is_empty(), "building must show walls or roof")
+			assert_true(_building_sprite_covers_cell(renderer, cell), "building must show a complete overhead sprite")
 	for y in range(12, 14):
 		for x in range(6, 14):
 			var cell := Vector2i(x, y)
@@ -987,3 +953,29 @@ func _rects_overlap(a: Rect2i, b: Rect2i) -> bool:
 		and a.position.y < b.end.y
 		and b.position.y < a.end.y
 	)
+
+
+func _building_sprite_nodes(renderer: MapRenderer) -> Array[Sprite2D]:
+	var result: Array[Sprite2D] = []
+	for child in renderer.architecture_layer.get_children():
+		if child is Sprite2D and child.name.begins_with("Overhead_"):
+			result.append(child as Sprite2D)
+	return result
+
+func _building_sprite_at(renderer: MapRenderer, center: Vector2) -> Sprite2D:
+	for sprite in _building_sprite_nodes(renderer):
+		if sprite.position.distance_to(center) <= 1.0:
+			return sprite
+	return null
+
+
+func _building_sprite_covers_cell(renderer: MapRenderer, cell: Vector2i) -> bool:
+	var center := (Vector2(cell) + Vector2.ONE * 0.5) * float(MapRenderer.TILE)
+	for sprite in _building_sprite_nodes(renderer):
+		if sprite.texture == null:
+			continue
+		var size := Vector2(sprite.texture.get_size()) * sprite.scale
+		var bounds := Rect2(sprite.position - size * 0.5, size)
+		if bounds.has_point(center):
+			return true
+	return false

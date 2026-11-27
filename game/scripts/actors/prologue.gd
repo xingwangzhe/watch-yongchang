@@ -7,6 +7,8 @@ const MUTED := Color("#baa98a")
 const GOLD := Color("#e1b35a")
 const VERMILION := Color("#c05a41")
 const STAGE_WIDTH := 1280.0
+const OBJECTIVE_ORDER := ["lamp", "stake", "banner"]
+const TOUCH_CONTROLS_SCENE := preload("res://scenes/components/prologue_touch_controls.tscn")
 
 var story: StoryOverlay
 var narrative: NarrativePlayer
@@ -32,10 +34,17 @@ var _progress: Label
 var _continue: Button
 var _skip: Button
 var _narrative_timer: Timer
+var _touch_controls: PrologueTouchControls
+var _ui_root: Control
+var _title_label: Label
+var _subtitle_label: Label
+var _source_label: Label
+var _rule_line: ColorRect
+var _hint_label: Label
 
 
 func _ready() -> void:
-	_stage_offset_cache = stage_offset_for_width(get_viewport_rect().size.x)
+	_stage_offset_cache = stage_offset_for_width(get_viewport().get_visible_rect().size.x)
 	_player_pos = Vector2(_stage_offset_cache + STAGE_WIDTH * 0.5, 480.0)
 	_ground = GROUND_TEXTURE.make(1386)
 	_load_forge_actors()
@@ -84,6 +93,8 @@ func _process(delta: float) -> void:
 		)
 	if _active and not story.visible and not _complete:
 		var input_vector := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+		if is_instance_valid(_touch_controls) and _touch_controls.move_vector.length_squared() > 0.001:
+			input_vector = _touch_controls.move_vector
 		if input_vector.length_squared() > 0.001:
 			_last_move = input_vector.normalized()
 			_player_pos += input_vector * 150.0 * delta
@@ -113,39 +124,54 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _on_intro_finished() -> void:
 	_active = true
-	_objective.text = Locale.t("prologue.objective")
+	_refresh_objective()
+	if is_instance_valid(_touch_controls):
+		_touch_controls.enabled = true
+		_touch_controls.queue_redraw()
 	narrative.show_line(_lines_by_id["narr_1386_03"] as Dictionary)
 	_narrative_timer.start(5.0)
 
 
 func _try_interact() -> void:
-	for marker_id in ["lamp", "stake", "banner"]:
-		if bool(_done[marker_id]):
-			continue
-		if _player_pos.distance_to(_marker_position(marker_id)) > 70.0:
-			continue
-		_done[marker_id] = true
-		var line_id := "narr_1386_03"
-		var banner := Locale.t("prologue.lamp")
-		match marker_id:
-			"stake":
-				line_id = "narr_1386_04"
-				banner = Locale.t("prologue.stake")
-			"banner":
-				line_id = "narr_1386_05"
-				banner = Locale.t("prologue.banner")
-		narrative.show_line(_lines_by_id[line_id] as Dictionary)
-		_narrative_timer.start(5.5)
-		_play_sfx("res://assets/audio/sfx_build.ogg")
-		_refresh_progress()
-		if bool(_done["lamp"]) and bool(_done["stake"]) and bool(_done["banner"]):
-			_complete = true
-			_continue.visible = true
-			_objective.text = Locale.t("prologue.done")
-			narrative.show_line(_lines_by_id["narr_1386_06"] as Dictionary)
-			_narrative_timer.start(7.5)
-			_play_sfx("res://assets/audio/sfx_win.ogg")
+	var marker_id := _next_objective_marker()
+	if marker_id.is_empty() or _player_pos.distance_to(_marker_position(marker_id)) > 70.0:
 		return
+	_done[marker_id] = true
+	var line_id := "narr_1386_03"
+	match marker_id:
+		"stake":
+			line_id = "narr_1386_04"
+		"banner":
+			line_id = "narr_1386_05"
+	narrative.show_line(_lines_by_id[line_id] as Dictionary)
+	_narrative_timer.start(5.5)
+	_play_sfx("res://assets/audio/sfx_build.ogg")
+	_refresh_progress()
+	_refresh_objective()
+	if _next_objective_marker().is_empty():
+		_complete = true
+		_continue.visible = true
+		_objective.text = Locale.t("prologue.done")
+		if is_instance_valid(_touch_controls):
+			_touch_controls.enabled = false
+			_touch_controls.queue_redraw()
+		narrative.show_line(_lines_by_id["narr_1386_06"] as Dictionary)
+		_narrative_timer.start(7.5)
+		_play_sfx("res://assets/audio/sfx_win.ogg")
+
+
+func _next_objective_marker() -> String:
+	for marker_id in OBJECTIVE_ORDER:
+		if not bool(_done[marker_id]):
+			return marker_id
+	return ""
+
+
+func _refresh_objective() -> void:
+	var marker_id := _next_objective_marker()
+	if marker_id.is_empty():
+		return
+	_objective.text = Locale.t("prologue.goal_" + marker_id)
 
 
 func _refresh_progress() -> void:
@@ -165,28 +191,38 @@ func _finish_prologue() -> void:
 func _build_ui() -> void:
 	_overlay_layer = CanvasLayer.new()
 	_overlay_layer.layer = 7
+	_overlay_layer.name = "PrologueUI"
 	add_child(_overlay_layer)
 	var root := Control.new()
+	root.name = "PrologueUIRoot"
+	_ui_root = root
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_overlay_layer.add_child(root)
 
 	var title := _label(Locale.t("prologue.title"), 36, GOLD)
+	_title_label = title
 	UILayout.place(title, 54, 32, 600, 44)
 	root.add_child(title)
 	var subtitle := _label(Locale.t("prologue.subtitle"), 18, Color(PAPER, 0.90))
+	_subtitle_label = subtitle
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UILayout.place(subtitle, 56, 76, 700, 26)
 	root.add_child(subtitle)
 	var rule := ColorRect.new()
+	_rule_line = rule
 	rule.color = Color(GOLD, 0.34)
 	UILayout.place(rule, 54, 110, 430, 1)
 	root.add_child(rule)
 	var source := _label(Locale.t("prologue.source"), 11, Color(MUTED, 0.68))
+	_source_label = source
+	source.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UILayout.place(source, 56, 120, 640, 26)
 	root.add_child(source)
 
 	# 目标行置于字幕条上方，避免与底部字幕重叠。
 	_objective = _label("", 16, Color(PAPER, 0.94))
+	_objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UILayout.place(_objective, 306, 500, 640, 28, 0.5, 0.0)
 	_objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	root.add_child(_objective)
@@ -196,6 +232,7 @@ func _build_ui() -> void:
 	_refresh_progress()
 
 	var hint := _label(Locale.t("prologue.hint"), 12, Color(MUTED, 0.66))
+	_hint_label = hint
 	UILayout.place(hint, 54, 704, 900, 20, 0.0, 1.0)
 	root.add_child(hint)
 	_skip = _button(Locale.t("prologue.skip"), false)
@@ -208,6 +245,11 @@ func _build_ui() -> void:
 	_continue.visible = false
 	_continue.pressed.connect(_finish_prologue)
 	root.add_child(_continue)
+	_touch_controls = TOUCH_CONTROLS_SCENE.instantiate() as PrologueTouchControls
+	_touch_controls.enabled = false
+	_touch_controls.visible = _is_touch_platform()
+	_touch_controls.interact_pressed.connect(_try_interact)
+	_overlay_layer.add_child(_touch_controls)
 
 	story = StoryOverlay.new()
 	_overlay_layer.add_child(story)
@@ -217,10 +259,79 @@ func _build_ui() -> void:
 	_narrative_timer.one_shot = true
 	_narrative_timer.timeout.connect(narrative.clear_line)
 	add_child(_narrative_timer)
+	get_viewport().size_changed.connect(_on_viewport_resized)
+	_apply_ui_layout(get_viewport().get_visible_rect().size, _css_view_size())
+
+
+func _on_viewport_resized() -> void:
+	_apply_ui_layout(get_viewport().get_visible_rect().size, _css_view_size())
+
+
+func _css_view_size() -> Vector2:
+	if OS.has_feature("web"):
+		var raw: Variant = JavaScriptBridge.eval("JSON.stringify([window.innerWidth, window.innerHeight])", true)
+		var parsed: Variant = JSON.parse_string(str(raw))
+		if parsed is Array and (parsed as Array).size() >= 2:
+			return Vector2(float(parsed[0]), float(parsed[1]))
+	var window_size := DisplayServer.window_get_size()
+	return Vector2(window_size.x, window_size.y)
+
+
+func _apply_ui_layout(view_size: Vector2, css_size: Vector2) -> void:
+	if not is_instance_valid(_ui_root):
+		return
+	if css_size.x <= 0.0 or css_size.y <= 0.0:
+		return
+	var scale_x := view_size.x / css_size.x
+	var scale_y := view_size.y / css_size.y
+	var text_scale := minf(scale_x, scale_y)
+	if css_size.x >= css_size.y:
+		_title_label.add_theme_font_size_override("font_size", 36)
+		UILayout.place(_title_label, 54, 32, 600, 44)
+		_subtitle_label.add_theme_font_size_override("font_size", 18)
+		UILayout.place(_subtitle_label, 56, 76, 700, 26)
+		UILayout.place(_rule_line, 54, 110, 430, 1)
+		_source_label.add_theme_font_size_override("font_size", 11)
+		UILayout.place(_source_label, 56, 120, 640, 26)
+		_objective.add_theme_font_size_override("font_size", 16)
+		UILayout.place(_objective, 306, 500, 640, 28, 0.5, 0.0)
+		_progress.add_theme_font_size_override("font_size", 14)
+		UILayout.place(_progress, 54, 670, 300, 22, 0.0, 1.0)
+		_hint_label.visible = true
+		_hint_label.add_theme_font_size_override("font_size", 12)
+		UILayout.place(_hint_label, 54, 704, 900, 20, 0.0, 1.0)
+		_skip.add_theme_font_size_override("font_size", 16)
+		UILayout.place(_skip, 1090, 34, 136, 40, 1.0, 0.0)
+		_continue.add_theme_font_size_override("font_size", 16)
+		UILayout.place(_continue, 990, 486, 224, 44, 1.0, 0.0)
+		return
+	# Canvas coordinates are larger than CSS pixels on narrow portrait screens.
+	# Scale both type and hit areas by that ratio so the rendered controls stay legible.
+	var margin_x := 18.0 * scale_x
+	var title_y := 20.0 * scale_y
+	_title_label.add_theme_font_size_override("font_size", maxi(28, roundi(26.0 * text_scale)))
+	UILayout.place(_title_label, margin_x, title_y, maxf(200.0, view_size.x - margin_x * 2.0), 42.0 * scale_y)
+	_subtitle_label.add_theme_font_size_override("font_size", maxi(18, roundi(16.0 * text_scale)))
+	UILayout.place(_subtitle_label, margin_x, title_y + 48.0 * scale_y, view_size.x - margin_x * 2.0, 68.0 * scale_y)
+	UILayout.place(_rule_line, margin_x, title_y + 122.0 * scale_y, 180.0 * scale_x, 3.0 * scale_y)
+	_source_label.add_theme_font_size_override("font_size", maxi(12, roundi(11.0 * text_scale)))
+	UILayout.place(_source_label, margin_x, title_y + 132.0 * scale_y, view_size.x - margin_x * 2.0, 56.0 * scale_y)
+	_objective.add_theme_font_size_override("font_size", maxi(18, roundi(16.0 * text_scale)))
+	_objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	UILayout.place(_objective, margin_x, view_size.y - 380.0 * scale_y, view_size.x - margin_x * 2.0, 56.0 * scale_y)
+	_progress.add_theme_font_size_override("font_size", maxi(14, roundi(12.0 * text_scale)))
+	UILayout.place(_progress, margin_x, view_size.y - 224.0 * scale_y, view_size.x - margin_x * 2.0, 38.0 * scale_y)
+	_hint_label.visible = false
+	var button_w := minf(156.0 * scale_x, view_size.x * 0.35)
+	var button_h := 44.0 * scale_y
+	_skip.add_theme_font_size_override("font_size", maxi(14, roundi(14.0 * text_scale)))
+	UILayout.place(_skip, view_size.x - margin_x - button_w, 16.0 * scale_y, button_w, button_h)
+	_continue.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 * text_scale)))
+	UILayout.place(_continue, (view_size.x - button_w * 1.45) * 0.5, view_size.y - 290.0 * scale_y, button_w * 1.45, button_h)
 
 
 func _draw() -> void:
-	var view_size := get_viewport_rect().size
+	var view_size := get_viewport().get_visible_rect().size
 	draw_rect(Rect2(Vector2.ZERO, view_size), Color("#0b1517"))
 	_draw_ground()
 	_draw_water()
@@ -238,7 +349,7 @@ func _draw_ground() -> void:
 		return
 	draw_texture_rect(
 		_ground,
-		ground_rect(get_viewport_rect().size),
+		ground_rect(get_viewport().get_visible_rect().size),
 		true,
 		Color(0.82, 0.86, 0.72, 1.0)
 	)
@@ -252,7 +363,7 @@ func ground_rect(view_size: Vector2) -> Rect2:
 
 
 func _draw_water() -> void:
-	var view_size := get_viewport_rect().size
+	var view_size := get_viewport().get_visible_rect().size
 	draw_rect(water_rect(view_size), Color("#15313a"))
 	for i in range(16):
 		var y := float(i) * 9.0 + sin(_time * 1.2 + i) * 2.5
@@ -286,13 +397,19 @@ func _draw_fort_outline() -> void:
 
 func _draw_marker(marker_id: String, position: Vector2, color: Color) -> void:
 	var done := bool(_done[marker_id])
+	var active := marker_id == _next_objective_marker()
 	var pulse := 0.5 + 0.5 * sin(_time * 3.0 + position.x)
+	if not done and not active:
+		color = Color(color, 0.38)
 	if done:
 		draw_circle(position, 34.0, Color(color, 0.12))
 		draw_arc(position, 37.0, 0.0, TAU, 30, Color(color, 0.88), 2.0, true)
+	elif active:
+		draw_circle(position, 42.0 + pulse * 9.0, Color(color, 0.13))
+		draw_arc(position, 43.0 + pulse * 6.0, 0.0, TAU, 30, Color(color, 0.9), 3.0, true)
 	else:
-		draw_circle(position, 38.0 + pulse * 8.0, Color(color, 0.07))
-		draw_arc(position, 40.0 + pulse * 5.0, 0.0, TAU, 30, Color(color, 0.32), 1.0, true)
+		draw_circle(position, 34.0, Color(color, 0.035))
+		draw_arc(position, 37.0, 0.0, TAU, 30, Color(color, 0.15), 1.0, true)
 	match marker_id:
 		"lamp":
 			draw_rect(Rect2(position + Vector2(-12, 5), Vector2(24, 31)), Color("#776b50"))
@@ -377,13 +494,17 @@ func _draw_sprite_sheet_frame(
 
 
 func _draw_vignette() -> void:
-	var view_size := get_viewport_rect().size
+	var view_size := get_viewport().get_visible_rect().size
 	draw_rect(Rect2(0, 0, view_size.x, 22), Color(0, 0, 0, 0.55))
 	draw_rect(Rect2(0, view_size.y - 22.0, view_size.x, 22), Color(0, 0, 0, 0.62))
 
 
 func _marker_position(marker_id: String) -> Vector2:
-	return marker_position(marker_id, get_viewport_rect().size.x)
+	return marker_position(marker_id, get_viewport().get_visible_rect().size.x)
+
+
+func _is_touch_platform() -> bool:
+	return DisplayServer.is_touchscreen_available() or OS.has_feature("mobile") or OS.has_feature("web_android") or OS.has_feature("web_ios") or (OS.has_feature("web") and bool(GameSettings.web_capabilities.get("touch", false)))
 
 
 func marker_position(marker_id: String, view_width: float) -> Vector2:
@@ -399,7 +520,7 @@ func marker_position(marker_id: String, view_width: float) -> Vector2:
 
 
 func _stage_offset_x() -> float:
-	return stage_offset_for_width(get_viewport_rect().size.x)
+	return stage_offset_for_width(get_viewport().get_visible_rect().size.x)
 
 
 func stage_offset_for_width(view_width: float) -> float:

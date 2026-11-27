@@ -89,8 +89,10 @@ func test_flash_and_number_layers_can_be_disabled_independently() -> void:
 	FeedbackManager.config.number_enabled = saved_number
 
 
-func test_hitstop_is_disabled_by_default() -> void:
-	assert_false(FeedbackManager.config.hitstop_enabled)
+func test_hitstop_is_limited_to_heavy_and_boss_hits() -> void:
+	assert_true(FeedbackManager.config.hitstop_enabled)
+	assert_almost_eq(FeedbackManager.config.hitstop_heavy_duration, 0.012, 0.001)
+	assert_almost_eq(FeedbackManager.config.hitstop_boss_duration, 0.024, 0.001)
 	assert_false(FeedbackManager.hitstop_active())
 
 

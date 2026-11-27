@@ -905,7 +905,7 @@ func _return_to_menu() -> void:
 
 
 func _open_url(url: String) -> void:
-	if url.is_empty():
+	if OS.has_feature("baidu_h5") or url.is_empty():
 		return
 	OS.shell_open(url)
 

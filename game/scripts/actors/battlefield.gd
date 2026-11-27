@@ -201,6 +201,8 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 			int(definition.get("sprite_rows", 1)),
 			int(definition.get("sprite_row", 0))
 		)
+		# MultiMesh uses raw UVs, so AtlasTexture regions are not reliable here.
+		frames = _materialize_sprite_frames(frames)
 		if frames.size() != int(definition.get("sprite_frames", 8)):
 			push_error(
 				"Enemy %s has invalid cropped walk frames: expected %d, got %d (sheet=%s row=%d)"
@@ -336,6 +338,21 @@ func _unit_attack_frames(sheet: String, rows: int, row: int) -> Array[Texture2D]
 	if not _attack_frame_cache.has(key):
 		_attack_frame_cache[key] = SpriteSheetFrames.path_row(sheet, 8, rows, row)
 	return _attack_frame_cache[key] as Array[Texture2D]
+
+
+func _materialize_sprite_frames(frames: Array[Texture2D]) -> Array[Texture2D]:
+	var result: Array[Texture2D] = []
+	for frame in frames:
+		var atlas_frame := frame as AtlasTexture
+		if atlas_frame == null:
+			push_error("Character atlas frame must be an AtlasTexture")
+			return []
+		var image := atlas_frame.get_image()
+		if image == null or image.is_empty():
+			push_error("Failed to materialize character atlas frame")
+			return []
+		result.append(ImageTexture.create_from_image(image))
+	return result
 
 
 func _start_player_attack(_weapon_id: String) -> void:
@@ -1056,11 +1073,9 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 	var runtime_role := str(loadout.get("role", ""))
 	if runtime_attack_class == "ranged" and definition.has("runtime_attack_range"):
 		behavior = "ranged"
-	var attack_frames := _unit_attack_frames(
-		str(definition.get("attack_sheet", "")),
-		int(definition.get("attack_rows", 1)),
-		int(definition.get("attack_row", 0))
-	)
+	# The current enemy attack atlas rows show allies. Preserve enemy identity
+	# during the attack pose until matching complete-enemy action frames exist.
+	var attack_frames: Array[Texture2D] = enemy_sprite_frames.get(enemy_id, []) as Array[Texture2D]
 	var is_boss := base_behavior == "boss"
 	var is_elite := not elite_color.is_empty() or base_behavior == "elite"
 	var hp := float(definition.get("hp", 10.0)) * enemy_hp_mult * difficulty_hp_mult
@@ -2693,7 +2708,7 @@ func _draw_towers() -> void:
 				Rect2(position - Vector2(size * 0.5, size * 0.9), Vector2(size, size)),
 				Color("#6d5a42")
 			)
-		_draw_tower_weapon(tower, position + Vector2(0.0, -size * 0.46), size)
+			_draw_tower_weapon(tower, position + Vector2(0.0, -size * 0.30), size)
 		# 血条统一在 _draw_health_bars() 中绘制，避免与敌兵/佣兵血条层叠错位。
 
 

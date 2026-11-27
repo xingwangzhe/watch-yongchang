@@ -42,9 +42,15 @@ func test_enemy_obstacle_steering_keeps_committed_side() -> void:
 func test_full_character_sheets_map_complete_rows_for_runtime_units() -> void:
 	var field := Battlefield.new()
 	add_child_autofree(field)
-	field.setup(20261127)
-	for enemy_id in GameData.get_enemies():
-		var enemy: Dictionary = GameData.get_enemies()[enemy_id] as Dictionary
+	field.enemy_data = GameData.get_enemies()
+	for enemy_id in field.enemy_data:
+		var enemy: Dictionary = field.enemy_data[enemy_id] as Dictionary
+		field.enemy_sprite_frames[enemy_id] = field._materialize_sprite_frames(SpriteSheetFrames.path_row(
+			str(enemy.get("sprite_sheet", "")),
+			int(enemy.get("sprite_columns", 8)),
+			int(enemy.get("sprite_rows", 1)),
+			int(enemy.get("sprite_row", 0))
+		))
 		var frames: Array = field.enemy_sprite_frames.get(str(enemy_id), []) as Array
 		var sprite_sheet := str(enemy.get("sprite_sheet", ""))
 		var sprite_columns := int(enemy.get("sprite_columns", 0))
@@ -55,23 +61,24 @@ func test_full_character_sheets_map_complete_rows_for_runtime_units() -> void:
 		assert_eq(sprite_columns, 8, "%s is an eight-column categorized atlas" % enemy_id)
 		assert_gte(sprite_row, 0, "%s row must be declared" % enemy_id)
 		assert_lt(sprite_row, sprite_rows, "%s row must fit its atlas" % enemy_id)
+		var source := ResourceLoader.load(sprite_sheet) as Texture2D
+		var source_image := source.get_image() if source != null else null
 		for frame_index in range(frames.size()):
-			var frame := frames[frame_index] as AtlasTexture
-			assert_not_null(frame, "%s frame %d must be an AtlasTexture crop" % [enemy_id, frame_index])
-			if frame == null:
+			var frame := frames[frame_index] as Texture2D
+			assert_not_null(frame, "%s frame %d must be a materialized texture" % [enemy_id, frame_index])
+			if frame == null or source_image == null:
 				continue
-			assert_eq(frame.atlas.resource_path, sprite_sheet, "%s frame uses only its category atlas" % enemy_id)
-			assert_eq(
-				frame.region,
-				Rect2(Vector2(frame_index * 128, sprite_row * 128), Vector2(128, 128)),
-				"%s frame %d crops only its declared 128x128 atlas cell" % [enemy_id, frame_index]
-			)
+			assert_eq(frame.get_size(), Vector2(128, 128), "%s frame %d has cell dimensions" % [enemy_id, frame_index])
+			var expected := source_image.get_region(Rect2i(frame_index * 128, sprite_row * 128, 128, 128))
+			assert_eq(frame.get_image().get_data(), expected.get_data(), "%s frame %d contains only its declared atlas cell" % [enemy_id, frame_index])
 		assert_true(str(enemy.get("sprite_sheet", "")).begins_with("res://assets/units/full_sheets/"))
-		assert_true(ResourceLoader.exists(str(enemy.get("attack_sheet", ""))))
+		assert_false(enemy.has("attack_sheet"), "%s must not switch to a different character atlas while attacking" % enemy_id)
 		var index := field.spawn_enemy_at(str(enemy_id), Vector2(180.0 + field.enemies.size() * 10.0, 180.0))
 		assert_gte(index, 0)
 		if index >= 0:
-			assert_eq((field.enemies[index].get("attack_frames", []) as Array).size(), 8)
+			var attack_frames: Array = field.enemies[index].get("attack_frames", []) as Array
+			assert_eq(attack_frames.size(), 8)
+			assert_eq(attack_frames, frames, "%s keeps its own full-character frames during attacks" % enemy_id)
 
 
 func test_players_and_allies_use_full_character_frames_without_rig_assembly() -> void:
@@ -113,3 +120,14 @@ func test_player_attack_frames_match_walk_visual_height_and_keep_foot_anchor() -
 	var walk_draw_bottom := walk_rect.position.y + 124.0 / 128.0 * walk_rect.size.y
 	var attack_draw_bottom := attack_rect.position.y + 124.0 / 128.0 * attack_rect.size.y
 	assert_almost_eq(attack_draw_bottom, walk_draw_bottom, 0.0001, "attack and walk share the same foot baseline")
+
+
+func test_debug_capture_resets_scene_before_spawning_repeatable_enemy_ring() -> void:
+	var run := preload("res://scenes/run.tscn").instantiate()
+	add_child_autofree(run)
+	var first: Dictionary = run.debug_prepare_capture("tower")
+	assert_eq(first.get("enemies"), 44)
+	assert_eq(first.get("towers"), 3)
+	var second: Dictionary = run.debug_prepare_capture("tower")
+	assert_eq(second.get("enemies"), 44, "repeat captures must clear the previous enemy ring")
+	assert_eq(second.get("towers"), 3, "repeat captures must clear the previous towers")

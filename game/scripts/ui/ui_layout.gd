@@ -69,3 +69,28 @@ static func anchor(node: Control, ax: float, ay: float) -> void:
 		node.offset_bottom - node.offset_top,
 		ax, ay
 	)
+
+
+## Convert CSS/display pixel measurements to the project's logical 1280x720 design units.
+## Godot canvas stretch scales the logical viewport down on narrow portrait screens.
+static func display_scale(viewport_size: Vector2, screen_size: Vector2) -> float:
+	return maxf(0.05, screen_size.x / maxf(1.0, viewport_size.x))
+
+
+static func display_units(value: float, scale: float) -> float:
+	return value / maxf(0.05, scale)
+
+
+## Apply a device-pixel font scale while retaining the unscaled theme values.
+static func scale_theme_fonts(root: Control, factor: float) -> void:
+	for node in root.find_children("*", "Control", true, false):
+		var control := node as Control
+		var base_sizes: Dictionary = control.get_meta("layout_base_font_sizes", {}) as Dictionary
+		for theme_key in ["font_size", "font_size_hbox"]:
+			if not base_sizes.has(theme_key):
+				var original := control.get_theme_font_size(theme_key)
+				if original > 0:
+					base_sizes[theme_key] = original
+		control.set_meta("layout_base_font_sizes", base_sizes)
+		for theme_key in base_sizes.keys():
+			control.add_theme_font_size_override(str(theme_key), maxi(8, int(round(float(base_sizes[theme_key]) * factor))))

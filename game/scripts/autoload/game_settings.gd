@@ -10,11 +10,12 @@ const DEFAULT_FPS_LIMIT := 60
 # Web 单线程 WASM 下不限帧会持续跑满主线程、触发浏览器/系统降频，实测更卡。
 # 锁到 60 让固定步长循环有稳定预算，低端设备也能保持可玩帧率。
 const DEFAULT_FPS_LIMIT_WEB := 60
-const DEFAULT_BGM_VOLUME := 0.42
+const DEFAULT_BGM_VOLUME := 0.28
 const RENDERER_AUTO := "auto"
 const RENDERER_VULKAN := "vulkan"
 const RENDERER_OPENGL := "opengl"
 const RENDERER_MODES := [RENDERER_AUTO, RENDERER_VULKAN, RENDERER_OPENGL]
+const WEB_ORIENTATIONS := ["portrait", "landscape"]
 const RENDERER_MIRROR_NAME := "renderer.cfg"
 
 var config_path: String = CONFIG_PATH
@@ -25,6 +26,7 @@ var fullscreen: bool = false
 var fps_limit: int = DEFAULT_FPS_LIMIT
 var vsync: bool = true
 var renderer_mode: String = RENDERER_AUTO
+var web_orientation: String = "portrait"
 var vulkan_probe_override: int = -1
 var web_platform_override: int = -1
 var active_renderer_override: String = ""
@@ -35,6 +37,10 @@ var web_capabilities: Dictionary = {
 	"webgl2": true,
 	"renderer": "",
 	"webgpu_api": false,
+	"touch": false,
+	"orientation": "unknown",
+	"viewport_width": 0,
+	"viewport_height": 0,
 }
 
 var _config := ConfigFile.new()
@@ -54,6 +60,7 @@ func _ready() -> void:
 
 
 func load_settings() -> void:
+	web_orientation = "portrait"
 	if not FileAccess.file_exists(config_path):
 		renderer_mode = _valid_renderer_mode(_read_renderer_mirror())
 		return
@@ -70,6 +77,7 @@ func load_settings() -> void:
 	if stored_mode.is_empty():
 		stored_mode = _read_renderer_mirror()
 	renderer_mode = _valid_renderer_mode(stored_mode)
+	web_orientation = _valid_web_orientation(str(_config.get_value("display", "web_orientation", "portrait")))
 	bindings = _sanitize_bindings(_config.get_value("input", "bindings", {}))
 
 
@@ -80,6 +88,7 @@ func save_settings(notify: bool = true) -> void:
 	_config.set_value("display", "fullscreen", fullscreen)
 	_config.set_value("display", "fps_limit", fps_limit)
 	_config.set_value("display", "vsync", vsync)
+	_config.set_value("display", "web_orientation", web_orientation)
 	_config.set_value("rendering", "renderer_mode", renderer_mode)
 	_config.set_value("input", "bindings", bindings)
 	var error := _config.save(config_path)
@@ -180,6 +189,25 @@ func set_vsync(enabled: bool) -> void:
 	save_settings()
 
 
+func set_web_orientation(orientation: String) -> void:
+	var next := _valid_web_orientation(orientation)
+	if web_orientation == next:
+		return
+	web_orientation = next
+	_apply_web_orientation()
+	save_settings()
+
+
+func _apply_web_orientation() -> void:
+	if not OS.has_feature("web") or not web_capabilities.get("touch", false):
+		return
+	var target := web_orientation
+	JavaScriptBridge.eval(
+		"if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('%s').catch(() => {}); }" % target,
+		false
+	)
+
+
 func set_renderer_mode(mode: String) -> void:
 	var next := RENDERER_OPENGL if is_web_platform() else _valid_renderer_mode(mode)
 	if renderer_mode == next:
@@ -253,9 +281,21 @@ func webgpu_api_available() -> bool:
 func _probe_web_capabilities() -> void:
 	if not OS.has_feature("web"):
 		return
+	if OS.has_feature("baidu_h5"):
+		web_capabilities.merge({
+			"webgl2": true,
+			"renderer": "WebGL 2.0",
+			"webgpu_api": false,
+			"touch": true,
+			"orientation": "portrait-primary",
+		}, true)
+		return
 	var raw := str(JavaScriptBridge.eval("""
 (() => {
-  const caps = { webgl2: false, renderer: "", webgpu_api: !!navigator.gpu };
+  const caps = { webgl2: false, renderer: "", webgpu_api: !!navigator.gpu,
+    touch: (navigator.maxTouchPoints || 0) > 0 || ("ontouchstart" in window),
+    orientation: screen.orientation ? screen.orientation.type : "unknown",
+    viewport_width: window.innerWidth || 0, viewport_height: window.innerHeight || 0 };
   try {
     const canvas = document.createElement("canvas");
     const gl = canvas.getContext("webgl2");
@@ -338,6 +378,7 @@ func to_dict() -> Dictionary:
 		"fps_limit": fps_limit,
 		"vsync": vsync,
 		"renderer_mode": renderer_mode,
+		"web_orientation": web_orientation,
 	}
 
 
@@ -355,6 +396,11 @@ func _valid_fps_limit(limit: int) -> int:
 func _valid_renderer_mode(mode: String) -> String:
 	var normalized := mode.to_lower()
 	return normalized if RENDERER_MODES.has(normalized) else RENDERER_AUTO
+
+
+func _valid_web_orientation(orientation: String) -> String:
+	var normalized := orientation.to_lower()
+	return normalized if WEB_ORIENTATIONS.has(normalized) else "portrait"
 
 
 func _write_renderer_mirror() -> void:

@@ -15,12 +15,62 @@ var _body: Label
 var _source: Label
 var _category: Label
 var _voice: VoiceLinePlayer
+var _backing: ColorRect
 
 
 func _ready() -> void:
 	layer = 8
 	_build()
+	get_viewport().size_changed.connect(_on_viewport_resized)
 	visible = false
+	_on_viewport_resized()
+
+
+func _on_viewport_resized() -> void:
+	_apply_responsive_layout(get_viewport().get_visible_rect().size, _css_view_size())
+
+
+func _css_view_size() -> Vector2:
+	if OS.has_feature("web"):
+		var parsed: Variant = JSON.parse_string(str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth, window.innerHeight])", true)))
+		if parsed is Array and (parsed as Array).size() >= 2:
+			return Vector2(float(parsed[0]), float(parsed[1]))
+	var window_size := DisplayServer.window_get_size()
+	return Vector2(window_size.x, window_size.y)
+
+
+func _apply_responsive_layout(view_size: Vector2, css_size: Vector2) -> void:
+	if css_size.x <= 0.0 or css_size.y <= 0.0:
+		return
+	if css_size.x >= css_size.y:
+		_backing.offset_left = 210.0
+		_backing.offset_right = -210.0
+		_backing.offset_top = -114.0
+		_backing.offset_bottom = -20.0
+		_panel.offset_left = 210.0
+		_panel.offset_right = -210.0
+		_panel.offset_top = -114.0
+		_panel.offset_bottom = -20.0
+		_speaker.add_theme_font_size_override("font_size", 16)
+		_category.add_theme_font_size_override("font_size", 11)
+		_source.add_theme_font_size_override("font_size", 10)
+		_body.add_theme_font_size_override("font_size", 18)
+		_body.custom_minimum_size.y = 38.0
+		return
+	var scale_x := view_size.x / css_size.x
+	var scale_y := view_size.y / css_size.y
+	var text_scale := minf(scale_x, scale_y)
+	var panel_height := 192.0 * scale_y
+	for panel in [_backing, _panel]:
+		panel.offset_left = 18.0 * scale_x
+		panel.offset_right = -18.0 * scale_x
+		panel.offset_top = -panel_height - 10.0 * scale_y
+		panel.offset_bottom = -10.0 * scale_y
+	_speaker.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 * text_scale)))
+	_category.add_theme_font_size_override("font_size", maxi(12, roundi(11.0 * text_scale)))
+	_source.add_theme_font_size_override("font_size", maxi(12, roundi(10.0 * text_scale)))
+	_body.add_theme_font_size_override("font_size", maxi(20, roundi(18.0 * text_scale)))
+	_body.custom_minimum_size.y = 52.0 * scale_y
 
 
 func show_line(line: Dictionary) -> void:
@@ -49,19 +99,19 @@ func _build() -> void:
 	add_child(_root)
 
 	# 不透明底板：阻断半透明字幕面板下的 HUD 文字透视，避免重影。
-	var backing := ColorRect.new()
-	backing.name = "SubtitleOpaqueBacking"
-	backing.color = Color("#0d1213")
-	backing.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	backing.anchor_left = 0.0
-	backing.anchor_right = 1.0
-	backing.anchor_top = 1.0
-	backing.anchor_bottom = 1.0
-	backing.offset_left = 210.0
-	backing.offset_right = -210.0
-	backing.offset_top = -114.0
-	backing.offset_bottom = -20.0
-	_root.add_child(backing)
+	_backing = ColorRect.new()
+	_backing.name = "SubtitleOpaqueBacking"
+	_backing.color = Color("#0d1213")
+	_backing.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_backing.anchor_left = 0.0
+	_backing.anchor_right = 1.0
+	_backing.anchor_top = 1.0
+	_backing.anchor_bottom = 1.0
+	_backing.offset_left = 210.0
+	_backing.offset_right = -210.0
+	_backing.offset_top = -114.0
+	_backing.offset_bottom = -20.0
+	_root.add_child(_backing)
 
 	_panel = PanelContainer.new()
 	_panel.name = "SubtitlePanel"

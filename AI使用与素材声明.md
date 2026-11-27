@@ -35,7 +35,7 @@
 |---|---|---|---|
 | OpenAI Codex / WorkBuddy 会话助手 | 编程、重构、测试与文档起草 | GDScript 实现、数据表结构、GUT 用例、构建与部署文档、双语文本草稿、HUD 状态图标原创 SVG 路径 | 作者确定玩法与架构，逐项审查代码、修正实现、运行测试并验收界面；不以模型输出替代人工确认 |
 | WorkBuddy ImageGen | 位图 UI 素材 | UI 图标与面板底图；具体文件以 `素材授权清单.csv` 的生成工具字段为准 | 作者设计风格与提示词，筛掉不合格结果，去背、裁切、缩放并统一接入 UI |
-| OpenAI ImageGen | 完整角色与地图分类图集 | 6 组完整人物图（含王陆六种守夜阵位的独立装备姿态）与地貌、建筑、透明道具、环境动效图集；原始输入与网格见 `pixel-art/full_composed_atlas/clean/manifest.json` | 作者筛选生成结果；Pillow 仅按整帧/整格边界裁切、统一锚点、去除洋红背景与孤立噪点并压缩；不拆分人体部件，不叠装身体、武器、马匹 |
+| OpenAI ImageGen | 完整角色与地图分类图集 | 6 组完整人物图（含王陆六种守夜阵位的独立装备姿态）、地貌与环境图集、正俯视屋顶/箭塔/方向河岸图；原始输入和整格裁切哈希见 `pixel-art/full_composed_atlas/clean/manifest.json` 与 `pixel-art/overhead_buildings/manifest.json` | 作者筛选生成结果；Pillow 仅按整帧/整格边界裁切、统一锚点、去除洋红背景与孤立噪点并压缩；不拆分人体部件，不叠装身体、武器、马匹 |
 | Pixel Art Studio（MIT） | 程序化像素美术工具链 | 角色、瓦片、主菜单夜景、光标与 UI 控件的确定性绘制脚本和导出图集 | 作者确定画布、调色板、轮廓、帧数与文化取向；每轮看图检查并修改 `build.py`，不手改导出的 PNG |
 | Python / Pillow | 图像生成与图集烘焙 | CharacterForge 部件、待机/行走条、瓦片、UI 控件与验收合图 | 作者检查关节、握持、阵营隔离、帧连续性和实际 Godot 场景显示 |
 | tesseract、trafilatura、pdftotext | 文化资料检索与文本化 | 仅用于地方史、汤和信俗与永昌堡资料的本地研究 | 作者核对人物、年代、地点与叙事边界；原始 PDF、OCR、缩略图和联系表不随仓库或发行版分发 |
@@ -55,14 +55,14 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
   `pixel-art/ui_kit/build.py` 程序化绘制。
 - `game/data/character_templates.json` 与角色 JSON：保留阵营与合法配装数据，供随机配装校验；它们不再驱动人物图层绘制。
 - `game/assets/units/full_sheets/`：正式主角、友军、敌军、骑兵与攻击动作的完整人物多帧分类图。每格都含完整人物；骑兵每格含骑手与坐骑；攻击姿势包含人物和手持武器。运行时只裁切整帧，不做骨骼、身体部件、马匹或武器叠层。输入与切片映射见 `pixel-art/full_composed_atlas/clean/manifest.json`。
-- `game/assets/tiles/full_sheets/`：地貌 8×5、建筑 8×6、透明场景道具 8×3、环境动效 4×4 分类图，瓦片为 32×32。地图仍按 TileMapLayer 使用整格瓦片。
+- `game/assets/tiles/full_sheets/`：地貌 8×5、建筑 8×6、透明场景道具 8×3、环境动效 4×4 分类图，瓦片为 32×32。河岸八方向瓦片由专用俯视岸线图切分。建筑区域直接显示完整屋顶精灵，保留瓦片网格碰撞；来源和哈希见 `pixel-art/overhead_buildings/manifest.json`。箭塔三档采用同批正俯视图，中央留白供运行时旋转连弩叠绘。
 - `game/assets/ui/menu_*.png`、`watch_cursor.png`：原创主菜单分层夜景与游戏光标。
 - `game/assets/ui/generated/aim_pointer.png`：OpenAI ImageGen 生成的透明金色像素瞄准新月弧；作者按透明边界裁切为 360×520 像素并接入战斗 HUD，替换原程序化弧形指示器。
 - `game/assets/**/*.webp` 与 `game/assets/tiles/full_sheets/*.png`：运行时纹理。完整人物图集与瓦片图集由
   `pixel-art/full_composed_atlas/build.py` 从登记输入图确定性派生。
 - `game/assets/icons/game_icons/`：武器与卡牌继续使用 game-icons.net SVG 图标集；HUD 状态行新增原创 SVG 线框图标，并保持透明底和一致笔画。武器图标仍不混用自制图标。
 
-角色、坐骑和装备以完整人物图格生成，不再通过身体层、装备层或武器层拼装。地图分类图以完整地块裁切并缩放；正式运行图由 `pixel-art/full_composed_atlas/build.py` 从输入图集确定性生成。2026-11-27 已复查友军、倭寇、主角、攻击、骑兵与瓦片预览：友军造型端正整洁，倭寇衣甲粗粝破损、神情凶狠；所有角色保持完整，武器与手部遮挡关系未拆层。骑兵攻击暂复用完整骑乘行，因此保持人与马连续，但没有独立攻击姿势。随机配装只影响战斗数据，不改变分类图集中的固定外观。
+角色、坐骑和装备以完整人物图格生成，不再通过身体层、装备层或武器层拼装。地图分类图以完整地块裁切并缩放；正式运行图由 `pixel-art/full_composed_atlas/build.py` 与 `pixel-art/overhead_buildings/build.py` 从登记输入图确定性生成。2026-11-27 新增正俯视建筑、箭塔与方向岸线图，替换屋顶拼块/侧俯视塔体并修正河岸八方向素材。2026-11-27 已复查友军、倭寇、主角、攻击、骑兵与瓦片预览：友军造型端正整洁，倭寇衣甲粗粝破损、神情凶狠；所有角色保持完整，武器与手部遮挡关系未拆层。骑兵攻击暂复用完整骑乘行，因此保持人与马连续，但没有独立攻击姿势。随机配装只影响战斗数据，不改变分类图集中的固定外观。
 
 ### 3.2 文本、数据与剧情
 

@@ -253,6 +253,8 @@ def normalize_tile(source: Image.Image, row: int, column: int, columns: int, row
 def normalize_tiles() -> dict:
     source_path = SOURCE / "fort_atlas.png"
     source = Image.open(source_path).convert("RGB")
+    coast_source_path = ROOT / "pixel-art/overhead_buildings/source/coast_atlas.png"
+    coast_source = Image.open(coast_source_path).convert("RGB")
     terrain = Image.new("RGBA", (8 * 32, 5 * 32), (0, 0, 0, 0))
     architecture = Image.new("RGBA", (8 * 32, 6 * 32), (0, 0, 0, 0))
     generated: dict[str, object] = {}
@@ -260,17 +262,20 @@ def normalize_tiles() -> dict:
     terrain_names = tile_index["atlases"]["terrain"]["tiles"]
     architecture_names = tile_index["atlases"]["architecture"]["tiles"]
     terrain_sources = {
+        "water_shallow_a": (2, 0), "water_shallow_b": (2, 1),
+        "water_deep_a": (2, 2), "water_deep_b": (2, 3),
         "wet_stone": (3, 2), "puddle": (4, 3),
         "shore_n": (4, 0), "shore_s": (4, 1),
-        "shore_e": (4, 2), "shore_w": (4, 1),
-        "shore_nw": (4, 0), "shore_ne": (4, 2),
-        "shore_sw": (4, 1), "shore_se": (4, 2),
+        "shore_e": (4, 1), "shore_w": (4, 0),
+        "shore_nw": (4, 0), "shore_ne": (4, 1),
+        "shore_sw": (4, 2), "shore_se": (4, 3),
         "stone_road_a": (3, 2), "stone_road_b": (3, 3),
         "earth_road_a": (0, 0), "earth_road_b": (1, 0),
         "dock_vertical": (3, 6), "dock_horizontal": (3, 5),
         "driftwood": (4, 5),
     }
-
+    # Directional overhead banks from a dedicated generated coast atlas.
+    # The cell number follows land orientation: N,E,S,W, then NW,NE,SW,SE.
     # Mountain slots must use dry rock cells. The generated source places its
     # shoreline and water in row 4 columns 0-3, so those cells are never used
     # for blocked terrain even though the previous row-major crop did so.
@@ -279,9 +284,21 @@ def normalize_tiles() -> dict:
         row, column = divmod(index, 8)
         if name in terrain_sources:
             row, column = terrain_sources[name]
+            tile = normalize_tile(source, row, column, 8, 16)
+            if name.startswith("shore_"):
+                coast_name_to_cell = {"shore_n": 0, "shore_e": 1, "shore_s": 2, "shore_w": 3,
+                                      "shore_nw": 4, "shore_ne": 5, "shore_sw": 6, "shore_se": 7}
+                cell = coast_name_to_cell[name]
+                coast_col, coast_row = cell % 4, cell // 4
+                x0, x1 = split_bounds(coast_source.width, 4, coast_col)
+                y0, y1 = split_bounds(coast_source.height, 2, coast_row)
+                tile = coast_source.crop((x0 + 2, y0 + 2, x1 - 2, y1 - 2)).resize(
+                    (32, 32), Image.Resampling.LANCZOS
+                ).convert("RGBA")
         elif name.startswith("mountain_"):
             row, column = mountain_sources[ord(name[-1]) - ord("a")]
-        tile = normalize_tile(source, row, column, 8, 16)
+        else:
+            tile = normalize_tile(source, row, column, 8, 16)
         if name == "dock_horizontal":
             _match_tile_edges(tile, "horizontal")
         elif name == "dock_vertical":
@@ -374,6 +391,7 @@ def normalize_tiles() -> dict:
     return {
         "source": str(source_path.relative_to(ROOT)),
         "source_sha256": sha256(source_path),
+        "extra_sources": [{"path": str(coast_source_path.relative_to(ROOT)), "sha256": sha256(coast_source_path)}],
         "tile_size": 32,
         "atlas_source_grid": [8, 16],
         "atlases": generated,

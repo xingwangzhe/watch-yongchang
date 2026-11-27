@@ -45,6 +45,8 @@ var _fullscreen_toggle: CheckButton
 var _fps_option: OptionButton
 var _vsync_toggle: CheckButton
 var _renderer_option: OptionButton
+var _orientation_option: OptionButton
+var _settings_close_button: Button
 var _renderer_status: Label
 var _renderer_restart_button: Button
 var _settings_note: Label
@@ -69,6 +71,7 @@ var _about_prewarm_timer: Timer
 var _binding_labels: Dictionary = {}
 var _capture_action := ""
 var web_platform_override := -1
+var _portrait_layout := false
 
 
 func _ready() -> void:
@@ -86,11 +89,83 @@ func _ready() -> void:
 	_sync_settings_controls()
 	_connect_signals()
 	_refresh_texts()
+	get_viewport().size_changed.connect(_apply_responsive_layout)
+	_apply_responsive_layout()
 	_update_stats()
 	_install_autosave_timer()
 	SaveSystem.autosave({"last_mode": "menu"})
 	AudioBus.resume_bgm()
 	_start_button.grab_focus()
+
+
+func _apply_responsive_layout(size_override: Vector2 = Vector2.ZERO, viewport_override: Vector2 = Vector2.ZERO) -> void:
+	if not is_instance_valid(_start_button) or not _start_button.is_inside_tree():
+		return
+	var size := size_override if size_override.x > 0.0 and size_override.y > 0.0 else Vector2(DisplayServer.window_get_size())
+	var viewport_size := viewport_override if viewport_override.x > 0.0 and viewport_override.y > 0.0 else get_viewport_rect().size
+	var portrait := size.y > size.x
+	if not portrait:
+		_portrait_layout = false
+		UILayout.scale_theme_fonts(self, 1.0)
+		$BrandMark.visible = true
+		$WatchPanel.visible = true
+		UILayout.place($Seal, 96.0, 110.0, 60.0, 84.0)
+		UILayout.place($TitleShadow, 178.0, 92.0, 1024.0, 64.0)
+		UILayout.place($Title, 174.0, 88.0, 1024.0, 64.0)
+		UILayout.place($Era, 180.0, 208.0, 1024.0, 64.0)
+		UILayout.place($Tagline, 182.0, 242.0, 1024.0, 64.0)
+		$TitleRule.position = Vector2(181.0, 286.0)
+		$TitleRule.size = Vector2(402.0, 1.0)
+		UILayout.place($BrandMark, 506.0, 294.0, 160.0, 20.0)
+		var normal_buttons: Array[Button] = [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]
+		for index in range(normal_buttons.size()):
+			var button := normal_buttons[index]
+			UILayout.place(button, 180.0, 300.0 + index * 46.0, 320.0, 44.0)
+			button.custom_minimum_size = Vector2(320.0, 48.0)
+		UILayout.place($Hint, 182.0, 644.0, 600.0, 24.0, 0.0, 1.0)
+		UILayout.place($Build, 1000.0, 674.0, 180.0, 20.0, 1.0, 1.0)
+		if is_instance_valid(_settings_panel):
+			UILayout.place(_settings_panel, 340.0, 40.0, 600.0, 640.0, 0.5, 0.0)
+			_settings_panel.custom_minimum_size = Vector2(600.0, 640.0)
+			_settings_close_button.custom_minimum_size = Vector2(42.0, 38.0)
+			_renderer_option.custom_minimum_size = Vector2(206.0, 36.0)
+			_orientation_option.custom_minimum_size = Vector2(206.0, 36.0)
+		return
+	_portrait_layout = true
+	var scale := UILayout.display_scale(viewport_size, size)
+	UILayout.scale_theme_fonts(self, 1.0 / scale)
+	var left := UILayout.display_units(22.0, scale)
+	var width := UILayout.display_units(maxf(220.0, size.x - 44.0), scale)
+	# Keep a single readable column in portrait; the right-side status panel disappears.
+	UILayout.place($Seal, left, UILayout.display_units(24.0, scale), UILayout.display_units(42.0, scale), UILayout.display_units(58.0, scale))
+	UILayout.place($TitleShadow, left + UILayout.display_units(56.0, scale), UILayout.display_units(16.0, scale), UILayout.display_units(300.0, scale), UILayout.display_units(70.0, scale))
+	UILayout.place($Title, left + UILayout.display_units(52.0, scale), UILayout.display_units(12.0, scale), UILayout.display_units(300.0, scale), UILayout.display_units(70.0, scale))
+	$Era.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	$Tagline.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UILayout.place($Era, left, UILayout.display_units(96.0, scale), width, UILayout.display_units(34.0, scale))
+	UILayout.place($Tagline, left, UILayout.display_units(134.0, scale), width, UILayout.display_units(48.0, scale))
+	$TitleRule.position = Vector2(left, UILayout.display_units(190.0, scale))
+	$TitleRule.size = Vector2(width, UILayout.display_units(1.0, scale))
+	$BrandMark.visible = false
+	$WatchPanel.visible = false
+	var buttons: Array[Button] = [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]
+	var top := 210.0
+	var button_h := 50.0
+	var gap := 7.0
+	for index in range(buttons.size()):
+		var button := buttons[index]
+		UILayout.place(button, left, UILayout.display_units(top + index * (button_h + gap), scale), width, UILayout.display_units(button_h, scale))
+		button.custom_minimum_size = Vector2(width, UILayout.display_units(button_h, scale))
+	UILayout.place($Hint, left, UILayout.display_units(size.y - 118.0, scale), width, UILayout.display_units(24.0, scale))
+	UILayout.place($Build, left, UILayout.display_units(size.y - 82.0, scale), width, UILayout.display_units(20.0, scale))
+	$Build.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	if is_instance_valid(_settings_panel):
+		var panel_size := Vector2(UILayout.display_units(size.x - 24.0, scale), UILayout.display_units(size.y - 56.0, scale))
+		UILayout.place(_settings_panel, UILayout.display_units(12.0, scale), UILayout.display_units(28.0, scale), panel_size.x, panel_size.y)
+		_settings_panel.custom_minimum_size = panel_size
+		_settings_close_button.custom_minimum_size = Vector2(UILayout.display_units(42.0, scale), UILayout.display_units(42.0, scale))
+		_renderer_option.custom_minimum_size.x = UILayout.display_units(180.0, scale)
+		_orientation_option.custom_minimum_size = Vector2(UILayout.display_units(180.0, scale), UILayout.display_units(38.0, scale))
 
 
 func open_settings() -> void:
@@ -397,9 +472,9 @@ func _build_settings_overlay() -> void:
 	var header_spacer := Control.new()
 	header_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(header_spacer)
-	var close_button := _make_text_button("CloseButton", "×", 30, Vector2(42.0, 38.0))
-	close_button.pressed.connect(close_settings)
-	header.add_child(close_button)
+	_settings_close_button = _make_text_button("CloseButton", "×", 30, Vector2(42.0, 38.0))
+	_settings_close_button.pressed.connect(close_settings)
+	header.add_child(_settings_close_button)
 
 	column.add_child(_rule())
 
@@ -475,6 +550,18 @@ func _build_settings_overlay() -> void:
 	_renderer_restart_button.pressed.connect(_on_restart_renderer_pressed)
 	renderer_status_row.add_child(_renderer_restart_button)
 	column.add_child(renderer_status_row)
+
+	_orientation_option = OptionButton.new()
+	_orientation_option.name = "WebOrientationOption"
+	_orientation_option.add_item(Locale.t("settings.orientation_portrait"))
+	_orientation_option.add_item(Locale.t("settings.orientation_landscape"))
+	_orientation_option.item_selected.connect(_on_web_orientation_selected)
+	# Expose orientation preference on every Web build. Touch detection can arrive late
+	# in embedded WebViews, and screen orientation locking remains best effort.
+	_orientation_option.visible = GameSettings.is_web_platform()
+	UIControls.apply_option(_orientation_option)
+	_setting_row(column, "settings.orientation", _orientation_option)
+	column.get_child(column.get_child_count() - 1).visible = _orientation_option.visible
 
 	_language_option = OptionButton.new()
 	_language_option.name = "LanguageOption"
@@ -926,7 +1013,7 @@ func _on_web_reload_pressed() -> void:
 
 
 func _on_web_repository_pressed() -> void:
-	if not ProjectMeta.repo_url.is_empty():
+	if not OS.has_feature("baidu_h5") and not ProjectMeta.repo_url.is_empty():
 		OS.shell_open(ProjectMeta.repo_url)
 
 
@@ -937,7 +1024,7 @@ func _refresh_web_exit_texts() -> void:
 	_web_exit_body.text = Locale.t("web_exit.body")
 	_web_exit_reload_button.text = Locale.t("web_exit.reload")
 	_web_exit_repo_button.text = Locale.t("web_exit.repository")
-	_web_exit_repo_button.disabled = ProjectMeta.repo_url.is_empty()
+	_web_exit_repo_button.disabled = OS.has_feature("baidu_h5") or ProjectMeta.repo_url.is_empty()
 	_web_exit_dismiss_button.text = Locale.t("web_exit.dismiss")
 
 
@@ -1000,6 +1087,11 @@ func _on_renderer_selected(index: int) -> void:
 	SaveSystem.autosave({"settings": GameSettings.to_dict()})
 
 
+func _on_web_orientation_selected(index: int) -> void:
+	GameSettings.set_web_orientation("portrait" if index == 0 else "landscape")
+	SaveSystem.autosave({"settings": GameSettings.to_dict()})
+
+
 func _on_restart_renderer_pressed() -> void:
 	if GameSettings.restart_with_renderer():
 		return
@@ -1029,6 +1121,9 @@ func _refresh_texts() -> void:
 		_controls_settings_button.text = Locale.t("settings.controls")
 	if is_instance_valid(_controls_done):
 		_controls_done.text = Locale.t("controls.done")
+	if is_instance_valid(_orientation_option):
+		_orientation_option.set_item_text(0, Locale.t("settings.orientation_portrait"))
+		_orientation_option.set_item_text(1, Locale.t("settings.orientation_landscape"))
 	_refresh_controls_texts()
 	_refresh_settings_note()
 	_fullscreen_toggle.text = Locale.t("settings.on" if GameSettings.fullscreen else "settings.off")
@@ -1058,6 +1153,8 @@ func _sync_settings_controls() -> void:
 	_refresh_renderer_texts()
 	_update_renderer_status()
 	_refresh_settings_note()
+	if is_instance_valid(_orientation_option):
+		_orientation_option.select(0 if GameSettings.web_orientation == "portrait" else 1)
 	_language_option.selected = 0 if Locale.current == "zh" else 1
 
 

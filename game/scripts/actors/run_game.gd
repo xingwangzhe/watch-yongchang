@@ -3,6 +3,7 @@ extends Node2D
 const FIXED_STEP := 1.0 / 60.0
 const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
+const PORTRAIT_CAMERA_ZOOM := 0.62
 const ATTACK_BUFFER_DURATION := 0.18
 const PLAYER_FACING_X_DEADZONE := 0.20
 const HUD_REFRESH_INTERVAL := 0.10
@@ -42,6 +43,10 @@ const MUTED := Color("#baa98a")
 const GOLD := Color("#e1b35a")
 const VERMILION := Color("#c05a41")
 const GDA_CALLABLE := ["debug_prepare_capture"]
+const BATTLEFIELD_SCENE := preload("res://scenes/components/battlefield.tscn")
+const DEBUG_PANEL_SCENE := preload("res://scenes/components/battle_debug_panel.tscn")
+const HUD_SCENE := preload("res://scenes/components/run_hud.tscn")
+const BAIDU_TOUCH_CONTROLS_SCENE := preload("res://scenes/components/baidu_run_touch_controls.tscn")
 const TOWER_SLOTS := [
 	Vector2(-250, -120), Vector2(250, -120), Vector2(-300, 150),
 	Vector2(300, 150), Vector2(0, -290), Vector2(-390, 20), Vector2(390, 20),
@@ -165,6 +170,7 @@ var _run_started := false
 var _tutorial_first_run := false
 var _gameplay_cursor: Texture2D
 var _gameplay_cursor_active := false
+var debug_panel: CanvasLayer
 
 
 func _ready() -> void:
@@ -210,6 +216,20 @@ func _process(delta: float) -> void:
 		var hud_started := Time.get_ticks_usec()
 		hud.update_hud(_hud_state())
 		_last_hud_usec = Time.get_ticks_usec() - hud_started
+		if is_instance_valid(debug_panel):
+			debug_panel.call("update_metrics", {
+				"fps": Engine.get_frames_per_second(),
+				"frame_ms": delta * 1000.0,
+				"steps": _last_steps,
+				"max_steps": max_steps,
+				"enemies": battlefield.alive_count(),
+				"world_ms": float(_last_world_usec) / 1000.0,
+				"flow_ms": float(_last_flow_usec) / 1000.0,
+				"hud_ms": float(_last_hud_usec) / 1000.0,
+				"draw_calls": Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+				"objects": Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+				"elapsed": elapsed,
+			})
 	_publish_web_perf(delta)
 
 
@@ -218,7 +238,7 @@ func max_catchup_steps() -> int:
 
 
 func _enable_web_perf_probe() -> void:
-	if not OS.has_feature("web"):
+	if not OS.has_feature("web") or OS.has_feature("baidu_h5"):
 		return
 	_web_perf_probe = bool(JavaScriptBridge.eval(
 		"new URLSearchParams(location.search).has('perf')",
@@ -227,7 +247,7 @@ func _enable_web_perf_probe() -> void:
 
 
 func _publish_web_perf(delta: float) -> void:
-	if not _web_perf_probe:
+	if not _web_perf_probe or OS.has_feature("baidu_h5"):
 		return
 	_web_perf_timer -= delta
 	if _web_perf_timer > 0.0:
@@ -399,7 +419,7 @@ func _load_data() -> void:
 
 
 func _build_world() -> void:
-	battlefield = Battlefield.new()
+	battlefield = BATTLEFIELD_SCENE.instantiate() as Battlefield
 	battlefield.name = "Battlefield"
 	add_child(battlefield)
 	battlefield.setup(_world_seed, map_def)
@@ -431,11 +451,17 @@ func _build_world() -> void:
 
 
 func _build_ui() -> void:
-	hud = RunHUD.new()
+	debug_panel = DEBUG_PANEL_SCENE.instantiate() as CanvasLayer
+	debug_panel.name = "BattleDebugPanel"
+	add_child(debug_panel)
+	hud = HUD_SCENE.instantiate() as RunHUD
 	hud.name = "HUD"
 	add_child(hud)
 	hud.bind_world(battlefield, map_def, camera)
-	touch_controls = TouchControls.new()
+	if OS.has_feature("baidu_h5"):
+		touch_controls = BAIDU_TOUCH_CONTROLS_SCENE.instantiate() as TouchControls
+	else:
+		touch_controls = TouchControls.new()
 	hud.add_child(touch_controls)
 	touch_controls.dash_requested.connect(_on_touch_dash_requested)
 	touch_controls.attack_pressed.connect(_on_touch_attack_pressed)
@@ -2552,6 +2578,10 @@ func _exit_tree() -> void:
 func _update_camera(delta: float) -> void:
 	if not is_instance_valid(camera):
 		return
+	var viewport_size := get_viewport_rect().size
+	var target_zoom := PORTRAIT_CAMERA_ZOOM if viewport_size.y > viewport_size.x else 1.0
+	var zoom_blend := clampf(1.0 - exp(-8.0 * delta), 0.0, 1.0)
+	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, zoom_blend)
 	var target := player["pos"] as Vector2
 	var blend := 1.0 - exp(-12.0 * delta)
 	camera.position = camera.position.lerp(target, clampf(blend, 0.0, 1.0))
@@ -2560,6 +2590,8 @@ func _update_camera(delta: float) -> void:
 
 
 func debug_prepare_capture(mode: String, page: int = 0) -> Dictionary:
+	battlefield.reset(20261127)
+	_towers_built = 0
 	story.visible = false
 	tutorial_overlay.visible = false
 	_tutorial_first_run = false
@@ -2575,7 +2607,7 @@ func debug_prepare_capture(mode: String, page: int = 0) -> Dictionary:
 	_paused = false
 	_event_line_index = _event_lines.size()
 	_scale_event_index = _scale_events.size()
-	elapsed = maxf(elapsed, 480.0)
+	elapsed = 480.0
 	_next_shop_time = elapsed + 99999.0
 	var capture_center := battlefield.player_spawn_position()
 	player["pos"] = capture_center

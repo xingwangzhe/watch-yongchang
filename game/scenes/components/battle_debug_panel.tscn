@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/battle_debug_panel.gd" id="1_debug"]
+
+[node name="BattleDebugPanel" type="CanvasLayer"]
+layer = 30
+script = ExtResource("1_debug")
+
+[node name="Panel" type="PanelContainer" parent="."]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 330.0
+offset_bottom = 156.0
+
+[node name="Rows" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 3
+
+[node name="Title" type="Label" parent="Panel/Rows"]
+layout_mode = 2
+text = "DEBUG · F3"
+
+[node name="Frame" type="Label" parent="Panel/Rows"]
+layout_mode = 2
+text = "FPS — | frame — ms"
+
+[node name="Simulation" type="Label" parent="Panel/Rows"]
+layout_mode = 2
+text = "steps — | enemies —"
+
+[node name="Work" type="Label" parent="Panel/Rows"]
+layout_mode = 2
+text = "world — ms | flow — ms | HUD — ms"
+
+[node name="Render" type="Label" parent="Panel/Rows"]
+layout_mode = 2
+text = "draw — | objects — | elapsed — s"

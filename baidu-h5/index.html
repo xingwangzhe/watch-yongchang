@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#101a1d">
+  <title>永昌守灯</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; background: #101a1d; color: #f5e9ca; }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation; }
+    #stage { position: fixed; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; background: radial-gradient(ellipse at 50% 46%, #53644c 0, #344b43 55%, #243c39 100%); }
+    #field { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; }
+    #hud { position: absolute; top: 44px; top: max(env(safe-area-inset-top), 44px); left: 12px; right: 12px; pointer-events: none; text-shadow: 0 2px 2px #101a1d; }
+    #title { font-size: 14px; letter-spacing: .18em; color: #e5c879; }
+    #status { margin-top: 7px; font-size: 13px; display: flex; gap: 12px; flex-wrap: wrap; }
+    #health { color: #ef9b81; }
+    #guide, #result { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 88%; max-width: 380px; border: 1px solid #d9bd74; border-radius: 16px; padding: 22px; background: #101a1de8; box-shadow: 0 14px 50px #071013a8; text-align: center; }
+    #guide h1, #result h2 { color: #e8ca7e; margin: 0 0 10px; font-size: 24px; }
+    #guide p, #result p { line-height: 1.7; margin: 0 0 16px; color: #eadfc4; font-size: 14px; }
+    button { font: inherit; touch-action: manipulation; color: #17211d; background: #e4c56e; border: 0; border-radius: 999px; padding: 12px 22px; font-weight: 700; }
+    #controls { position: absolute; left: 0; right: 0; bottom: 0; height: 210px; pointer-events: none; }
+    .pad { position: absolute; border: 2px solid #edd58d99; background: #14211d7a; border-radius: 50%; pointer-events: auto; touch-action: none; }
+    #stick { width: 132px; height: 132px; left: 72px; bottom: 110px; }
+    #nub { position: absolute; left: 50%; top: 50%; width: 48px; height: 48px; margin: -24px; border-radius: 50%; background: #e4c56eaa; border: 2px solid #f2dfa8; }
+    .action { width: 72px; height: 72px; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+    #attack { right: 24px; bottom: 120px; background: #9c40356e; border-color: #ffad90; }
+    #dash { right: 108px; bottom: 174px; width: 58px; height: 58px; background: #80653b80; }
+    #auto { right: 24px; top: 88px; bottom: auto; width: 58px; height: 58px; background: #526e647d; }
+    [hidden] { display: none !important; }
+    @media (min-width: 840px) { #stick { left: 18vw; } #attack { right: 18vw; } #dash { right: calc(18vw + 82px); } #auto { right: calc(18vw + 82px); } }
+    @media (orientation: landscape) { #guide, #result { width: 52%; max-width: 340px; padding: 14px; } #guide h1, #result h2 { font-size: 20px; margin-bottom: 7px; } #guide p, #result p { font-size: 12px; line-height: 1.45; margin-bottom: 9px; } #guide button, #result button { padding: 9px 18px; } #stick { left: 72px; } #dash { right: 104px; bottom: 156px; } #auto { right: 24px; top: 88px; bottom: auto; } }
+  </style>
+</head>
+<body>
+  <main id="stage" aria-label="永昌守灯游戏">
+    <canvas id="field" aria-label="巡夜战场"></canvas>
+    <header id="hud"><div id="title">永昌守灯 · 巡夜</div><div id="status"><span id="clock">守夜 00:00</span><span id="score">击退 0</span><span id="health">灯火 5</span></div></header>
+    <section id="guide"><h1>守住这一盏灯</h1><p>移动巡夜，击退来犯的倭寇。撑过 60 秒，守灯成功。左侧摇杆移动，右侧攻击；冲刺可暂时脱围。</p><button id="start">开始守夜</button></section>
+    <section id="result" hidden><h2 id="result-title">守夜结束</h2><p id="result-copy"></p><button id="restart">再守一夜</button></section>
+    <div id="controls" aria-label="触摸操作"><div id="stick" class="pad" aria-label="移动摇杆"><i id="nub"></i></div><button id="dash" class="pad action" aria-label="冲刺">冲刺</button><button id="auto" class="pad action" aria-label="自动攻击">自动</button><button id="attack" class="pad action" aria-label="攻击">攻击</button></div>
+  </main>
+  <script src="./game.js"></script>
+</body>
+</html>

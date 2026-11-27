@@ -33,7 +33,10 @@ func test_actor_catalogs_point_only_to_complete_character_atlases() -> void:
 			assert_true(str(actor.get("sprite_sheet", "")).begins_with("res://assets/units/full_sheets/"))
 			assert_eq(int(actor.get("sprite_columns", 0)), 8)
 			assert_gte(int(actor.get("sprite_rows", 0)), 3)
-			assert_true(ResourceLoader.exists(str(actor.get("attack_sheet", ""))))
+			if path.ends_with("enemies.json"):
+				assert_false(actor.has("attack_sheet"), "%s must keep its enemy identity in every attack frame" % actor_id)
+			else:
+				assert_true(ResourceLoader.exists(str(actor.get("attack_sheet", ""))))
 			assert_false(actor.has("runtime_visuals"), "%s must not select legacy baked variants" % actor_id)
 
 

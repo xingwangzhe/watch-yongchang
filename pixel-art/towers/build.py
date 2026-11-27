@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 
 from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[2]
-SOURCE = ROOT / "pixel-art/renewed_composable/source/watchtowers.png"
+sys.path.insert(0, str(ROOT / "pixel-art/overhead_buildings"))
+from build import remove_connected_background
+SOURCE = ROOT / "pixel-art/overhead_buildings/source/towers_atlas.png"
 WEAPON_SOURCE = ROOT / "pixel-art/renewed_composable/source/weapon_props.png"
 DATA = ROOT / "game/data/towers.json"
 OUT = ROOT / "game/assets/units/towers"
@@ -52,7 +55,7 @@ def _remove_key(image: Image.Image) -> Image.Image:
 
 
 def _fit_tower(cell: Image.Image) -> Image.Image:
-    keyed = _remove_key(cell)
+    keyed = remove_connected_background(cell)
     bbox = keyed.getchannel("A").getbbox()
     if bbox is None:
         raise ValueError("tower cell has no opaque pixels after chroma removal")
@@ -115,12 +118,12 @@ def build() -> list[tuple[str, Image.Image]]:
         definition = definitions.get(tower_id)
         if not isinstance(definition, dict):
             raise ValueError(f"missing tower definition: {tower_id}")
-        if definition.get("art_source") != "pixel-art/renewed_composable/source/watchtowers.png":
+        if definition.get("art_source") != "pixel-art/overhead_buildings/source/towers_atlas.png":
             raise ValueError(f"{tower_id} does not declare the generated tower source")
         cell_index = int(definition.get("art_cell", -1))
-        if not 0 <= cell_index < 4:
+        if not 0 <= cell_index < 3:
             raise ValueError(f"invalid ImageGen source cell for {tower_id}: {cell_index}")
-        bounds = _grid_cell_bounds(source.width, source.height, 2, 2, cell_index)
+        bounds = _grid_cell_bounds(source.width, source.height, 3, 1, cell_index)
         result.append((tower_id, _fit_tower(source.crop(bounds))))
     return result
 

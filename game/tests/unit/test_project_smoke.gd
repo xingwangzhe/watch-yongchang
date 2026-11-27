@@ -30,12 +30,12 @@ func test_project_smoke_config() -> void:
 	)
 
 
-func test_mobile_web_requests_landscape_mode() -> void:
+func test_mobile_web_defaults_to_portrait_and_native_handheld_keeps_landscape() -> void:
 	var project := FileAccess.get_file_as_string("res://project.godot")
 	var presets := FileAccess.get_file_as_string("res://export_presets.cfg")
 	assert_string_contains(project, 'window/handheld/orientation="landscape"')
 	assert_string_contains(presets, 'progressive_web_app/enabled=true')
-	assert_string_contains(presets, 'progressive_web_app/orientation=1')
+	assert_string_contains(presets, 'progressive_web_app/orientation=0')
 	assert_string_contains(presets, 'viewport-fit=cover')
 
 

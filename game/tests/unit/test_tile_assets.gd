@@ -37,6 +37,45 @@ func test_map_layers_share_tileset_and_resolve_atlas_cells() -> void:
 		)
 
 
+func test_runtime_water_cells_use_declared_water_atlas_regions() -> void:
+	for map_id in WATER_MAP_IDS:
+		var definition := (GameData.get_maps()[map_id] as Dictionary).duplicate(true)
+		var layout := MapLayout.new()
+		layout.setup(map_id, definition)
+		var renderer := MapRenderer.new()
+		add_child_autofree(renderer)
+		renderer.build(layout, definition, 20261127)
+		var tile_set: TileSet = renderer.terrain_layer.tile_set
+		var terrain_source_id := int(renderer._source_ids["terrain"])
+		var terrain_source := tile_set.get_source(terrain_source_id) as TileSetAtlasSource
+		assert_not_null(terrain_source, "%s water cells must use terrain atlas source" % map_id)
+		if terrain_source == null:
+			continue
+		assert_eq(terrain_source.texture_region_size, Vector2i(32, 32), "terrain cell region is 32px")
+		assert_eq(terrain_source.texture.get_width(), 256, "terrain atlas imported width")
+		assert_eq(terrain_source.texture.get_height(), 160, "terrain atlas imported height")
+		var imported_image := terrain_source.texture.get_image()
+		var source_image := Image.load_from_file(ProjectSettings.globalize_path("res://assets/tiles/full_sheets/terrain_atlas.png"))
+		assert_false(source_image.is_empty(), "terrain source PNG must load")
+		assert_eq(imported_image.get_data(), source_image.get_data(), "imported terrain pixels must match the source PNG")
+		var terrain_names: Array = (GameData.load_json(INDEX_PATH)["atlases"]["terrain"]["tiles"] as Array)
+		var water_count := 0
+		for cell in renderer.terrain_layer.get_used_cells():
+			if not layout.is_water_cell(cell) or layout.is_bridge_cell(cell) or layout.is_solid_cell(cell):
+				continue
+			water_count += 1
+			var source_id := renderer.terrain_layer.get_cell_source_id(cell)
+			var coords := renderer.terrain_layer.get_cell_atlas_coords(cell)
+			var tile_index := coords.y * 8 + coords.x
+			var tile_name := str(terrain_names[tile_index]) if tile_index >= 0 and tile_index < terrain_names.size() else "<out-of-range>"
+			assert_eq(source_id, terrain_source_id, "%s water cell must use terrain atlas source at %s" % [map_id, cell])
+			assert_true(
+				tile_name in ["water_shallow_a", "water_shallow_b", "water_deep_a", "water_deep_b", "shore_n", "shore_s", "shore_e", "shore_w", "shore_nw", "shore_ne", "shore_sw", "shore_se"],
+				"%s water cell %s resolved to %s at atlas %s" % [map_id, cell, tile_name, coords]
+			)
+		assert_gt(water_count, 0, "%s must render water cells" % map_id)
+
+
 func test_tile_atlases_match_declared_grid() -> void:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
 	assert_not_null(parsed, "tile index must parse")
@@ -103,6 +142,18 @@ func test_passability_tiles_exist_and_read_as_distinct_surfaces() -> void:
 			if water_palette.has(mountain.get_pixel(x, y)):
 				mountain_water_palette_pixels += 1
 	assert_gt(water_blue_pixels, 500, "water must read as a blue-green passable surface")
+	for tile_name in ["water_shallow_b", "water_deep_a", "water_deep_b"]:
+		var water_variant := _tile_image(parsed, "terrain", tile_name)
+		assert_not_null(water_variant, "%s must load" % tile_name)
+		if water_variant == null:
+			continue
+		var blue_pixels := 0
+		for y in 32:
+			for x in 32:
+				var color := water_variant.get_pixel(x, y)
+				if color.b > color.r + 0.1:
+					blue_pixels += 1
+		assert_gt(blue_pixels, 500, "%s must crop a blue-green water cell, not a bank or ground cell" % tile_name)
 	assert_eq(mountain_water_palette_pixels, 0, "mountain rock must not reuse the water palette")
 	assert_eq(mountain.get_pixel(0, 31).a, 1.0, "mountain must be opaque through its blocked footprint")
 
@@ -152,122 +203,129 @@ func test_water_networks_are_continuous_with_finished_shorelines() -> void:
 		add_child_autofree(renderer)
 		renderer.build(layout, definition, 20261123)
 		_assert_water_network(map_id, layout, renderer)
+		if not OS.get_environment("WATER_DEBUG").is_empty():
+			var used_counts := {}
+			var shore_cells := 0
+			var shore_on_water := 0
+			for cell in renderer.terrain_layer.get_used_cells():
+				var tile_name := renderer.terrain_tile_name(cell)
+				used_counts[tile_name] = int(used_counts.get(tile_name, 0)) + 1
+				if tile_name.begins_with("shore_"):
+					shore_cells += 1
+					if layout.is_water_cell(cell):
+						shore_on_water += 1
+			print("TERRAIN_USED %s shore=%d shore_on_water=%d names=%s" % [map_id, shore_cells, shore_on_water, used_counts])
 		_maybe_save_water_preview(map_id, layout, renderer, parsed)
 
 
-func test_roofs_read_warm_and_eaves_expose_a_visible_facade() -> void:
+func test_directional_bank_names_match_the_land_side() -> void:
+	var cases := [
+		{"directions": [Vector2i.UP], "expected": "shore_n"},
+		{"directions": [Vector2i.DOWN], "expected": "shore_s"},
+		{"directions": [Vector2i.LEFT], "expected": "shore_w"},
+		{"directions": [Vector2i.RIGHT], "expected": "shore_e"},
+		{"directions": [Vector2i.UP, Vector2i.LEFT], "expected": "shore_nw"},
+		{"directions": [Vector2i.UP, Vector2i.RIGHT], "expected": "shore_ne"},
+		{"directions": [Vector2i.DOWN, Vector2i.LEFT], "expected": "shore_sw"},
+		{"directions": [Vector2i.DOWN, Vector2i.RIGHT], "expected": "shore_se"},
+	]
+	var renderer := MapRenderer.new()
+	add_child_autofree(renderer)
+	for item in cases:
+		var directions: Array[Vector2i] = []
+		for direction in item["directions"]:
+			directions.append(direction as Vector2i)
+		assert_eq(
+			renderer._shore_tile_for(directions),
+			item["expected"],
+			"bank texture direction must match adjacent land: %s" % item
+		)
+
+
+func test_map_builds_place_complete_roof_sprites_and_directional_shorelines() -> void:
+	var maps := GameData.get_maps()
+	for map_id in maps:
+		var definition := (maps[map_id] as Dictionary).duplicate(true)
+		var layout := MapLayout.new()
+		layout.setup(str(map_id), definition)
+		var renderer := MapRenderer.new()
+		renderer.name = "BuildValidation_%s" % map_id
+		add_child_autofree(renderer)
+		renderer.build(layout, definition, 20261128)
+		var expected_roofs := 0
+		for area in layout.areas:
+			if area is Dictionary and str((area as Dictionary).get("kind", "")) == "building":
+				expected_roofs += 1
+		var placed_roofs := 0
+		for child in renderer.architecture_layer.get_children():
+			if child is not Sprite2D or not str((child as Sprite2D).name).begins_with("Overhead_"):
+				continue
+			placed_roofs += 1
+			var roof := child as Sprite2D
+			assert_not_null(roof.texture, "%s roof sprite texture must resolve" % map_id)
+			if roof.texture != null:
+				assert_gt(roof.scale.x, 0.0, "%s roof sprite must have positive width" % map_id)
+				assert_gt(roof.scale.y, 0.0, "%s roof sprite must have positive height" % map_id)
+		assert_eq(placed_roofs, expected_roofs, "%s must place one complete roof image per building" % map_id)
+		var terrain_names: Array = GameData.load_json(INDEX_PATH)["atlases"]["terrain"]["tiles"]
+		var shore_count := 0
+		for cell in renderer.terrain_layer.get_used_cells():
+			if not layout.is_water_cell(cell) or layout.is_bridge_cell(cell) or layout.is_solid_cell(cell):
+				continue
+			var directions: Array[Vector2i] = []
+			for direction in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+				var neighbor: Vector2i = cell + (direction as Vector2i)
+				if layout.cell_in_bounds(neighbor) and not layout.is_water_cell(neighbor) and not layout.is_bridge_cell(neighbor) and not layout.is_solid_cell(neighbor):
+					directions.append(direction as Vector2i)
+			var expected_bank := renderer._shore_tile_for(directions)
+			var coords := renderer.terrain_layer.get_cell_atlas_coords(cell)
+			var tile_index := coords.y * 8 + coords.x
+			var actual_name := str(terrain_names[tile_index]) if tile_index >= 0 and tile_index < terrain_names.size() else "<invalid>"
+			if expected_bank.is_empty():
+				assert_true(actual_name.begins_with("water_deep"), "%s interior water at %s must use deep water" % [map_id, cell])
+			else:
+				shore_count += 1
+				assert_eq(actual_name, expected_bank, "%s shoreline at %s must face land direction %s" % [map_id, cell, directions])
+		assert_gt(shore_count, 0, "%s map build must produce directional shoreline cells" % map_id)
+
+
+func test_overhead_building_sprites_are_registered_as_complete_images() -> void:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
 	assert_not_null(parsed, "tile index must parse")
 	if parsed == null:
 		return
-	var roof := _tile_image(parsed, "architecture", "roof_slope")
-	var eave := _tile_image(parsed, "architecture", "roof_eave")
-	var street := _tile_image(parsed, "terrain", "stone_road_a")
-	assert_not_null(roof, "roof slope must load")
-	assert_not_null(eave, "roof eave must load")
-	assert_not_null(street, "stone street must load")
-	if roof == null or eave == null or street == null:
-		return
-	var roof_average := _average_opaque_color(roof)
-	var street_average := _average_opaque_color(street)
-	assert_gt(
-		absf((roof_average.r - roof_average.b) - (street_average.r - street_average.b)),
-		0.03,
-		"slate roofs must stay visually distinct from stone paving"
-	)
-	assert_lt(
-		absf(street_average.b - street_average.r),
-		0.12,
-		"stone paving must keep its neutral grey palette"
-	)
-	var facade_pixels := 0
-	for y in range(23, 32):
-		for x in 32:
-			var color := eave.get_pixel(x, y)
-			if color.a > 0.9 and color.get_luminance() > 0.42:
-				facade_pixels += 1
-	assert_gt(facade_pixels, 48, "eave tile must expose a light plaster facade below the roof")
+	var sprites: Dictionary = parsed.get("building_sprites", {}) as Dictionary
+	assert_eq(sprites.size(), 4, "map styles must resolve to complete overhead sprites")
+	for style in ["house", "hall", "shop", "watch"]:
+		var path := str(sprites.get(style, ""))
+		assert_true(not path.is_empty(), "missing overhead sprite path for %s" % style)
+		if path.is_empty():
+			continue
+		var image := Image.new()
+		var error := image.load(ProjectSettings.globalize_path(path))
+		assert_eq(error, OK, "overhead sprite must load from %s" % path)
+		if error != OK:
+			continue
+		assert_gte(image.get_width(), 160, "complete roof sprite must keep usable detail")
+		assert_gte(image.get_height(), 160, "complete roof sprite must keep usable detail")
+		var transparent_pixels := 0
+		for y in image.get_height():
+			for x in image.get_width():
+				if image.get_pixel(x, y).a < 0.1:
+					transparent_pixels += 1
+		assert_gt(transparent_pixels, 0, "generated roof cutout must discard checkerboard background")
 
-
-func test_roof_variants_and_door_eave_keep_distinct_silhouettes() -> void:
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
-	assert_not_null(parsed, "tile index must parse")
-	if parsed == null:
-		return
-	var architecture: Dictionary = parsed["atlases"]["architecture"]
-	var names: Array = architecture["tiles"]
-	for tile_name in [
-		"roof_slope_b", "roof_slope_c", "roof_eave_b", "roof_eave_door",
-		"hall_roof_ridge", "hall_roof_slope", "hall_roof_eave", "hall_roof_corner",
-		"roof_verge", "roof_hip_left", "roof_hip_right",
-		"hall_roof_verge", "hall_roof_hip_left", "hall_roof_hip_right",
-		"roof_eave_shop", "roof_verge_b",
-	]:
-		assert_true(names.has(tile_name), "architecture atlas must expose %s" % tile_name)
-	var slope_a := _tile_image(parsed, "architecture", "roof_slope")
-	var slope_b := _tile_image(parsed, "architecture", "roof_slope_b")
-	var slope_c := _tile_image(parsed, "architecture", "roof_slope_c")
-	var door_eave := _tile_image(parsed, "architecture", "roof_eave_door")
-	var hall_eave := _tile_image(parsed, "architecture", "hall_roof_eave")
-	for image: Image in [slope_a, slope_b, slope_c, door_eave, hall_eave]:
-		assert_not_null(image, "roof variant tile must load")
-	if slope_a == null or slope_b == null or slope_c == null or door_eave == null or hall_eave == null:
-		return
-	assert_ne(slope_a.get_data(), slope_b.get_data(), "roof variants must not be duplicates")
-	assert_ne(slope_a.get_data(), slope_c.get_data(), "weathered roof variant must differ")
-	var red_door_pixels := 0
-	for y in range(22, 32):
-		for x in range(10, 22):
-			var color := door_eave.get_pixel(x, y)
-			if color.r > color.g * 1.45 and color.r > color.b * 1.45:
-				red_door_pixels += 1
-	assert_gt(red_door_pixels, 8, "door eave must keep the dark wooden door readable below its roof")
-	var hall_red_pixels := 0
-	for y in 32:
-		for x in 32:
-			var color := hall_eave.get_pixel(x, y)
-			if color.r > color.g * 1.35 and color.r > color.b * 1.30:
-				hall_red_pixels += 1
-	assert_gt(hall_red_pixels, 12, "hall eave must expose red timber columns")
-
-
-func test_roof_verge_side_wall_and_shop_eave_create_depth() -> void:
-	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(INDEX_PATH))
-	assert_not_null(parsed, "tile index must parse")
-	if parsed == null:
-		return
-	var verge := _tile_image(parsed, "architecture", "roof_verge")
-	var hip_left := _tile_image(parsed, "architecture", "roof_hip_left")
-	var hip_right := _tile_image(parsed, "architecture", "roof_hip_right")
-	var side_wall := _tile_image(parsed, "architecture", "gable_left")
-	var shop_eave := _tile_image(parsed, "architecture", "roof_eave_shop")
-	for image: Image in [verge, hip_left, hip_right, side_wall, shop_eave]:
-		assert_not_null(image, "depth roof tile must load")
-	if verge == null or hip_left == null or hip_right == null or side_wall == null or shop_eave == null:
-		return
-	assert_ne(hip_left.get_data(), hip_right.get_data(), "roof hips must be mirrored, not duplicated")
-	var verge_plaster := 0
-	for y in range(20, 32):
-		for x in 32:
-			var color := verge.get_pixel(x, y)
-			if color.a > 0.9 and color.g > 0.62 and color.b > 0.47:
-				verge_plaster += 1
-	assert_lt(verge_plaster, 12, "north roof verge must not read as another white facade")
-	var side_wall_plaster := 0
-	for y in 32:
-		for x in 32:
-			var color := side_wall.get_pixel(x, y)
-			if color.a > 0.9 and color.get_luminance() > 0.48:
-				side_wall_plaster += 1
-	assert_gt(side_wall_plaster, 48, "side wall must keep a readable plaster reveal")
-	assert_lt(side_wall_plaster, 450, "side wall reveal must leave most of the cell as roof volume")
-	var awning_pixels := 0
-	for y in range(18, 25):
-		for x in 32:
-			var color := shop_eave.get_pixel(x, y)
-			if color.r > color.g * 1.25 and color.r > color.b * 1.2:
-				awning_pixels += 1
-	assert_gt(awning_pixels, 28, "shop eave must expose a warm awning above the storefront")
+	var shore_names := ["shore_n", "shore_s", "shore_e", "shore_w", "shore_nw", "shore_ne", "shore_sw", "shore_se"]
+	var shore_images: Array[Image] = []
+	for shore_name in shore_names:
+		var shore := _tile_image(parsed, "terrain", shore_name)
+		assert_not_null(shore, "directional riverbank tile must load: %s" % shore_name)
+		if shore != null:
+			shore_images.append(shore)
+	assert_eq(shore_images.size(), 8, "all eight shoreline directions must be present")
+	for left in range(shore_images.size()):
+		for right in range(left + 1, shore_images.size()):
+			assert_ne(shore_images[left].get_data(), shore_images[right].get_data(), "riverbank directions must not reuse the same image")
 
 
 func test_animated_props_match_declared_grid() -> void:
@@ -374,16 +432,17 @@ func _assert_water_network(map_id: String, layout: MapLayout, renderer: MapRende
 	var tile_counts := {}
 	for cell in water_cells:
 		var cardinal_water := 0
-		var shoreline := false
+		var land_directions: Array[Vector2i] = []
 		for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
-			var neighbor := cell + (direction as Vector2i)
+			var neighbor: Vector2i = cell + (direction as Vector2i)
 			if layout.is_water_cell(neighbor):
 				cardinal_water += 1
 			elif (
 				layout.cell_in_bounds(neighbor)
 				and not layout.is_bridge_cell(neighbor)
+				and not layout.is_solid_cell(neighbor)
 			):
-				shoreline = true
+				land_directions.append(direction as Vector2i)
 		assert_gte(
 			cardinal_water,
 			2,
@@ -393,16 +452,11 @@ func _assert_water_network(map_id: String, layout: MapLayout, renderer: MapRende
 			continue
 		var tile_name := renderer.terrain_tile_name(cell)
 		tile_counts[tile_name] = int(tile_counts.get(tile_name, 0)) + 1
-		if shoreline:
-			assert_true(
-				tile_name.begins_with("shore_") or tile_name.begins_with("water_shallow"),
-				"%s shoreline at %s must use shallow/shore art, got %s" % [map_id, cell, tile_name]
-			)
+		var expected_bank := renderer._shore_tile_for(land_directions)
+		if expected_bank.is_empty():
+			assert_true(tile_name.begins_with("water_deep"), "%s interior water at %s must use deep-water art, got %s" % [map_id, cell, tile_name])
 		else:
-			assert_true(
-				tile_name.begins_with("water_deep"),
-				"%s water interior at %s must stay deep, got %s" % [map_id, cell, tile_name]
-			)
+			assert_eq(tile_name, expected_bank, "%s bank at %s must face its adjacent land" % [map_id, cell])
 		var minimap_color := minimap.get_pixel(cell.x, cell.y)
 		assert_true(
 			minimap_color.is_equal_approx(deep_color) or minimap_color.is_equal_approx(shallow_color),

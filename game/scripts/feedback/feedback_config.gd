@@ -47,16 +47,16 @@ extends Resource
 
 @export_group("6 相机震动 Trauma")
 @export var shake_enabled: bool = true
-@export_range(0.0, 0.30, 0.005) var shake_light_trauma: float = 0.035
-@export_range(0.0, 0.60, 0.005) var shake_heavy_trauma: float = 0.16
+@export_range(0.0, 0.30, 0.005) var shake_light_trauma: float = 0.16
+@export_range(0.0, 0.60, 0.005) var shake_heavy_trauma: float = 0.34
 @export_range(0.5, 6.0, 0.1) var shake_decay: float = 1.8
 @export_range(0.0, 24.0, 0.5) var shake_offset_max: float = 8.0
 @export_range(1.0, 60.0, 1.0) var shake_noise_frequency: float = 18.0
 
-@export_group("7 Hitstop 默认关闭")
-@export var hitstop_enabled: bool = false
-@export_range(0.0, 0.03, 0.001) var hitstop_heavy_duration: float = 0.0
-@export_range(0.0, 0.03, 0.001) var hitstop_boss_duration: float = 0.018
+@export_group("7 重击 Hitstop")
+@export var hitstop_enabled: bool = true
+@export_range(0.0, 0.03, 0.001) var hitstop_heavy_duration: float = 0.012
+@export_range(0.0, 0.03, 0.001) var hitstop_boss_duration: float = 0.024
 
 @export_group("8 冲击环与镜头微缩")
 @export var pop_enabled: bool = true

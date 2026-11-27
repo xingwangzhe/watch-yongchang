@@ -3974,6 +3974,12 @@
   "tile_sheets": {
     "source": "pixel-art/full_composed_atlas/source/fort_atlas.png",
     "source_sha256": "6f428a511cebad4d7e4bf5535ee56a4bb799a9ce2a61b9dda9c27bc6a1615c8c",
+    "extra_sources": [
+      {
+        "path": "pixel-art/overhead_buildings/source/coast_atlas.png",
+        "sha256": "2716f84c215d9ce6bab733a31ac1dff0b963aa3907aff24d184941c402f2a1c9"
+      }
+    ],
     "tile_size": 32,
     "atlas_source_grid": [
       8,
@@ -3986,7 +3992,7 @@
           256,
           160
         ],
-        "bytes": 93203
+        "bytes": 73997
       },
       "architecture_atlas": {
         "png": "assets/tiles/full_sheets/architecture_atlas.png",

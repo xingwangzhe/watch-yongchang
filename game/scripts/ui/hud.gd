@@ -58,6 +58,56 @@ var _last_boss_visible := false
 func _ready() -> void:
 	layer = 5
 	_build()
+	get_viewport().size_changed.connect(_apply_responsive_layout)
+	_apply_responsive_layout()
+
+
+func _apply_responsive_layout() -> void:
+	if not is_instance_valid(_root) or not _root.is_inside_tree():
+		return
+	var viewport_size := _root.get_viewport_rect().size
+	var size := Vector2(DisplayServer.window_get_size())
+	if size.x >= size.y:
+		UILayout.scale_theme_fonts(_root, 1.0)
+		UILayout.place(_root.get_node("TopLeftChip"), 14, 10, 292, 54)
+		UILayout.place(_root.get_node("AttackModeChip"), 14, 72, 292, 42)
+		UILayout.place(_root.get_node("TimerChip"), 520, 10, 240, 50, 0.5, 0.0)
+		UILayout.place(_root.get_node("ScoreChip"), 846, 10, 198, 52)
+		_minimap.visible = true
+		UILayout.place(_minimap, 1054, 10, 212, 144, 1.0, 0.0)
+		UILayout.place(_root.get_node("OilChip"), 14, 658, 182, 44, 0.0, 1.0)
+		UILayout.place(_root.get_node("ScaleChip"), 202, 658, 168, 44, 0.0, 1.0)
+		var landscape_weapon_row := _root.get_node("WeaponRow") as Control
+		landscape_weapon_row.scale = Vector2.ONE
+		UILayout.place(landscape_weapon_row, 377.5, 650, 625, 48, 0.5, 1.0)
+		UILayout.place(_passive_label, 190, 624, 900, 20, 0.5, 1.0)
+		_root.get_node("BuildChip").visible = true
+		UILayout.place(_root.get_node("BuildChip"), 1036, 660, 230, 38, 1.0, 1.0)
+		_move_hint.visible = true
+		UILayout.place(_move_hint, 14, 704, 420, 16, 0.0, 1.0)
+		UILayout.place(_banner_panel, 424, 112, 432, 92, 0.5, 0.0)
+		UILayout.place(_boss_panel, 390, 96, 500, 62, 0.5, 0.0)
+		return
+	# Portrait web layout: keep primary status in a compact top stack and reserve the
+	# lower screen for movement/attack controls. Minimap and secondary build text hide.
+	var scale := UILayout.display_scale(viewport_size, size)
+	var full_width := UILayout.display_units(maxf(180.0, size.x - 24.0), scale)
+	UILayout.scale_theme_fonts(_root, 1.0 / scale)
+	UILayout.place(_root.get_node("TopLeftChip"), UILayout.display_units(12, scale), UILayout.display_units(10, scale), full_width, UILayout.display_units(54, scale))
+	UILayout.place(_root.get_node("AttackModeChip"), UILayout.display_units(12, scale), UILayout.display_units(70, scale), full_width, UILayout.display_units(42, scale))
+	UILayout.place(_root.get_node("TimerChip"), UILayout.display_units((size.x - 240.0) * 0.5, scale), UILayout.display_units(118, scale), UILayout.display_units(240, scale), UILayout.display_units(48, scale))
+	UILayout.place(_root.get_node("ScoreChip"), UILayout.display_units(12, scale), UILayout.display_units(170, scale), full_width, UILayout.display_units(58, scale))
+	_minimap.visible = false
+	UILayout.place(_root.get_node("OilChip"), UILayout.display_units(12, scale), UILayout.display_units(236, scale), full_width, UILayout.display_units(44, scale))
+	UILayout.place(_root.get_node("ScaleChip"), UILayout.display_units(12, scale), UILayout.display_units(284, scale), full_width, UILayout.display_units(44, scale))
+	var weapon_row := _root.get_node("WeaponRow") as Control
+	weapon_row.scale = Vector2(0.84, 0.84)
+	UILayout.place(weapon_row, UILayout.display_units((size.x - 525.0) * 0.5, scale), UILayout.display_units(size.y - 58.0, scale), UILayout.display_units(625, scale), UILayout.display_units(48, scale))
+	UILayout.place(_passive_label, UILayout.display_units(8, scale), UILayout.display_units(332, scale), UILayout.display_units(size.x - 16.0, scale), UILayout.display_units(20, scale))
+	_root.get_node("BuildChip").visible = false
+	_move_hint.visible = false
+	UILayout.place(_banner_panel, UILayout.display_units(8, scale), UILayout.display_units(240, scale), UILayout.display_units(size.x - 16.0, scale), UILayout.display_units(92, scale))
+	UILayout.place(_boss_panel, UILayout.display_units(8, scale), UILayout.display_units(440, scale), UILayout.display_units(size.x - 16.0, scale), UILayout.display_units(62, scale))
 
 
 func update_hud(state: Dictionary) -> void:

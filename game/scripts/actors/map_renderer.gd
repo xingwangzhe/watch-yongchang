@@ -179,6 +179,7 @@ var shade_layer: OverlayLayer
 var elevation_layer: OverlayLayer
 
 var _atlas_config: Dictionary = {}
+var _building_sprite_paths: Dictionary = {}
 var _indices: Dictionary = {}
 var _source_ids: Dictionary = {}
 var _water_cells: Dictionary = {}
@@ -187,7 +188,6 @@ var _bridge_cells: Dictionary = {}
 var _bridge_orientations: Dictionary = {}
 var _obstacle_cells: Dictionary = {}
 var _tree_cells: Dictionary = {}
-var _building_rects: Array[Dictionary] = []
 var _bridge_rects: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
 var _shading_ready := false
@@ -204,11 +204,12 @@ func build(map_layout: MapLayout, _map_definition: Dictionary, seed_value: int) 
 	_bridge_orientations.clear()
 	_obstacle_cells.clear()
 	_tree_cells.clear()
-	_building_rects.clear()
 	_bridge_rects.clear()
 	_shading_ready = false
 	z_index = -50
-	_atlas_config = GameData.load_json(TILE_INDEX_PATH).get("atlases", {}) as Dictionary
+	var tile_config := GameData.load_json(TILE_INDEX_PATH)
+	_atlas_config = tile_config.get("atlases", {}) as Dictionary
+	_building_sprite_paths = tile_config.get("building_sprites", {}) as Dictionary
 	_build_tile_index()
 	_make_layers()
 	_paint_base()
@@ -817,86 +818,40 @@ func _paint_wall_area(rect: Rect2i, tower: bool) -> void:
 
 func _paint_building_area(area: Dictionary, rect: Rect2i) -> void:
 	var style := str(area.get("style", "house"))
-	var ridge_count := 1
-	if rect.size.y >= 7 and style == "hall":
-		ridge_count = 2
-	elif rect.size.y >= 8 and _hash_cell(rect.position, 211) % 3 == 0:
-		ridge_count = 2
-	ridge_count = clampi(int(area.get("ridge_count", ridge_count)), 1, 3)
-	var ridge_rows: Array[int] = []
-	# Keep ridge rows inside the roof, with clear verge and eave rows.
-	var roof_interior_rows := maxi(0, rect.size.y - 2)
-	var actual_ridge_count := mini(ridge_count, roof_interior_rows)
-	var central_ridge_row := clampi(int((rect.size.y - 1) / 2.0), 1, rect.size.y - 2)
-	for ridge_index in range(actual_ridge_count):
-		var ridge_row := central_ridge_row if actual_ridge_count == 1 else 1 + roundi(
-			float(ridge_index + 1) * float(roof_interior_rows)
-			/ float(actual_ridge_count + 1)
-		)
-		ridge_rows.append(clampi(ridge_row, 1, rect.size.y - 2))
-	if actual_ridge_count > 0 and not ridge_rows.has(central_ridge_row):
-		ridge_rows[0] = central_ridge_row
-		ridge_rows.sort()
-	# Keep residential roof families consistent inside a neighborhood block.
-	var district_cell := Vector2i(floori(float(rect.position.x) / 24.0), floori(float(rect.position.y) / 26.0))
-	var roof_variant := _hash_cell(district_cell, 263) % 3
-	if style == "shop":
-		roof_variant = 1
-	elif style == "watch":
-		roof_variant = 2
-	var slope_tile := "roof_slope"
-	var eave_tile := "roof_eave"
-	var ridge_tile := "roof_ridge"
-	var verge_tile := "roof_verge"
-	var hip_left_tile := "roof_hip_left"
-	var hip_right_tile := "roof_hip_right"
-	var door_tile := "roof_eave_door"
-	if style == "hall":
-		roof_variant = 0
-		slope_tile = "hall_roof_slope"
-		eave_tile = "hall_roof_eave"
-		ridge_tile = "hall_roof_ridge"
-		verge_tile = "hall_roof_verge"
-		hip_left_tile = "hall_roof_hip_left"
-		hip_right_tile = "hall_roof_hip_right"
-		door_tile = "hall_roof_eave"
-	elif style == "shop":
-		slope_tile = "roof_slope_b"
-		eave_tile = "roof_eave_shop"
-		verge_tile = "roof_verge_b"
-		door_tile = "roof_eave_shop"
-	elif roof_variant == 1:
-		slope_tile = "roof_slope_b"
-		eave_tile = "roof_eave_b"
-	elif roof_variant == 2:
-		slope_tile = "roof_slope_c"
-		eave_tile = "roof_eave_b"
-		door_tile = "roof_eave_b"
+	var sprite_key := "house"
+	match style:
+		"hall":
+			sprite_key = "hall"
+		"shop":
+			sprite_key = "shop"
+		"watch":
+			sprite_key = "watchtower"
+	var sprite_path := str(_building_sprite_paths.get(sprite_key, ""))
+	if sprite_path.is_empty():
+		sprite_path = "res://assets/tiles/buildings/%s.png" % sprite_key
+	var roof_texture: Texture2D = null
+	if not sprite_path.is_empty():
+		roof_texture = load(sprite_path) as Texture2D
+	if roof_texture == null:
+		push_error("Missing overhead building sprite %s at %s" % [sprite_key, sprite_path])
+		return
+	# One complete roof sprite replaces the incoherent per-cell roof collage.
+	var roof := Sprite2D.new()
+	roof.name = "Overhead_%s_%s_%s" % [sprite_key, rect.position.x, rect.position.y]
+	roof.texture = roof_texture
+	roof.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var span := Vector2(rect.size) * float(TILE)
+	var usable := span - Vector2(8.0, 8.0)
+	roof.scale = Vector2(
+		usable.x / float(roof_texture.get_width()),
+		usable.y / float(roof_texture.get_height())
+	)
+	roof.position = (Vector2(rect.position) + Vector2(rect.size) * 0.5) * float(TILE)
+	architecture_layer.add_child(roof)
 	for y in range(rect.position.y, rect.position.y + rect.size.y):
 		for x in range(rect.position.x, rect.position.x + rect.size.x):
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
-				continue
-			var local_x := x - rect.position.x
-			var local_y := y - rect.position.y
-			var last_x := rect.size.x - 1
-			var last_y := rect.size.y - 1
-			var tile_name := slope_tile
-			if local_y == 0 and local_x == 0:
-				tile_name = hip_left_tile
-			elif local_y == 0 and local_x == last_x:
-				tile_name = hip_right_tile
-			elif local_y == 0:
-				tile_name = verge_tile
-			elif local_y == last_y:
-				tile_name = eave_tile
-			elif local_x == 0:
-				tile_name = "gable_left"
-			elif local_x == last_x:
-				tile_name = "gable_right"
-			elif ridge_rows.has(local_y):
-				tile_name = ridge_tile
-			if not _place_architecture(cell, tile_name):
 				continue
 			cancel_water(cell)
 			_place_terrain(cell, "wet_stone")
@@ -904,29 +859,6 @@ func _paint_building_area(area: Dictionary, rect: Rect2i) -> void:
 			_obstacle_cells[cell] = true
 			layout.mark_solid_rect(Rect2i(cell, Vector2i.ONE))
 			layout.set_minimap_color(cell, Color("#503d35"))
-	var door_cell := Vector2i(-1, -1)
-	if rect.size.x >= 5 and rect.size.y >= 3:
-		var door_x := rect.position.x + rect.size.x / 2
-		door_cell = Vector2i(
-			door_x,
-			rect.position.y + rect.size.y - 1
-		)
-		_place_architecture(door_cell, door_tile)
-		var step_cell := door_cell + Vector2i.DOWN
-		if (
-			layout.cell_in_bounds(step_cell)
-			and not layout.is_solid_cell(step_cell)
-			and not layout.is_water_cell(step_cell)
-		):
-			_place_architecture(step_cell, "stone_steps")
-	_building_rects.append({
-		"rect": rect,
-		"style": style,
-		"ridge_count": ridge_count,
-		"ridge_rows": ridge_rows,
-		"roof_variant": roof_variant,
-		"door_cell": door_cell,
-	})
 
 
 func _paint_mountain_area(area: Dictionary, rect: Rect2i) -> void:
@@ -1059,37 +991,28 @@ func _beautify_water_edges() -> void:
 		if layout.is_bridge_cell(water_cell) or layout.is_solid_cell(water_cell):
 			continue
 		var land_directions: Array[Vector2i] = []
-		for direction in [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]:
-			var neighbor := water_cell + (direction as Vector2i)
-			if not layout.cell_in_bounds(neighbor):
-				continue
-			if _water_cells.has(neighbor) or layout.is_bridge_cell(neighbor):
-				continue
-			land_directions.append(direction as Vector2i)
-		var tile_name := ""
-		if land_directions.is_empty():
-			tile_name = _pick_water_variant(DEEP_WATER_VARIANTS, water_cell, 117, 6)
-		else:
-			tile_name = _shore_tile_for(land_directions)
-			if tile_name.is_empty():
-				tile_name = _pick_water_variant(SHALLOW_WATER_VARIANTS, water_cell, 131, 5)
-		if not _place_terrain(water_cell, tile_name):
-			continue
-		var minimap_tile := "water_shallow_a" if tile_name.begins_with("shore") else tile_name
-		layout.set_minimap_color(water_cell, layout.minimap_color_for_tile(minimap_tile))
+		for direction in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+			var neighbor: Vector2i = water_cell + direction
+			if layout.cell_in_bounds(neighbor) and not layout.is_water_cell(neighbor) and not layout.is_bridge_cell(neighbor) and not layout.is_solid_cell(neighbor):
+				land_directions.append(direction)
+		var tile_name := _shore_tile_for(land_directions)
+		if tile_name.is_empty():
+			tile_name = _pick_water_variant(DEEP_WATER_VARIANTS, water_cell, 131, 5)
+		if _place_terrain(water_cell, tile_name):
+			layout.set_minimap_color(water_cell, layout.minimap_color_for_tile(tile_name))
 
 
 func _shore_tile_for(land_directions: Array[Vector2i]) -> String:
 	if land_directions.size() == 1:
 		var only := land_directions[0]
 		if only == Vector2i.UP:
-			return "shore_s"
-		if only == Vector2i.DOWN:
 			return "shore_n"
+		if only == Vector2i.DOWN:
+			return "shore_s"
 		if only == Vector2i.LEFT:
-			return "shore_e"
-		if only == Vector2i.RIGHT:
 			return "shore_w"
+		if only == Vector2i.RIGHT:
+			return "shore_e"
 		return ""
 	if land_directions.size() != 2:
 		return ""
@@ -1202,6 +1125,24 @@ func _paint_repair_cells(cells: Array) -> void:
 
 func terrain_tile_name(cell: Vector2i) -> String:
 	return _tile_name_at(terrain_layer, "terrain", cell)
+
+
+func terrain_cell_debug(cell: Vector2i) -> Dictionary:
+	if terrain_layer == null:
+		return {}
+	var source_id := terrain_layer.get_cell_source_id(cell)
+	var atlas_coords := terrain_layer.get_cell_atlas_coords(cell)
+	var source := terrain_layer.tile_set.get_source(source_id) if source_id >= 0 else null
+	var atlas_source := source as TileSetAtlasSource
+	var texture := atlas_source.texture if atlas_source != null else null
+	return {
+		"source_id": source_id,
+		"expected_source_id": int(_source_ids.get("terrain", -1)),
+		"atlas_coords": atlas_coords,
+		"tile_name": terrain_tile_name(cell),
+		"region_size": atlas_source.texture_region_size if atlas_source != null else Vector2i.ZERO,
+		"texture_size": texture.get_size() if texture != null else Vector2.ZERO,
+	}
 
 
 func architecture_tile_name(cell: Vector2i) -> String:
@@ -1341,237 +1282,12 @@ func _hash_cell(cell: Vector2i, salt: int) -> int:
 	return abs(value) % 1000003
 
 
-## 建筑与桥面的立面层：在建筑贴图之上补屋脊/檐口/投影，在桥面上补栏杆立柱与桥头石沿。
+## 桥面立面层：在桥面上补栏杆立柱与桥头石沿。
 func _draw_elevation(target: OverlayLayer) -> void:
 	if not _shading_ready or layout == null:
 		return
 	var tile := float(TILE)
-	for value in _building_rects:
-		var entry := value as Dictionary
-		var rect: Rect2i = entry["rect"] as Rect2i
-		var style := str(entry.get("style", "house"))
-		var ridge_rows: Array = entry.get("ridge_rows", [0]) as Array
-		var origin := Vector2(rect.position) * tile
-		var span := Vector2(rect.size) * tile
-		var last_row_y := origin.y + span.y - tile
-		# 南/东侧远影、接触影、侧墙厚度三层叠开；屋顶不再像平贴在地表。
-		target.add_rect(
-			Rect2(origin + Vector2(12.0, span.y + 7.0), Vector2(span.x + 2.0, 19.0)),
-			Color(0.0, 0.0, 0.0, 0.15)
-		)
-		target.add_rect(
-			Rect2(origin + Vector2(span.x + 7.0, 13.0), Vector2(17.0, span.y + 1.0)),
-			Color(0.0, 0.0, 0.0, 0.14)
-		)
-		target.add_rect(
-			Rect2(origin + Vector2(4.0, span.y + 2.0), Vector2(span.x + 4.0, 8.0)),
-			Color(0.0, 0.0, 0.0, 0.30)
-		)
-		target.add_rect(
-			Rect2(origin + Vector2(span.x + 1.0, 9.0), Vector2(7.0, span.y - 3.0)),
-			Color(0.0, 0.0, 0.0, 0.24)
-		)
-		target.add_rect(
-			Rect2(origin + Vector2(3.0, span.y + 1.0), Vector2(span.x + 2.0, 3.0)),
-			Color(0.0, 0.0, 0.0, 0.26)
-		)
-		# 每一排屋面向南逐渐压暗，形成连续坡面，而不是逐格重复的平面纹理。
-		var roof_rows := maxi(1, rect.size.y - 1)
-		for local_y in range(roof_rows):
-			var shade_t := float(local_y) / maxf(1.0, float(rect.size.y - 2))
-			var max_shade := 0.11 if style == "hall" else 0.16
-			var shade := lerpf(0.012, max_shade, shade_t)
-			target.add_rect(
-				Rect2(
-					Vector2(origin.x + 2.0, origin.y + float(local_y) * tile),
-					Vector2(span.x - 4.0, tile)
-				),
-				Color(0.0, 0.0, 0.0, shade)
-			)
-		# 西/北受光，东侧补出木构墙厚，檐口再压一道深影。
-		target.add_rect(
-			Rect2(origin + Vector2(span.x - 4.0, 4.0), Vector2(4.0, span.y - tile - 4.0)),
-			Color(0.0, 0.0, 0.0, 0.10)
-		)
-		target.add_rect(
-			Rect2(origin + Vector2(1.0, 1.0), span - Vector2(2.0, 2.0)),
-			Color(0.62, 0.45, 0.29, 0.58),
-			false,
-			2.0
-		)
-		target.add_rect(
-			Rect2(origin, Vector2(span.x, 5.0)),
-			Color(1.0, 0.88, 0.66, 0.11)
-		)
-		target.add_line(origin, origin + Vector2(span.x, 0), Color(1.0, 0.91, 0.68, 0.52), 3.0)
-		target.add_line(origin, origin + Vector2(0, span.y), Color(1.0, 0.89, 0.66, 0.38), 3.0)
-		target.add_line(
-			Vector2(origin.x + 3.0, last_row_y + 13.0),
-			Vector2(origin.x + span.x - 3.0, last_row_y + 13.0),
-			Color(0.0, 0.0, 0.0, 0.30),
-			6.0
-		)
-		target.add_line(
-			origin + Vector2(span.x - 1.0, 0),
-			origin + Vector2(span.x - 1.0, span.y),
-			Color(0.0, 0.0, 0.0, 0.28),
-			5.0
-		)
-		if rect.size.y >= 5:
-			var window_row := 1 + (_hash_cell(rect.position, 283) % maxi(1, rect.size.y - 3))
-			var window_y := origin.y + (float(window_row) + 0.31) * tile
-			for side in range(2):
-				var window_x := origin.x + 6.0
-				if side == 1:
-					window_x = origin.x + span.x - 12.0
-				target.add_rect(
-					Rect2(Vector2(window_x, window_y), Vector2(7.0, 9.0)),
-					Color(0.12, 0.07, 0.04, 0.92)
-				)
-				target.add_rect(
-					Rect2(Vector2(window_x + 1.0, window_y + 1.0), Vector2(5.0, 6.0)),
-					Color(0.60, 0.50, 0.32, 0.88)
-				)
-				target.add_line(
-					Vector2(window_x + 3.5, window_y + 1.0),
-					Vector2(window_x + 3.5, window_y + 7.0),
-					Color(0.18, 0.10, 0.05, 0.86),
-					1.0
-				)
-				target.add_line(
-					Vector2(window_x, window_y + 9.0),
-					Vector2(window_x + 7.0, window_y + 9.0),
-					Color(0.0, 0.0, 0.0, 0.24),
-					2.0
-				)
-		for ridge_row in ridge_rows:
-			var ridge_y := origin.y + (float(ridge_row) + 0.22) * tile
-			target.add_line(
-				Vector2(origin.x + 2.0, ridge_y - 2.0),
-				Vector2(origin.x + span.x - 2.0, ridge_y - 2.0),
-				Color(1.0, 0.83, 0.52, 0.42),
-				3.0
-			)
-			target.add_line(
-				Vector2(origin.x + 2.0, ridge_y + 1.0),
-				Vector2(origin.x + span.x - 2.0, ridge_y + 1.0),
-				Color(0.0, 0.0, 0.0, 0.34),
-				4.0
-			)
-		target.add_line(
-			Vector2(origin.x + 4.0, last_row_y + 10.0),
-			Vector2(origin.x + span.x - 4.0, last_row_y + 10.0),
-			Color(1.0, 0.84, 0.60, 0.24),
-			2.0
-		)
-		if style == "shop":
-			target.add_rect(
-				Rect2(
-					Vector2(origin.x + 4.0, last_row_y + 20.0),
-					Vector2(span.x - 8.0, 4.0)
-				),
-				Color(0.62, 0.18, 0.09, 0.64)
-			)
-			target.add_line(
-				Vector2(origin.x + 4.0, last_row_y + 20.0),
-				Vector2(origin.x + span.x - 4.0, last_row_y + 20.0),
-				Color(1.0, 0.70, 0.28, 0.46),
-				2.0
-			)
-			target.add_line(
-				Vector2(origin.x + 4.0, last_row_y + 25.0),
-				Vector2(origin.x + span.x - 4.0, last_row_y + 25.0),
-				Color(0.0, 0.0, 0.0, 0.28),
-				3.0
-			)
-			# 侧挑招牌给店铺一个脱离墙面的轮廓，远景也能识别商业街坊。
-			target.add_line(
-				Vector2(origin.x + span.x - 13.0, last_row_y + 6.0),
-				Vector2(origin.x + span.x + 3.0, last_row_y + 7.0),
-				Color(0.18, 0.10, 0.05, 0.92),
-				2.0
-			)
-			target.add_rect(
-				Rect2(
-					Vector2(origin.x + span.x + 1.0, last_row_y + 8.0),
-					Vector2(10.0, 13.0)
-				),
-				Color(0.55, 0.14, 0.07, 0.94)
-			)
-			target.add_rect(
-				Rect2(
-					Vector2(origin.x + span.x + 3.0, last_row_y + 10.0),
-					Vector2(6.0, 9.0)
-				),
-				Color(0.94, 0.63, 0.24, 0.88)
-			)
-		if style == "hall":
-			var ornament_x := origin.x + span.x * 0.5
-			target.add_rect(
-				Rect2(Vector2(origin.x + 3.0, last_row_y + 32.0), Vector2(span.x - 6.0, 5.0)),
-				Color(0.0, 0.0, 0.0, 0.28)
-			)
-			for ridge_row in ridge_rows:
-				var ornament_y := origin.y + (float(ridge_row) + 0.22) * tile
-				target.add_line(
-					Vector2(ornament_x - 10.0, ornament_y - 2.0),
-					Vector2(ornament_x + 10.0, ornament_y - 2.0),
-					Color(1.0, 0.82, 0.42, 0.78),
-					2.0
-				)
-				target.add_circle(
-					Vector2(ornament_x - 10.0, ornament_y - 2.0),
-					2.0,
-					Color(1.0, 0.86, 0.48, 0.92)
-				)
-				target.add_circle(
-					Vector2(ornament_x + 10.0, ornament_y - 2.0),
-					2.0,
-					Color(1.0, 0.86, 0.48, 0.92)
-				)
-
-		var door_cell: Vector2i = entry.get("door_cell", Vector2i(-1, -1)) as Vector2i
-		if door_cell.x < 0:
-			continue
-		var door_origin := Vector2(door_cell) * tile
-		if style == "hall":
-			target.add_rect(
-				Rect2(door_origin + Vector2(10.0, 20.0), Vector2(12.0, 12.0)),
-				Color(0.04, 0.02, 0.02, 0.88)
-			)
-			target.add_rect(
-				Rect2(door_origin + Vector2(11.0, 21.0), Vector2(10.0, 11.0)),
-				Color(0.64, 0.12, 0.08, 0.94)
-			)
-			target.add_line(
-				door_origin + Vector2(16.0, 22.0),
-				door_origin + Vector2(16.0, 30.0),
-				Color(0.12, 0.04, 0.03, 0.9),
-				1.0
-			)
-			for x in [13.0, 19.0]:
-				for y in [24.0, 27.0]:
-					target.add_circle(door_origin + Vector2(x, y), 1.0, Color(1.0, 0.78, 0.34, 0.9))
-		# 灯笼挂在门洞两侧。保留完整檐口，不再用透明灯笼瓦替换整格建筑边缘。
-		for direction in [-1.0, 1.0]:
-			var lantern := door_origin + Vector2(tile * 0.5 + direction * tile, tile * 0.56)
-			target.add_circle(lantern, 8.0, Color(1.0, 0.55, 0.14, 0.08))
-			target.add_circle(lantern, 4.0, Color(1.0, 0.70, 0.24, 0.12))
-			target.add_line(
-				lantern + Vector2(0.0, -6.0),
-				lantern + Vector2(0.0, -2.0),
-				Color(0.22, 0.12, 0.06, 0.9),
-				1.0
-			)
-			target.add_rect(
-				Rect2(lantern + Vector2(-2.0, -2.0), Vector2(4.0, 7.0)),
-				Color(0.74, 0.16, 0.09, 0.92)
-			)
-			target.add_rect(
-				Rect2(lantern + Vector2(-1.0, 0.0), Vector2(2.0, 4.0)),
-				Color(1.0, 0.66, 0.20, 0.96)
-			)
-
+	# Whole overhead roof sprites provide their own visual shape; no tiled facade overlays.
 	target.begin_post_phase()
 	for value in _bridge_rects:
 		var entry := value as Dictionary

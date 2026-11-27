@@ -301,7 +301,7 @@ func test_renderer_mirror_is_loaded_without_settings_file() -> void:
 
 
 func test_audio_bus_loads_looping_bgm() -> void:
-	assert_almost_eq(GameSettings.DEFAULT_BGM_VOLUME, 0.42, 0.001, "default BGM must be lowered")
+	assert_almost_eq(GameSettings.DEFAULT_BGM_VOLUME, 0.28, 0.001, "default BGM must be lowered")
 	AudioBus._sync_volume()
 	assert_not_null(AudioBus.player)
 	assert_true(AudioBus.stream is AudioStreamOggVorbis, "BGM must be an Ogg Vorbis stream")

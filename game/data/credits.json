@@ -1,1758 +1,1760 @@
 {
-	"title": "守望·永昌",
-	"subtitle": {
-		"zh": "2026 OSGJ 开源游戏开发大赛参赛作品",
-		"en": "A 2026 OSGJ open-source game development entry"
-	},
-	"free_software": {
-		"title_zh": "自由软件",
-		"title_en": "Free Software",
-		"lines_zh": [
-			"《守望 · 永昌》是自由软件：你可以自由运行、研究、修改和再分发。",
-			"代码采用 GNU AGPL-3.0-or-later；原创非代码资产采用 CC BY 4.0；第三方内容保留原许可。",
-			"完整源码、许可证与逐项署名均随项目公开，欢迎学习、修改与再分发。"
-		],
-		"lines_en": [
-			"Watch of Yongchang is free software: you may run, study, modify, and redistribute it.",
-			"Code is licensed GNU AGPL-3.0-or-later; original non-code assets are CC BY 4.0; third-party works keep their licenses.",
-			"Complete source, licenses, and itemized credits are published with the project."
-		],
-		"link_zh": "查看源代码与许可证",
-		"link_en": "Source code and licenses",
-		"url": "https://github.com/xingwangzhe/watch-yongchang"
-	},
-	"about": {
-		"sections": [
-			{
-				"title_zh": "作品与当前进度",
-				"title_en": "The Game · Current Build",
-				"lines_zh": [
-					"《守望 · 永昌》",
-					"Vampire Survivors-like 割草生存 Roguelite",
-					"主题：守 · 望 / 永昌堡与明代抗倭记忆",
-					"2026 OSGJ 开源游戏开发大赛参赛作品",
-					"已完成：序章 1386 宁村所、正篇 1559 永昌堡割草生存、双堡图鉴、灯火风险收益、龙鳞清屏、剧情字幕（输出授权未核实的 MOSS 语音已下架）、铺满屏幕的局内军市、CharacterForge 佣兵与骑兵、RTS 式流场寻路、外围奇遇点与运行时随机配装",
-					"玩法：16 分钟单局、鼠标瞄准、长按左键攻击、六兵器进化、升级三选一、每 120 秒军市、最多 3 名佣兵、五色龙鳞与 Boss；操作 W/A/S/D 移动，Space 冲刺，Esc 暂停",
-					"历史边界：汤和只做 1386 序章主角；1559 正篇主角为虚构守灯乡勇王陆/阿六",
-					"策划、程序、像素美术与整合：xingwangzhe"
-				],
-				"lines_en": [
-					"WATCH · YONGCHANG",
-					"A Vampire Survivors-like survival roguelite",
-					"Theme: Guard · Gaze / Yongchang Fort and Ming-era coastal defense",
-					"A 2026 OSGJ open-source game development entry",
-					"Done: the 1386 Ningcun prologue, the 1559 Yongchang survival run, the two-forts codex, lantern risk/reward, dragon-scale clears, narrative subtitles (MOSS voice removed because output rights were unverified), a full-screen in-run market, CharacterForge retinue and cavalry, RTS-style flow-field navigation, outer-ring encounters, and runtime-random loadouts",
-					"Gameplay: a 16-minute run with mouse aiming and hold-to-attack, six evolving weapons, one-of-three upgrades, a market every 120 seconds, up to three retinue units, five-colour dragon scales, and a boss; W/A/S/D moves, Space dashes, and Esc pauses",
-					"Historical boundary: Tang He is the prologue protagonist only in 1386; the 1559 protagonist is the fictional lamp-watch militia Wang Lu / A-Liu",
-					"Design, code, pixel art, and integration: xingwangzhe"
-				]
-			},
-			{
-				"title_zh": "骑兵、RTS 寻路与运行时配装",
-				"title_en": "Cavalry, RTS Navigation & Runtime Loadouts",
-				"lines_zh": [
-					"骑兵图集中的每一帧都是完整骑手与坐骑组合，不拆分马匹、骑手或身体部件。",
-					"完整人物分类图集区分端正、整洁的明军友方，与衣甲破损、粗粝凶狠的倭寇敌兵；每行包含对应兵种的八帧整人动作。",
-					"角色图集固定使用兵种分类造型。RuntimeLoadout 仍校验阵营合法配装并抽取战斗数据，但随机装备不会改变图集中的外观。",
-					"骑兵行每格均保留完整坐骑与骑手；当前攻击动作复用完整骑乘行，避免攻击时变为步兵，尚无独立骑乘攻击姿势。",
-					"战斗不从装备配方拼接人物，也不加载旧 144 组变体图集；不拆分身体、武器或马匹图层。",
-					"战斗使用共享 BFS 流场、拥挤分离与卡住恢复，并对原生/Web 分别限频刷新导航缓存；骑兵近战/远程、重装步兵、远程与支援单位共用同一套避障与推进。"
-				],
-				"lines_en": [
-					"Each cavalry atlas frame shows a complete rider and mount. Riders, horses, and body parts are not assembled as separate layers.",
-					"Complete-character category atlases distinguish upright, orderly Ming allies from rough, battered, hostile-looking Wokou enemies. Each unit row contains eight full-character motion frames.",
-					"RuntimeLoadout still validates faction-legal gear and samples combat data, but random equipment does not alter the fixed category-row appearance.",
-					"Every cavalry frame keeps the complete horse and rider. Cavalry currently reuses its complete mounted row during attacks to avoid switching into an infantry body; dedicated mounted attack poses are not included.",
-					"Combat does not assemble characters from equipment recipes or load the retired 144-variant atlas. Bodies, weapons, and horses are never split into runtime layers.",
-					"Combat shares a BFS flow field, crowd separation, and stuck recovery, with separate native/Web navigation refresh intervals. Mounted melee/ranged, heavy infantry, ranged, and support units use the same obstacle avoidance and advance rules."
-				]
-			},
-			{
-				"title_zh": "操作与系统",
-				"title_en": "Controls & System",
-				"lines_zh": [
-					"主菜单：↑↓ 选择，Enter 确认，Esc 关闭设置面板。",
-					"战斗：鼠标位置控制攻击方向和角色朝向；长按点击持续攻击，单点会缓冲一次；按 X 开关自动攻击。",
-					"军市：每 120 秒在升级之后开市；按 1/2/3 购买兵器、装备或佣兵，R 重掷，Enter 继续。",
-					"精灵朝向：水平移动会镜像左右；攻击时优先面向鼠标，避免反向位移。",
-					"设置项：BGM/音效、全屏、帧率上限、垂直同步、语言与渲染后端；变更即时写入配置。",
-					"自动存档：菜单、设置变化、开局、退出与每 20 秒写入 user://savegame.json。",
-					"渲染后端切换后不能热生效；设置页会提示“重启游戏以应用渲染变更”，并提供“立即重启”。",
-					"默认渲染模式为自动：支持 Vulkan 时优先 Vulkan，检测不到时回退 OpenGL。",
-					"Linux/macOS 使用 game/launch.sh，Windows 使用 game/launch.bat；启动器读取 ASCII 渲染镜像并选择正确的 Godot 启动参数。"
-				],
-				"lines_en": [
-					"Menu: ↑↓ to select, Enter to confirm, Esc to close the settings panel.",
-					"Combat: the mouse sets attack and character direction; hold-click for continuous fire, tap for one buffered strike, and press X to toggle auto attack.",
-					"The market opens every 120 seconds after upgrades; press 1/2/3 for weapons, gear, or retinue, R to reroll, and Enter to continue.",
-					"Sprite facing: horizontal movement mirrors left/right; attacks face the mouse so reverse movement never shows the wrong side.",
-					"Settings: music/SFX, fullscreen, frame limit, VSync, language, and renderer; changes are saved immediately.",
-					"Autosave: menu, settings changes, run start, quit, and every 20 seconds to user://savegame.json.",
-					"Renderer changes are not hot-swapped; the settings panel says 'Restart the game to apply the renderer change' and offers 'Restart now'.",
-					"The default renderer mode is Auto: Vulkan when supported, otherwise OpenGL.",
-					"Launch with game/launch.sh on Linux/macOS or game/launch.bat on Windows; the launcher reads the ASCII renderer mirror and passes the matching Godot flags."
-				]
-			},
-			{
-				"title_zh": "渲染与性能",
-				"title_en": "Rendering & Performance",
-				"lines_zh": [
-					"验收基线：1280×720、可缩放窗口、默认 60 FPS、VSync 开启。",
-					"Vulkan 启动参数：--rendering-method forward_plus --rendering-driver vulkan。",
-					"OpenGL 启动参数：--rendering-method gl_compatibility --rendering-driver opengl3。",
-					"自动检测：Linux 读取 vulkaninfo --summary；Windows 检查 System32/SysWOW64 的 vulkan-1.dll；发现 Vulkan 时默认 Vulkan。",
-					"安全回退：检测不到 Vulkan 时默认 OpenGL；project.godot 仍保留 GL Compatibility 作为兜底。",
-					"Web 版当前使用浏览器提供的 WebGL 2.0 / OpenGL ES 3.0 Compatibility 渲染。",
-					"渲染镜像：Windows 写入 %APPDATA%\\WatchYongchang\\renderer.cfg；Linux/macOS 写入对应的用户配置目录，避免中文项目名影响批处理。",
-					"渲染后端只能在进程启动时选择；设置变更写入 user://settings.cfg，重启后由启动参数应用。",
-					"主菜单夜景的分层绘制、粒子与纹理滚动会同时受 GPU 后端与帧率设置影响。"
-				],
-				"lines_en": [
-					"Acceptance baseline: 1280×720, resizable window, 60 FPS by default, VSync on.",
-					"Vulkan flags: --rendering-method forward_plus --rendering-driver vulkan.",
-					"OpenGL flags: --rendering-method gl_compatibility --rendering-driver opengl3.",
-					"Detection: Linux reads vulkaninfo --summary; Windows checks vulkan-1.dll in System32/SysWOW64; Vulkan is the default when found.",
-					"Safe fallback: OpenGL when Vulkan is unavailable; project.godot keeps GL Compatibility as the final fallback.",
-					"The web build currently renders through the browser's WebGL 2.0 / OpenGL ES 3.0 Compatibility backend.",
-					"Renderer mirror: Windows writes %APPDATA%\\WatchYongchang\\renderer.cfg; Linux/macOS use their user config directories so the Chinese project name cannot break batch parsing.",
-					"Renderers are selected at process start; the setting is written to user://settings.cfg and applied by the next launch.",
-					"Layered drawing, particles, and texture scrolling in the menu nightscape all depend on the GPU backend and frame limit."
-				]
-			},
-			{
-				"title_zh": "主菜单夜景",
-				"title_en": "Menu Nightscape",
-				"lines_zh": [
-					"主菜单背景为项目原创动态像素夜景，不再使用简单几何剪影。",
-					"母版 640×360、32 色，2× 最近邻导出为 1280×720，保持硬像素边缘。",
-					"分层：远景城防与月、循环云层、海浪、渔船、烽火、星点、月光碎影、灯火呼吸与火星。",
-					"动画：云层慢速漂移，海浪快速横移并上下起伏，渔船浮动，烽火 9 fps 循环。",
-					"生成：skills/pixel-art-studio/ 与 pixel-art/menu_backdrop/build.py；修改后重跑脚本，不手改导出 PNG。",
-					"运行时：game/scripts/ui/menu_backdrop.gd；主菜单、关于页与占位开局页共用。"
-				],
-				"lines_en": [
-					"The menu background is an original animated pixel nightscape, not a simple geometric silhouette.",
-					"A 640×360, 32-color master is exported at 2× nearest-neighbor to 1280×720 for crisp pixel edges.",
-					"Layers: distant fort and moon, looping clouds, waves, fishing boats, beacon fire, stars, moon shimmer, breathing lanterns, and embers.",
-					"Motion: clouds drift slowly, waves scroll and bob, boats float, and the beacon cycles at 9 fps.",
-					"Generated with skills/pixel-art-studio/ and pixel-art/menu_backdrop/build.py; rerun the script instead of editing exported PNGs.",
-					"Runtime composition lives in game/scripts/ui/menu_backdrop.gd and is shared by the menu, about page, and placeholder run screen."
-				]
-			},
-			{
-				"title_zh": "致谢",
-				"title_en": "Thanks",
-				"lines_zh": [
-					"感谢所有公开资料、非遗记录与开源工具的作者。",
-					"感谢 Godot、GUT、Pixel Art Studio、Pillow、Bun 与 ffmpeg 让原型可以持续迭代。",
-					"感谢所有试玩、反馈与守望这场比赛的人。"
-				],
-				"lines_en": [
-					"Thanks to everyone who published the records, heritage notes, and open-source tools used here.",
-					"Thanks to Godot, GUT, Pixel Art Studio, Pillow, Bun, and ffmpeg for keeping the prototype iterating.",
-					"Thanks to everyone who playtested, gave feedback, or kept watch with us."
-				],
-				"entries": [
-					{
-						"title_zh": "2026 OSGJ 开源游戏开发大赛官网",
-						"title_en": "2026 OSGJ Open Source Game Development site",
-						"note_zh": "赛事主题「守 · 望」、题解与六个创作方向。",
-						"note_en": "The Guard · Gaze theme, event brief, and six creative directions.",
-						"url": "https://2026gamejam.osgame.org/"
-					},
-					{
-						"title_zh": "永昌堡资料与汤和信俗素材包",
-						"title_en": "Yongchang Fort records and the Tang He tradition package",
-						"note_zh": "官网题解入口；公开整理见 docs/文化来源.md。",
-						"note_en": "Linked from the official theme brief; public notes live in the top-level docs/文化来源.md.",
-						"url": "https://2026gamejam.osgame.org/"
-					},
-					{
-						"title_zh": "OpenGameArt 与 Kenney 音频作者",
-						"title_en": "OpenGameArt and Kenney audio contributors",
-						"note_zh": "Majadroid、Hitctrl、MintoDog、ogrebane、remaxim、wobbleboxx 与 Kenney；3 首 BGM 与 18 个运行时音效均为开放许可，逐项来源见下方。",
-						"note_en": "Majadroid, Hitctrl, MintoDog, ogrebane, remaxim, wobbleboxx, and Kenney; all three BGM tracks and 18 runtime SFX use open licenses, with per-item sources below.",
-						"url": "https://opengameart.org/"
-					},
-					{
-						"title_zh": "霞鹜文楷 LXGW / Klee Project",
-						"title_en": "LXGW WenKai by LXGW / Klee Project",
-						"note_zh": "OFL 1.1；版权与保留字体名见下方“字体”。",
-						"note_en": "OFL 1.1; copyright and reserved font names appear under Fonts below.",
-						"url": "https://github.com/lxgw/LxgwWenKai"
-					},
-					{
-						"title_zh": "LPC Character Bases（仅动作与关节研究）",
-						"title_en": "LPC Character Bases (motion and joint study only)",
-						"note_zh": "CC-BY-SA 3.0 / GPL 3.0；仅观察比例、关节和动作节奏，未复制或打包其素材。",
-						"note_en": "CC-BY-SA 3.0 / GPL 3.0; used only to study proportions, joints, and timing. No source art is copied or packaged.",
-						"url": "https://opengameart.org/content/lpc-character-bases"
-					},
-					{
-						"title_zh": "RGS_Dev 模块角色（仅分层结构研究）",
-						"title_en": "RGS_Dev modular characters (layering study only)",
-						"note_zh": "CC0 1.0；仅参考身体部件分层与固定握点，未复制或打包其 PNG。",
-						"note_en": "CC0 1.0; used only as a historical motion reference, not included in the runtime. No PNG is copied or packaged.",
-						"url": "https://rgsdev.itch.io/free-cc0-modular-animated-vector-characters-2d"
-					},
-					{
-						"title_zh": "Kenney Modular Characters（仅结构比较）",
-						"title_en": "Kenney Modular Characters (structure comparison only)",
-						"note_zh": "CC0 1.0；形体偏扁平，仅作模块化结构比较，未采用。",
-						"note_en": "CC0 1.0; compared for modular structure only and not adopted because the forms are too flat.",
-						"url": "https://kenney.nl/assets/modular-characters"
-					}
-				]
-			},
-			{
-				"title_zh": "文化参考",
-				"title_en": "Cultural References",
-				"lines_zh": [
-					"文化不是贴图：阵法、灯火、龙灯拼字与百家宴士气进入玩法。",
-					"赛事创作方向取自官网题解：抗倭叙事、城堡防御、家族传承、节庆巡游、水乡生活、未来想象。",
-					"公开资料索引：《永昌堡与汤和关系索引》。",
-					"玩法与数值取舍：项目原创设计（演绎）。"
-				],
-				"lines_en": [
-					"Culture is not wallpaper: formations, lantern light, dragon-lantern characters, and feast morale shape the rules.",
-					"The event brief's creative directions: coastal resistance, castle defense, family heritage, festival processions, water-town life, and future imaginings.",
-					"Public index: 《永昌堡与汤和关系索引》.",
-					"Gameplay and balance choices: original project design (interpretive)."
-				],
-				"entries": [
-					{
-						"title_zh": "永昌堡城防与抗倭地方史",
-						"title_en": "Yongchang Fort defenses and coastal resistance",
-						"note_zh": "公开整理见 docs/文化来源.md。",
-						"note_en": "Public notes live in the top-level docs/文化来源.md.",
-						"url": "https://2026gamejam.osgame.org/"
-					},
-					{
-						"title_zh": "汤和信俗巡游与拼字龙灯",
-						"title_en": "Tang He procession and character-forming dragon lantern",
-						"note_zh": "官网题解入口；原始素材仅用于文化考据，未直接嵌入成品。",
-						"note_en": "Linked from the official theme brief; source material was used for research only and not embedded in the build.",
-						"url": "https://2026gamejam.osgame.org/"
-					},
-					{
-						"title_zh": "2025 OSGJ 历届赛事",
-						"title_en": "2025 OSGJ event archive",
-						"note_zh": "往届赛事与作品索引。",
-						"note_en": "Past event and project index.",
-						"url": "https://2025gamejam.osgame.org/"
-					}
-				]
-			},
-			{
-				"title_zh": "剧情语音授权核查与字幕回退",
-				"title_en": "Narrative Voice Rights Review & Subtitle Fallback",
-				"lines_zh": [
-					"2026-11-24 核查 OpenMOSS 官方仓库、LICENSE 与 Hugging Face 模型卡：代码和模型产物标注 Apache-2.0，但没有找到明确授权生成语音录音输出的条款。",
-					"为避免把代码/模型许可误当作音频输出许可，原先生成的 9 条中文 + 9 条英文 OGG 已全部从成品和仓库运行时目录移除；模型权重从未入包。",
-					"剧情不静默跳过：VoiceLinePlayer 按字幕文本以约 4.35 音节/秒计算展示时长，保留完整中英字幕、角色、史实/制度/民俗/演绎分类和 source_ref。",
-					"game/data/voice_lines.json 显式设置 audio_enabled=false、distribution=subtitles_only；生成器与模型权重均不随仓库分发。"
-				],
-				"lines_en": [
-					"On 2026-11-24 the official OpenMOSS repository, LICENSE, and Hugging Face model cards were reviewed: code and model artifacts are marked Apache-2.0, but no explicit grant for generated voice recordings was found.",
-					"To avoid treating a code/model license as an audio-output grant, all 18 former OGG files (nine Chinese and nine English lines) were removed from the runtime and repository; model weights were never shipped.",
-					"Narrative is not silently skipped: VoiceLinePlayer times subtitles from the text at roughly 4.35 syllables per second and preserves bilingual subtitles, speakers, source categories, and source_ref metadata.",
-					"game/data/voice_lines.json explicitly sets audio_enabled=false and distribution=subtitles_only; the generator and model weights are not distributed."
-				],
-				"entries": [
-					{
-						"title_zh": "MOSS-TTS-Nano 官方仓库",
-						"title_en": "Official MOSS-TTS-Nano repository",
-						"note_zh": "OpenMOSS Team；Apache-2.0 代码/模型许可，未找到明确的生成音频输出授权；语音已下架。",
-						"note_en": "OpenMOSS Team; Apache-2.0 code/model license, no explicit generated-audio output grant found; voice removed.",
-						"license_url": "https://github.com/OpenMOSS/MOSS-TTS-Nano/blob/main/LICENSE",
-						"url": "https://github.com/OpenMOSS/MOSS-TTS-Nano"
-					},
-					{
-						"title_zh": "MOSS-TTS-Nano-100M-ONNX 模型卡",
-						"title_en": "MOSS-TTS-Nano-100M-ONNX model card",
-						"note_zh": "官方 Hugging Face 模型卡；仅作授权核查来源，模型与生成语音均不入包。",
-						"note_en": "Official Hugging Face model card; reviewed for rights only. Neither model nor generated voice is shipped.",
-						"url": "https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX"
-					},
-					{
-						"title_zh": "MOSS-TTS-Nano Rust ONNX 运行时（历史本地工具）",
-						"title_en": "MOSS-TTS-Nano Rust ONNX runtime (historical local tool)",
-						"note_zh": "Apache-2.0；曾用于本地 CPU 推理，不随成品分发。",
-						"note_en": "Apache-2.0; formerly used for local CPU inference and not distributed with the game.",
-						"license_url": "https://www.apache.org/licenses/LICENSE-2.0",
-						"url": "https://github.com/mzdk100/moss-tts-nano"
-					}
-				]
-			},
-			{
-				"title_zh": "版权与许可",
-				"title_en": "Copyright & Licenses",
-				"lines_zh": [
-					"© 2026 xingwangzhe。保留署名权。",
-					"代码：AGPL-3.0-or-later；全文见仓库根目录 LICENSE，适用范围见 NOTICE。",
-					"原创非代码资产：CC BY 4.0；项目原创 BGM 母版如明确标注可选 CC0 1.0 或 CC BY 4.0，既有 CC0 奉献保留。当前运行时菜单曲为 CC BY 4.0，关于页曲为 CC BY 3.0。代码与资产范围以 NOTICE 为准。",
-					"动态像素夜景、主菜单 UI 与关于页版式：项目原创；像素夜景导出资产按 CC BY 4.0 发布，生成脚本按 AGPL-3.0-or-later 授权。",
-					"明式抗倭地形、建筑、道具与环境动效均从分类瓦片图集读取，采用 PNG 无损格式保留拼接边缘与调色板；原创非代码素材按 CC BY 4.0 发布。",
-					"地图环境动效图集：红灯笼、渔舟、明军旗与烽火四组 4 帧循环，32×32×4×4，源文件 pixel-art/yongchang_tiles/build.py，按 CC BY 4.0 发布。",
-					"瓦片文化取向：明代浙南沿海抗倭堡垒；青灰石墙、黛瓦、白灰墙、红漆门、马头墙、水关、烽火、拒马、渔舟、芦苇滩与石敢当；未使用日式瓦片或日式识别物。",
-					"完整人物动作分类图：主角、友军、敌军、骑兵与攻击姿势按整格帧生成并接入 `game/assets/units/full_sheets/`。每格保持整个人物；骑兵同格绘出骑手和坐骑；攻击格包含人物及手持武器。王陆六张卡仍是同一人物的阵位，现使用六张装备姿态各异的完整人物格。输入、格位、尺寸和校验摘要见 `pixel-art/full_composed_atlas/clean/manifest.json`。",
-					"主角、友军、敌军、骑兵及攻击动作使用完整人物分类图集；每帧保留完整人物，骑兵帧包含整匹马与骑手，不拆分人体、不叠加独立装备或武器。",
-					"友军分类图包含义师枪兵、藤牌乡兵、义师弓手与旗手四行完整人物帧；其他佣兵角色读取对应完整分类行。阵营与人物叙事配置保留在角色 JSON 中。",
-					"倭寇类型按明代抗倭史料与项目原创设定作为反派；日式阵笠、胴丸、铁炮等仅用于敌方识别，不用于明军与主角。",
-					"UI 面板与控件素材：面板底板由 WorkBuddy ImageGen 生成；按钮、下拉、滑条、开关、滚动条与提示框由 pixel-art/ui_kit/build.py 程序化重绘（漆面底板 + 描金带 + 四角卷角），原创非代码资产 CC BY 4.0，详见《AI 使用与素材声明》。",
-					"第三方音乐、字体、音效保留原许可；署名与来源见下方音频、字体与图标条目。",
-					"Godot、GUT、Pixel Art Studio、Pillow、Bun 与 ffmpeg 的使用许可见下方工具条目。",
-					"霞鹜文楷：OFL 1.1，版权归 LXGW 与 Klee Project Authors，全文见 game/assets/fonts/OFL.txt。",
-					"本作与永昌堡、汤和信俗相关机构无隶属关系；历史资料仅用于文化考据与创作。",
-					"王陆六种守夜阵位头像：OpenAI ImageGen 生成六种完整人物姿态，纯洋红背景由 pixel-art/full_composed_atlas/build.py 去底并整格裁切，原图见 pixel-art/full_composed_atlas/source/wanglu_watchposts_grid.png；原创非代码资产 CC BY 4.0。"
-				],
-				"lines_en": [
-					"© 2026 xingwangzhe. Attribution rights reserved.",
-					"Code: AGPL-3.0-or-later; full text in the repository-root LICENSE and scope in NOTICE.",
-					"Original non-code assets: CC BY 4.0; specifically identified original BGM masters may also be offered under CC0 1.0, with the prior dedication retained. The shipped menu cue is CC BY 4.0 and the about cue is CC BY 3.0. See NOTICE for the code/asset scope.",
-					"Animated pixel nightscape, menu UI, and about-page layout: project originals; exported nightscape assets are CC BY 4.0, while the generator code is AGPL-3.0-or-later.",
-					"Ming-era coastal-defense terrain, architecture, props, and animated map tiles use lossless PNG category atlases generated by pixel-art/full_composed_atlas/build.py; original non-code art is CC BY 4.0.",
-					"Animated map props: four 4-frame loops for red lanterns, fishing boats, Ming banners, and beacon fire at 32×32 per frame, generated by pixel-art/yongchang_tiles/build.py, released under CC BY 4.0.",
-					"Tile art direction: a Ming-era coastal fort in southern Zhejiang; grey stone walls, dark roof tiles, whitewashed walls, red-lacquer gates, stepped gables, water gates, beacon fires, chevaux-de-frise, fishing boats, reed flats, and stone guardians. No Japanese tiles or Japanese identity markers are used.",
-					"Complete-character category sheets cover Tang He, Wang Lu, allies, enemies, cavalry, and attacks. Every frame includes a whole person; mounted frames include the whole horse and rider. See pixel-art/full_composed_atlas/clean/manifest.json for grids and source hashes.",
-					"RuntimeLoadout retains legal equipment recipe counts for validation; those counts do not generate or assemble character sprites. Player, ally, enemy, cavalry, and attack visuals use complete-character category atlas frames, including each full rider-and-horse silhouette.",
-					"Retinue category sheets show complete spearmen, shield militia, archers, and standard bearers. All visual frames remain whole characters; recipes do not overlay equipment on the sprites.",
-					"Wokou types follow Ming-era coastal-defense records and original project fiction as antagonists; Japanese-style hats, armour, and matchlocks identify the enemy only and are not used for the Ming hero or allies.",
-					"UI panels and controls: the panel base is generated with WorkBuddy ImageGen; buttons, dropdowns, sliders, toggles, scrollbars, and tooltips are redrawn procedurally by pixel-art/ui_kit/build.py (lacquer field with a gilt band and corner flourishes); original non-code assets under CC BY 4.0. See the AI Use & Asset Statement.",
-					"Third-party music, fonts, and sound effects keep their original licenses; see the audio, font, and icon entries below.",
-					"Godot, GUT, Pixel Art Studio, Pillow, Bun, and ffmpeg keep their own licenses; see the tool entries below.",
-					"LXGW WenKai: OFL 1.1, copyright LXGW and the Klee Project Authors; full text in game/assets/fonts/OFL.txt.",
-					"This work is not affiliated with Yongchang Fort or Tang He tradition institutions; historical material is used for cultural research and creative work.",
-					"Wang Lu six watch-post portraits: six complete-character poses generated with OpenAI ImageGen; pixel-art/full_composed_atlas/build.py removes the solid magenta key and crops whole frames. Source: pixel-art/full_composed_atlas/source/wanglu_watchposts_grid.png. Original non-code art is CC BY 4.0."
-				]
-			}
-		]
-	},
-	"music": [
-		{
-			"title": "Samurai Nights",
-			"artist": "Maik Hoffmann (Majadroid)",
-			"license": "CC BY 4.0",
-			"license_url": "https://creativecommons.org/licenses/by/4.0/",
-			"url": "https://opengameart.org/content/samurai-nights",
-			"file": "res://assets/audio/bgm_watch.ogg",
-			"usage_zh": "主菜单、选择页与守夜前场景",
-			"usage_en": "Main menu, character select, and pre-run scenes",
-			"changes_zh": "原 Demo MP3 转码为 Ogg Vorbis；音频内容未改；游戏内循环播放",
-			"changes_en": "Original demo MP3 re-encoded to Ogg Vorbis; audio content unchanged; looped in game"
-		},
-		{
-			"title": "Hard Battle 1",
-			"artist": "MintoDog",
-			"license": "CC0 1.0",
-			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-			"url": "https://opengameart.org/content/hard-battle-1",
-			"file": "res://assets/audio/bgm_battle.ogg",
-			"usage_zh": "1559 正篇战斗背景音乐",
-			"usage_en": "1559 combat background music",
-			"changes_zh": "原始 OGG 文件；未改音频数据；游戏内循环播放",
-			"changes_en": "Original OGG file; audio data unchanged; looped in game"
-		},
-		{
-			"title": "Views From Atop the Jade Kings Throne",
-			"artist": "Hitctrl",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://opengameart.org/content/views-from-atop-the-jade-kings-throne",
-			"file": "res://assets/audio/bgm_about.ogg",
-			"usage_zh": "关于页专属滚幕音乐",
-			"usage_en": "About-page credits music",
-			"changes_zh": "原始 OGG 文件；音频内容未改；游戏内循环播放",
-			"changes_en": "Original OGG file; audio content unchanged; looped in game"
-		}
-	],
-	"sfx": [
-		{
-			"title": "Kenney UI Audio",
-			"artist": "Kenney",
-			"license": "CC0 1.0",
-			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-			"url": "https://kenney.nl/assets/ui-audio",
-			"file": "res://assets/audio/ui_click.ogg",
-			"files": [
-				"res://assets/audio/ui_click.ogg",
-				"res://assets/audio/ui_confirm.ogg",
-				"res://assets/audio/ui_back.ogg",
-				"res://assets/audio/sfx_pickup.ogg",
-				"res://assets/audio/sfx_event.ogg"
-			],
-			"usage_zh": "全局按钮点击、确认、返回、拾取与事件提示音",
-			"usage_en": "Global button clicks, confirms, back actions, pickups, and event cues",
-			"changes_zh": "从 CC0 包选取 click2 / click4 / switch1 / switch3 / switch9；保留原始 OGG 数据；拾取与事件音在游戏内变调",
-			"changes_en": "Selected click2 / click4 / switch1 / switch3 / switch9 from the CC0 pack; original OGG data preserved; pickup/event pitches vary in game"
-		},
-		{
-			"title": "Kenney Impact Sounds",
-			"artist": "Kenney",
-			"license": "CC0 1.0",
-			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-			"url": "https://kenney.nl/assets/impact-sounds",
-			"file": "res://assets/audio/sfx_enemy_hit.ogg",
-			"files": [
-				"res://assets/audio/sfx_enemy_hit.ogg",
-				"res://assets/audio/sfx_enemy_kill.ogg",
-				"res://assets/audio/sfx_elite_kill.ogg",
-				"res://assets/audio/sfx_level_up.ogg",
-				"res://assets/audio/sfx_dash.ogg",
-				"res://assets/audio/sfx_boss.ogg"
-			],
-			"usage_zh": "敌兵受击、击杀、精英击杀、冲刺、升级与 Boss 提示音",
-			"usage_en": "Enemy hit, kill, elite kill, dash, level-up, and boss cues",
-			"changes_zh": "从 CC0 包选取 Soft / Punch / Plate / Generic / Bell / Metal 音效；保留原始 OGG 数据；游戏内变调与节流",
-			"changes_en": "Selected Soft / Punch / Plate / Generic / Bell / Metal cues from the CC0 pack; original OGG data preserved; pitch variation and throttling in game"
-		},
-		{
-			"title": "Battle Sound Effects: Bow",
-			"artist": "ogrebane",
-			"license": "CC0 1.0",
-			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-			"url": "https://opengameart.org/content/battle-sound-effects",
-			"file": "res://assets/audio/sfx_fire.ogg",
-			"usage_zh": "箭塔与远程攻击音效",
-			"usage_en": "Tower and ranged-attack cue",
-			"changes_zh": "选取 Bow 音效；响度归一化并转码为 Ogg",
-			"changes_en": "Selected Bow cue; loudness normalized and re-encoded to Ogg"
-		},
-		{
-			"title": "3 Melee Sounds",
-			"artist": "remaxim",
-			"license": "CC0 1.0",
-			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-			"url": "https://opengameart.org/content/3-melee-sounds",
-			"file": "res://assets/audio/sfx_hit.ogg",
-			"usage_zh": "单位受击音效",
-			"usage_en": "Unit-hit cue",
-			"changes_zh": "选取近战音效；响度归一化并转码为 Ogg",
-			"changes_en": "Selected melee cue; loudness normalized and re-encoded to Ogg"
-		},
-		{
-			"title": "RPG Audio: Chop",
-			"artist": "Kenney",
-			"license": "CC0 1.0",
-			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-			"url": "https://opengameart.org/content/50-rpg-sound-effects",
-			"file": "res://assets/audio/sfx_build.ogg",
-			"usage_zh": "建造完成音效",
-			"usage_en": "Build-complete cue",
-			"changes_zh": "选取 Chop 音效；响度归一化",
-			"changes_en": "Selected Chop cue; loudness normalized"
-		},
-		{
-			"title": "Sound Pack 01",
-			"artist": "wobbleboxx",
-			"license": "CC0 1.0",
-			"license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-			"url": "https://opengameart.org/content/level-up-power-up-coin-get-13-sounds",
-			"file": "res://assets/audio/sfx_wave.ogg",
-			"files": [
-				"res://assets/audio/sfx_wave.ogg",
-				"res://assets/audio/sfx_alarm.ogg",
-				"res://assets/audio/sfx_win.ogg",
-				"res://assets/audio/sfx_lose.ogg"
-			],
-			"usage_zh": "波次开始、主堡警报、胜利与失败音效",
-			"usage_en": "Wave-start, fort-alarm, victory, and defeat cues",
-			"changes_zh": "选取 Rise01 / Alarm / Upper01 / Downer01；AIF 转 Ogg；Alarm 截短 2.2 秒并淡出；响度归一化",
-			"changes_en": "Selected Rise01 / Alarm / Upper01 / Downer01; AIF converted to Ogg; Alarm shortened to 2.2 s and faded; loudness normalized"
-		}
-	],
-	"icons": [
-		{
-			"title": "Asian lantern / 亚洲灯笼",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/asian-lantern.html",
-			"file": "res://assets/icons/game_icons/ui_lantern.svg",
-			"usage_zh": "主菜单“首夜支点”的灯火标识",
-			"usage_en": "Lantern marker in the main-menu night anchors",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Watchtower / 望楼",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/watchtower.html",
-			"file": "res://assets/icons/game_icons/ui_watchtower.svg",
-			"usage_zh": "主菜单“首夜支点”的望楼标识",
-			"usage_en": "Watchtower marker in the main-menu night anchors",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Scroll unfurled / 展开卷轴",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/scroll-unfurled.html",
-			"file": "res://assets/icons/game_icons/ui_scroll.svg",
-			"usage_zh": "主菜单“首夜支点”的图鉴标识",
-			"usage_en": "Codex marker in the main-menu night anchors",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Bowl of rice / 米饭碗",
-			"artist": "Caro Asercion",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/caro-asercion/bowl-of-rice.html",
-			"file": "res://assets/icons/game_icons/ui_feast.svg",
-			"usage_zh": "主菜单“首夜支点”的百家宴标识",
-			"usage_en": "Community-feast marker in the main-menu night anchors",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Round shield / 圆盾",
-			"artist": "Willdabeast",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/willdabeast/round-shield.html",
-			"file": "res://assets/icons/game_icons/wpn_shield.svg",
-			"usage_zh": "主菜单藤牌文化标识；藤牌仅作防具，不进入兵器卡池",
-			"usage_en": "Rattan-shield cultural marker in the menu; shields are defensive only and never enter the weapon pool",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Dragon head / 龙首",
-			"artist": "Faithtoken",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/faithtoken/dragon-head.html",
-			"file": "res://assets/icons/game_icons/wpn_dragon_lantern.svg",
-			"usage_zh": "开局页龙灯军备卡",
-			"usage_en": "Dragon-lantern loadout card on the run screen",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Bamboo / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/bamboo.html",
-			"file": "res://assets/icons/game_icons/card_bamboo.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Fishing boat / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/boat-fishing.html",
-			"file": "res://assets/icons/game_icons/card_boat_fishing.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Herbs bundle / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/herbs-bundle.html",
-			"file": "res://assets/icons/game_icons/card_herbs.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Abacus / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/abacus.html",
-			"file": "res://assets/icons/game_icons/card_abacus.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Coins / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/coins.html",
-			"file": "res://assets/icons/game_icons/card_coins.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Crane / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/crane.html",
-			"file": "res://assets/icons/game_icons/card_crane.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Dragon shield / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/dragon-shield.html",
-			"file": "res://assets/icons/game_icons/card_dragon_shield.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Drum / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/drum.html",
-			"file": "res://assets/icons/game_icons/card_drum.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Gong / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/gong.html",
-			"file": "res://assets/icons/game_icons/card_gong.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Knot / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/knot.html",
-			"file": "res://assets/icons/game_icons/card_knot.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Axe in log / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/axe-in-log.html",
-			"file": "res://assets/icons/game_icons/card_axe_log.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Hunter eyes / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/hunter-eyes.html",
-			"file": "res://assets/icons/game_icons/card_hunter_eyes.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "High grass / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/high-grass.html",
-			"file": "res://assets/icons/game_icons/card_reeds.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Gate / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/gate.html",
-			"file": "res://assets/icons/game_icons/card_gate.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Fog / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/fog.html",
-			"file": "res://assets/icons/game_icons/card_fog.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Book pile / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/book-pile.html",
-			"file": "res://assets/icons/game_icons/card_books.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Heart armor / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/heart-armor.html",
-			"file": "res://assets/icons/game_icons/card_heart_armor.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Fish smoking / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/fish-smoking.html",
-			"file": "res://assets/icons/game_icons/card_smoked_fish.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Flute / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/flute.html",
-			"file": "res://assets/icons/game_icons/card_flute.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Big wave / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/big-wave.html",
-			"file": "res://assets/icons/game_icons/card_wave.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Compass / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/compass.html",
-			"file": "res://assets/icons/game_icons/card_compass.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Book aura / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/book-aura.html",
-			"file": "res://assets/icons/game_icons/card_book_aura.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Firework rocket / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/firework-rocket.html",
-			"file": "res://assets/icons/game_icons/card_firework.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Dragon breath / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/dragon-breath.html",
-			"file": "res://assets/icons/game_icons/card_dragon_breath.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Double dragon / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/double-dragon.html",
-			"file": "res://assets/icons/game_icons/card_double_dragon.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Lightning shield / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/lightning-shield.html",
-			"file": "res://assets/icons/game_icons/card_lightning_shield.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Life tap / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/life-tap.html",
-			"file": "res://assets/icons/game_icons/card_life_tap.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Holy grail / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/holy-grail.html",
-			"file": "res://assets/icons/game_icons/card_holy_grail.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Incense / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/incense.html",
-			"file": "res://assets/icons/game_icons/card_incense.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Lantern flame / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/lantern-flame.html",
-			"file": "res://assets/icons/game_icons/card_lantern_flame.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Lotus flower / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/lotus-flower.html",
-			"file": "res://assets/icons/game_icons/card_lotus.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Moon / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/moon.html",
-			"file": "res://assets/icons/game_icons/card_moon.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Pine tree / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/pine-tree.html",
-			"file": "res://assets/icons/game_icons/card_pine.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Paper lantern / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/paper-lantern.html",
-			"file": "res://assets/icons/game_icons/card_paper_lantern.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Fishing net / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/fishing-net.html",
-			"file": "res://assets/icons/game_icons/card_fishing_net.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Bandage roll / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/bandage-roll.html",
-			"file": "res://assets/icons/game_icons/card_bandage.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Crown coin / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/crown-coin.html",
-			"file": "res://assets/icons/game_icons/card_crown_coin.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Night sky / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/night-sky.html",
-			"file": "res://assets/icons/game_icons/card_night_sky.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Ember shot / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/ember-shot.html",
-			"file": "res://assets/icons/game_icons/card_ember_shot.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Dumpling bao / 三选一卡牌图标",
-			"artist": "Caro Asercion",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/caro-asercion/dumpling-bao.html",
-			"file": "res://assets/icons/game_icons/card_dumpling.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Wok / 三选一卡牌图标",
-			"artist": "Caro Asercion",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/caro-asercion/wok.html",
-			"file": "res://assets/icons/game_icons/card_wok.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Paper crane / 三选一卡牌图标",
-			"artist": "Caro Asercion",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/caro-asercion/paper-crane.html",
-			"file": "res://assets/icons/game_icons/card_paper_crane.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Spinning wheel / 三选一卡牌图标",
-			"artist": "Caro Asercion",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/caro-asercion/spinning-wheel.html",
-			"file": "res://assets/icons/game_icons/card_spinning_wheel.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Willow tree / 三选一卡牌图标",
-			"artist": "Caro Asercion",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/caro-asercion/willow-tree.html",
-			"file": "res://assets/icons/game_icons/card_willow.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Heron / 三选一卡牌图标",
-			"artist": "Caro Asercion",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/caro-asercion/heron.html",
-			"file": "res://assets/icons/game_icons/card_heron.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Windchimes / 三选一卡牌图标",
-			"artist": "Caro Asercion",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/caro-asercion/windchimes.html",
-			"file": "res://assets/icons/game_icons/card_windchimes.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Pestle mortar / 三选一卡牌图标",
-			"artist": "Skoll",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/skoll/pestle-mortar.html",
-			"file": "res://assets/icons/game_icons/card_pestle.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Stopwatch / 三选一卡牌图标",
-			"artist": "Skoll",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/skoll/stopwatch.html",
-			"file": "res://assets/icons/game_icons/card_stopwatch.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Open treasure chest / 三选一卡牌图标",
-			"artist": "Skoll",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/skoll/open-treasure-chest.html",
-			"file": "res://assets/icons/game_icons/card_treasure.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Ballista / 三选一卡牌图标",
-			"artist": "Skoll",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/skoll/ballista.html",
-			"file": "res://assets/icons/game_icons/card_ballista.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Chain lightning / 三选一卡牌图标",
-			"artist": "Willdabeast",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/willdabeast/chain-lightning.html",
-			"file": "res://assets/icons/game_icons/card_chain_lightning.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Chain mail / 三选一卡牌图标",
-			"artist": "Willdabeast",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/willdabeast/chain-mail.html",
-			"file": "res://assets/icons/game_icons/card_chain_mail.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Card draw / 三选一卡牌图标",
-			"artist": "Faithtoken",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/faithtoken/card-draw.html",
-			"file": "res://assets/icons/game_icons/card_draw.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Archery target / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/archery-target.html",
-			"file": "res://assets/icons/game_icons/card_archery_target.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Arrow cluster / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/arrow-cluster.html",
-			"file": "res://assets/icons/game_icons/card_arrow_cluster.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Arrow flights / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/arrow-flights.html",
-			"file": "res://assets/icons/game_icons/card_arrow_flights.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Barbed arrow / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/barbed-arrow.html",
-			"file": "res://assets/icons/game_icons/card_barbed_arrow.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Broadhead arrow / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/broadhead-arrow.html",
-			"file": "res://assets/icons/game_icons/card_broadhead_arrow.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "On target / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/on-target.html",
-			"file": "res://assets/icons/game_icons/card_on_target.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Target arrows / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/target-arrows.html",
-			"file": "res://assets/icons/game_icons/card_target_arrows.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Target shot / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/target-shot.html",
-			"file": "res://assets/icons/game_icons/card_target_shot.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Arrowhead / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/arrowhead.html",
-			"file": "res://assets/icons/game_icons/card_arrowhead.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Stone tower / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/stone-tower.html",
-			"file": "res://assets/icons/game_icons/card_stone_tower.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Castle / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/castle.html",
-			"file": "res://assets/icons/game_icons/card_castle.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Wooden fence / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/wooden-fence.html",
-			"file": "res://assets/icons/game_icons/card_wooden_fence.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Heavy arrow / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/heavy-arrow.html",
-			"file": "res://assets/icons/game_icons/card_heavy_arrow.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Targeting / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/targeting.html",
-			"file": "res://assets/icons/game_icons/card_targeting.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Thrown spear / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/thrown-spear.html",
-			"file": "res://assets/icons/game_icons/card_thrown_spear.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Spears / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/spears.html",
-			"file": "res://assets/icons/game_icons/card_spears.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Winged arrow / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/winged-arrow.html",
-			"file": "res://assets/icons/game_icons/card_winged_arrow.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Arrow scope / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/arrow-scope.html",
-			"file": "res://assets/icons/game_icons/card_arrow_scope.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Pocket bow / 三选一卡牌图标",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/pocket-bow.html",
-			"file": "res://assets/icons/game_icons/card_pocket_bow.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Tower flag / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/tower-flag.html",
-			"file": "res://assets/icons/game_icons/card_tower_flag.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Castle / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/castle.html",
-			"file": "res://assets/icons/game_icons/card_delapouite_castle.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Palisade / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/palisade.html",
-			"file": "res://assets/icons/game_icons/card_palisade.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Barricade / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/barricade.html",
-			"file": "res://assets/icons/game_icons/card_barricade.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Wood beam / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/wood-beam.html",
-			"file": "res://assets/icons/game_icons/card_wood_beam.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Wood pile / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/wood-pile.html",
-			"file": "res://assets/icons/game_icons/card_wood_pile.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Bow string / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/bow-string.html",
-			"file": "res://assets/icons/game_icons/card_bow_string.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Archer / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/archer.html",
-			"file": "res://assets/icons/game_icons/card_archer.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Quiver / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/quiver.html",
-			"file": "res://assets/icons/game_icons/card_quiver.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Crane / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/crane.html",
-			"file": "res://assets/icons/game_icons/card_crane_winch.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Brick wall / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/brick-wall.html",
-			"file": "res://assets/icons/game_icons/card_brick_wall.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Stone wall / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/stone-wall.html",
-			"file": "res://assets/icons/game_icons/card_stone_wall.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Siege tower / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/siege-tower.html",
-			"file": "res://assets/icons/game_icons/card_siege_tower.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Wooden crate / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/wooden-crate.html",
-			"file": "res://assets/icons/game_icons/card_wooden_crate.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Toolbox / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/toolbox.html",
-			"file": "res://assets/icons/game_icons/card_toolbox.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Torch / 三选一卡牌图标",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/torch.html",
-			"file": "res://assets/icons/game_icons/card_torch.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "Bullseye / 三选一卡牌图标",
-			"artist": "Skoll",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/skoll/bullseye.html",
-			"file": "res://assets/icons/game_icons/card_bullseye.svg",
-			"usage_zh": "属性、技能与事件三选一卡牌图标",
-			"usage_en": "Attribute, skill and event upgrade-card icon",
-			"changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
-		},
-		{
-			"title": "守夜箭头鼠标光标 / Watch Arrow Cursor",
-			"artist": "xingwangzhe",
-			"license": "CC BY 4.0",
-			"license_url": "https://creativecommons.org/licenses/by/4.0/",
-			"url": "https://github.com/xingwangzhe/watch-yongchang",
-			"file": "res://assets/ui/watch_cursor.webp",
-			"usage_zh": "仅正式游玩阶段显示的时代风格箭头；菜单与所有面板恢复系统光标",
-			"usage_en": "Era-styled arrow shown only during active gameplay; menus and panels restore the system cursor",
-			"changes_zh": "项目原创 24×24 四色像素光标；由 pixel-art/watch_cursor/build.py 生成，运行时使用无损 WebP，未手改导出图",
-			"changes_en": "Original 24×24 four-colour pixel cursor generated by pixel-art/watch_cursor/build.py; runtime uses lossless WebP, exported images are not hand-edited",
-			"asset_id": "watch_cursor_pixel_art"
-		},
-		{
-			"title": "Broadsword / 阔剑",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/broadsword.html",
-			"file": "res://assets/icons/game_icons/wpn_saber.svg",
-			"usage_zh": "武器卡与升级卡中的腰刀图标",
-			"usage_en": "Saber icon in weapon and upgrade cards",
-			"changes_zh": "沿用 Game-icons.net 原始 SVG；游戏内统一调色",
-			"changes_en": "Original Game-icons.net SVG; tinted consistently in game"
-		},
-		{
-			"title": "Musket / 火铳",
-			"artist": "Skoll",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/skoll/musket.html",
-			"file": "res://assets/icons/game_icons/wpn_musket.svg",
-			"usage_zh": "武器卡与升级卡中的火铳图标",
-			"usage_en": "Musket icon in weapon and upgrade cards",
-			"changes_zh": "沿用 Game-icons.net 原始 SVG；游戏内统一调色",
-			"changes_en": "Original Game-icons.net SVG; tinted consistently in game"
-		},
-		{
-			"title": "Cannon / 火炮",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/cannon.html",
-			"file": "res://assets/icons/game_icons/wpn_cannon.svg",
-			"usage_zh": "武器卡与升级卡中的佛郎机图标",
-			"usage_en": "Cannon icon in weapon and upgrade cards",
-			"changes_zh": "沿用 Game-icons.net 原始 SVG；游戏内统一调色",
-			"changes_en": "Original Game-icons.net SVG; tinted consistently in game"
-		}
-	],
-	"fonts": [
-		{
-			"title": "LXGW WenKai / 霞鹜文楷",
-			"artist": "LXGW",
-			"license": "SIL Open Font License 1.1",
-			"license_url": "https://openfontlicense.org/open-font-license-official-text/",
-			"url": "https://github.com/lxgw/LxgwWenKai",
-			"file": "res://assets/fonts/LXGWWenKai-Regular.woff2",
-			"notice_zh": "Copyright 2021-2026 LXGW；Copyright 2020 The Klee Project Authors。保留字体名称：霞鹜、霞鶩、落霞孤鹜、落霞孤鶩、LXGW。运行时字体按实际界面文案子集化并以 WOFF2 内嵌；依据 OFL 附加许可仅用于游戏内嵌，不提供可安装桌面字体。许可全文：game/assets/fonts/OFL.txt。",
-			"notice_en": "Copyright 2021-2026 LXGW; Copyright 2020 The Klee Project Authors. Reserved font names: 霞鹜, 霞鶩, 落霞孤鹜, 落霞孤鶩, LXGW. The runtime font is subsetted to shipped interface text and embedded as WOFF2 under the OFL additional permission for web-font delivery; it is not distributed as an installable desktop font. Full license: game/assets/fonts/OFL.txt."
-		}
-	],
-	"tools": [
-		{
-			"title": "Godot Engine 4.7.2-stable",
-			"license": "MIT",
-			"license_url": "https://opensource.org/licenses/MIT",
-			"url": "https://godotengine.org"
-		},
-		{
-			"title": "GUT 9.7.1",
-			"license": "MIT",
-			"license_url": "https://opensource.org/licenses/MIT",
-			"url": "https://github.com/bitwes/Gut"
-		},
-		{
-			"title": "Pixel Art Studio",
-			"license": "MIT",
-			"license_url": "https://opensource.org/licenses/MIT",
-			"url": "https://github.com/Gamezxz/pixel-art-studio"
-		},
-		{
-			"title": "Pillow",
-			"license": "MIT-CMU",
-			"license_url": "https://opensource.org/licenses/MIT-CMU",
-			"url": "https://python-pillow.org"
-		},
-		{
-			"title": "Bun",
-			"license": "MIT",
-			"license_url": "https://opensource.org/licenses/MIT",
-			"url": "https://bun.sh"
-		},
-		{
-			"title": "Jeff-FX-forge 1.1",
-			"license": "Code MIT · original FX art CC0 1.0",
-			"license_url": "https://opensource.org/licenses/MIT",
-			"art_license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
-			"url": "https://github.com/jeffstudio-dev/Jeff-FX-forge"
-		},
-		{
-			"title": "ffmpeg",
-			"license": "LGPL-2.1-or-later",
-			"license_url": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
-			"url": "https://ffmpeg.org"
-		},
-		{
-			"title": "WorkBuddy ImageGen",
-			"license": "AI-generated panel assets; see AI statement",
-			"url": ""
-		},
-		{
-			"title": "明式箭塔三档贴图",
-			"title_en": "Ming Arrow Tower Trio",
-			"artist": "OpenAI ImageGen",
-			"artist_en": "OpenAI ImageGen",
-			"license": "原创非代码资产 CC BY 4.0；AI 生成素材",
-			"url": "",
-			"file": "res://assets/units/towers/watchtower.webp",
-			"usage_zh": "望楼、箭楼、龙首箭楼三档完整塔身贴图；战斗直接使用生成图",
-			"usage_en": "Sprite textures for the three tower tiers",
-			"changes_zh": "OpenAI ImageGen 新箭塔图集第2、0、3格；pixel-art/towers/build.py 去绿幕、裁切主体并最近邻缩放为168x168 PNG及无损WebP",
-			"changes_en": "Cells 2, 0 and 3 from the renewed OpenAI ImageGen tower atlas; pixel-art/towers/build.py keys green, crops each structure and exports 168x168 PNG plus lossless WebP",
-			"asset_id": "watchtower_pixel_art"
-		},
-		{
-			"title": "明式箭塔旋转连弩",
-			"title_en": "Ming Arrow Tower Crossbow",
-			"artist": "OpenAI ImageGen",
-			"artist_en": "OpenAI ImageGen",
-			"license": "原创非代码资产 CC BY 4.0；AI 生成素材",
-			"url": "",
-			"file": "res://assets/units/towers/tower_crossbow.webp",
-			"usage_zh": "箭塔顶部可旋转的连弩贴图",
-			"usage_en": "Rotating crossbow texture mounted on arrow towers",
-			"changes_zh": "取自 pixel-art/renewed_composable/source/weapon_props.png 第10格；Pillow 去洋红色键并最近邻缩放为168×168；运行时旋转贴图以跟随目标",
-			"changes_en": "Cell 10 from pixel-art/renewed_composable/source/weapon_props.png; Pillow removes the magenta key and scales with nearest-neighbor to 168x168; runtime rotates the sprite toward targets",
-			"asset_id": "tower_crossbow_imagegen"
-		},
-		{
-			"title": "OpenAI ImageGen",
-			"title_en": "OpenAI ImageGen",
-			"artist": "OpenAI",
-			"artist_en": "OpenAI",
-			"license": "AI-generated original non-code assets; attribution and license terms see AI statement",
-			"url": "https://openai.com",
-			"usage_zh": "完整主角、友军、敌军、骑兵及地图分类图集",
-			"usage_en": "Complete-character atlases for player, allies, enemies, cavalry, and map categories",
-			"changes_zh": "按整个人物帧或整格瓦片裁切、统一锚点并压缩；不拆分身体部件，不拼接人体或叠加独立武器/马匹",
-			"changes_en": "Cropped whole-character frames or whole map tiles, normalized anchors, and compressed; no body-part assembly or separate weapon/horse overlays",
-			"asset_id": "full_composed_character_and_tile_atlases"
-		}
-	]
+  "title": "守望·永昌",
+  "subtitle": {
+    "zh": "2026 OSGJ 开源游戏开发大赛参赛作品",
+    "en": "A 2026 OSGJ open-source game development entry"
+  },
+  "free_software": {
+    "title_zh": "自由软件",
+    "title_en": "Free Software",
+    "lines_zh": [
+      "《守望 · 永昌》是自由软件：你可以自由运行、研究、修改和再分发。",
+      "代码采用 GNU AGPL-3.0-or-later；原创非代码资产采用 CC BY 4.0；第三方内容保留原许可。",
+      "完整源码、许可证与逐项署名均随项目公开，欢迎学习、修改与再分发。"
+    ],
+    "lines_en": [
+      "Watch of Yongchang is free software: you may run, study, modify, and redistribute it.",
+      "Code is licensed GNU AGPL-3.0-or-later; original non-code assets are CC BY 4.0; third-party works keep their licenses.",
+      "Complete source, licenses, and itemized credits are published with the project."
+    ],
+    "link_zh": "查看源代码与许可证",
+    "link_en": "Source code and licenses",
+    "url": "https://github.com/xingwangzhe/watch-yongchang"
+  },
+  "about": {
+    "sections": [
+      {
+        "title_zh": "作品与当前进度",
+        "title_en": "The Game · Current Build",
+        "lines_zh": [
+          "《守望 · 永昌》",
+          "Vampire Survivors-like 割草生存 Roguelite",
+          "主题：守 · 望 / 永昌堡与明代抗倭记忆",
+          "2026 OSGJ 开源游戏开发大赛参赛作品",
+          "新增正俯视建筑屋顶与方向河岸图：OpenAI ImageGen 生成原图，Pillow 通过 pixel-art/overhead_buildings/build.py 及 full_composed_atlas/build.py 确定性裁切；箭塔平台中央留给实时瞄准连弩。原创非代码资产 CC BY 4.0。",
+          "已完成：序章 1386 宁村所、正篇 1559 永昌堡割草生存、双堡图鉴、灯火风险收益、龙鳞清屏、剧情字幕（输出授权未核实的 MOSS 语音已下架）、铺满屏幕的局内军市、CharacterForge 佣兵与骑兵、RTS 式流场寻路、外围奇遇点与运行时随机配装",
+          "玩法：16 分钟单局、鼠标瞄准、长按左键攻击、六兵器进化、升级三选一、每 120 秒军市、最多 3 名佣兵、五色龙鳞与 Boss；操作 W/A/S/D 移动，Space 冲刺，Esc 暂停",
+          "历史边界：汤和只做 1386 序章主角；1559 正篇主角为虚构守灯乡勇王陆/阿六",
+          "策划、程序、像素美术与整合：xingwangzhe"
+        ],
+        "lines_en": [
+          "WATCH · YONGCHANG",
+          "A Vampire Survivors-like survival roguelite",
+          "Theme: Guard · Gaze / Yongchang Fort and Ming-era coastal defense",
+          "A 2026 OSGJ open-source game development entry",
+          "New top-down roof and directional riverbank art: source sheets generated with OpenAI ImageGen and deterministically cut by pixel-art/overhead_buildings/build.py and full_composed_atlas/build.py; tower platforms reserve the center for the live-aiming crossbow. Original non-code art is CC BY 4.0.",
+          "Done: the 1386 Ningcun prologue, the 1559 Yongchang survival run, the two-forts codex, lantern risk/reward, dragon-scale clears, narrative subtitles (MOSS voice removed because output rights were unverified), a full-screen in-run market, CharacterForge retinue and cavalry, RTS-style flow-field navigation, outer-ring encounters, and runtime-random loadouts",
+          "Gameplay: a 16-minute run with mouse aiming and hold-to-attack, six evolving weapons, one-of-three upgrades, a market every 120 seconds, up to three retinue units, five-colour dragon scales, and a boss; W/A/S/D moves, Space dashes, and Esc pauses",
+          "Historical boundary: Tang He is the prologue protagonist only in 1386; the 1559 protagonist is the fictional lamp-watch militia Wang Lu / A-Liu",
+          "Design, code, pixel art, and integration: xingwangzhe"
+        ]
+      },
+      {
+        "title_zh": "骑兵、RTS 寻路与运行时配装",
+        "title_en": "Cavalry, RTS Navigation & Runtime Loadouts",
+        "lines_zh": [
+          "骑兵图集中的每一帧都是完整骑手与坐骑组合，不拆分马匹、骑手或身体部件。",
+          "完整人物分类图集区分端正、整洁的明军友方，与衣甲破损、粗粝凶狠的倭寇敌兵；每行包含对应兵种的八帧整人动作。",
+          "角色图集固定使用兵种分类造型。RuntimeLoadout 仍校验阵营合法配装并抽取战斗数据，但随机装备不会改变图集中的外观。",
+          "骑兵行每格均保留完整坐骑与骑手；当前攻击动作复用完整骑乘行，避免攻击时变为步兵，尚无独立骑乘攻击姿势。",
+          "战斗不从装备配方拼接人物，也不加载旧 144 组变体图集；不拆分身体、武器或马匹图层。",
+          "战斗使用共享 BFS 流场、拥挤分离与卡住恢复，并对原生/Web 分别限频刷新导航缓存；骑兵近战/远程、重装步兵、远程与支援单位共用同一套避障与推进。"
+        ],
+        "lines_en": [
+          "Each cavalry atlas frame shows a complete rider and mount. Riders, horses, and body parts are not assembled as separate layers.",
+          "Complete-character category atlases distinguish upright, orderly Ming allies from rough, battered, hostile-looking Wokou enemies. Each unit row contains eight full-character motion frames.",
+          "RuntimeLoadout still validates faction-legal gear and samples combat data, but random equipment does not alter the fixed category-row appearance.",
+          "Every cavalry frame keeps the complete horse and rider. Cavalry currently reuses its complete mounted row during attacks to avoid switching into an infantry body; dedicated mounted attack poses are not included.",
+          "Combat does not assemble characters from equipment recipes or load the retired 144-variant atlas. Bodies, weapons, and horses are never split into runtime layers.",
+          "Combat shares a BFS flow field, crowd separation, and stuck recovery, with separate native/Web navigation refresh intervals. Mounted melee/ranged, heavy infantry, ranged, and support units use the same obstacle avoidance and advance rules."
+        ]
+      },
+      {
+        "title_zh": "操作与系统",
+        "title_en": "Controls & System",
+        "lines_zh": [
+          "主菜单：↑↓ 选择，Enter 确认，Esc 关闭设置面板。",
+          "战斗：鼠标位置控制攻击方向和角色朝向；长按点击持续攻击，单点会缓冲一次；按 X 开关自动攻击。",
+          "军市：每 120 秒在升级之后开市；按 1/2/3 购买兵器、装备或佣兵，R 重掷，Enter 继续。",
+          "精灵朝向：水平移动会镜像左右；攻击时优先面向鼠标，避免反向位移。",
+          "设置项：BGM/音效、全屏、帧率上限、垂直同步、语言与渲染后端；变更即时写入配置。",
+          "自动存档：菜单、设置变化、开局、退出与每 20 秒写入 user://savegame.json。",
+          "渲染后端切换后不能热生效；设置页会提示“重启游戏以应用渲染变更”，并提供“立即重启”。",
+          "默认渲染模式为自动：支持 Vulkan 时优先 Vulkan，检测不到时回退 OpenGL。",
+          "Linux/macOS 使用 game/launch.sh，Windows 使用 game/launch.bat；启动器读取 ASCII 渲染镜像并选择正确的 Godot 启动参数。"
+        ],
+        "lines_en": [
+          "Menu: ↑↓ to select, Enter to confirm, Esc to close the settings panel.",
+          "Combat: the mouse sets attack and character direction; hold-click for continuous fire, tap for one buffered strike, and press X to toggle auto attack.",
+          "The market opens every 120 seconds after upgrades; press 1/2/3 for weapons, gear, or retinue, R to reroll, and Enter to continue.",
+          "Sprite facing: horizontal movement mirrors left/right; attacks face the mouse so reverse movement never shows the wrong side.",
+          "Settings: music/SFX, fullscreen, frame limit, VSync, language, and renderer; changes are saved immediately.",
+          "Autosave: menu, settings changes, run start, quit, and every 20 seconds to user://savegame.json.",
+          "Renderer changes are not hot-swapped; the settings panel says 'Restart the game to apply the renderer change' and offers 'Restart now'.",
+          "The default renderer mode is Auto: Vulkan when supported, otherwise OpenGL.",
+          "Launch with game/launch.sh on Linux/macOS or game/launch.bat on Windows; the launcher reads the ASCII renderer mirror and passes the matching Godot flags."
+        ]
+      },
+      {
+        "title_zh": "渲染与性能",
+        "title_en": "Rendering & Performance",
+        "lines_zh": [
+          "验收基线：1280×720、可缩放窗口、默认 60 FPS、VSync 开启。",
+          "Vulkan 启动参数：--rendering-method forward_plus --rendering-driver vulkan。",
+          "OpenGL 启动参数：--rendering-method gl_compatibility --rendering-driver opengl3。",
+          "自动检测：Linux 读取 vulkaninfo --summary；Windows 检查 System32/SysWOW64 的 vulkan-1.dll；发现 Vulkan 时默认 Vulkan。",
+          "安全回退：检测不到 Vulkan 时默认 OpenGL；project.godot 仍保留 GL Compatibility 作为兜底。",
+          "Web 版当前使用浏览器提供的 WebGL 2.0 / OpenGL ES 3.0 Compatibility 渲染。",
+          "渲染镜像：Windows 写入 %APPDATA%\\WatchYongchang\\renderer.cfg；Linux/macOS 写入对应的用户配置目录，避免中文项目名影响批处理。",
+          "渲染后端只能在进程启动时选择；设置变更写入 user://settings.cfg，重启后由启动参数应用。",
+          "主菜单夜景的分层绘制、粒子与纹理滚动会同时受 GPU 后端与帧率设置影响。"
+        ],
+        "lines_en": [
+          "Acceptance baseline: 1280×720, resizable window, 60 FPS by default, VSync on.",
+          "Vulkan flags: --rendering-method forward_plus --rendering-driver vulkan.",
+          "OpenGL flags: --rendering-method gl_compatibility --rendering-driver opengl3.",
+          "Detection: Linux reads vulkaninfo --summary; Windows checks vulkan-1.dll in System32/SysWOW64; Vulkan is the default when found.",
+          "Safe fallback: OpenGL when Vulkan is unavailable; project.godot keeps GL Compatibility as the final fallback.",
+          "The web build currently renders through the browser's WebGL 2.0 / OpenGL ES 3.0 Compatibility backend.",
+          "Renderer mirror: Windows writes %APPDATA%\\WatchYongchang\\renderer.cfg; Linux/macOS use their user config directories so the Chinese project name cannot break batch parsing.",
+          "Renderers are selected at process start; the setting is written to user://settings.cfg and applied by the next launch.",
+          "Layered drawing, particles, and texture scrolling in the menu nightscape all depend on the GPU backend and frame limit."
+        ]
+      },
+      {
+        "title_zh": "主菜单夜景",
+        "title_en": "Menu Nightscape",
+        "lines_zh": [
+          "主菜单背景为项目原创动态像素夜景，不再使用简单几何剪影。",
+          "母版 640×360、32 色，2× 最近邻导出为 1280×720，保持硬像素边缘。",
+          "分层：远景城防与月、循环云层、海浪、渔船、烽火、星点、月光碎影、灯火呼吸与火星。",
+          "动画：云层慢速漂移，海浪快速横移并上下起伏，渔船浮动，烽火 9 fps 循环。",
+          "生成：skills/pixel-art-studio/ 与 pixel-art/menu_backdrop/build.py；修改后重跑脚本，不手改导出 PNG。",
+          "运行时：game/scripts/ui/menu_backdrop.gd；主菜单、关于页与占位开局页共用。"
+        ],
+        "lines_en": [
+          "The menu background is an original animated pixel nightscape, not a simple geometric silhouette.",
+          "A 640×360, 32-color master is exported at 2× nearest-neighbor to 1280×720 for crisp pixel edges.",
+          "Layers: distant fort and moon, looping clouds, waves, fishing boats, beacon fire, stars, moon shimmer, breathing lanterns, and embers.",
+          "Motion: clouds drift slowly, waves scroll and bob, boats float, and the beacon cycles at 9 fps.",
+          "Generated with skills/pixel-art-studio/ and pixel-art/menu_backdrop/build.py; rerun the script instead of editing exported PNGs.",
+          "Runtime composition lives in game/scripts/ui/menu_backdrop.gd and is shared by the menu, about page, and placeholder run screen."
+        ]
+      },
+      {
+        "title_zh": "致谢",
+        "title_en": "Thanks",
+        "lines_zh": [
+          "感谢所有公开资料、非遗记录与开源工具的作者。",
+          "感谢 Godot、GUT、Pixel Art Studio、Pillow、Bun 与 ffmpeg 让原型可以持续迭代。",
+          "感谢所有试玩、反馈与守望这场比赛的人。"
+        ],
+        "lines_en": [
+          "Thanks to everyone who published the records, heritage notes, and open-source tools used here.",
+          "Thanks to Godot, GUT, Pixel Art Studio, Pillow, Bun, and ffmpeg for keeping the prototype iterating.",
+          "Thanks to everyone who playtested, gave feedback, or kept watch with us."
+        ],
+        "entries": [
+          {
+            "title_zh": "2026 OSGJ 开源游戏开发大赛官网",
+            "title_en": "2026 OSGJ Open Source Game Development site",
+            "note_zh": "赛事主题「守 · 望」、题解与六个创作方向。",
+            "note_en": "The Guard · Gaze theme, event brief, and six creative directions.",
+            "url": "https://2026gamejam.osgame.org/"
+          },
+          {
+            "title_zh": "永昌堡资料与汤和信俗素材包",
+            "title_en": "Yongchang Fort records and the Tang He tradition package",
+            "note_zh": "官网题解入口；公开整理见 docs/文化来源.md。",
+            "note_en": "Linked from the official theme brief; public notes live in the top-level docs/文化来源.md.",
+            "url": "https://2026gamejam.osgame.org/"
+          },
+          {
+            "title_zh": "OpenGameArt 与 Kenney 音频作者",
+            "title_en": "OpenGameArt and Kenney audio contributors",
+            "note_zh": "Majadroid、Hitctrl、MintoDog、ogrebane、remaxim、wobbleboxx 与 Kenney；3 首 BGM 与 18 个运行时音效均为开放许可，逐项来源见下方。",
+            "note_en": "Majadroid, Hitctrl, MintoDog, ogrebane, remaxim, wobbleboxx, and Kenney; all three BGM tracks and 18 runtime SFX use open licenses, with per-item sources below.",
+            "url": "https://opengameart.org/"
+          },
+          {
+            "title_zh": "霞鹜文楷 LXGW / Klee Project",
+            "title_en": "LXGW WenKai by LXGW / Klee Project",
+            "note_zh": "OFL 1.1；版权与保留字体名见下方“字体”。",
+            "note_en": "OFL 1.1; copyright and reserved font names appear under Fonts below.",
+            "url": "https://github.com/lxgw/LxgwWenKai"
+          },
+          {
+            "title_zh": "LPC Character Bases（仅动作与关节研究）",
+            "title_en": "LPC Character Bases (motion and joint study only)",
+            "note_zh": "CC-BY-SA 3.0 / GPL 3.0；仅观察比例、关节和动作节奏，未复制或打包其素材。",
+            "note_en": "CC-BY-SA 3.0 / GPL 3.0; used only to study proportions, joints, and timing. No source art is copied or packaged.",
+            "url": "https://opengameart.org/content/lpc-character-bases"
+          },
+          {
+            "title_zh": "RGS_Dev 模块角色（仅分层结构研究）",
+            "title_en": "RGS_Dev modular characters (layering study only)",
+            "note_zh": "CC0 1.0；仅参考身体部件分层与固定握点，未复制或打包其 PNG。",
+            "note_en": "CC0 1.0; used only as a historical motion reference, not included in the runtime. No PNG is copied or packaged.",
+            "url": "https://rgsdev.itch.io/free-cc0-modular-animated-vector-characters-2d"
+          },
+          {
+            "title_zh": "Kenney Modular Characters（仅结构比较）",
+            "title_en": "Kenney Modular Characters (structure comparison only)",
+            "note_zh": "CC0 1.0；形体偏扁平，仅作模块化结构比较，未采用。",
+            "note_en": "CC0 1.0; compared for modular structure only and not adopted because the forms are too flat.",
+            "url": "https://kenney.nl/assets/modular-characters"
+          }
+        ]
+      },
+      {
+        "title_zh": "文化参考",
+        "title_en": "Cultural References",
+        "lines_zh": [
+          "文化不是贴图：阵法、灯火、龙灯拼字与百家宴士气进入玩法。",
+          "赛事创作方向取自官网题解：抗倭叙事、城堡防御、家族传承、节庆巡游、水乡生活、未来想象。",
+          "公开资料索引：《永昌堡与汤和关系索引》。",
+          "玩法与数值取舍：项目原创设计（演绎）。"
+        ],
+        "lines_en": [
+          "Culture is not wallpaper: formations, lantern light, dragon-lantern characters, and feast morale shape the rules.",
+          "The event brief's creative directions: coastal resistance, castle defense, family heritage, festival processions, water-town life, and future imaginings.",
+          "Public index: 《永昌堡与汤和关系索引》.",
+          "Gameplay and balance choices: original project design (interpretive)."
+        ],
+        "entries": [
+          {
+            "title_zh": "永昌堡城防与抗倭地方史",
+            "title_en": "Yongchang Fort defenses and coastal resistance",
+            "note_zh": "公开整理见 docs/文化来源.md。",
+            "note_en": "Public notes live in the top-level docs/文化来源.md.",
+            "url": "https://2026gamejam.osgame.org/"
+          },
+          {
+            "title_zh": "汤和信俗巡游与拼字龙灯",
+            "title_en": "Tang He procession and character-forming dragon lantern",
+            "note_zh": "官网题解入口；原始素材仅用于文化考据，未直接嵌入成品。",
+            "note_en": "Linked from the official theme brief; source material was used for research only and not embedded in the build.",
+            "url": "https://2026gamejam.osgame.org/"
+          },
+          {
+            "title_zh": "2025 OSGJ 历届赛事",
+            "title_en": "2025 OSGJ event archive",
+            "note_zh": "往届赛事与作品索引。",
+            "note_en": "Past event and project index.",
+            "url": "https://2025gamejam.osgame.org/"
+          }
+        ]
+      },
+      {
+        "title_zh": "剧情语音授权核查与字幕回退",
+        "title_en": "Narrative Voice Rights Review & Subtitle Fallback",
+        "lines_zh": [
+          "2026-11-24 核查 OpenMOSS 官方仓库、LICENSE 与 Hugging Face 模型卡：代码和模型产物标注 Apache-2.0，但没有找到明确授权生成语音录音输出的条款。",
+          "为避免把代码/模型许可误当作音频输出许可，原先生成的 9 条中文 + 9 条英文 OGG 已全部从成品和仓库运行时目录移除；模型权重从未入包。",
+          "剧情不静默跳过：VoiceLinePlayer 按字幕文本以约 4.35 音节/秒计算展示时长，保留完整中英字幕、角色、史实/制度/民俗/演绎分类和 source_ref。",
+          "game/data/voice_lines.json 显式设置 audio_enabled=false、distribution=subtitles_only；生成器与模型权重均不随仓库分发。"
+        ],
+        "lines_en": [
+          "On 2026-11-24 the official OpenMOSS repository, LICENSE, and Hugging Face model cards were reviewed: code and model artifacts are marked Apache-2.0, but no explicit grant for generated voice recordings was found.",
+          "To avoid treating a code/model license as an audio-output grant, all 18 former OGG files (nine Chinese and nine English lines) were removed from the runtime and repository; model weights were never shipped.",
+          "Narrative is not silently skipped: VoiceLinePlayer times subtitles from the text at roughly 4.35 syllables per second and preserves bilingual subtitles, speakers, source categories, and source_ref metadata.",
+          "game/data/voice_lines.json explicitly sets audio_enabled=false and distribution=subtitles_only; the generator and model weights are not distributed."
+        ],
+        "entries": [
+          {
+            "title_zh": "MOSS-TTS-Nano 官方仓库",
+            "title_en": "Official MOSS-TTS-Nano repository",
+            "note_zh": "OpenMOSS Team；Apache-2.0 代码/模型许可，未找到明确的生成音频输出授权；语音已下架。",
+            "note_en": "OpenMOSS Team; Apache-2.0 code/model license, no explicit generated-audio output grant found; voice removed.",
+            "license_url": "https://github.com/OpenMOSS/MOSS-TTS-Nano/blob/main/LICENSE",
+            "url": "https://github.com/OpenMOSS/MOSS-TTS-Nano"
+          },
+          {
+            "title_zh": "MOSS-TTS-Nano-100M-ONNX 模型卡",
+            "title_en": "MOSS-TTS-Nano-100M-ONNX model card",
+            "note_zh": "官方 Hugging Face 模型卡；仅作授权核查来源，模型与生成语音均不入包。",
+            "note_en": "Official Hugging Face model card; reviewed for rights only. Neither model nor generated voice is shipped.",
+            "url": "https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Nano-100M-ONNX"
+          },
+          {
+            "title_zh": "MOSS-TTS-Nano Rust ONNX 运行时（历史本地工具）",
+            "title_en": "MOSS-TTS-Nano Rust ONNX runtime (historical local tool)",
+            "note_zh": "Apache-2.0；曾用于本地 CPU 推理，不随成品分发。",
+            "note_en": "Apache-2.0; formerly used for local CPU inference and not distributed with the game.",
+            "license_url": "https://www.apache.org/licenses/LICENSE-2.0",
+            "url": "https://github.com/mzdk100/moss-tts-nano"
+          }
+        ]
+      },
+      {
+        "title_zh": "版权与许可",
+        "title_en": "Copyright & Licenses",
+        "lines_zh": [
+          "© 2026 xingwangzhe。保留署名权。",
+          "代码：AGPL-3.0-or-later；全文见仓库根目录 LICENSE，适用范围见 NOTICE。",
+          "原创非代码资产：CC BY 4.0；项目原创 BGM 母版如明确标注可选 CC0 1.0 或 CC BY 4.0，既有 CC0 奉献保留。当前运行时菜单曲为 CC BY 4.0，关于页曲为 CC BY 3.0。代码与资产范围以 NOTICE 为准。",
+          "动态像素夜景、主菜单 UI 与关于页版式：项目原创；像素夜景导出资产按 CC BY 4.0 发布，生成脚本按 AGPL-3.0-or-later 授权。",
+          "明式抗倭地形、建筑、道具与环境动效均从分类瓦片图集读取，采用 PNG 无损格式保留拼接边缘与调色板；原创非代码素材按 CC BY 4.0 发布。",
+          "地图环境动效图集：红灯笼、渔舟、明军旗与烽火四组 4 帧循环，32×32×4×4，源文件 pixel-art/yongchang_tiles/build.py，按 CC BY 4.0 发布。",
+          "瓦片文化取向：明代浙南沿海抗倭堡垒；青灰石墙、黛瓦、白灰墙、红漆门、马头墙、水关、烽火、拒马、渔舟、芦苇滩与石敢当；未使用日式瓦片或日式识别物。",
+          "完整人物动作分类图：主角、友军、敌军、骑兵与攻击姿势按整格帧生成并接入 `game/assets/units/full_sheets/`。每格保持整个人物；骑兵同格绘出骑手和坐骑；攻击格包含人物及手持武器。王陆六张卡仍是同一人物的阵位，现使用六张装备姿态各异的完整人物格。输入、格位、尺寸和校验摘要见 `pixel-art/full_composed_atlas/clean/manifest.json`。",
+          "主角、友军、敌军、骑兵及攻击动作使用完整人物分类图集；每帧保留完整人物，骑兵帧包含整匹马与骑手，不拆分人体、不叠加独立装备或武器。",
+          "友军分类图包含义师枪兵、藤牌乡兵、义师弓手与旗手四行完整人物帧；其他佣兵角色读取对应完整分类行。阵营与人物叙事配置保留在角色 JSON 中。",
+          "倭寇类型按明代抗倭史料与项目原创设定作为反派；日式阵笠、胴丸、铁炮等仅用于敌方识别，不用于明军与主角。",
+          "UI 面板与控件素材：面板底板由 WorkBuddy ImageGen 生成；按钮、下拉、滑条、开关、滚动条与提示框由 pixel-art/ui_kit/build.py 程序化重绘（漆面底板 + 描金带 + 四角卷角），原创非代码资产 CC BY 4.0，详见《AI 使用与素材声明》。",
+          "第三方音乐、字体、音效保留原许可；署名与来源见下方音频、字体与图标条目。",
+          "Godot、GUT、Pixel Art Studio、Pillow、Bun 与 ffmpeg 的使用许可见下方工具条目。",
+          "霞鹜文楷：OFL 1.1，版权归 LXGW 与 Klee Project Authors，全文见 game/assets/fonts/OFL.txt。",
+          "本作与永昌堡、汤和信俗相关机构无隶属关系；历史资料仅用于文化考据与创作。",
+          "王陆六种守夜阵位头像：OpenAI ImageGen 生成六种完整人物姿态，纯洋红背景由 pixel-art/full_composed_atlas/build.py 去底并整格裁切，原图见 pixel-art/full_composed_atlas/source/wanglu_watchposts_grid.png；原创非代码资产 CC BY 4.0。"
+        ],
+        "lines_en": [
+          "© 2026 xingwangzhe. Attribution rights reserved.",
+          "Code: AGPL-3.0-or-later; full text in the repository-root LICENSE and scope in NOTICE.",
+          "Original non-code assets: CC BY 4.0; specifically identified original BGM masters may also be offered under CC0 1.0, with the prior dedication retained. The shipped menu cue is CC BY 4.0 and the about cue is CC BY 3.0. See NOTICE for the code/asset scope.",
+          "Animated pixel nightscape, menu UI, and about-page layout: project originals; exported nightscape assets are CC BY 4.0, while the generator code is AGPL-3.0-or-later.",
+          "Ming-era coastal-defense terrain, architecture, props, and animated map tiles use lossless PNG category atlases generated by pixel-art/full_composed_atlas/build.py; original non-code art is CC BY 4.0.",
+          "Animated map props: four 4-frame loops for red lanterns, fishing boats, Ming banners, and beacon fire at 32×32 per frame, generated by pixel-art/yongchang_tiles/build.py, released under CC BY 4.0.",
+          "Tile art direction: a Ming-era coastal fort in southern Zhejiang; grey stone walls, dark roof tiles, whitewashed walls, red-lacquer gates, stepped gables, water gates, beacon fires, chevaux-de-frise, fishing boats, reed flats, and stone guardians. No Japanese tiles or Japanese identity markers are used.",
+          "Complete-character category sheets cover Tang He, Wang Lu, allies, enemies, cavalry, and attacks. Every frame includes a whole person; mounted frames include the whole horse and rider. See pixel-art/full_composed_atlas/clean/manifest.json for grids and source hashes.",
+          "RuntimeLoadout retains legal equipment recipe counts for validation; those counts do not generate or assemble character sprites. Player, ally, enemy, cavalry, and attack visuals use complete-character category atlas frames, including each full rider-and-horse silhouette.",
+          "Retinue category sheets show complete spearmen, shield militia, archers, and standard bearers. All visual frames remain whole characters; recipes do not overlay equipment on the sprites.",
+          "Wokou types follow Ming-era coastal-defense records and original project fiction as antagonists; Japanese-style hats, armour, and matchlocks identify the enemy only and are not used for the Ming hero or allies.",
+          "UI panels and controls: the panel base is generated with WorkBuddy ImageGen; buttons, dropdowns, sliders, toggles, scrollbars, and tooltips are redrawn procedurally by pixel-art/ui_kit/build.py (lacquer field with a gilt band and corner flourishes); original non-code assets under CC BY 4.0. See the AI Use & Asset Statement.",
+          "Third-party music, fonts, and sound effects keep their original licenses; see the audio, font, and icon entries below.",
+          "Godot, GUT, Pixel Art Studio, Pillow, Bun, and ffmpeg keep their own licenses; see the tool entries below.",
+          "LXGW WenKai: OFL 1.1, copyright LXGW and the Klee Project Authors; full text in game/assets/fonts/OFL.txt.",
+          "This work is not affiliated with Yongchang Fort or Tang He tradition institutions; historical material is used for cultural research and creative work.",
+          "Wang Lu six watch-post portraits: six complete-character poses generated with OpenAI ImageGen; pixel-art/full_composed_atlas/build.py removes the solid magenta key and crops whole frames. Source: pixel-art/full_composed_atlas/source/wanglu_watchposts_grid.png. Original non-code art is CC BY 4.0."
+        ]
+      }
+    ]
+  },
+  "music": [
+    {
+      "title": "Samurai Nights",
+      "artist": "Maik Hoffmann (Majadroid)",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://opengameart.org/content/samurai-nights",
+      "file": "res://assets/audio/bgm_watch.ogg",
+      "usage_zh": "主菜单、选择页与守夜前场景",
+      "usage_en": "Main menu, character select, and pre-run scenes",
+      "changes_zh": "原 Demo MP3 转码为 Ogg Vorbis；音频内容未改；游戏内循环播放",
+      "changes_en": "Original demo MP3 re-encoded to Ogg Vorbis; audio content unchanged; looped in game"
+    },
+    {
+      "title": "Hard Battle 1",
+      "artist": "MintoDog",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://opengameart.org/content/hard-battle-1",
+      "file": "res://assets/audio/bgm_battle.ogg",
+      "usage_zh": "1559 正篇战斗背景音乐",
+      "usage_en": "1559 combat background music",
+      "changes_zh": "原始 OGG 文件；未改音频数据；游戏内循环播放",
+      "changes_en": "Original OGG file; audio data unchanged; looped in game"
+    },
+    {
+      "title": "Views From Atop the Jade Kings Throne",
+      "artist": "Hitctrl",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://opengameart.org/content/views-from-atop-the-jade-kings-throne",
+      "file": "res://assets/audio/bgm_about.ogg",
+      "usage_zh": "关于页专属滚幕音乐",
+      "usage_en": "About-page credits music",
+      "changes_zh": "原始 OGG 文件；音频内容未改；游戏内循环播放",
+      "changes_en": "Original OGG file; audio content unchanged; looped in game"
+    }
+  ],
+  "sfx": [
+    {
+      "title": "Kenney UI Audio",
+      "artist": "Kenney",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://kenney.nl/assets/ui-audio",
+      "file": "res://assets/audio/ui_click.ogg",
+      "files": [
+        "res://assets/audio/ui_click.ogg",
+        "res://assets/audio/ui_confirm.ogg",
+        "res://assets/audio/ui_back.ogg",
+        "res://assets/audio/sfx_pickup.ogg",
+        "res://assets/audio/sfx_event.ogg"
+      ],
+      "usage_zh": "全局按钮点击、确认、返回、拾取与事件提示音",
+      "usage_en": "Global button clicks, confirms, back actions, pickups, and event cues",
+      "changes_zh": "从 CC0 包选取 click2 / click4 / switch1 / switch3 / switch9；保留原始 OGG 数据；拾取与事件音在游戏内变调",
+      "changes_en": "Selected click2 / click4 / switch1 / switch3 / switch9 from the CC0 pack; original OGG data preserved; pickup/event pitches vary in game"
+    },
+    {
+      "title": "Kenney Impact Sounds",
+      "artist": "Kenney",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://kenney.nl/assets/impact-sounds",
+      "file": "res://assets/audio/sfx_enemy_hit.ogg",
+      "files": [
+        "res://assets/audio/sfx_enemy_hit.ogg",
+        "res://assets/audio/sfx_enemy_kill.ogg",
+        "res://assets/audio/sfx_elite_kill.ogg",
+        "res://assets/audio/sfx_level_up.ogg",
+        "res://assets/audio/sfx_dash.ogg",
+        "res://assets/audio/sfx_boss.ogg"
+      ],
+      "usage_zh": "敌兵受击、击杀、精英击杀、冲刺、升级与 Boss 提示音",
+      "usage_en": "Enemy hit, kill, elite kill, dash, level-up, and boss cues",
+      "changes_zh": "从 CC0 包选取 Soft / Punch / Plate / Generic / Bell / Metal 音效；保留原始 OGG 数据；游戏内变调与节流",
+      "changes_en": "Selected Soft / Punch / Plate / Generic / Bell / Metal cues from the CC0 pack; original OGG data preserved; pitch variation and throttling in game"
+    },
+    {
+      "title": "Battle Sound Effects: Bow",
+      "artist": "ogrebane",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://opengameart.org/content/battle-sound-effects",
+      "file": "res://assets/audio/sfx_fire.ogg",
+      "usage_zh": "箭塔与远程攻击音效",
+      "usage_en": "Tower and ranged-attack cue",
+      "changes_zh": "选取 Bow 音效；响度归一化并转码为 Ogg",
+      "changes_en": "Selected Bow cue; loudness normalized and re-encoded to Ogg"
+    },
+    {
+      "title": "3 Melee Sounds",
+      "artist": "remaxim",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://opengameart.org/content/3-melee-sounds",
+      "file": "res://assets/audio/sfx_hit.ogg",
+      "usage_zh": "单位受击音效",
+      "usage_en": "Unit-hit cue",
+      "changes_zh": "选取近战音效；响度归一化并转码为 Ogg",
+      "changes_en": "Selected melee cue; loudness normalized and re-encoded to Ogg"
+    },
+    {
+      "title": "RPG Audio: Chop",
+      "artist": "Kenney",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://opengameart.org/content/50-rpg-sound-effects",
+      "file": "res://assets/audio/sfx_build.ogg",
+      "usage_zh": "建造完成音效",
+      "usage_en": "Build-complete cue",
+      "changes_zh": "选取 Chop 音效；响度归一化",
+      "changes_en": "Selected Chop cue; loudness normalized"
+    },
+    {
+      "title": "Sound Pack 01",
+      "artist": "wobbleboxx",
+      "license": "CC0 1.0",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://opengameart.org/content/level-up-power-up-coin-get-13-sounds",
+      "file": "res://assets/audio/sfx_wave.ogg",
+      "files": [
+        "res://assets/audio/sfx_wave.ogg",
+        "res://assets/audio/sfx_alarm.ogg",
+        "res://assets/audio/sfx_win.ogg",
+        "res://assets/audio/sfx_lose.ogg"
+      ],
+      "usage_zh": "波次开始、主堡警报、胜利与失败音效",
+      "usage_en": "Wave-start, fort-alarm, victory, and defeat cues",
+      "changes_zh": "选取 Rise01 / Alarm / Upper01 / Downer01；AIF 转 Ogg；Alarm 截短 2.2 秒并淡出；响度归一化",
+      "changes_en": "Selected Rise01 / Alarm / Upper01 / Downer01; AIF converted to Ogg; Alarm shortened to 2.2 s and faded; loudness normalized"
+    }
+  ],
+  "icons": [
+    {
+      "title": "Asian lantern / 亚洲灯笼",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/asian-lantern.html",
+      "file": "res://assets/icons/game_icons/ui_lantern.svg",
+      "usage_zh": "主菜单“首夜支点”的灯火标识",
+      "usage_en": "Lantern marker in the main-menu night anchors",
+      "changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+    },
+    {
+      "title": "Watchtower / 望楼",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/watchtower.html",
+      "file": "res://assets/icons/game_icons/ui_watchtower.svg",
+      "usage_zh": "主菜单“首夜支点”的望楼标识",
+      "usage_en": "Watchtower marker in the main-menu night anchors",
+      "changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+    },
+    {
+      "title": "Scroll unfurled / 展开卷轴",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/scroll-unfurled.html",
+      "file": "res://assets/icons/game_icons/ui_scroll.svg",
+      "usage_zh": "主菜单“首夜支点”的图鉴标识",
+      "usage_en": "Codex marker in the main-menu night anchors",
+      "changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+    },
+    {
+      "title": "Bowl of rice / 米饭碗",
+      "artist": "Caro Asercion",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/caro-asercion/bowl-of-rice.html",
+      "file": "res://assets/icons/game_icons/ui_feast.svg",
+      "usage_zh": "主菜单“首夜支点”的百家宴标识",
+      "usage_en": "Community-feast marker in the main-menu night anchors",
+      "changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+    },
+    {
+      "title": "Round shield / 圆盾",
+      "artist": "Willdabeast",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/willdabeast/round-shield.html",
+      "file": "res://assets/icons/game_icons/wpn_shield.svg",
+      "usage_zh": "主菜单藤牌文化标识；藤牌仅作防具，不进入兵器卡池",
+      "usage_en": "Rattan-shield cultural marker in the menu; shields are defensive only and never enter the weapon pool",
+      "changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+    },
+    {
+      "title": "Dragon head / 龙首",
+      "artist": "Faithtoken",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/faithtoken/dragon-head.html",
+      "file": "res://assets/icons/game_icons/wpn_dragon_lantern.svg",
+      "usage_zh": "开局页龙灯军备卡",
+      "usage_en": "Dragon-lantern loadout card on the run screen",
+      "changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
+    },
+    {
+      "title": "Bamboo / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/bamboo.html",
+      "file": "res://assets/icons/game_icons/card_bamboo.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Fishing boat / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/boat-fishing.html",
+      "file": "res://assets/icons/game_icons/card_boat_fishing.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Herbs bundle / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/herbs-bundle.html",
+      "file": "res://assets/icons/game_icons/card_herbs.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Abacus / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/abacus.html",
+      "file": "res://assets/icons/game_icons/card_abacus.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Coins / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/coins.html",
+      "file": "res://assets/icons/game_icons/card_coins.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Crane / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/crane.html",
+      "file": "res://assets/icons/game_icons/card_crane.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Dragon shield / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/dragon-shield.html",
+      "file": "res://assets/icons/game_icons/card_dragon_shield.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Drum / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/drum.html",
+      "file": "res://assets/icons/game_icons/card_drum.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Gong / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/gong.html",
+      "file": "res://assets/icons/game_icons/card_gong.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Knot / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/knot.html",
+      "file": "res://assets/icons/game_icons/card_knot.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Axe in log / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/axe-in-log.html",
+      "file": "res://assets/icons/game_icons/card_axe_log.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Hunter eyes / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/hunter-eyes.html",
+      "file": "res://assets/icons/game_icons/card_hunter_eyes.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "High grass / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/high-grass.html",
+      "file": "res://assets/icons/game_icons/card_reeds.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Gate / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/gate.html",
+      "file": "res://assets/icons/game_icons/card_gate.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Fog / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/fog.html",
+      "file": "res://assets/icons/game_icons/card_fog.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Book pile / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/book-pile.html",
+      "file": "res://assets/icons/game_icons/card_books.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Heart armor / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/heart-armor.html",
+      "file": "res://assets/icons/game_icons/card_heart_armor.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Fish smoking / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/fish-smoking.html",
+      "file": "res://assets/icons/game_icons/card_smoked_fish.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Flute / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/flute.html",
+      "file": "res://assets/icons/game_icons/card_flute.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Big wave / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/big-wave.html",
+      "file": "res://assets/icons/game_icons/card_wave.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Compass / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/compass.html",
+      "file": "res://assets/icons/game_icons/card_compass.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Book aura / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/book-aura.html",
+      "file": "res://assets/icons/game_icons/card_book_aura.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Firework rocket / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/firework-rocket.html",
+      "file": "res://assets/icons/game_icons/card_firework.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Dragon breath / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/dragon-breath.html",
+      "file": "res://assets/icons/game_icons/card_dragon_breath.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Double dragon / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/double-dragon.html",
+      "file": "res://assets/icons/game_icons/card_double_dragon.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Lightning shield / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/lightning-shield.html",
+      "file": "res://assets/icons/game_icons/card_lightning_shield.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Life tap / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/life-tap.html",
+      "file": "res://assets/icons/game_icons/card_life_tap.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Holy grail / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/holy-grail.html",
+      "file": "res://assets/icons/game_icons/card_holy_grail.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Incense / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/incense.html",
+      "file": "res://assets/icons/game_icons/card_incense.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Lantern flame / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/lantern-flame.html",
+      "file": "res://assets/icons/game_icons/card_lantern_flame.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Lotus flower / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/lotus-flower.html",
+      "file": "res://assets/icons/game_icons/card_lotus.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Moon / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/moon.html",
+      "file": "res://assets/icons/game_icons/card_moon.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Pine tree / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/pine-tree.html",
+      "file": "res://assets/icons/game_icons/card_pine.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Paper lantern / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/paper-lantern.html",
+      "file": "res://assets/icons/game_icons/card_paper_lantern.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Fishing net / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/fishing-net.html",
+      "file": "res://assets/icons/game_icons/card_fishing_net.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Bandage roll / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/bandage-roll.html",
+      "file": "res://assets/icons/game_icons/card_bandage.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Crown coin / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/crown-coin.html",
+      "file": "res://assets/icons/game_icons/card_crown_coin.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Night sky / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/night-sky.html",
+      "file": "res://assets/icons/game_icons/card_night_sky.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Ember shot / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/ember-shot.html",
+      "file": "res://assets/icons/game_icons/card_ember_shot.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Dumpling bao / 三选一卡牌图标",
+      "artist": "Caro Asercion",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/caro-asercion/dumpling-bao.html",
+      "file": "res://assets/icons/game_icons/card_dumpling.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Wok / 三选一卡牌图标",
+      "artist": "Caro Asercion",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/caro-asercion/wok.html",
+      "file": "res://assets/icons/game_icons/card_wok.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Paper crane / 三选一卡牌图标",
+      "artist": "Caro Asercion",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/caro-asercion/paper-crane.html",
+      "file": "res://assets/icons/game_icons/card_paper_crane.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Spinning wheel / 三选一卡牌图标",
+      "artist": "Caro Asercion",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/caro-asercion/spinning-wheel.html",
+      "file": "res://assets/icons/game_icons/card_spinning_wheel.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Willow tree / 三选一卡牌图标",
+      "artist": "Caro Asercion",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/caro-asercion/willow-tree.html",
+      "file": "res://assets/icons/game_icons/card_willow.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Heron / 三选一卡牌图标",
+      "artist": "Caro Asercion",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/caro-asercion/heron.html",
+      "file": "res://assets/icons/game_icons/card_heron.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Windchimes / 三选一卡牌图标",
+      "artist": "Caro Asercion",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/caro-asercion/windchimes.html",
+      "file": "res://assets/icons/game_icons/card_windchimes.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Pestle mortar / 三选一卡牌图标",
+      "artist": "Skoll",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/skoll/pestle-mortar.html",
+      "file": "res://assets/icons/game_icons/card_pestle.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Stopwatch / 三选一卡牌图标",
+      "artist": "Skoll",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/skoll/stopwatch.html",
+      "file": "res://assets/icons/game_icons/card_stopwatch.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Open treasure chest / 三选一卡牌图标",
+      "artist": "Skoll",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/skoll/open-treasure-chest.html",
+      "file": "res://assets/icons/game_icons/card_treasure.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Ballista / 三选一卡牌图标",
+      "artist": "Skoll",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/skoll/ballista.html",
+      "file": "res://assets/icons/game_icons/card_ballista.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Chain lightning / 三选一卡牌图标",
+      "artist": "Willdabeast",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/willdabeast/chain-lightning.html",
+      "file": "res://assets/icons/game_icons/card_chain_lightning.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Chain mail / 三选一卡牌图标",
+      "artist": "Willdabeast",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/willdabeast/chain-mail.html",
+      "file": "res://assets/icons/game_icons/card_chain_mail.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Card draw / 三选一卡牌图标",
+      "artist": "Faithtoken",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/faithtoken/card-draw.html",
+      "file": "res://assets/icons/game_icons/card_draw.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Archery target / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/archery-target.html",
+      "file": "res://assets/icons/game_icons/card_archery_target.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Arrow cluster / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/arrow-cluster.html",
+      "file": "res://assets/icons/game_icons/card_arrow_cluster.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Arrow flights / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/arrow-flights.html",
+      "file": "res://assets/icons/game_icons/card_arrow_flights.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Barbed arrow / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/barbed-arrow.html",
+      "file": "res://assets/icons/game_icons/card_barbed_arrow.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Broadhead arrow / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/broadhead-arrow.html",
+      "file": "res://assets/icons/game_icons/card_broadhead_arrow.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "On target / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/on-target.html",
+      "file": "res://assets/icons/game_icons/card_on_target.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Target arrows / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/target-arrows.html",
+      "file": "res://assets/icons/game_icons/card_target_arrows.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Target shot / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/target-shot.html",
+      "file": "res://assets/icons/game_icons/card_target_shot.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Arrowhead / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/arrowhead.html",
+      "file": "res://assets/icons/game_icons/card_arrowhead.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Stone tower / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/stone-tower.html",
+      "file": "res://assets/icons/game_icons/card_stone_tower.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Castle / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/castle.html",
+      "file": "res://assets/icons/game_icons/card_castle.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Wooden fence / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/wooden-fence.html",
+      "file": "res://assets/icons/game_icons/card_wooden_fence.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Heavy arrow / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/heavy-arrow.html",
+      "file": "res://assets/icons/game_icons/card_heavy_arrow.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Targeting / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/targeting.html",
+      "file": "res://assets/icons/game_icons/card_targeting.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Thrown spear / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/thrown-spear.html",
+      "file": "res://assets/icons/game_icons/card_thrown_spear.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Spears / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/spears.html",
+      "file": "res://assets/icons/game_icons/card_spears.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Winged arrow / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/winged-arrow.html",
+      "file": "res://assets/icons/game_icons/card_winged_arrow.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Arrow scope / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/arrow-scope.html",
+      "file": "res://assets/icons/game_icons/card_arrow_scope.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Pocket bow / 三选一卡牌图标",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/pocket-bow.html",
+      "file": "res://assets/icons/game_icons/card_pocket_bow.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Tower flag / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/tower-flag.html",
+      "file": "res://assets/icons/game_icons/card_tower_flag.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Castle / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/castle.html",
+      "file": "res://assets/icons/game_icons/card_delapouite_castle.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Palisade / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/palisade.html",
+      "file": "res://assets/icons/game_icons/card_palisade.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Barricade / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/barricade.html",
+      "file": "res://assets/icons/game_icons/card_barricade.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Wood beam / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/wood-beam.html",
+      "file": "res://assets/icons/game_icons/card_wood_beam.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Wood pile / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/wood-pile.html",
+      "file": "res://assets/icons/game_icons/card_wood_pile.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Bow string / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/bow-string.html",
+      "file": "res://assets/icons/game_icons/card_bow_string.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Archer / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/archer.html",
+      "file": "res://assets/icons/game_icons/card_archer.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Quiver / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/quiver.html",
+      "file": "res://assets/icons/game_icons/card_quiver.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Crane / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/crane.html",
+      "file": "res://assets/icons/game_icons/card_crane_winch.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Brick wall / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/brick-wall.html",
+      "file": "res://assets/icons/game_icons/card_brick_wall.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Stone wall / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/stone-wall.html",
+      "file": "res://assets/icons/game_icons/card_stone_wall.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Siege tower / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/siege-tower.html",
+      "file": "res://assets/icons/game_icons/card_siege_tower.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Wooden crate / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/wooden-crate.html",
+      "file": "res://assets/icons/game_icons/card_wooden_crate.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Toolbox / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/toolbox.html",
+      "file": "res://assets/icons/game_icons/card_toolbox.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Torch / 三选一卡牌图标",
+      "artist": "Delapouite",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/delapouite/torch.html",
+      "file": "res://assets/icons/game_icons/card_torch.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "Bullseye / 三选一卡牌图标",
+      "artist": "Skoll",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/skoll/bullseye.html",
+      "file": "res://assets/icons/game_icons/card_bullseye.svg",
+      "usage_zh": "属性、技能与事件三选一卡牌图标",
+      "usage_en": "Attribute, skill and event upgrade-card icon",
+      "changes_zh": "原始白色透明 SVG；游戏内按卡牌类型着色，图形未改",
+      "changes_en": "Original white-on-transparent SVG; tinted by card family in game, geometry unchanged"
+    },
+    {
+      "title": "守夜箭头鼠标光标 / Watch Arrow Cursor",
+      "artist": "xingwangzhe",
+      "license": "CC BY 4.0",
+      "license_url": "https://creativecommons.org/licenses/by/4.0/",
+      "url": "https://github.com/xingwangzhe/watch-yongchang",
+      "file": "res://assets/ui/watch_cursor.webp",
+      "usage_zh": "仅正式游玩阶段显示的时代风格箭头；菜单与所有面板恢复系统光标",
+      "usage_en": "Era-styled arrow shown only during active gameplay; menus and panels restore the system cursor",
+      "changes_zh": "项目原创 24×24 四色像素光标；由 pixel-art/watch_cursor/build.py 生成，运行时使用无损 WebP，未手改导出图",
+      "changes_en": "Original 24×24 four-colour pixel cursor generated by pixel-art/watch_cursor/build.py; runtime uses lossless WebP, exported images are not hand-edited",
+      "asset_id": "watch_cursor_pixel_art"
+    },
+    {
+      "title": "Broadsword / 阔剑",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/broadsword.html",
+      "file": "res://assets/icons/game_icons/wpn_saber.svg",
+      "usage_zh": "武器卡与升级卡中的腰刀图标",
+      "usage_en": "Saber icon in weapon and upgrade cards",
+      "changes_zh": "沿用 Game-icons.net 原始 SVG；游戏内统一调色",
+      "changes_en": "Original Game-icons.net SVG; tinted consistently in game"
+    },
+    {
+      "title": "Musket / 火铳",
+      "artist": "Skoll",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/skoll/musket.html",
+      "file": "res://assets/icons/game_icons/wpn_musket.svg",
+      "usage_zh": "武器卡与升级卡中的火铳图标",
+      "usage_en": "Musket icon in weapon and upgrade cards",
+      "changes_zh": "沿用 Game-icons.net 原始 SVG；游戏内统一调色",
+      "changes_en": "Original Game-icons.net SVG; tinted consistently in game"
+    },
+    {
+      "title": "Cannon / 火炮",
+      "artist": "Lorc",
+      "license": "CC BY 3.0",
+      "license_url": "https://creativecommons.org/licenses/by/3.0/",
+      "url": "https://game-icons.net/1x1/lorc/cannon.html",
+      "file": "res://assets/icons/game_icons/wpn_cannon.svg",
+      "usage_zh": "武器卡与升级卡中的佛郎机图标",
+      "usage_en": "Cannon icon in weapon and upgrade cards",
+      "changes_zh": "沿用 Game-icons.net 原始 SVG；游戏内统一调色",
+      "changes_en": "Original Game-icons.net SVG; tinted consistently in game"
+    }
+  ],
+  "fonts": [
+    {
+      "title": "LXGW WenKai / 霞鹜文楷",
+      "artist": "LXGW",
+      "license": "SIL Open Font License 1.1",
+      "license_url": "https://openfontlicense.org/open-font-license-official-text/",
+      "url": "https://github.com/lxgw/LxgwWenKai",
+      "file": "res://assets/fonts/LXGWWenKai-Regular.woff2",
+      "notice_zh": "Copyright 2021-2026 LXGW；Copyright 2020 The Klee Project Authors。保留字体名称：霞鹜、霞鶩、落霞孤鹜、落霞孤鶩、LXGW。运行时字体按实际界面文案子集化并以 WOFF2 内嵌；依据 OFL 附加许可仅用于游戏内嵌，不提供可安装桌面字体。许可全文：game/assets/fonts/OFL.txt。",
+      "notice_en": "Copyright 2021-2026 LXGW; Copyright 2020 The Klee Project Authors. Reserved font names: 霞鹜, 霞鶩, 落霞孤鹜, 落霞孤鶩, LXGW. The runtime font is subsetted to shipped interface text and embedded as WOFF2 under the OFL additional permission for web-font delivery; it is not distributed as an installable desktop font. Full license: game/assets/fonts/OFL.txt."
+    }
+  ],
+  "tools": [
+    {
+      "title": "Godot Engine 4.7.2-stable",
+      "license": "MIT",
+      "license_url": "https://opensource.org/licenses/MIT",
+      "url": "https://godotengine.org"
+    },
+    {
+      "title": "GUT 9.7.1",
+      "license": "MIT",
+      "license_url": "https://opensource.org/licenses/MIT",
+      "url": "https://github.com/bitwes/Gut"
+    },
+    {
+      "title": "Pixel Art Studio",
+      "license": "MIT",
+      "license_url": "https://opensource.org/licenses/MIT",
+      "url": "https://github.com/Gamezxz/pixel-art-studio"
+    },
+    {
+      "title": "Pillow",
+      "license": "MIT-CMU",
+      "license_url": "https://opensource.org/licenses/MIT-CMU",
+      "url": "https://python-pillow.org"
+    },
+    {
+      "title": "Bun",
+      "license": "MIT",
+      "license_url": "https://opensource.org/licenses/MIT",
+      "url": "https://bun.sh"
+    },
+    {
+      "title": "Jeff-FX-forge 1.1",
+      "license": "Code MIT · original FX art CC0 1.0",
+      "license_url": "https://opensource.org/licenses/MIT",
+      "art_license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "url": "https://github.com/jeffstudio-dev/Jeff-FX-forge"
+    },
+    {
+      "title": "ffmpeg",
+      "license": "LGPL-2.1-or-later",
+      "license_url": "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt",
+      "url": "https://ffmpeg.org"
+    },
+    {
+      "title": "WorkBuddy ImageGen",
+      "license": "AI-generated panel assets; see AI statement",
+      "url": ""
+    },
+    {
+      "title": "明式箭塔三档贴图",
+      "title_en": "Ming Arrow Tower Trio",
+      "artist": "OpenAI ImageGen",
+      "artist_en": "OpenAI ImageGen",
+      "license": "原创非代码资产 CC BY 4.0；AI 生成素材",
+      "url": "",
+      "file": "res://assets/units/towers/watchtower.webp",
+      "usage_zh": "望楼、箭楼、龙首箭楼三档完整塔身贴图；战斗直接使用生成图",
+      "usage_en": "Sprite textures for the three tower tiers",
+      "changes_zh": "全新严格俯视箭塔图集第0、1、2格；pixel-art/overhead_buildings/build.py 去除棋盘底、切分并最近邻缩放为168×168 PNG及无损WebP；中央平台留白供运行时旋转连弩覆盖",
+      "changes_en": "Cells 0, 1 and 2 from the new strict-overhead tower atlas; pixel-art/overhead_buildings/build.py removes the checker background, cuts out and nearest-neighbor scales to 168x168 PNG plus lossless WebP; the center platform stays clear for the runtime-rotated crossbow",
+      "asset_id": "watchtower_pixel_art"
+    },
+    {
+      "title": "明式箭塔旋转连弩",
+      "title_en": "Ming Arrow Tower Crossbow",
+      "artist": "OpenAI ImageGen",
+      "artist_en": "OpenAI ImageGen",
+      "license": "原创非代码资产 CC BY 4.0；AI 生成素材",
+      "url": "",
+      "file": "res://assets/units/towers/tower_crossbow.webp",
+      "usage_zh": "箭塔顶部可旋转的连弩贴图",
+      "usage_en": "Rotating crossbow texture mounted on arrow towers",
+      "changes_zh": "取自 pixel-art/renewed_composable/source/weapon_props.png 第10格；Pillow 去洋红色键并最近邻缩放为168×168；运行时旋转贴图以跟随目标",
+      "changes_en": "Cell 10 from pixel-art/renewed_composable/source/weapon_props.png; Pillow removes the magenta key and scales with nearest-neighbor to 168x168; runtime rotates the sprite toward targets",
+      "asset_id": "tower_crossbow_imagegen"
+    },
+    {
+      "title": "OpenAI ImageGen",
+      "title_en": "OpenAI ImageGen",
+      "artist": "OpenAI",
+      "artist_en": "OpenAI",
+      "license": "AI-generated original non-code assets; attribution and license terms see AI statement",
+      "url": "https://openai.com",
+      "usage_zh": "完整主角、友军、敌军、骑兵及地图分类图集",
+      "usage_en": "Complete-character atlases for player, allies, enemies, cavalry, and map categories",
+      "changes_zh": "按整个人物帧或整格瓦片裁切、统一锚点并压缩；不拆分身体部件，不拼接人体或叠加独立武器/马匹",
+      "changes_en": "Cropped whole-character frames or whole map tiles, normalized anchors, and compressed; no body-part assembly or separate weapon/horse overlays",
+      "asset_id": "full_composed_character_and_tile_atlases"
+    }
+  ]
 }

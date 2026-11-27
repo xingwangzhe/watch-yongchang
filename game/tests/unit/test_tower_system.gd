@@ -46,8 +46,8 @@ func test_tower_definitions_are_complete_and_bilingual() -> void:
 		var tower_id: String = order[index]
 		assert_true(defs.has(tower_id), "%s must be defined" % tower_id)
 		var definition: Dictionary = defs[tower_id] as Dictionary
-		assert_eq(str(definition.get("art_source", "")), "pixel-art/renewed_composable/source/watchtowers.png")
-		assert_eq(int(definition.get("art_cell", -1)), [2, 0, 3][index])
+		assert_eq(str(definition.get("art_source", "")), "pixel-art/overhead_buildings/source/towers_atlas.png")
+		assert_eq(int(definition.get("art_cell", -1)), index)
 		assert_true(str(definition.get("texture", "")).ends_with("/%s.webp" % tower_id))
 		for field in ["name_zh", "name_en", "desc_zh", "desc_en"]:
 			assert_gt(str(definition.get(field, "")).length(), 0, "%s missing %s" % [tower_id, field])

@@ -1,0 +1,80 @@
+{
+  "license": "CC BY 4.0",
+  "generator": "OpenAI ImageGen; pixel-art/overhead_buildings/build.py",
+  "inputs": [
+    {
+      "path": "pixel-art/overhead_buildings/source/roof_atlas.png",
+      "sha256": "850357bb8fe1d0461a1a74b3f37d108eb756e348118942b11693e6e12af69e9f"
+    },
+    {
+      "path": "pixel-art/overhead_buildings/source/towers_atlas.png",
+      "sha256": "8f71230e707766a8764a8f7c7e80f32fb7568fc1eeb669d43f3ff4b7454602ff"
+    },
+    {
+      "path": "pixel-art/overhead_buildings/source/coast_atlas.png",
+      "sha256": "2716f84c215d9ce6bab733a31ac1dff0b963aa3907aff24d184941c402f2a1c9"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "game/assets/tiles/buildings/gatehouse.png",
+      "sha256": "35d6102fdeeef0d710524b672e456328bdfbccfbe1912ca804294d88dd672fa7",
+      "bytes": 215254
+    },
+    {
+      "path": "game/assets/tiles/buildings/hall.png",
+      "sha256": "ef10a1bd3c33196d4550cb7a383ed995af8b34f2f89ce1d12fa74bbcdf7ea86a",
+      "bytes": 278566
+    },
+    {
+      "path": "game/assets/tiles/buildings/house.png",
+      "sha256": "6363bd5ddd43e1f3ed1282a5633b528599306f86d4c683cff89e0a1913f94297",
+      "bytes": 97701
+    },
+    {
+      "path": "game/assets/tiles/buildings/shop.png",
+      "sha256": "613f1070e424b3bd1c5c8922c4b89fad4551a9597993a5b196abf887f92de20b",
+      "bytes": 155312
+    },
+    {
+      "path": "game/assets/tiles/buildings/warehouse.png",
+      "sha256": "8ae911fb2a9fe8f8153fbbc9e89fb55fcc7b878fe8ffcc2ce1f241e46a3896ca",
+      "bytes": 161011
+    },
+    {
+      "path": "game/assets/tiles/buildings/watchtower.png",
+      "sha256": "4cf79a2afb54f43aae8b9a8666b40a83e285943db9cf36c83ee15684b600f120",
+      "bytes": 108216
+    },
+    {
+      "path": "game/assets/units/towers/watchtower.png",
+      "sha256": "2acff3868f62e3f09ce6b65bb13ac5c4e390fd24c05e0d766521e5f7fba0636d",
+      "bytes": 48925
+    },
+    {
+      "path": "game/assets/units/towers/watchtower.webp",
+      "sha256": "e56249c216bad4b67e263f5da2175099895b161513a4f7387899628b40504fd8",
+      "bytes": 33106
+    },
+    {
+      "path": "game/assets/units/towers/arrow_tower.png",
+      "sha256": "de9cd89aec08d6ede7c976a07d527bdf0f2d479ba281544fca93c671533b43c2",
+      "bytes": 50412
+    },
+    {
+      "path": "game/assets/units/towers/arrow_tower.webp",
+      "sha256": "07cd0b1c87eef6f9152ca12aa2dbcc61e20c804cdba15a3b77c40931f9b4b6c1",
+      "bytes": 33160
+    },
+    {
+      "path": "game/assets/units/towers/dragon_tower.png",
+      "sha256": "5be1d1e10d75f063fed290d82f347b56a13621fd55bfff8519a3ee3ea427e606",
+      "bytes": 54283
+    },
+    {
+      "path": "game/assets/units/towers/dragon_tower.webp",
+      "sha256": "8da50c9eaa8fab6db368e7ee54f3fdd20339da6165f3b5baf266123a9f3aa744",
+      "bytes": 38404
+    }
+  ]
+}

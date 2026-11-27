@@ -20,6 +20,12 @@ var _progress: Label
 var _next: Button
 var _skip: Button
 var _voice: VoiceLinePlayer
+var _panel: PanelContainer
+var _subtitle_bg: ColorRect
+var _bottom_fade: TextureRect
+var _margin: MarginContainer
+var _heading: Label
+var _hint: Label
 
 
 func _ready() -> void:
@@ -29,7 +35,78 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
+	get_viewport().size_changed.connect(_on_viewport_resized)
+	_on_viewport_resized()
 	visible = false
+
+
+func _on_viewport_resized() -> void:
+	_apply_responsive_layout(get_viewport().get_visible_rect().size, _css_view_size())
+
+
+func _css_view_size() -> Vector2:
+	if OS.has_feature("web"):
+		var parsed: Variant = JSON.parse_string(str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth, window.innerHeight])", true)))
+		if parsed is Array and (parsed as Array).size() >= 2:
+			return Vector2(float(parsed[0]), float(parsed[1]))
+	var window_size := DisplayServer.window_get_size()
+	return Vector2(window_size.x, window_size.y)
+
+
+func _apply_responsive_layout(view_size: Vector2, css_size: Vector2) -> void:
+	if css_size.x <= 0.0 or css_size.y <= 0.0:
+		return
+	if css_size.x >= css_size.y:
+		_bottom_fade.offset_top = -224.0
+		_subtitle_bg.offset_left = 210.0
+		_subtitle_bg.offset_right = -210.0
+		_subtitle_bg.offset_top = -180.0
+		_subtitle_bg.offset_bottom = -20.0
+		_panel.offset_left = 210.0
+		_panel.offset_right = -210.0
+		_panel.offset_top = -180.0
+		_panel.offset_bottom = -20.0
+		_heading.add_theme_font_size_override("font_size", 12)
+		_category.add_theme_font_size_override("font_size", 10)
+		_source.add_theme_font_size_override("font_size", 9)
+		_speaker.add_theme_font_size_override("font_size", 16)
+		_body.add_theme_font_size_override("font_size", 18)
+		_body.custom_minimum_size.y = 32.0
+		_progress.add_theme_font_size_override("font_size", 10)
+		_hint.add_theme_font_size_override("font_size", 10)
+		for button in [_skip, _next]:
+			button.custom_minimum_size = Vector2(88.0, 28.0)
+			button.add_theme_font_size_override("font_size", 12)
+		_margin.add_theme_constant_override("margin_left", 20)
+		_margin.add_theme_constant_override("margin_right", 20)
+		_margin.add_theme_constant_override("margin_top", 18)
+		_margin.add_theme_constant_override("margin_bottom", 8)
+		return
+	var scale_x := view_size.x / css_size.x
+	var scale_y := view_size.y / css_size.y
+	var text_scale := minf(scale_x, scale_y)
+	var panel_height := 210.0 * scale_y
+	_bottom_fade.offset_top = -260.0 * scale_y
+	for panel in [_subtitle_bg, _panel]:
+		panel.offset_left = 18.0 * scale_x
+		panel.offset_right = -18.0 * scale_x
+		panel.offset_top = -panel_height - 10.0 * scale_y
+		panel.offset_bottom = -10.0 * scale_y
+	_heading.add_theme_font_size_override("font_size", maxi(14, roundi(12.0 * text_scale)))
+	_category.add_theme_font_size_override("font_size", maxi(12, roundi(10.0 * text_scale)))
+	_source.add_theme_font_size_override("font_size", maxi(12, roundi(9.0 * text_scale)))
+	_speaker.add_theme_font_size_override("font_size", maxi(18, roundi(16.0 * text_scale)))
+	_body.add_theme_font_size_override("font_size", maxi(22, roundi(18.0 * text_scale)))
+	_body.custom_minimum_size.y = 60.0 * scale_y
+	_progress.add_theme_font_size_override("font_size", maxi(12, roundi(10.0 * text_scale)))
+	_hint.add_theme_font_size_override("font_size", maxi(12, roundi(10.0 * text_scale)))
+	_margin.add_theme_constant_override("margin_left", roundi(14.0 * scale_x))
+	_margin.add_theme_constant_override("margin_right", roundi(14.0 * scale_x))
+	_margin.add_theme_constant_override("margin_top", roundi(8.0 * scale_y))
+	_margin.add_theme_constant_override("margin_bottom", roundi(8.0 * scale_y))
+	for button in [_skip, _next]:
+		button.custom_minimum_size = Vector2(88.0 * scale_x, 34.0 * scale_y)
+		button.add_theme_font_size_override("font_size", maxi(14, roundi(12.0 * text_scale)))
 
 
 func start(lines: Array, heading: String = "") -> void:
@@ -79,49 +156,49 @@ func _build() -> void:
 	fade_texture.gradient = fade_gradient
 	fade_texture.fill_from = Vector2(0.0, 0.0)
 	fade_texture.fill_to = Vector2(0.0, 1.0)
-	var bottom_fade := TextureRect.new()
-	bottom_fade.name = "BottomFade"
-	bottom_fade.texture = fade_texture
-	bottom_fade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	bottom_fade.stretch_mode = TextureRect.STRETCH_SCALE
-	bottom_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	bottom_fade.anchor_left = 0.0
-	bottom_fade.anchor_right = 1.0
-	bottom_fade.anchor_top = 1.0
-	bottom_fade.anchor_bottom = 1.0
-	bottom_fade.offset_left = 0.0
-	bottom_fade.offset_right = 0.0
-	bottom_fade.offset_top = -224.0
-	bottom_fade.offset_bottom = 0.0
-	add_child(bottom_fade)
+	_bottom_fade = TextureRect.new()
+	_bottom_fade.name = "BottomFade"
+	_bottom_fade.texture = fade_texture
+	_bottom_fade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_bottom_fade.stretch_mode = TextureRect.STRETCH_SCALE
+	_bottom_fade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bottom_fade.anchor_left = 0.0
+	_bottom_fade.anchor_right = 1.0
+	_bottom_fade.anchor_top = 1.0
+	_bottom_fade.anchor_bottom = 1.0
+	_bottom_fade.offset_left = 0.0
+	_bottom_fade.offset_right = 0.0
+	_bottom_fade.offset_top = -224.0
+	_bottom_fade.offset_bottom = 0.0
+	add_child(_bottom_fade)
 
 	# 不透明底板：压住底层 HUD 文字，避免半透明面板透出造成文字重影。
-	var subtitle_bg := ColorRect.new()
-	subtitle_bg.name = "SubtitleOpaqueBacking"
-	subtitle_bg.color = Color("#0d1213")
-	subtitle_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	subtitle_bg.anchor_left = 0.0
-	subtitle_bg.anchor_right = 1.0
-	subtitle_bg.anchor_top = 1.0
-	subtitle_bg.anchor_bottom = 1.0
-	subtitle_bg.offset_left = 210.0
-	subtitle_bg.offset_right = -210.0
-	subtitle_bg.offset_top = -180.0
-	subtitle_bg.offset_bottom = -20.0
-	add_child(subtitle_bg)
+	_subtitle_bg = ColorRect.new()
+	_subtitle_bg.name = "SubtitleOpaqueBacking"
+	_subtitle_bg.color = Color("#0d1213")
+	_subtitle_bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_subtitle_bg.anchor_left = 0.0
+	_subtitle_bg.anchor_right = 1.0
+	_subtitle_bg.anchor_top = 1.0
+	_subtitle_bg.anchor_bottom = 1.0
+	_subtitle_bg.offset_left = 210.0
+	_subtitle_bg.offset_right = -210.0
+	_subtitle_bg.offset_top = -180.0
+	_subtitle_bg.offset_bottom = -20.0
+	add_child(_subtitle_bg)
 
 	# 底部字幕条：来源单独占一行，避免长出处挤进装饰边框。
-	var panel := PanelContainer.new()
-	panel.name = "StoryPanel"
-	panel.anchor_left = 0.0
-	panel.anchor_right = 1.0
-	panel.anchor_top = 1.0
-	panel.anchor_bottom = 1.0
-	panel.offset_left = 210.0
-	panel.offset_right = -210.0
-	panel.offset_top = -180.0
-	panel.offset_bottom = -20.0
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	_panel = PanelContainer.new()
+	_panel.name = "StoryPanel"
+	_panel.anchor_left = 0.0
+	_panel.anchor_right = 1.0
+	_panel.anchor_top = 1.0
+	_panel.anchor_bottom = 1.0
+	_panel.offset_left = 210.0
+	_panel.offset_right = -210.0
+	_panel.offset_top = -180.0
+	_panel.offset_bottom = -20.0
+	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	var panel_style := StyleBoxTexture.new()
 	panel_style.texture = PANEL_TEXTURE
 	panel_style.texture_margin_left = 14.0
@@ -132,20 +209,26 @@ func _build() -> void:
 	panel_style.content_margin_right = 20.0
 	panel_style.content_margin_top = 18.0
 	panel_style.content_margin_bottom = 8.0
-	panel.add_theme_stylebox_override("panel", panel_style)
-	add_child(panel)
+	_panel.add_theme_stylebox_override("panel", panel_style)
+	add_child(_panel)
 
+	_margin = MarginContainer.new()
+	_margin.add_theme_constant_override("margin_left", 20)
+	_margin.add_theme_constant_override("margin_right", 20)
+	_margin.add_theme_constant_override("margin_top", 18)
+	_margin.add_theme_constant_override("margin_bottom", 8)
+	_panel.add_child(_margin)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 2)
-	panel.add_child(column)
+	_margin.add_child(column)
 
 	# 标题与分类独立一行；较长出处移到完整宽度的第二行。
 	var heading_row := HBoxContainer.new()
 	heading_row.add_theme_constant_override("separation", 10)
 	column.add_child(heading_row)
-	var heading := _label("", 12, Color(MUTED, 0.82))
-	heading.name = "StoryHeading"
-	heading_row.add_child(heading)
+	_heading = _label("", 12, Color(MUTED, 0.82))
+	_heading.name = "StoryHeading"
+	heading_row.add_child(_heading)
 	_category = _label("", 10, VERMILION)
 	heading_row.add_child(_category)
 	var spacer := Control.new()
@@ -175,8 +258,8 @@ func _build() -> void:
 	var footer_spacer := Control.new()
 	footer_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	footer.add_child(footer_spacer)
-	var hint := _label(Locale.t("story.hint"), 10, Color(MUTED, 0.5))
-	footer.add_child(hint)
+	_hint = _label(Locale.t("story.hint"), 10, Color(MUTED, 0.5))
+	footer.add_child(_hint)
 	_skip = _button(Locale.t("story.skip"), false)
 	_skip.pressed.connect(_skip_all)
 	footer.add_child(_skip)
