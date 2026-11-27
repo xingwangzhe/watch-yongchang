@@ -307,7 +307,7 @@ func _paint_base() -> void:
 	for y in layout.world_tiles.y:
 		for x in layout.world_tiles.x:
 			var cell := Vector2i(x, y)
-			_place_terrain(cell, _pick_clustered_name(variants, cell, 5, 3))
+			_place_terrain(cell, _pick_organic_name(variants, cell, 5, 3))
 
 
 func _paint_area(area: Dictionary) -> void:
@@ -388,13 +388,13 @@ func _paint_terrain_area(area: Dictionary, rect: Rect2i) -> void:
 				minf(float(x - left), float(right - 1 - x)),
 				minf(float(y - top), float(bottom - 1 - y))
 			)
-			var tile_name := _pick_clustered_name(variants, cell, 79, 3)
+			var tile_name := _pick_organic_name(variants, cell, 79, 3)
 			if edge_depth < 3.0:
 				var blend := clampf((edge_depth + 0.75) / 3.0, 0.0, 1.0)
 				var target_weight := blend * blend * (3.0 - 2.0 * blend)
 				var transition_noise := _smooth_hash_noise(cell, edge_salt + 53, 4)
 				if transition_noise >= target_weight:
-					tile_name = _pick_clustered_name(base_variants, cell, edge_salt + 59, 4)
+					tile_name = _pick_organic_name(base_variants, cell, edge_salt + 59, 4)
 			if _place_terrain(cell, tile_name):
 				layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
 
@@ -426,7 +426,7 @@ func _paint_road_area(area: Dictionary, rect: Rect2i) -> void:
 				continue
 			if layout.is_water_cell(cell) or layout.is_bridge_cell(cell) or layout.is_solid_cell(cell):
 				continue
-			var tile_name := _pick_clustered_name(variants, cell, 73, 3)
+			var tile_name := _pick_organic_name(variants, cell, 73, 3)
 			if not _place_terrain(cell, tile_name):
 				continue
 			_road_cells[cell] = true
@@ -448,7 +448,7 @@ func _paint_path_area(area: Dictionary) -> void:
 			continue
 		if layout.is_water_cell(cell) or layout.is_bridge_cell(cell) or layout.is_solid_cell(cell):
 			continue
-		var tile_name := _pick_clustered_name(variants, cell, 67, 3)
+		var tile_name := _pick_organic_name(variants, cell, 67, 3)
 		if not _place_terrain(cell, tile_name):
 			continue
 		_road_cells[cell] = true
@@ -636,7 +636,7 @@ func _neighbor_land_tile(cell: Vector2i) -> String:
 		variants.append(layout.base_tile.trim_suffix("_a") + "_b")
 	elif layout.base_tile.ends_with("_b"):
 		variants.append(layout.base_tile.trim_suffix("_b") + "_a")
-	return _pick_clustered_name(variants, cell, 5, 5)
+	return _pick_organic_name(variants, cell, 5, 5)
 
 
 func _paint_patch_area(area: Dictionary) -> void:
@@ -675,14 +675,14 @@ func _paint_patch_area(area: Dictionary) -> void:
 			if normalized_distance > 1.0 + edge_noise:
 				continue
 			# Smaller terrain clusters keep pale sand and wet-mud variants from forming large square slabs.
-			var tile_name := _pick_clustered_name(variants, cell, salt + 37, 2)
+			var tile_name := _pick_organic_name(variants, cell, salt + 37, 2)
 			var edge_depth := (1.0 - normalized_distance) * minf(radius.x, radius.y)
 			if edge_depth < 3.0:
 				var blend := clampf((edge_depth + 0.75) / 3.0, 0.0, 1.0)
 				var target_weight := blend * blend * (3.0 - 2.0 * blend)
 				var transition_noise := _smooth_hash_noise(cell, salt + 4199, 4)
 				if transition_noise >= target_weight:
-					tile_name = _pick_clustered_name(base_variants, cell, salt + 4211, 4)
+					tile_name = _pick_organic_name(base_variants, cell, salt + 4211, 4)
 			if _place_terrain(cell, tile_name):
 				layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
 
@@ -1255,26 +1255,31 @@ func _pick_name(variants: Array, cell: Vector2i) -> String:
 	return str(variants[_hash_cell(cell, 7) % variants.size()])
 
 
-## 大块地表不要逐格掷骰：低频块决定主调，再侵蚀少量边缘，避免棋盘感。
-func _pick_clustered_name(variants: Array, cell: Vector2i, salt: int, block_size: int) -> String:
+## Use continuous value noise for broad, irregular material regions instead of square blocks.
+func _pick_organic_name(variants: Array, cell: Vector2i, salt: int, scale_hint: int) -> String:
 	if variants.is_empty():
 		return "mud_a"
 	if variants.size() == 1:
 		return str(variants[0])
-	var size := maxi(1, block_size)
-	var block := Vector2i(floori(float(cell.x) / float(size)), floori(float(cell.y) / float(size)))
-	var roll := _hash_cell(block, salt + 4099) % 100
+	var roll := _organic_variant_roll(cell, salt, scale_hint)
 	var index := 0
-	if roll < 24:
+	if roll < 24.0:
 		index = 1
-	if variants.size() >= 3 and roll >= 94:
+	if variants.size() >= 3 and roll >= 94.0:
 		index = 2
-	if variants.size() >= 4 and roll >= 98:
+	if variants.size() >= 4 and roll >= 98.0:
 		index = 3
-	# 打碎块状边缘，否则会从棋盘退化成大方格。
-	if index > 0 and _hash_cell(cell, salt + 4177) % 100 > 82:
-		index = 0
 	return str(variants[index])
+
+
+func _organic_variant_roll(cell: Vector2i, salt: int, scale_hint: int) -> float:
+	# Two smooth frequencies bend the contour while retaining large, connected
+	# material patches. The detail layer perturbs edges without making speckle.
+	var broad_scale := maxi(5, scale_hint * 2)
+	var detail_scale := maxi(3, scale_hint)
+	var broad := _smooth_hash_noise(cell, salt + 4099, broad_scale)
+	var detail := _smooth_hash_noise(cell, salt + 4177, detail_scale)
+	return lerpf(broad, detail, 0.12) * 100.0
 
 
 func _hash_cell(cell: Vector2i, salt: int) -> int:

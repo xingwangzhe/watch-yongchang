@@ -880,6 +880,38 @@ func test_minimap_camera_window_tracks_expanded_viewport_and_zoom() -> void:
 	minimap.free()
 
 
+func test_terrain_variant_field_is_continuous_instead_of_square_clusters() -> void:
+	var renderer := MapRenderer.new()
+	add_child_autofree(renderer)
+	var sample_cell := Vector2i(17, 21)
+	assert_eq(
+		renderer._organic_variant_roll(sample_cell, 73, 3),
+		renderer._organic_variant_roll(sample_cell, 73, 3),
+		"variant field must be deterministic"
+	)
+	var max_neighbor_delta := 0.0
+	var sample_min := INF
+	var sample_max := -INF
+	for y in range(40):
+		for x in range(40):
+			var cell := Vector2i(x, y)
+			var value := renderer._organic_variant_roll(cell, 73, 3)
+			sample_min = minf(sample_min, value)
+			sample_max = maxf(sample_max, value)
+			if x > 0:
+				max_neighbor_delta = maxf(
+					max_neighbor_delta,
+					absf(value - renderer._organic_variant_roll(Vector2i(x - 1, y), 73, 3))
+				)
+			if y > 0:
+				max_neighbor_delta = maxf(
+					max_neighbor_delta,
+					absf(value - renderer._organic_variant_roll(Vector2i(x, y - 1), 73, 3))
+				)
+	assert_gt(sample_max - sample_min, 25.0, "variant field must still form distinct material regions")
+	assert_lt(max_neighbor_delta, 25.0, "adjacent material values must not jump at regular block boundaries")
+
+
 func _build_map(map_id: String) -> Dictionary:
 	var definition: Dictionary = (GameData.get_maps()[map_id] as Dictionary).duplicate(true)
 	return _build_definition(map_id, definition)
