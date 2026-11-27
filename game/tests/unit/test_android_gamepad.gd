@@ -1,7 +1,16 @@
 extends GutTest
 
+var _tutorial_seen_before := false
+
+
+func before_each() -> void:
+	_tutorial_seen_before = bool(SaveSystem.data.get("tutorial_seen", false))
+	SaveSystem.data["tutorial_seen"] = true
+	InputSetup.ensure_defaults()
+
 
 func after_each() -> void:
+	SaveSystem.data["tutorial_seen"] = _tutorial_seen_before
 	for action in InputSetup.ORDER:
 		if Input.is_action_pressed(action):
 			Input.action_release(action)
