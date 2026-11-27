@@ -316,6 +316,123 @@ jobs:
           WATCH_RENDERER=opengl GDA_GODOT="$GODOT_BIN" \
             ./game/launch.sh --headless --quit-after 2
 
+  android-platform:
+    name: Android APK and gamepad checks
+    needs: gut
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GODOT_BIN: ${{ github.workspace }}/.tools/godot
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/.android-sdk
+      ANDROID_HOME: ${{ github.workspace }}/.android-sdk
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Read pinned Godot version
+        run: |
+          VERSION="$(tr -d '[:space:]' < game/.godot-version)"
+          test -n "$VERSION"
+          echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Set up Java 17
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.1.13356709 cmake;3.10.2.4988404
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: false
+
+      - name: Install Godot and Android export templates
+        run: |
+          set -euo pipefail
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          SDKMANAGER_ROOT="$(dirname "$(dirname "$(command -v sdkmanager)")")"
+          if [[ ! -e "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]]; then
+            ln -s "$SDKMANAGER_ROOT" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          fi
+          mkdir -p .tools "$HOME/.local/share/godot/export_templates" "$HOME/.config/godot"
+          curl -fL --retry 3 -o "$RUNNER_TEMP/godot.zip" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
+          mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
+          chmod +x "$GODOT_BIN"
+          curl -fL --retry 3 -o "$RUNNER_TEMP/godot-templates.tpz" \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          mkdir -p "$RUNNER_TEMP/godot-templates"
+          unzip -q "$RUNNER_TEMP/godot-templates.tpz" -d "$RUNNER_TEMP/godot-templates"
+          TEMPLATE_VERSION="${GODOT_VERSION/-/.}"
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/$TEMPLATE_VERSION"
+          mkdir -p "$TEMPLATE_DIR"
+          cp -a "$RUNNER_TEMP/godot-templates/templates/." "$TEMPLATE_DIR/"
+          ACTUAL="$("$GODOT_BIN" --version)"
+          EXPECTED_BASE="${GODOT_VERSION%-*}"
+          EXPECTED_STATUS="${GODOT_VERSION#*-}"
+          [[ "$ACTUAL" == "${EXPECTED_BASE}.${EXPECTED_STATUS}."* ]]
+          KEYSTORE="$HOME/.local/share/godot/keystores/debug.keystore"
+          mkdir -p "$(dirname "$KEYSTORE")"
+          keytool -genkeypair -keystore "$KEYSTORE" -storepass android -alias androiddebugkey \
+            -keypass android -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US" -noprompt
+          cat > "$HOME/.config/godot/editor_settings-4.7.tres" <<EOF
+          [gd_resource type="EditorSettings" format=3]
+
+          [resource]
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "$ANDROID_SDK_ROOT"
+          export/android/debug_keystore = "$KEYSTORE"
+          export/android/debug_keystore_pass = "android"
+          EOF
+
+      - name: Import project and export Android APK
+        run: |
+          set -euo pipefail
+          timeout 300 "$GODOT_BIN" --headless --path game --import
+          mkdir -p game/build/android ci-artifacts/android
+          "$GODOT_BIN" --headless --path game --export-debug "Android Phone and Handheld"
+          APK="game/build/android/watch-yongchang.apk"
+          test -s "$APK"
+          "$ANDROID_SDK_ROOT/build-tools/36.0.0/apksigner" verify --verbose "$APK" \
+            2>&1 | tee ci-artifacts/android/signature-check.log
+          BADGING="$("$ANDROID_SDK_ROOT/build-tools/36.0.0/aapt" dump badging "$APK")"
+          printf '%s\n' "$BADGING" | tee ci-artifacts/android/apk-badging.txt
+          APP_VERSION="$(sed -n 's/^APP_VERSION=//p' .env | head -n1)"
+          IFS=. read -r VERSION_MAJOR VERSION_MINOR VERSION_PATCH <<< "$APP_VERSION"
+          ANDROID_VERSION_CODE=$((VERSION_MAJOR * 10000 + VERSION_MINOR * 100 + VERSION_PATCH))
+          grep -Fq "sdkVersion:'24'" <<< "$BADGING"
+          grep -Fq "targetSdkVersion:'36'" <<< "$BADGING"
+          grep -Fq "versionCode:'${ANDROID_VERSION_CODE}'" <<< "$BADGING"
+          grep -Fq "versionName:'${APP_VERSION}'" <<< "$BADGING"
+          APK_ENTRIES="$(unzip -Z1 "$APK")"
+          grep -Fxq 'lib/arm64-v8a/libgodot_android.so' <<< "$APK_ENTRIES"
+          grep -Fxq 'lib/armeabi-v7a/libgodot_android.so' <<< "$APK_ENTRIES"
+          unzip -t "$APK" >/dev/null
+          {
+            echo "package=fun.xingwangzhe.watchyongchang"
+            echo "abis=arm64-v8a,armeabi-v7a"
+            echo "min_sdk=24"
+            echo "target_sdk=36"
+            echo "version=${APP_VERSION}"
+            echo "gamepad_actions=move:left_stick,dpad;attack:A;dash:B;interact:X;codex:Y;auto_attack:Back"
+            echo "gamepad_tests=GUT:test_android_gamepad.gd"
+            echo "signature=verified_debug_key"
+            echo "ANDROID_BUILD_CHECKS_OK"
+          } | tee ci-artifacts/android/build-check.log
+          cp "$APK" ci-artifacts/android/watch-yongchang-android.apk
+
+      - name: Upload Android APK and controller checks
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-debug-apk
+          path: ci-artifacts/android
+          if-no-files-found: error
+          retention-days: 14
+
   web-engine:
     name: Web engine template
     needs: gut
