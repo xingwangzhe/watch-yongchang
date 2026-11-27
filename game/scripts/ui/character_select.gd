@@ -31,6 +31,15 @@ var _loadout_label: Label
 var _map_description: Label
 var _merit_label: Label
 var _begin_button: Button
+var _title_label: Label
+var _subtitle_label: Label
+var _rule: ColorRect
+var _panels: HBoxContainer
+var _character_panel: PanelContainer
+var _detail_panel: PanelContainer
+var _portrait_frame: PanelContainer
+var _footer_hint: Label
+var _back_button: Button
 
 
 func _ready() -> void:
@@ -47,6 +56,8 @@ func _ready() -> void:
 	_build_theme()
 	_build_ui()
 	_refresh()
+	_apply_responsive_layout()
+	get_viewport().size_changed.connect(_apply_responsive_layout)
 	AudioBus.resume_bgm()
 	SaveSystem.autosave({
 		"last_mode": "select",
@@ -88,13 +99,16 @@ func _build_ui() -> void:
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(shade)
 
-	var title := _label(Locale.t("select.title"), 48, GOLD)
+	_title_label = _label(Locale.t("select.title"), 48, GOLD)
+	var title := _title_label
 	UILayout.place(title, 72, 34, 640, 56)
 	add_child(title)
-	var subtitle := _label(Locale.t("select.subtitle"), 18, Color(PAPER, 0.88))
+	_subtitle_label = _label(Locale.t("select.subtitle"), 18, Color(PAPER, 0.88))
+	var subtitle := _subtitle_label
 	UILayout.place(subtitle, 74, 92, 710, 26)
 	add_child(subtitle)
-	var rule := ColorRect.new()
+	_rule = ColorRect.new()
+	var rule := _rule
 	rule.color = Color(GOLD, 0.36)
 	UILayout.place(rule, 74, 124, 710, 1)
 	add_child(rule)
@@ -103,7 +117,8 @@ func _build_ui() -> void:
 	UILayout.place(_merit_label, 920, 50, 286, 30, 1.0, 0.0)
 	add_child(_merit_label)
 
-	var panels := HBoxContainer.new()
+	_panels = HBoxContainer.new()
+	var panels := _panels
 	panels.name = "SelectionPanels"
 	panels.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	panels.offset_left = 72.0
@@ -118,6 +133,7 @@ func _build_ui() -> void:
 
 func _build_character_panel(parent: HBoxContainer) -> void:
 	var panel := PanelContainer.new()
+	_character_panel = panel
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel.custom_minimum_size = Vector2(344, 0)
 	panel.add_theme_stylebox_override("panel", _panel_box(26))
@@ -141,6 +157,7 @@ func _build_character_panel(parent: HBoxContainer) -> void:
 
 func _build_detail_panel(parent: HBoxContainer) -> void:
 	var panel := PanelContainer.new()
+	_detail_panel = panel
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.custom_minimum_size = Vector2(0, 0)
@@ -155,6 +172,7 @@ func _build_detail_panel(parent: HBoxContainer) -> void:
 	column.add_child(body)
 
 	var portrait_frame := PanelContainer.new()
+	_portrait_frame = portrait_frame
 	portrait_frame.custom_minimum_size = Vector2(220, 220)
 	portrait_frame.add_theme_stylebox_override("panel", _flat_box(Color(0.03, 0.04, 0.04, 0.84), Color(GOLD, 0.34)))
 	body.add_child(portrait_frame)
@@ -236,6 +254,7 @@ func _build_footer(parent: VBoxContainer) -> void:
 	parent.add_child(row)
 
 	var back := _card_button(Locale.t("select.back"), false)
+	_back_button = back
 	back.name = "BackButton"
 	back.custom_minimum_size = Vector2(164, 44)
 	back.pressed.connect(_back_to_menu)
@@ -246,6 +265,7 @@ func _build_footer(parent: VBoxContainer) -> void:
 	row.add_child(left_spacer)
 
 	var hint := _label(Locale.t("select.hint"), 13, Color(MUTED, 0.62))
+	_footer_hint = hint
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -256,6 +276,76 @@ func _build_footer(parent: VBoxContainer) -> void:
 	_begin_button.custom_minimum_size = Vector2(180, 44)
 	_begin_button.pressed.connect(_begin_run)
 	row.add_child(_begin_button)
+
+
+func _responsive_screen_size(viewport_size: Vector2) -> Vector2:
+	if OS.has_feature("web"):
+		var raw := str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true))
+		var parsed: Variant = JSON.parse_string(raw)
+		if parsed is Array and (parsed as Array).size() >= 2:
+			var values: Array = parsed
+			if float(values[0]) > 0.0 and float(values[1]) > 0.0:
+				return Vector2(float(values[0]), float(values[1]))
+	var window_size := DisplayServer.window_get_size()
+	return window_size if window_size.x > 0.0 and window_size.y > 0.0 else viewport_size
+
+
+func _apply_responsive_layout() -> void:
+	var viewport_size := get_viewport_rect().size
+	_apply_responsive_layout_for(viewport_size, _responsive_screen_size(viewport_size))
+
+
+func _apply_responsive_layout_for(viewport_size: Vector2, screen_size: Vector2) -> void:
+	if not is_instance_valid(_panels):
+		return
+	var scale := UILayout.display_scale(viewport_size, screen_size)
+	var portrait := screen_size.y > screen_size.x
+	UILayout.scale_theme_fonts(self, 1.0 / scale)
+	if portrait:
+		var margin := UILayout.display_units(12.0, scale)
+		_title_label.add_theme_font_size_override("font_size", maxi(24, int(34.0 / scale)))
+		UILayout.place(_title_label, 16.0 / scale, 8.0 / scale, 240.0 / scale, 42.0 / scale)
+		_subtitle_label.visible = false
+		_rule.visible = false
+		_merit_label.add_theme_font_size_override("font_size", maxi(11, int(14.0 / scale)))
+		UILayout.place(_merit_label, 220.0 / scale, 18.0 / scale, screen_size.x / scale - 232.0 / scale, 26.0 / scale, 1.0, 0.0)
+		_panels.offset_left = margin
+		_panels.offset_right = -margin
+		_panels.offset_top = 58.0 / scale
+		_panels.offset_bottom = -margin
+		_panels.add_theme_constant_override("separation", int(8.0 / scale))
+		_character_panel.custom_minimum_size.x = 112.0 / scale
+		_detail_panel.custom_minimum_size.x = 0.0
+		_portrait_frame.custom_minimum_size = Vector2(62.0 / scale, 62.0 / scale)
+		_footer_hint.visible = false
+		_back_button.custom_minimum_size = Vector2(74.0 / scale, 40.0 / scale)
+		_begin_button.custom_minimum_size = Vector2(88.0 / scale, 40.0 / scale)
+		for button in _char_buttons.values():
+			(button as Button).custom_minimum_size.y = 48.0 / scale
+		for button in _map_buttons.values():
+			(button as Button).custom_minimum_size.y = 38.0 / scale
+	else:
+		_title_label.add_theme_font_size_override("font_size", 48)
+		UILayout.place(_title_label, 72, 34, 640, 56)
+		_subtitle_label.visible = true
+		_rule.visible = true
+		UILayout.place(_subtitle_label, 74, 92, 710, 26)
+		UILayout.place(_rule, 74, 124, 710, 1)
+		UILayout.place(_merit_label, 920, 50, 286, 30, 1.0, 0.0)
+		_panels.offset_left = 72.0
+		_panels.offset_right = -72.0
+		_panels.offset_top = 146.0
+		_panels.offset_bottom = -16.0
+		_panels.add_theme_constant_override("separation", 24)
+		_character_panel.custom_minimum_size.x = 344.0
+		_portrait_frame.custom_minimum_size = Vector2(220, 220)
+		_footer_hint.visible = true
+		_back_button.custom_minimum_size = Vector2(164, 44)
+		_begin_button.custom_minimum_size = Vector2(180, 44)
+		for button in _char_buttons.values():
+			(button as Button).custom_minimum_size.y = 54.0
+		for button in _map_buttons.values():
+			(button as Button).custom_minimum_size.y = 44.0
 
 
 func _select_character(character_id: String) -> void:

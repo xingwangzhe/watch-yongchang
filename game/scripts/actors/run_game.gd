@@ -3,7 +3,7 @@ extends Node2D
 const FIXED_STEP := 1.0 / 60.0
 const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
-const PORTRAIT_CAMERA_ZOOM := 0.62
+const PORTRAIT_CAMERA_ZOOM := 1.18
 const ATTACK_BUFFER_DURATION := 0.18
 const PLAYER_FACING_X_DEADZONE := 0.20
 const HUD_REFRESH_INTERVAL := 0.10
@@ -2579,7 +2579,7 @@ func _update_camera(delta: float) -> void:
 	if not is_instance_valid(camera):
 		return
 	var viewport_size := get_viewport_rect().size
-	var target_zoom := PORTRAIT_CAMERA_ZOOM if viewport_size.y > viewport_size.x else 1.0
+	var target_zoom := portrait_camera_zoom(viewport_size) if viewport_size.y > viewport_size.x else 1.0
 	var zoom_blend := clampf(1.0 - exp(-8.0 * delta), 0.0, 1.0)
 	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, zoom_blend)
 	var target := player["pos"] as Vector2
@@ -2587,6 +2587,10 @@ func _update_camera(delta: float) -> void:
 	camera.position = camera.position.lerp(target, clampf(blend, 0.0, 1.0))
 	if camera.position.distance_squared_to(target) > 320.0 * 320.0:
 		camera.position = target
+
+
+static func portrait_camera_zoom(viewport_size: Vector2) -> float:
+	return PORTRAIT_CAMERA_ZOOM if viewport_size.y > viewport_size.x else 1.0
 
 
 func debug_prepare_capture(mode: String, page: int = 0) -> Dictionary:

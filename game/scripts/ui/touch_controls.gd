@@ -87,10 +87,25 @@ func _ready() -> void:
 func _default_visible() -> bool:
 	if DisplayServer.is_touchscreen_available() or OS.has_feature("mobile"):
 		return true
-	var width := get_viewport_rect().size.x
+	var display_size := _display_size()
+	var width := display_size.x
 	if width < NARROW_WIDTH:
 		return true
 	return OS.has_feature("web") and width < WEB_NARROW_WIDTH
+
+
+func _display_size() -> Vector2:
+	if OS.has_feature("web"):
+		var raw := str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true))
+		var parsed: Variant = JSON.parse_string(raw)
+		if parsed is Array and (parsed as Array).size() >= 2:
+			var values: Array = parsed
+			if float(values[0]) > 0.0 and float(values[1]) > 0.0:
+				return Vector2(float(values[0]), float(values[1]))
+	var window_size := Vector2(DisplayServer.window_get_size())
+	if window_size.x > 0.0 and window_size.y > 0.0:
+		return window_size
+	return get_viewport_rect().size
 
 
 func _apply_visibility() -> void:
@@ -191,9 +206,13 @@ func _update_rotate_prompt() -> void:
 
 func _layout() -> void:
 	var viewport_size := get_viewport_rect().size
-	var scale_x := viewport_size.x / REFERENCE_SIZE.x
-	var scale_y := viewport_size.y / REFERENCE_SIZE.y
-	ui_scale = clampf(minf(scale_x, scale_y), MIN_UI_SCALE, MAX_UI_SCALE)
+	_layout_for(viewport_size, _display_size())
+
+
+func _layout_for(viewport_size: Vector2, display_size: Vector2) -> void:
+	var scale_x := viewport_size.x / maxf(1.0, display_size.x)
+	var scale_y := viewport_size.y / maxf(1.0, display_size.y)
+	ui_scale = clampf(minf(scale_x, scale_y), MIN_UI_SCALE, 6.0)
 	joystick_radius = JOYSTICK_RADIUS * ui_scale
 	attack_radius = ATTACK_RADIUS * ui_scale
 	dash_radius = DASH_RADIUS * ui_scale

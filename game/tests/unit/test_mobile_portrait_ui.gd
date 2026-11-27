@@ -2,6 +2,9 @@ extends GutTest
 
 const PrologueScript := preload("res://scripts/actors/prologue.gd")
 const MainMenuScene := preload("res://scenes/main_menu.tscn")
+const CharacterSelectScene := preload("res://scenes/character_select.tscn")
+const RunGameScript := preload("res://scripts/actors/run_game.gd")
+const TouchControlsScript := preload("res://scripts/ui/touch_controls.gd")
 const SETTINGS_PATH := "user://test_mobile_portrait_settings.cfg"
 const RENDERER_PATH := "user://test_mobile_portrait_renderer.cfg"
 
@@ -158,6 +161,36 @@ func test_portrait_main_menu_title_and_era_do_not_overlap() -> void:
 	assert_gte(tagline.offset_top, era.offset_bottom)
 	menu.queue_free()
 	await wait_process_frames(2)
+
+
+func test_portrait_selection_uses_readable_css_sized_panels_and_targets() -> void:
+	var select := CharacterSelectScene.instantiate()
+	add_child_autofree(select)
+	await wait_process_frames(2)
+	select.call("_apply_responsive_layout_for", Vector2(1280.0, 2768.0), Vector2(390.0, 844.0))
+	var scale := 1280.0 / 390.0
+	var title := select.get("_title_label") as Label
+	var roster := select.get("_character_panel") as PanelContainer
+	var portrait := select.get("_portrait_frame") as PanelContainer
+	var start := select.get("_begin_button") as Button
+	assert_gte(title.get_theme_font_size("font_size") / scale, 25.0)
+	assert_gte(roster.custom_minimum_size.x / scale, 100.0)
+	assert_gte(portrait.custom_minimum_size.x / scale, 55.0)
+	assert_gte(start.custom_minimum_size.y / scale, 34.0)
+	assert_false((select.get("_footer_hint") as Label).visible)
+	select.queue_free()
+	await wait_process_frames(2)
+
+
+func test_portrait_battle_camera_and_web_touch_targets_scale_to_mobile_view() -> void:
+	assert_gt(RunGameScript.portrait_camera_zoom(Vector2(1280.0, 2768.0)), 1.0)
+	assert_eq(RunGameScript.portrait_camera_zoom(Vector2(1280.0, 720.0)), 1.0)
+	var controls := TouchControlsScript.new()
+	add_child_autofree(controls)
+	controls.force_visible = true
+	controls.call("_layout_for", Vector2(1280.0, 2768.0), Vector2(390.0, 844.0))
+	assert_gte(controls.joystick_radius / (1280.0 / 390.0), 48.0)
+	assert_gte(controls.attack_radius / (1280.0 / 390.0), 45.0)
 
 
 func _remove_file(path: String) -> void:
