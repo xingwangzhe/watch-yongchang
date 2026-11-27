@@ -75,6 +75,14 @@ func test_tower_and_arrow_drawing_uses_real_sprites_and_shapes() -> void:
 	var text := _source()
 	if text.is_empty():
 		return
+	assert_true(text.contains("_draw_tower_weapon"), "tower weapon component must still track aim and recoil")
+	var weapon_start := text.find("func _draw_tower_weapon(")
+	var weapon_end := text.find("func _draw_tower_shots()", weapon_start)
+	assert_gt(weapon_start, 0)
+	assert_gt(weapon_end, weapon_start)
+	var weapon_section := text.substr(weapon_start, weapon_end - weapon_start)
+	assert_true(weapon_section.contains("draw_texture_rect"), "tower crossbow must use the generated texture")
+	assert_false(weapon_section.contains("draw_line"), "tower crossbow must not be drawn from primitive lines")
 	var tower_start := text.find("func _draw_towers()")
 	var shots_start := text.find("func _draw_tower_shots()")
 	var effects_start := text.find("func _draw_effects()")

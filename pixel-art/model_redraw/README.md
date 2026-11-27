@@ -57,8 +57,9 @@ QA；尚未接入正式图集。
 - `arrow_towers_v1_source.png` 是 4×1 独立箭塔大图，色键 #00ff00。前三格分别作为望楼、
   箭楼、龙首箭楼，由 `pixel-art/towers/build.py` 透明切片与最近邻缩放到运行时尺寸；
   第四格仅做变体参考。预览在 `pixel-art/towers/preview.png`。
-- `architecture_atlas_model_v1_source.png` 的 47/48 格已经接入 Yongchang 瓦片图集；
-  新的 `fort_tile_parts_v2_source.png` 仍是建筑概念件，邻接和通行逻辑检查前不覆盖正式瓦片。
+- `architecture_atlas_model_v1_source.png` 已接入全部 48 格：47 格直接切片，竖向木栏杆由
+  新生成的横向栏杆旋转 90° 派生，以满足桥面南北接缝；没有读取旧图集。新的
+  `fort_tile_parts_v2_source.png` 仍是建筑概念件，邻接和通行逻辑检查前不覆盖正式瓦片。
 - `walk_base_v3_source.png`、阵营衣装、攻击动作和骑乘层已切片并做逐帧组合检查；
   它们目前留在 QA 原型，不作为正式角色条带。去色边和角色装备组合还需通过完整烘焙验收。
 - Pillow只负责裁切、色键去背、最近邻缩放和拼层；新像素不通过代码绘制。

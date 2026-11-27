@@ -36,11 +36,19 @@ func test_tower_definitions_are_complete_and_bilingual() -> void:
 	assert_eq(defs.size(), 3)
 	assert_eq(int(data.get("starting_towers", 0)), 2)
 	assert_gte(int(data.get("max_towers", 0)), 3)
+	var weapon_art: Dictionary = data.get("weapon_art", {}) as Dictionary
+	assert_eq(str(weapon_art.get("source", "")), "pixel-art/renewed_composable/source/weapon_props.png")
+	assert_eq(int(weapon_art.get("cell", -1)), 10)
+	assert_eq(str(weapon_art.get("item", "")), "nu")
+	assert_true(ResourceLoader.exists(str(weapon_art.get("texture", ""))), "generated crossbow component must exist")
 	var order := ["watchtower", "arrow_tower", "dragon_tower"]
 	for index in defs.size():
 		var tower_id: String = order[index]
 		assert_true(defs.has(tower_id), "%s must be defined" % tower_id)
 		var definition: Dictionary = defs[tower_id] as Dictionary
+		assert_eq(str(definition.get("art_source", "")), "pixel-art/renewed_composable/source/watchtowers.png")
+		assert_eq(int(definition.get("art_cell", -1)), [2, 0, 3][index])
+		assert_true(str(definition.get("texture", "")).ends_with("/%s.webp" % tower_id))
 		for field in ["name_zh", "name_en", "desc_zh", "desc_en"]:
 			assert_gt(str(definition.get(field, "")).length(), 0, "%s missing %s" % [tower_id, field])
 		assert_true(ResourceLoader.exists(str(definition.get("texture", ""))), "%s texture missing" % tower_id)

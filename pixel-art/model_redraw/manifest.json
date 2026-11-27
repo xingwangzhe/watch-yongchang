@@ -288,9 +288,9 @@
         8,
         6
       ],
-      "content": "48 modular architecture source cells in the exact row-major order of game/data/yongchang_tiles.json; 47 generated wall/gate/roof/house-detail tiles and one vertical bridge railing retained from the prior atlas",
+      "content": "48 modular architecture source cells in the exact row-major order of game/data/yongchang_tiles.json; 47 cells are sliced directly and the vertical bridge railing is derived by rotating generated horizontal railing",
       "background": "RGBA source with alpha; generated edge artifacts reduced by alpha threshold 128 during slicing",
-      "status": "runtime source for game/assets/tiles/yongchang/architecture_atlas_ai_v1.png; 47 generated tiles sliced to 32x32, one vertical bridge railing preserved from prior atlas; representative joins remain imperfect and map placements follow the QA notes"
+      "status": "runtime source for game/assets/tiles/yongchang/architecture_atlas_ai_v1.png; 47 cells sliced directly and the vertical bridge railing derived by rotating generated horizontal railing; all 48 cells use ImageGen source pixels"
     },
     {
       "source": "OpenAI ImageGen",
@@ -464,7 +464,7 @@
       ],
       "content": "sixteen standalone Ming-era weapons, rattan shield, bows, crossbow, matchlock, cannon and signal flag",
       "background": "flat chroma magenta #ff00ff",
-      "status": "candidate; inspect cells and map available items"
+      "status": "formal runtime source for standalone icons in cells 0, 1, 9, 11, 12 and 15; cell 10 supplies the rotating tower crossbow; see pixel-art/weapon_icons/build.py and pixel-art/towers/build.py. Remaining cells are used only where explicitly mapped by CharacterForge; no dragon-lantern icon is present."
     },
     {
       "source": "OpenAI ImageGen",
@@ -509,7 +509,7 @@
       ],
       "content": "four variants of standalone Ming-era arrow tower structure",
       "background": "flat chroma green #00ff00",
-      "status": "candidate for tower sprites; map to runtime after visual inspection"
+      "status": "research-only legacy tower sheet; formal tower assets use pixel-art/renewed_composable/source/watchtowers.png."
     },
     {
       "source": "OpenAI ImageGen edit using walk_base_v3_source.png as pose reference",
@@ -693,6 +693,36 @@
       "content": "eight independent no-gear Ming militia base-body walk frames; bare arms, neutral trousers and boots",
       "background": "transparent alpha; alpha values below 32 discarded during slicing",
       "status": "runtime input for modular recipe composition; frame crops are alpha-thresholded, nearest-neighbor fitted and combined with separate faction garments and recipe gear"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "../renewed_composable/source/watchtowers.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        2,
+        2
+      ],
+      "content": "four Ming watchtower and arrow-tower variants; green chroma key",
+      "background": "flat chroma green #00ff00",
+      "status": "formal runtime source: cells 2, 0 and 3 build watchtower, arrow_tower and dragon_tower PNG/WebP through pixel-art/towers/build.py; mapped in game/data/towers.json"
+    },
+    {
+      "source": "OpenAI ImageGen",
+      "file": "../renewed_composable/source/weapon_props.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "grid": [
+        4,
+        4
+      ],
+      "content": "standalone generated weapon props; cell 10 is the repeating crossbow used on towers",
+      "background": "flat chroma magenta #ff00ff",
+      "status": "formal runtime source for tower crossbow cell 10; pixel-art/towers/build.py generates the rotating crossbow PNG/WebP mapped in game/data/towers.json"
     }
   ]
 }

@@ -14,7 +14,6 @@ PROJECT = ROOT.parents[1]
 SOURCE = ROOT / "architecture_atlas_model_v1_source.png"
 OUTPUT = Path("/tmp/yongchang-architecture-qa")
 ATLAS = PROJECT / "game" / "data" / "yongchang_tiles.json"
-PREVIOUS_ATLAS = PROJECT / "game" / "assets" / "tiles" / "yongchang" / "architecture_atlas.png"
 COLS = 8
 ROWS = 6
 TILE = 32
@@ -87,19 +86,19 @@ def main() -> None:
             "empty": bbox is None,
         })
 
-    # Keep the existing vertical bridge railing because gameplay art tests require its
-    # north/south coverage to join exactly. This is atlas assembly, not pixel drawing.
-    previous_atlas = Image.open(PREVIOUS_ATLAS).convert("RGBA")
-    preserved_tiles = {"wood_railing_vertical"}
-    for index, name in enumerate(tile_names):
-        if name not in preserved_tiles:
-            continue
-        row, col = divmod(index, COLS)
-        original = previous_atlas.crop(
-            (col * TILE, row * TILE, (col + 1) * TILE, (row + 1) * TILE)
-        )
-        result.paste(original, (col * TILE, row * TILE))
-        frames[name] = original
+    # The generated vertical-rail cell does not join north/south. Rotate the
+    # generated horizontal-rail cell so both bridge orientations tile cleanly.
+    vertical_rail = frames["wood_railing"].rotate(90, expand=False)
+    vertical_index = tile_names.index("wood_railing_vertical")
+    vertical_row, vertical_col = divmod(vertical_index, COLS)
+    result.paste(vertical_rail, (vertical_col * TILE, vertical_row * TILE))
+    frames["wood_railing_vertical"] = vertical_rail
+    derived_tiles = {
+        "wood_railing_vertical": {
+            "source_tile": "wood_railing",
+            "operation": "rotate_90",
+        }
+    }
 
     resource_path = str(architecture["path"])
     if not resource_path.startswith("res://"):
@@ -141,7 +140,7 @@ def main() -> None:
         "empty_tiles": [item["name"] for item in cell_reports if item["empty"]],
         "cells_touching_edges": [item["name"] for item in cell_reports if item["touches_cell_edge"]],
         "seam_tests": seam_reports,
-        "preserved_from_previous_atlas": sorted(preserved_tiles),
+        "derived_tiles": derived_tiles,
         "runtime_integrated": atlas_path.is_file(),
         "cells": cell_reports,
     }

@@ -1721,8 +1721,8 @@
 			"file": "res://assets/units/towers/watchtower.webp",
 			"usage_zh": "望楼、箭楼、龙首箭楼三档完整塔身贴图；战斗直接使用生成图",
 			"usage_en": "Sprite textures for the three tower tiers",
-			"changes_zh": "OpenAI ImageGen 箭塔图第0至2格；pixel-art/towers/build.py 从原图去绿幕、裁切主体并最近邻缩放为168x168 PNG及无损WebP；运行时不再叠加程序绘制的旧弩",
-			"changes_en": "Cells 0–2 from the OpenAI ImageGen tower sheet; pixel-art/towers/build.py keys green, crops each structure and exports 168x168 PNG plus lossless WebP; runtime no longer overlays the old procedural crossbow",
+			"changes_zh": "OpenAI ImageGen 新箭塔图集第2、0、3格；pixel-art/towers/build.py 去绿幕、裁切主体并最近邻缩放为168x168 PNG及无损WebP",
+			"changes_en": "Cells 2, 0 and 3 from the renewed OpenAI ImageGen tower atlas; pixel-art/towers/build.py keys green, crops each structure and exports 168x168 PNG plus lossless WebP",
 			"asset_id": "watchtower_pixel_art"
 		},
 		{
@@ -1735,8 +1735,8 @@
 			"file": "res://assets/units/towers/tower_crossbow.webp",
 			"usage_zh": "箭塔顶部可旋转的连弩贴图",
 			"usage_en": "Rotating crossbow texture mounted on arrow towers",
-			"changes_zh": "取自 weapons_atlas_v5_source.png 第10格；Pillow 去洋红色键并最近邻缩放为168×168；运行时旋转贴图以跟随目标",
-			"changes_en": "Cell 10 from weapons_atlas_v5_source.png; Pillow removes the magenta key and scales with nearest-neighbor to 168x168; runtime rotates the sprite toward targets",
+			"changes_zh": "取自 pixel-art/renewed_composable/source/weapon_props.png 第10格；Pillow 去洋红色键并最近邻缩放为168×168；运行时旋转贴图以跟随目标",
+			"changes_en": "Cell 10 from pixel-art/renewed_composable/source/weapon_props.png; Pillow removes the magenta key and scales with nearest-neighbor to 168x168; runtime rotates the sprite toward targets",
 			"asset_id": "tower_crossbow_imagegen"
 		},
 		{
