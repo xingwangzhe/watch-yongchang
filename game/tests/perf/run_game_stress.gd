@@ -20,11 +20,20 @@ var _enemy_spawn_index := 0
 var _walk_hist: Array[int] = []
 var _idle_hist: Array[int] = []
 var _enemy_frame_hist: Array[int] = []
+var _ally_frame_hist: Dictionary = {}
 
 
 func _ready() -> void:
+	OS.set_environment("WATCH_RUN_WORLD_BREAKDOWN", "1")
 	_capture = OS.get_environment("WATCH_RUN_CAPTURE")
 	_frame_capture_dir = OS.get_environment("WATCH_RUN_FRAME_CAPTURE_DIR")
+	if OS.has_feature("web"):
+		var web_frames := str(JavaScriptBridge.eval(
+			"new URLSearchParams(location.search).get('stress_frames') || ''",
+			true
+		))
+		if not web_frames.is_empty():
+			_frame_limit = clampi(int(web_frames), 120, 3600)
 	var requested_frame_limit := OS.get_environment("WATCH_RUN_FRAMES")
 	if not requested_frame_limit.is_empty():
 		_frame_limit = clampi(int(requested_frame_limit), 1, 120)
@@ -65,6 +74,10 @@ func _ready() -> void:
 	var ally_offsets := [Vector2(-72.0, -48.0), Vector2(72.0, -48.0), Vector2(-72.0, 48.0), Vector2(72.0, 48.0)]
 	for index in ally_ids.size():
 		run.battlefield.spawn_ally(str(ally_ids[index]), center + (ally_offsets[index] as Vector2))
+		var ally_frames: Array[int] = []
+		ally_frames.resize(8)
+		ally_frames.fill(0)
+		_ally_frame_hist[str(ally_ids[index])] = ally_frames
 	# Preserve the full enemy load while keeping the visual allies present.
 	for ally in run.battlefield.allies:
 		ally["damage"] = 0.0
@@ -76,6 +89,19 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if run == null:
 		return
+	if OS.has_feature("web") and _frame % 30 == 0:
+		JavaScriptBridge.eval(
+			"window.__watchStressInput=%s;" % JSON.stringify({
+				"right": Input.is_action_pressed("move_right"),
+				"left": Input.is_action_pressed("move_left"),
+				"up": Input.is_action_pressed("move_up"),
+				"down": Input.is_action_pressed("move_down"),
+				"moving": run.battlefield._player_moving,
+				"player_pos": run.player.get("pos", Vector2.ZERO),
+				"input_allowed": run._gameplay_input_allowed(),
+			}),
+			true
+		)
 	# Enemies that leave the active world are removed by Battlefield; replenish them
 	# so the stress case continues measuring the requested maximum population.
 	while run.battlefield.alive_count() < _target_enemy_count:
@@ -86,9 +112,12 @@ func _process(delta: float) -> void:
 	if _wall_start > 0:
 		_wall_sum += now - _wall_start
 	_wall_start = now
-	# Drive the real touch joystick so RunGame's movement, weapon, animation and collision paths execute.
-	var phase := float(_frame) * 0.025
-	run.touch_controls.move_vector = Vector2(cos(phase), sin(phase)).normalized()
+	# Web captures read real WASD input; native stress runs retain deterministic movement.
+	if OS.has_feature("web"):
+		run.touch_controls.move_vector = Vector2.ZERO
+	else:
+		var phase := float(_frame) * 0.025
+		run.touch_controls.move_vector = Vector2(cos(phase), sin(phase)).normalized()
 	_step_sum += int(run._last_step_usec)
 	_world_sum += int(run._last_world_usec)
 	_flow_sum += int(run._last_flow_usec)
@@ -106,14 +135,12 @@ func _process(delta: float) -> void:
 		else:
 			_idle_hist[animation_frame] += 1
 	if _frame % 10 == 0:
-		var atlas_variants: Dictionary = battlefield.enemy_variant_atlas_data.get("variants", {}) as Dictionary
 		for enemy in battlefield.enemies:
 			if not bool(enemy.get("alive", false)):
 				continue
-			var draw_id := str(enemy.get("draw_id", enemy.get("id", "")))
+			var draw_id := str(enemy.get("id", ""))
 			var enemy_frames: Array = battlefield.enemy_sprite_frames.get(draw_id, []) as Array
-			var atlas_entry: Dictionary = atlas_variants.get(draw_id, {}) as Dictionary
-			var frame_count := int(atlas_entry.get("frames", enemy_frames.size()))
+			var frame_count := enemy_frames.size()
 			if frame_count == 8:
 				var enemy_frame := posmod(
 					int(battlefield.time * maxf(1.0, float(enemy.get("sprite_fps", 10.0))))
@@ -121,6 +148,22 @@ func _process(delta: float) -> void:
 					frame_count
 				)
 				_enemy_frame_hist[enemy_frame] += 1
+	for ally in battlefield.allies:
+		var ally_id := str(ally.get("id", ""))
+		var ally_frames: Array = ally.get("walk_frames", []) as Array
+		var ally_fps := float(ally.get("walk_fps", 10.0))
+		if not bool(ally.get("moving", false)):
+			ally_frames = ally.get("idle_frames", []) as Array
+			ally_fps = float(ally.get("idle_fps", 6.0))
+		if ally_frames.is_empty():
+			continue
+		var counts: Array[int] = _ally_frame_hist.get(ally_id, []) as Array[int]
+		if counts.size() != ally_frames.size():
+			counts.resize(ally_frames.size())
+			counts.fill(0)
+		var ally_frame := posmod(int(battlefield.time * ally_fps) + ally_id.hash(), ally_frames.size())
+		counts[ally_frame] += 1
+		_ally_frame_hist[ally_id] = counts
 	_sample_count += 1
 	if not _frame_capture_dir.is_empty() and _frame % 15 == 0:
 		var frame_image := get_viewport().get_texture().get_image()
@@ -145,10 +188,7 @@ func _process(delta: float) -> void:
 			Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME),
 		])
 		print("[run_stress] world_parts_ms=%s" % JSON.stringify(world_parts_ms))
-		var atlas_batch_count := 0
-		if battlefield.enemy_atlas_batch != null and battlefield.enemy_atlas_batch.body_batch != null:
-			atlas_batch_count = battlefield.enemy_atlas_batch.body_batch.multimesh.visible_instance_count
-		print("[run_stress] render_batches=%s atlas_instances=%d" % [JSON.stringify(battlefield._draw_active_ids), atlas_batch_count])
+		print("[run_stress] render_batches=%s" % JSON.stringify(battlefield._draw_active_ids))
 		_wall_sum = 0
 		_step_sum = 0
 		_world_sum = 0
@@ -157,7 +197,7 @@ func _process(delta: float) -> void:
 		_world_part_sum.clear()
 		_sample_count = 0
 	if _frame >= _frame_limit:
-		print("[run_stress] walk_frame_hist=%s idle_frame_hist=%s enemy_frame_hist=%s" % [JSON.stringify(_walk_hist), JSON.stringify(_idle_hist), JSON.stringify(_enemy_frame_hist)])
+		print("[run_stress] walk_frame_hist=%s idle_frame_hist=%s ally_frame_hist=%s enemy_frame_hist=%s" % [JSON.stringify(_walk_hist), JSON.stringify(_idle_hist), JSON.stringify(_ally_frame_hist), JSON.stringify(_enemy_frame_hist)])
 		if not _capture.is_empty():
 			var viewport_texture := get_viewport().get_texture()
 			if DisplayServer.get_name() != "headless" and viewport_texture != null:

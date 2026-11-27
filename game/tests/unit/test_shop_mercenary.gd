@@ -30,18 +30,17 @@ func test_mercenary_data_is_ming_valid_and_forge_baked() -> void:
 		assert_true(["史实", "制度", "民俗", "演绎"].has(str(definition.get("category", ""))))
 		assert_gt(str(definition.get("source_ref", "")).length(), 0)
 		assert_gt(int(definition.get("price", 0)), 0)
-		assert_true(ResourceLoader.exists(str(definition.get("battle_idle", ""))))
-		assert_true(ResourceLoader.exists(str(definition.get("battle_walk", ""))))
-		var idle := load(str(definition.get("battle_idle", ""))) as Texture2D
-		var walk := load(str(definition.get("battle_walk", ""))) as Texture2D
-		assert_not_null(idle)
-		assert_not_null(walk)
-		if idle != null and walk != null:
-			var cell := int(forge.data.get("cell", 128))
-			assert_eq(idle.get_width(), int(definition.get("battle_idle_frames", 0)) * cell)
-			assert_eq(walk.get_width(), int(definition.get("battle_walk_frames", 0)) * cell)
-			assert_eq(idle.get_height(), cell)
-			assert_eq(walk.get_height(), cell)
+		var path := str(definition.get("sprite_sheet", ""))
+		assert_true(ResourceLoader.exists(path), "%s must use a complete character sheet" % mercenary_id)
+		assert_string_contains(path, "res://assets/units/full_sheets/")
+		assert_eq(int(definition.get("sprite_columns", 0)), 8)
+		var frames := SpriteSheetFrames.path_row(
+			path,
+			int(definition.get("sprite_columns", 8)),
+			int(definition.get("sprite_rows", 1)),
+			int(definition.get("sprite_row", 0))
+		)
+		assert_eq(frames.size(), 8)
 	for spirit_id in ["wangpei_spirit", "wangde_spirit"]:
 		var spirit: Dictionary = mercenaries[spirit_id] as Dictionary
 		assert_eq(str(spirit.get("category", "")), "民俗")

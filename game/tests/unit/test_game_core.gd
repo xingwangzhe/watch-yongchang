@@ -1,7 +1,6 @@
 extends GutTest
 
 const TEST_SAVE := "user://test_game_core_save.json"
-const ForgeScript = preload("res://scripts/character/character_forge.gd")
 
 
 func before_each() -> void:
@@ -31,102 +30,10 @@ func test_gameplay_data_is_complete_and_bilingual() -> void:
 		assert_true(float(definition.get("damage", 0.0)) > 0.0)
 	for enemy_id in enemies.keys():
 		var definition: Dictionary = enemies[enemy_id]
-		assert_true(ResourceLoader.exists(str(definition.get("texture", ""))), "missing enemy texture: %s" % enemy_id)
-		assert_false(
-			str(definition.get("texture", "")).contains("/static.png"),
-			"%s still points at a retired static unit sheet" % enemy_id
-		)
+		assert_true(ResourceLoader.exists(str(definition.get("sprite_sheet", ""))), "missing enemy sheet: %s" % enemy_id)
+		assert_true(int(definition.get("sprite_columns", 0)) == 8)
+		assert_true(int(definition.get("sprite_rows", 0)) > 0)
 		assert_true(float(definition.get("hp", 0.0)) > 0.0)
-
-
-func test_enemy_art_is_baked_from_faction_valid_forge_recipes() -> void:
-	var forge := ForgeScript.new()
-	add_child_autofree(forge)
-	if not forge.load_data():
-		fail_test("character forge data must load")
-		return
-	var enemies := GameData.get_enemies()
-	for enemy_id in enemies.keys():
-		var definition: Dictionary = enemies[enemy_id]
-		var recipe: Dictionary = definition.get("character_recipe", {}) as Dictionary
-		assert_false(recipe.is_empty(), "%s needs a forge recipe" % enemy_id)
-		assert_eq(str(recipe.get("faction", "")), "wokou", "%s must be Wokou" % enemy_id)
-		assert_true(forge.recipe_faction_valid(recipe), "%s mixes factions" % enemy_id)
-		forge.set_recipe(recipe)
-		assert_eq(forge.current_faction(), "wokou")
-		assert_gte(forge.layer_count(), 5, "%s must keep body and gear layers" % enemy_id)
-		assert_true(forge.layer_rows().has("body"), "%s needs the naked body base" % enemy_id)
-		assert_true(forge.layer_rows().has("outfit"), "%s needs an outfit layer" % enemy_id)
-		assert_true(forge.layer_rows().has("weapon"), "%s needs a weapon layer" % enemy_id)
-		var strip := load(str(definition.get("texture", ""))) as Texture2D
-		assert_not_null(strip, "%s walk strip must load" % enemy_id)
-		if strip != null:
-			assert_eq(
-				strip.get_width(),
-				int(definition.get("sprite_frames", 0)) * int(forge.data.get("cell", 128)),
-				"%s walk strip width" % enemy_id
-			)
-			assert_eq(strip.get_height(), int(forge.data.get("cell", 128)))
-
-
-func test_player_battle_art_uses_forge_recipes_and_baked_strips() -> void:
-	var forge := ForgeScript.new()
-	add_child_autofree(forge)
-	if not forge.load_data():
-		fail_test("character forge data must load")
-		return
-	var characters := GameData.get_characters()
-	for character_id in characters.keys():
-		var definition: Dictionary = characters[character_id]
-		var recipe: Dictionary = definition.get("character_recipe", {}) as Dictionary
-		assert_false(recipe.is_empty(), "%s needs a battle recipe" % character_id)
-		assert_eq(str(recipe.get("faction", "")), "ming", "%s must be Ming" % character_id)
-		assert_true(forge.recipe_faction_valid(recipe), "%s mixes factions" % character_id)
-		forge.set_recipe(recipe)
-		assert_eq(forge.current_faction(), "ming")
-		assert_true(forge.layer_rows().has("body"), "%s needs the naked body base" % character_id)
-		for path_key in ["battle_idle", "battle_walk"]:
-			var path := str(definition.get(path_key, ""))
-			assert_true(ResourceLoader.exists(path), "%s %s missing" % [character_id, path_key])
-			assert_false(path.contains("/static.png"), "%s still uses an old static sheet" % character_id)
-		var idle := load(str(definition.get("battle_idle", ""))) as Texture2D
-		var walk := load(str(definition.get("battle_walk", ""))) as Texture2D
-		assert_not_null(idle)
-		assert_not_null(walk)
-		if idle != null and walk != null:
-			var cell := int(forge.data.get("cell", 128))
-			assert_eq(idle.get_width(), int(definition.get("battle_idle_frames", 0)) * cell)
-			assert_eq(walk.get_width(), int(definition.get("battle_walk_frames", 0)) * cell)
-			assert_eq(idle.get_height(), cell)
-			assert_eq(walk.get_height(), cell)
-	var wanglu: Dictionary = characters["wanglu"]
-	var wanglu_recipe: Dictionary = wanglu["character_recipe"]
-	assert_false(wanglu_recipe.has("complete_sprite_family"))
-	assert_eq(str(wanglu_recipe.get("outfit", "")), "ming_navy_green")
-	assert_eq(str(wanglu_recipe.get("headgear", "")), "common_headwrap")
-	assert_eq(str(wanglu_recipe.get("weapon", "")), "dao")
-	assert_eq(str(wanglu_recipe.get("offhand", "")), "dun")
-	for source: Dictionary in [
-		{"path": "res://assets/units/forge/players/wanglu/idle.png", "frames": 4},
-		{"path": "res://assets/units/forge/players/wanglu/walk.png", "frames": 8},
-	]:
-		var image := Image.new()
-		assert_eq(
-			image.load_png_from_buffer(FileAccess.get_file_as_bytes(str(source["path"]))),
-			OK
-		)
-		assert_eq(image.get_width(), int(source["frames"]) * 128)
-		assert_eq(image.get_height(), 128)
-		for frame in int(source["frames"]):
-			var visible := false
-			for y in 128:
-				for x in 128:
-					if image.get_pixel(frame * 128 + x, y).a > 0.0:
-						visible = true
-						break
-				if visible:
-					break
-			assert_true(visible, "%s frame %d must contain the complete character" % [source["path"], frame])
 
 
 func test_roster_and_maps_are_complete_and_historically_bounded() -> void:
@@ -153,7 +60,7 @@ func test_roster_and_maps_are_complete_and_historically_bounded() -> void:
 		var character: Dictionary = characters[character_id]
 		assert_eq(str(character.get("name_zh", "")), "王陆")
 		assert_gt(str(character.get("preset_name_zh", "")).length(), 0)
-		assert_string_contains(str(character.get("battle_idle", "")), "/forge/players/")
+		assert_string_contains(str(character.get("sprite_sheet", "")), "/units/full_sheets/player_actions.webp")
 	assert_false(characters.has("wangpei"))
 	assert_false(characters.has("wangde"))
 	for map_id in maps.keys():
@@ -186,7 +93,7 @@ func test_battlefield_spatial_hash_damage_and_pickups() -> void:
 	field.setup(42)
 	assert_eq((field.enemy_sprite_frames["scout"] as Array).size(), 8)
 	field.set_player_sprites(GameData.get_characters()["wanglu"] as Dictionary)
-	assert_eq(field.player_idle_frames.size(), 4)
+	assert_eq(field.player_idle_frames.size(), 1)
 	assert_eq(field.player_walk_frames.size(), 8)
 	var index := field.spawn_enemy_at("scout", Vector2(40, 0))
 	assert_eq(index, 0)

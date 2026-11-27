@@ -307,7 +307,7 @@ func _refresh() -> void:
 		_apply_button_style(button, selected, unlocked)
 
 	var character := _characters[_selected_character] as Dictionary
-	_portrait.texture = _forge_portrait(character)
+	_portrait.texture = _character_portrait(character)
 	_name_label.text = _preset_name(character)
 	_alias_label.text = "%s · %s" % [
 		GameData.loc(character, "name"),
@@ -336,16 +336,14 @@ func _refresh() -> void:
 	_begin_button.disabled = false
 
 
-func _forge_portrait(character: Dictionary) -> Texture2D:
-	var strip := GameData.texture(str(character.get("battle_idle", "")))
-	if strip == null:
-		return null
-	var frames := maxi(1, int(character.get("battle_idle_frames", 1)))
-	var frame_width := float(strip.get_width()) / float(frames)
-	var atlas := AtlasTexture.new()
-	atlas.atlas = strip
-	atlas.region = Rect2(0.0, 0.0, frame_width, float(strip.get_height()))
-	return atlas
+func _character_portrait(character: Dictionary) -> Texture2D:
+	var frames := SpriteSheetFrames.path_row(
+		str(character.get("sprite_sheet", "")),
+		int(character.get("sprite_columns", 8)),
+		int(character.get("sprite_rows", 1)),
+		int(character.get("sprite_row", 0))
+	)
+	return frames[0] if not frames.is_empty() else null
 
 
 func _preset_name(entry: Dictionary) -> String:
@@ -360,7 +358,6 @@ func _is_unlocked(entry: Dictionary) -> bool:
 func _begin_run() -> void:
 	SaveSystem.data["selected_character"] = _selected_character
 	SaveSystem.data["selected_map"] = _selected_map
-	SaveSystem.begin_run()
 	get_tree().change_scene_to_file("res://scenes/run.tscn")
 
 

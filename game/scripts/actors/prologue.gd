@@ -25,6 +25,8 @@ var _tanghe_idle: Texture2D
 var _militia_walk: Texture2D
 var _tanghe_frames := 1
 var _militia_frames := 1
+var _tanghe_rows := 3
+var _militia_rows := 3
 var _objective: Label
 var _progress: Label
 var _continue: Button
@@ -56,11 +58,13 @@ func _ready() -> void:
 func _load_forge_actors() -> void:
 	var characters := GameData.get_characters()
 	var tanghe := characters.get("tanghe", {}) as Dictionary
-	_tanghe_idle = GameData.texture(str(tanghe.get("battle_idle", "")))
-	_tanghe_frames = maxi(1, int(tanghe.get("battle_idle_frames", 1)))
+	_tanghe_idle = GameData.texture(str(tanghe.get("sprite_sheet", "")))
+	_tanghe_frames = int(tanghe.get("sprite_columns", 8))
+	_tanghe_rows = int(tanghe.get("sprite_rows", 3))
 	var militia := characters.get("wanglu", {}) as Dictionary
-	_militia_walk = GameData.texture(str(militia.get("battle_walk", "")))
-	_militia_frames = maxi(1, int(militia.get("battle_walk_frames", 1)))
+	_militia_walk = GameData.texture(str(militia.get("sprite_sheet", "")))
+	_militia_frames = int(militia.get("sprite_columns", 8))
+	_militia_rows = int(militia.get("sprite_rows", 3))
 
 
 func _process(delta: float) -> void:
@@ -324,12 +328,13 @@ func _draw_militia() -> void:
 	for i in range(positions.size()):
 		var pos: Vector2 = positions[i] + Vector2(0, sin(_time * 2.0 + i) * 2.0)
 		draw_circle(pos + Vector2(0, 18), 15.0, Color(0, 0, 0, 0.20))
-		_draw_forge_frame(
+		_draw_sprite_sheet_frame(
 			_militia_walk,
 			int(_time * 10.0) + i * 2,
 			_militia_frames,
 			Rect2(pos - Vector2(24, 30), Vector2(48, 48)),
-			Color.WHITE
+			Color.WHITE,
+			_militia_rows, 0
 		)
 
 
@@ -337,33 +342,36 @@ func _draw_tanghe() -> void:
 	var bob := sin(_time * 4.0) * 2.0
 	draw_circle(_player_pos + Vector2(0, 20), 24.0, Color(0, 0, 0, 0.26))
 	draw_circle(_player_pos, 48.0, Color(0.94, 0.70, 0.30, 0.055))
-	_draw_forge_frame(
+	_draw_sprite_sheet_frame(
 		_tanghe_idle,
 		int(_time * 6.0),
 		_tanghe_frames,
 		Rect2(_player_pos - Vector2(40, 46) + Vector2(0, bob), Vector2(80, 80)),
-		Color(1.05, 0.98, 0.82, 1.0)
+		Color(1.05, 0.98, 0.82, 1.0),
+		_tanghe_rows, 0
 	)
 	draw_circle(_player_pos + Vector2(0, -45), 5.0, Color(1.0, 0.81, 0.42, 0.55))
 	draw_string(UI_FONT, _player_pos + Vector2(-40, 60), Locale.t("prologue.character_tanghe"), HORIZONTAL_ALIGNMENT_CENTER, 80, 14, Color(GOLD, 0.85))
 
 
-func _draw_forge_frame(
+func _draw_sprite_sheet_frame(
 	texture: Texture2D,
 	frame: int,
 	frames: int,
 	destination: Rect2,
-	modulate: Color
+	modulate: Color,
+	rows: int = 1,
+	row: int = 0
 ) -> void:
 	if texture == null:
 		return
 	var frame_width := float(texture.get_width()) / float(maxi(1, frames))
-	var cell_height := float(texture.get_height())
+	var cell_height := float(texture.get_height()) / float(maxi(1, rows))
 	var frame_index := posmod(frame, maxi(1, frames))
 	draw_texture_rect_region(
 		texture,
 		destination,
-		Rect2(float(frame_index) * frame_width, 0.0, frame_width, cell_height),
+		Rect2(float(frame_index) * frame_width, float(row) * cell_height, frame_width, cell_height),
 		modulate
 	)
 

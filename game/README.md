@@ -3,7 +3,7 @@
 状态（2026-11-26）：v1.4.0 骑兵、RTS 寻路与 Web About 基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
 3 张地图、7 兵器/12 被动、16 分钟完整胜利流程、双堡图鉴、结算解锁、灯火风险收益、
 龙鳞清屏、Boss 与双语定时字幕已接入；未核实输出授权的 MOSS-TTS-Nano 语音已停止分发。
-三选一卡池扩至 51 属性 / 38 技能 / 22 事件 / 32 箭塔，共 143 张来源可追溯的卡牌，并接入 101 个
+三选一卡池扩至 51 属性 / 38 技能 / 22 事件 / 32 箭塔，共 143 张来源可追溯的卡牌，并接入 98 个
 game-icons.net SVG。
 
 引擎版本锁定为 **Godot 4.7.2-stable**。唯一版本源是仓库根 `.env` 的
@@ -64,7 +64,7 @@ game-icons.net SVG。
   六张选择卡是兵器/站法阵位，不是六名独立人物。王沛、王德只作前史。
 - 主菜单与开局页：接入 game-icons.net 的灯火、望楼、藤牌、百家宴、图鉴与
   八项首夜军备图标；卡池另接入算盘、莲灯、龙首、药囊、纺车、潮月等 SVG。
-  合计 101 个 game-icons.net 图标，全部登记作者、CC BY 3.0 许可与可点击来源；
+  合计 98 个 game-icons.net 图标，全部登记作者、CC BY 3.0 许可与可点击来源；
   白色 SVG 在运行时按卡族和品第调制。
 - 战斗框架：在自动兵器之外加入齐射、灯火爆发、迟滞、灼烧、震晕、连锁、
   回复、收魂、护盾、反伤、饮血与灯影步等可叠加主动技法；敌人可被减速、
@@ -133,14 +133,10 @@ game\launch.bat
   角色图集与瓦片图集、143 张卡的双语/来源/图标完整性、149+ 条目规模、
   三选一唯一性、减速/灼烧/眩晕/收魂、选项卡渲染、事件结算、
   触屏巡灯语言、敌兵组合配方与批渲染方向、引擎补丁版本与 `.godot-version` 一致性。
-- 最近一次 Linux 基线：**221 tests / 221 passed / 75850 asserts**（Godot 4.7.2-stable）。
+- 最近一次 Linux 基线：**234 tests / 234 passed / 155545 asserts**（Godot 4.7.2-stable）。
   CI 只在 Linux 运行一次 GUT 前置门禁；Windows 与 macOS 平台任务负责原生导入、导出与启动 smoke。
-- 敌兵外观由 `game/data/enemies.json` 的 `character_recipe` 驱动，
-  `pixel-art/character_forge/bake_battle_sprites.py` 从裸体基底、服装、头饰、
-  背挂、主副手图集烘焙 8 帧行走条；战斗仍按 MultiMesh 批次绘制。
-- 王陆六个守夜阵位与序章汤和同样使用 `characters.json` 的 `character_recipe`，
-  分别烘焙 4 帧待机与 8 帧行走条；战斗、选择页头像和序章都不再绘制旧
-  `static.png` 角色，旧兵种目录已删除。
+- 正式角色动画使用 `assets/units/full_sheets/` 中的完整人物帧；每格不拆人体，骑兵帧含马与骑手。
+  地貌、建筑、道具和动效使用 `assets/tiles/full_sheets/` 分类图集。
 - 16 分钟无头平衡跑测入口：`tests/balance/balance_bot.gd`；运行日志属于本地临时产物，
   不随公开仓库分发。
 - CI 使用 `ubuntu-latest` 的单次 GUT 前置门禁；原生 `windows-latest` 只运行导入与
@@ -159,10 +155,13 @@ game\launch.bat
 
 ## 资产
 
-- `assets/units/forge/`：CharacterForge 烘焙的正式角色/敌兵条带；
-  旧 11 组 64×64 兵种序列已删除，不得复用。
+- `assets/units/full_sheets/`：完整主角、友军、敌军、骑兵与攻击动作图集；
+  每格为完整人物，骑兵帧包含马匹，武器随攻击姿势绘制。
+- `assets/tiles/full_sheets/`：地貌、建筑、道具与环境动效分类图集。
+- 旧 `assets/units/forge/` 角色条带、装备零件、武器零件及旧地块图集已删除；
+  运行时不使用身体部件拼装。
 - `assets/ui/`、`assets/audio/`、`assets/fonts/`：已登记素材。
-- `assets/icons/game_icons/`：101 个 game-icons.net SVG，CC BY 3.0；
+- `assets/icons/game_icons/`：98 个 game-icons.net SVG，CC BY 3.0；
   逐项作者与来源见 `ATTRIBUTION.md`，完整许可见 `LICENSE-CC-BY-3.0.txt`。
 - BGM、音效与字体署名数据在 `data/credits.json`；音频逐文件 TASL（作者、来源、许可链接、
   用途、修改与 BGM 哈希）见 `assets/audio/LICENSES.md`。运行时 BGM 为 CC BY 4.0、CC BY 3.0 与 CC0 1.0 各一首；18 个 SFX 全部为 CC0 1.0。

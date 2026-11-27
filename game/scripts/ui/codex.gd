@@ -431,7 +431,8 @@ func _character_card(character_id: String, index: int) -> PanelContainer:
 		int(character.get("battle_idle_frames", 1)),
 		"Portrait_%s" % character_id,
 		160,
-		Color(str(character.get("tint", "#e1b35a")))
+		Color(str(character.get("tint", "#e1b35a"))),
+		int(character.get("sprite_columns", 1)), int(character.get("sprite_rows", 1)), int(character.get("sprite_row", 0))
 	))
 	column.add_child(portrait_row)
 	var title := _label(
@@ -524,6 +525,9 @@ func _character_detail(character: Dictionary, index: int, unlocked: bool) -> Dic
 		"accent": Color(str(character.get("tint", "#e1b35a"))),
 		"image_path": str(character.get("battle_idle", "")),
 		"image_frames": int(character.get("battle_idle_frames", 1)),
+		"image_columns": int(character.get("sprite_columns", 1)),
+		"image_rows": int(character.get("sprite_rows", 1)),
+		"image_row": int(character.get("sprite_row", 0)),
 		"badges": [
 			{"text": Locale.t("codex.cards.post", {"index": index + 1}), "color": GOLD},
 			{"text": Locale.t("codex.unlocked" if unlocked else "codex.locked"), "color": GREEN if unlocked else MUTED},
@@ -558,7 +562,8 @@ func _mercenary_card(mercenary_id: String) -> PanelContainer:
 		int(mercenary.get("battle_idle_frames", 1)),
 		"Portrait_%s" % mercenary_id,
 		78,
-		TEAL
+		TEAL,
+		int(mercenary.get("sprite_columns", 1)), int(mercenary.get("sprite_rows", 1)), int(mercenary.get("sprite_row", 0))
 	))
 	var title_box := VBoxContainer.new()
 	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -633,6 +638,9 @@ func _mercenary_detail(mercenary: Dictionary, note_text: String, bonus: String) 
 		"accent": TEAL,
 		"image_path": str(mercenary.get("battle_idle", "")),
 		"image_frames": int(mercenary.get("battle_idle_frames", 1)),
+		"image_columns": int(mercenary.get("sprite_columns", 1)),
+		"image_rows": int(mercenary.get("sprite_rows", 1)),
+		"image_row": int(mercenary.get("sprite_row", 0)),
 		"badges": [
 			{"text": Locale.t("codex.cards.ally_price", {"value": int(mercenary.get("price", 0))}), "color": GOLD},
 			{"text": UpgradeCatalog.rarity_label(str(mercenary.get("rarity", "common"))), "color": _rarity_color(str(mercenary.get("rarity", "common")))},
@@ -1112,11 +1120,12 @@ func _enemy_card(enemy_id: String) -> PanelContainer:
 	head.add_theme_constant_override("separation", 13)
 	column.add_child(head)
 	head.add_child(_portrait(
-		str(enemy.get("texture", "")),
+		str(enemy.get("sprite_sheet", enemy.get("texture", ""))),
 		int(enemy.get("sprite_frames", 1)),
 		"Portrait_%s" % enemy_id,
 		116,
-		accent
+		accent,
+		int(enemy.get("sprite_columns", 1)), int(enemy.get("sprite_rows", 1)), int(enemy.get("sprite_row", 0))
 	))
 	var title_box := VBoxContainer.new()
 	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -1189,8 +1198,11 @@ func _enemy_detail(
 		"title": GameData.loc(enemy, "name"),
 		"subtitle": Locale.t("codex.enemies.lead"),
 		"accent": accent,
-		"image_path": str(enemy.get("texture", "")),
+		"image_path": str(enemy.get("sprite_sheet", enemy.get("texture", ""))),
 		"image_frames": int(enemy.get("sprite_frames", 1)),
+		"image_columns": int(enemy.get("sprite_columns", 1)),
+		"image_rows": int(enemy.get("sprite_rows", 1)),
+		"image_row": int(enemy.get("sprite_row", 0)),
 		"badges": badges,
 		"sections": [
 			{"heading": Locale.t("codex.detail.stats"), "body": Locale.t("codex.enemies.stats", {
@@ -1811,7 +1823,7 @@ func _icon_frame(path: String, size: int, accent: Color) -> PanelContainer:
 	return panel
 
 
-func _portrait(path: String, frames: int, node_name: String, size: int, accent: Color) -> PanelContainer:
+func _portrait(path: String, frames: int, node_name: String, size: int, accent: Color, columns: int = 1, rows: int = 1, row: int = 0) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = node_name
 	panel.custom_minimum_size = Vector2(size, size)
@@ -1821,7 +1833,7 @@ func _portrait(path: String, frames: int, node_name: String, size: int, accent: 
 	)
 	var texture_rect := TextureRect.new()
 	texture_rect.name = "PortraitTexture"
-	texture_rect.texture = _first_frame_texture(path, frames)
+	texture_rect.texture = SpriteSheetFrames.path_row(path, columns, rows, row)[0] if columns > 1 and rows > 1 else _first_frame_texture(path, frames)
 	texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	texture_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -2226,10 +2238,12 @@ func _show_detail(detail: Dictionary) -> void:
 	var image_path := str(detail.get("image_path", ""))
 	if image_path.is_empty():
 		image_path = str(detail.get("icon_path", ""))
-	var image_texture: Texture2D = _first_frame_texture(
+	var image_texture: Texture2D = SpriteSheetFrames.path_row(
 		image_path,
-		int(detail.get("image_frames", 1))
-	)
+		int(detail.get("image_columns", 1)),
+		int(detail.get("image_rows", 1)),
+		int(detail.get("image_row", 0))
+	)[0] if int(detail.get("image_columns", 1)) > 1 else _first_frame_texture(image_path, int(detail.get("image_frames", 1)))
 	_detail_image.texture = image_texture
 	_detail_image_plate.visible = image_texture != null
 	_detail_image_plate.add_theme_stylebox_override(

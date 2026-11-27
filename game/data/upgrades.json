@@ -638,7 +638,7 @@
 			"desc_en": "Damage +3%, area +3%.",
 			"culture_zh": "削尖的毛竹也能刺穿皮甲。乡兵第一次上阵，手里多半是它。",
 			"culture_en": "Sharpened bamboo can pierce hide armour. For many militia, it was the first weapon they ever held.",
-			"icon": "res://assets/icons/game_icons/wpn_spear.svg",
+			"icon": "res://assets/icons/game_icons/card_spears.svg",
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
@@ -986,7 +986,7 @@
 			"desc_en": "Damage +8%, damage taken +2%.",
 			"culture_zh": "缴获的倭刀锋利，刀脊却薄。用它的人，得先学会不靠甲。",
 			"culture_en": "A captured pirate blade is sharp but thin-spined. Whoever uses it must learn not to rely on armour.",
-			"icon": "res://assets/icons/game_icons/wpn_katana.svg",
+			"icon": "res://assets/icons/game_icons/wpn_saber.svg",
 			"max_level": 5,
 			"rarity": "rare",
 			"category": "史实",
@@ -1164,7 +1164,7 @@
 			"desc_en": "Every 3.2s, drop 5 arrows onto the horde.",
 			"culture_zh": "城头一声梆子，箭雨从马道两侧落下。守城不是一个人的事。",
 			"culture_en": "A clapper sounds from the wall, and arrows fall from both sides of the ramp. Defence is never one person's work.",
-			"icon": "res://assets/icons/game_icons/wpn_bow.svg",
+			"icon": "res://assets/icons/game_icons/card_pocket_bow.svg",
 			"max_level": 5,
 			"rarity": "common",
 			"category": "制度",
@@ -1873,7 +1873,7 @@
 			"desc_en": "Area +4%, cooldown -2%.",
 			"culture_zh": "令旗一展，乡兵知道往哪冲。旗手不能倒，倒了阵就散。",
 			"culture_en": "The command banner shows the militia where to charge. The bearer must not fall; if he does, the formation breaks.",
-			"icon": "res://assets/icons/game_icons/wpn_banner.svg",
+			"icon": "res://assets/icons/game_icons/card_tower_flag.svg",
 			"max_level": 5,
 			"rarity": "uncommon",
 			"category": "制度",
@@ -2746,7 +2746,7 @@
 			"effects": [
 				{
 					"stat": "tower_splash",
-					"amount": 26.0
+					"amount": 26
 				}
 			]
 		},
@@ -2765,7 +2765,7 @@
 			"effects": [
 				{
 					"stat": "tower_burn",
-					"amount": 7.0
+					"amount": 7
 				}
 			]
 		},
@@ -2803,7 +2803,7 @@
 			"effects": [
 				{
 					"stat": "tower_knockback",
-					"amount": 70.0
+					"amount": 70
 				}
 			]
 		},
@@ -3081,7 +3081,7 @@
 				},
 				{
 					"stat": "tower_knockback",
-					"amount": 40.0
+					"amount": 40
 				}
 			]
 		},

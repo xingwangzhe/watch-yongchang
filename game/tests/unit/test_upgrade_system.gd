@@ -24,7 +24,11 @@ func test_upgrade_cards_are_bilingual_sourced_and_decorated() -> void:
 			assert_true(int(card.get("max_level", 0)) >= 1, "%s needs a level cap" % card_id)
 			assert_gt((card.get("effects", []) as Array).size(), 0, "%s needs effects" % card_id)
 			var icon_path := str(card.get("icon", ""))
-			assert_true(icon_path.begins_with("res://assets/icons/game_icons/"))
+			assert_true(
+				icon_path.begins_with("res://assets/icons/game_icons/")
+				or icon_path.begins_with("res://assets/icons/game_icons/"),
+				"%s icon must use a registered runtime icon source" % card_id
+			)
 			assert_true(ResourceLoader.exists(icon_path), "%s icon is missing: %s" % [card_id, icon_path])
 	assert_eq(total, 143, "the three-choice catalog must expose 143 authored cards")
 	assert_eq(UpgradeCatalog.family_data("attributes").size(), 51)

@@ -45,6 +45,14 @@ func test_tile_atlases_match_declared_grid() -> void:
 	var tile_size: int = parsed["tile_size"]
 	for key: String in ["terrain", "architecture", "props"]:
 		var atlas: Dictionary = parsed["atlases"][key]
+		if key == "architecture":
+			assert_eq(
+				atlas.get("path", ""),
+				"res://assets/tiles/full_sheets/architecture_atlas.png",
+				"architecture must use the complete category atlas"
+			)
+			assert_false(atlas.has("generated_source"), "obsolete layered tile overrides are removed")
+			assert_false(atlas.has("generated_overrides"), "obsolete layered tile overrides are removed")
 		var texture := load(atlas["path"]) as Texture2D
 		assert_not_null(texture, "%s atlas must load" % key)
 		if texture == null:
@@ -163,14 +171,14 @@ func test_roofs_read_warm_and_eaves_expose_a_visible_facade() -> void:
 	var roof_average := _average_opaque_color(roof)
 	var street_average := _average_opaque_color(street)
 	assert_gt(
-		roof_average.r - roof_average.b,
-		0.015,
-		"roof tiles must stay warm instead of matching the cool stone street"
+		absf((roof_average.r - roof_average.b) - (street_average.r - street_average.b)),
+		0.03,
+		"slate roofs must stay visually distinct from stone paving"
 	)
-	assert_gt(
-		street_average.b - street_average.r,
-		0.015,
-		"stone streets must stay cool so roofs separate at a glance"
+	assert_lt(
+		absf(street_average.b - street_average.r),
+		0.12,
+		"stone paving must keep its neutral grey palette"
 	)
 	var facade_pixels := 0
 	for y in range(23, 32):
@@ -213,7 +221,7 @@ func test_roof_variants_and_door_eave_keep_distinct_silhouettes() -> void:
 			var color := door_eave.get_pixel(x, y)
 			if color.r > color.g * 1.45 and color.r > color.b * 1.45:
 				red_door_pixels += 1
-	assert_gt(red_door_pixels, 24, "door eave must keep a readable red door below its roof")
+	assert_gt(red_door_pixels, 8, "door eave must keep the dark wooden door readable below its roof")
 	var hall_red_pixels := 0
 	for y in 32:
 		for x in 32:
@@ -301,6 +309,7 @@ func _tile_image(parsed: Dictionary, atlas_key: String, tile_name: String) -> Im
 	var source := texture.get_image()
 	if source == null:
 		return null
+	source.convert(Image.FORMAT_RGBA8)
 	var tile_size := int(parsed["tile_size"])
 	var columns := int(atlas["columns"])
 	var cell := Vector2i(index % columns, index / columns) * tile_size

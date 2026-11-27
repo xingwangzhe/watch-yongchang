@@ -46,12 +46,11 @@ func test_character_data_declares_full_ming_loadout() -> void:
 	if data.is_empty():
 		return
 	assert_eq(int(data["version"]), 4)
-	assert_eq(int(data["cell"]), 128)
-	assert_eq(int(data["frame_count"]), 48)
-	assert_eq(int(data["attack_action_count"]), 5)
+	assert_false(data.has("atlases"), "character recipes no longer reference composited sprite layers")
+	assert_false(data.has("layer_order"), "runtime must not assemble character body layers")
+	assert_false(data.has("pose_variants"), "attack poses come from complete-character frames")
 	assert_eq((data["weapons"] as Array).size(), 19)
 	assert_eq((data["offhand_allowed"] as Array).size(), 7)
-	assert_eq((data["pose_variants"] as Array).size(), 22)
 	assert_eq((data["combo_families"] as Array).size(), 3)
 	assert_eq((data["combo_pairs"] as Dictionary).size(), 42)
 	assert_eq(int(data["loadout_count"]), 59)
@@ -155,147 +154,6 @@ func test_combo_families_are_bound_to_pair_keys() -> void:
 	assert_eq(action_names.size(), 3, "same/mixed/shield combos need distinct attacks")
 
 
-func test_character_atlases_match_rows() -> void:
-	var data := _load_data()
-	if data.is_empty():
-		return
-	var cell := int(data["cell"])
-	var columns := int(data["columns"])
-	for key: String in ["body", "outfit", "headgear", "backgear", "weapon", "offhand"]:
-		var atlas: Dictionary = data["atlases"][key]
-		var rows: Dictionary = atlas["rows"]
-		var row_count := 0
-		for row: Variant in rows.values():
-			assert_true(int(row) >= 0, "%s row cannot be negative" % key)
-			row_count = maxi(row_count, int(row) + 1)
-		var pages: Array = atlas.get("pages", [])
-		assert_false(pages.is_empty(), "%s atlas needs pages" % key)
-		var covered := {}
-		for page: Dictionary in pages:
-			var texture := load(str(page["path"])) as Texture2D
-			assert_not_null(texture, "%s page must load: %s" % [key, page["path"]])
-			if texture == null:
-				continue
-			var offset := int(page["row_offset"])
-			var count := int(page["row_count"])
-			assert_eq(texture.get_width(), columns * cell, "%s width" % key)
-			assert_eq(texture.get_height(), count * cell, "%s page height" % key)
-			assert_true(texture.get_height() <= 16384, "%s page exceeds 2D texture height" % key)
-			for local_row in count:
-				covered[offset + local_row] = true
-		assert_eq(covered.size(), row_count, "%s pages must cover every row" % key)
-
-
-func test_every_grip_keeps_both_arms_front() -> void:
-	var data := _load_data()
-	if data.is_empty():
-		return
-	var rules: Dictionary = data["arm_layer_rules"]
-	assert_eq(str(data["arm_layer_policy"]), "all_arms_front")
-	assert_eq(str(rules["two_hand"]), "both_front")
-	assert_eq(str(rules["ranged"]), "both_front")
-	assert_eq(str(rules["one_hand"]), "both_front")
-	assert_eq(str(rules["offhand"]), "both_front")
-	for weapon: Dictionary in data["weapons"]:
-		assert_eq(str(weapon["arm_layer"]), "both_front", "%s arm layering" % weapon["id"])
-
-
-func test_all_weapon_pose_rows_exist() -> void:
-	var data := _load_data()
-	if data.is_empty():
-		return
-	var loops := {
-		"body": data["skins"],
-		"outfit": data["outfits"],
-		"headgear": data["headgear"],
-		"backgear": data["backgear"],
-	}
-	for weapon: Dictionary in data["weapons"]:
-		var pose_id := str(weapon["id"])
-		for atlas_key: String in loops.keys():
-			var rows: Dictionary = data["atlases"][atlas_key]["rows"]
-			for item: Dictionary in loops[atlas_key]:
-				var key := str(item["id"]) + "|" + pose_id
-				assert_true(rows.has(key), "%s missing %s" % [atlas_key, key])
-
-
-func test_every_combo_pair_has_weapon_and_offhand_rows() -> void:
-	var data := _load_data()
-	if data.is_empty():
-		return
-	var weapon_rows: Dictionary = data["atlases"]["weapon"]["rows"]
-	var offhand_rows: Dictionary = data["atlases"]["offhand"]["rows"]
-	for pair_key in data["combo_pairs"].keys():
-		var key := str(pair_key)
-		var split := key.split("+")
-		assert_eq(split.size(), 2)
-		assert_true(weapon_rows.has(key), "missing combo weapon row %s" % key)
-		assert_true(
-			offhand_rows.has("%s|%s" % [split[0], split[1]]),
-			"missing combo offhand row %s" % key
-		)
-
-
-func test_hero_recipe_builds_six_layers() -> void:
-	var forge := ForgeScript.new()
-	add_child_autofree(forge)
-	if not forge.load_data():
-		fail_test("character forge data must load")
-		return
-	var data: Dictionary = forge.data
-	forge.set_recipe(data["recipes"]["hero"])
-	await wait_process_frames(1)
-	assert_eq(forge.layer_count(), 6, "backgear/body/outfit/headgear/offhand/weapon")
-	var rows: Dictionary = forge.layer_rows()
-	assert_true(rows.has("offhand"))
-	assert_true(rows.has("weapon"))
-	assert_eq(forge.current_weapon_id(), "dao")
-	assert_eq(forge.current_offhand_id(), "dun")
-	assert_eq(forge.current_pose_variant(), "combo_shield")
-	assert_eq(forge.current_weapon_row_key(), "dao+dun")
-	assert_eq(
-		int(rows["weapon"]),
-		int(data["atlases"]["weapon"]["rows"]["dao+dun"]),
-		"dual-wield main hand must use the pair-specific weapon row"
-	)
-	forge.set_frame(21)
-	for child in forge.get_children():
-		if child is Sprite2D:
-			assert_eq(int(child.region_rect.position.x), 21 * 128)
-			assert_eq(child.region_rect.size, Vector2(128, 128))
-
-
-func test_single_and_dual_recipes_switch_weapon_rows() -> void:
-	var forge := ForgeScript.new()
-	add_child_autofree(forge)
-	if not forge.load_data():
-		fail_test("character forge data must load")
-		return
-	var data: Dictionary = forge.data
-	var weapon_rows: Dictionary = data["atlases"]["weapon"]["rows"]
-	var single: Dictionary = (data["recipes"]["wokou_raider"] as Dictionary).duplicate(true)
-	single["offhand"] = "none"
-	forge.set_recipe(single)
-	assert_eq(forge.current_weapon_row_key(), "dao")
-	assert_eq(int(forge.layer_rows()["weapon"]), int(weapon_rows["dao"]))
-	var twin: Dictionary = single.duplicate(true)
-	twin["offhand"] = "dao"
-	forge.set_recipe(twin)
-	assert_eq(forge.current_pose_variant(), "combo_same")
-	assert_eq(forge.current_weapon_row_key(), "dao+dao")
-	assert_eq(int(forge.layer_rows()["weapon"]), int(weapon_rows["dao+dao"]))
-	var mixed: Dictionary = single.duplicate(true)
-	mixed["faction"] = "ming"
-	mixed["outfit"] = "common_leather_vest"
-	mixed["headgear"] = "common_headwrap"
-	mixed["backgear"] = "none"
-	mixed["offhand"] = "longdeng"
-	forge.set_recipe(mixed)
-	assert_eq(forge.current_pose_variant(), "combo_mixed")
-	assert_eq(forge.current_weapon_row_key(), "dao+longdeng")
-	assert_eq(int(forge.layer_rows()["weapon"]), int(weapon_rows["dao+longdeng"]))
-
-
 func test_runtime_rejects_ming_wokou_mixes() -> void:
 	var forge := ForgeScript.new()
 	add_child_autofree(forge)
@@ -305,7 +163,7 @@ func test_runtime_rejects_ming_wokou_mixes() -> void:
 	var data: Dictionary = forge.data
 	forge.set_recipe(data["recipes"]["hero"])
 	var weapon_before := forge.current_weapon_id()
-	var layers_before := forge.layer_count()
+	var recipe_before := forge.recipe.duplicate(true)
 	var mixed := {
 		"faction": "wokou",
 		"skin": "tan",
@@ -317,7 +175,7 @@ func test_runtime_rejects_ming_wokou_mixes() -> void:
 	}
 	forge.set_recipe(mixed)
 	assert_eq(forge.current_weapon_id(), weapon_before, "rejected recipe must not replace hero")
-	assert_eq(forge.layer_count(), layers_before)
+	assert_eq(forge.recipe, recipe_before)
 	assert_eq(forge.current_faction(), "ming")
 
 
@@ -331,44 +189,7 @@ func test_wokou_saber_is_two_handed_without_offhand() -> void:
 	recipe["offhand"] = "dun"
 	forge.set_recipe(recipe)
 	assert_eq(forge.current_offhand_id(), "none")
-	assert_eq(forge.current_weapon_row_key(), "wokou_dao")
-	assert_false(forge.layer_rows().has("offhand"))
-
-
-func test_paged_outfit_rows_select_the_local_page_row() -> void:
-	var forge := ForgeScript.new()
-	add_child_autofree(forge)
-	if not forge.load_data():
-		fail_test("character forge data must load")
-		return
-	forge.set_recipe(forge.data["recipes"]["common_villager"])
-	var row := int(forge.layer_rows()["outfit"])
-	assert_eq(row, 341, "common leather vest uses the last outfit page")
-	var pages: Array = forge.data["atlases"]["outfit"]["pages"]
-	var local_row := -1
-	for page: Dictionary in pages:
-		var offset := int(page["row_offset"])
-		if row >= offset and row < offset + int(page["row_count"]):
-			local_row = row - offset
-			break
-	assert_true(local_row >= 0)
-	var layer := forge.get_node_or_null("Layer_outfit") as Sprite2D
-	assert_not_null(layer)
-	if layer != null:
-		assert_eq(int(layer.region_rect.position.y), local_row * 128)
-
-
-func test_all_attack_clips_cover_five_actions() -> void:
-	var data := _load_data()
-	if data.is_empty():
-		return
-	var clips: Dictionary = data["clips"]
-	var expected_start := 12
-	for action in [1, 2, 3, 4, 5]:
-		var clip: Dictionary = clips["attack_%d" % action]
-		assert_eq(int(clip["start"]), expected_start)
-		assert_eq(int(clip["count"]), 6)
-		expected_start += 6
+	assert_eq(forge.current_weapon_id(), "wokou_dao")
 
 
 func test_runtime_random_recipe_is_deterministic() -> void:
@@ -432,76 +253,3 @@ func test_runtime_random_recipes_respect_factions() -> void:
 		assert_eq(mains.size(), int(expected[faction]["mains"]), "%s main coverage" % faction)
 		assert_eq(offhands.size(), int(expected[faction]["offhands"]), "%s offhand coverage" % faction)
 		assert_eq(combos.size(), 3, "%s combo-family coverage" % faction)
-
-
-func test_every_declared_combination_has_atlas_rows() -> void:
-	var data := _load_data()
-	if data.is_empty():
-		return
-	var body_rows: Dictionary = data["atlases"]["body"]["rows"]
-	var outfit_rows: Dictionary = data["atlases"]["outfit"]["rows"]
-	var head_rows: Dictionary = data["atlases"]["headgear"]["rows"]
-	var back_rows: Dictionary = data["atlases"]["backgear"]["rows"]
-	var weapon_rows: Dictionary = data["atlases"]["weapon"]["rows"]
-	var offhand_rows: Dictionary = data["atlases"]["offhand"]["rows"]
-	var allowed: Array = data["offhand_allowed"]
-	var pairs: Dictionary = data["combo_pairs"]
-	var failures: Array[String] = []
-	var count := 0
-	for faction: String in ["ming", "wokou"]:
-		var outfits: Array = []
-		var headgear: Array = []
-		var backgear: Array = []
-		var mains: Array = []
-		var offhands: Array = []
-		for item: Dictionary in data["outfits"]:
-			if _faction_allowed(data, item, faction):
-				outfits.append(item)
-		for item: Dictionary in data["headgear"]:
-			if _faction_allowed(data, item, faction):
-				headgear.append(item)
-		for item: Dictionary in data["backgear"]:
-			if _faction_allowed(data, item, faction):
-				backgear.append(item)
-		for item: Dictionary in data["weapons"]:
-			if str(item["slot"]) == "main" and _faction_allowed(data, item, faction):
-				mains.append(item)
-		for offhand_id: String in allowed:
-			var offhand_item := _data_item(data, "weapons", offhand_id)
-			if _faction_allowed(data, offhand_item, faction):
-				offhands.append(offhand_item)
-		for skin: Dictionary in data["skins"]:
-			for outfit: Dictionary in outfits:
-				for headgear_item: Dictionary in headgear:
-					for backgear_item: Dictionary in backgear:
-						for weapon: Dictionary in mains:
-							var options: Array = ["none"]
-							if str(weapon["grip"]) == "one_hand":
-								for offhand_item: Dictionary in offhands:
-									var pair_key := str(weapon["id"]) + "+" + str(offhand_item["id"])
-									if pairs.has(pair_key):
-										options.append(str(offhand_item["id"]))
-							for offhand_value: String in options:
-								var offhand := str(offhand_value)
-								var variant := str(weapon["id"])
-								var weapon_key := str(weapon["id"])
-								if offhand != "none":
-									variant = "combo_" + str(pairs[weapon_key + "+" + offhand])
-									weapon_key += "+" + offhand
-								count += 1
-								if not body_rows.has(str(skin["id"]) + "|" + variant):
-									failures.append("body " + variant)
-								if not outfit_rows.has(str(outfit["id"]) + "|" + variant):
-									failures.append("outfit " + variant)
-								if not head_rows.has(str(headgear_item["id"]) + "|" + str(weapon["id"])):
-									failures.append("headgear " + str(weapon["id"]))
-								if not back_rows.has(str(backgear_item["id"]) + "|" + str(weapon["id"])):
-									failures.append("backgear " + str(weapon["id"]))
-								if not weapon_rows.has(weapon_key):
-									failures.append("weapon " + weapon_key)
-								if offhand != "none" and not offhand_rows.has(str(weapon["id"]) + "|" + offhand):
-									failures.append("offhand " + str(weapon["id"]) + "|" + offhand)
-								if failures.size() > 12:
-									break
-	assert_eq(count, int(data["combination_count"]))
-	assert_eq(failures.size(), 0, "missing atlas rows: %s" % str(failures))

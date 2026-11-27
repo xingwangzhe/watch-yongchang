@@ -1798,7 +1798,6 @@ def main() -> None:
     runtime = ROOT / "game" / "assets" / "tiles" / "yongchang"
     runtime.mkdir(parents=True, exist_ok=True)
     shutil.copy2(out / "terrain_atlas_1x.png", runtime / "terrain_atlas.png")
-    shutil.copy2(out / "architecture_atlas_1x.png", runtime / "architecture_atlas.png")
     shutil.copy2(out / "props_atlas_1x.png", runtime / "props_atlas.png")
     shutil.copy2(out / "animated_props_1x.png", runtime / "animated_props.png")
     print("tiles: terrain 40, architecture 48, props 24, animated clips 4x4")

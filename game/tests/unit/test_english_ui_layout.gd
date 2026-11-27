@@ -140,8 +140,8 @@ func test_english_hud_fits_with_long_weapon_and_retinue_names() -> void:
 		"weapons": [
 			{"name": "Dragon Lantern", "icon": "res://assets/icons/game_icons/wpn_lantern.svg", "level": 5},
 			{"name": "Folangji Cannon", "icon": "res://assets/icons/game_icons/wpn_cannon.svg", "level": 5},
-			{"name": "Command Banner", "icon": "res://assets/icons/game_icons/wpn_banner.svg", "level": 5},
-			{"name": "Long Spear", "icon": "res://assets/icons/game_icons/wpn_spear.svg", "level": 5},
+			{"name": "Command Banner", "icon": "res://assets/icons/game_icons/card_tower_flag.svg", "level": 5},
+			{"name": "Long Spear", "icon": "res://assets/icons/game_icons/card_spears.svg", "level": 5},
 			{"name": "Hand Cannon", "icon": "res://assets/icons/game_icons/wpn_musket.svg", "level": 5},
 			{"name": "Saber", "icon": "res://assets/icons/game_icons/wpn_saber.svg", "level": 5},
 		],

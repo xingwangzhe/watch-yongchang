@@ -57,12 +57,6 @@ const ENEMY_SEPARATION_REFRESH := 0.12
 const ENCOUNTER_TRIGGER_RADIUS := 58.0
 const ENCOUNTER_REARM_MARGIN := 22.0
 const ENCOUNTER_REFRESH_DEFAULT := 72.0
-const VARIANT_CATALOG_PATH := "res://data/enemy_variants.json"
-const VARIANT_ATLAS_PATH := "res://data/enemy_variant_atlas.json"
-# 0 = 使用目录内全部烘焙变体。4 会把每种敌人锁死在极小的视觉池里，
-# 与「装备随机组合」的要求冲突；全部变体合计约 5MB，常驻内存可接受。
-const VARIANTS_PER_ENEMY := 0
-const VARIANT_RECENT_MEMORY := 5
 # Web is single-threaded and its renderer varies widely across mobile browsers;
 # cap the live crowd to preserve room for animation, UI, and touch input.
 const MAX_ALIVE_ENEMIES_NATIVE := 460
@@ -112,20 +106,17 @@ var mercenary_data: Dictionary = {}
 var tower_defs: Dictionary = {}
 var tower_stats: Dictionary = {}
 var tower_textures: Dictionary = {}
+var tower_weapon_texture: Texture2D
 var textures: Dictionary = {}
 var encounter_sites: Array[Dictionary] = []
 var enemy_sprite_frames: Dictionary = {}
-var enemy_variant_atlas_data: Dictionary = {}
-var enemy_variant_atlas_texture: Texture2D
-var enemy_atlas_batch: EnemyAtlasBatch
-var enemy_variant_catalog: Dictionary = {}
-var _variant_pool: Dictionary = {}
-var _last_variant_ids: Dictionary = {}
-var _recent_variant_ids: Dictionary = {}
 var runtime_loadout: RuntimeLoadout
 var _runtime_map_salt := ""
 var player_idle_frames: Array[Texture2D] = []
 var player_walk_frames: Array[Texture2D] = []
+var player_attack_frames: Array[Texture2D] = []
+var _attack_frame_cache: Dictionary = {}
+var player_attack_until := 0.0
 var player_idle_fps := 6.0
 var player_walk_fps := 10.0
 var enemy_hp_mult := 1.0
@@ -207,28 +198,17 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 	if not runtime_loadout.load_defaults():
 		push_warning("Runtime loadout data failed to load; enemies use their baked base loadout")
 		runtime_loadout = null
-	_load_enemy_variants()
 	_load_towers()
 	for enemy_id in enemy_data.keys():
 		var definition: Dictionary = enemy_data[enemy_id]
-		_cache_enemy_sprite(
-			enemy_id,
-			str(definition.get("texture", "")),
-			maxi(1, int(definition.get("sprite_frames", 1)))
+		var frames := SpriteSheetFrames.path_row(
+			str(definition.get("sprite_sheet", "")),
+			int(definition.get("sprite_columns", 8)),
+			int(definition.get("sprite_rows", 1)),
+			int(definition.get("sprite_row", 0))
 		)
-		var runtime_visuals: Dictionary = definition.get("runtime_visuals", {}) as Dictionary
-		for raw_variant: Variant in runtime_visuals.values():
-			if not (raw_variant is Dictionary):
-				continue
-			var variant: Dictionary = raw_variant
-			var draw_id := str(variant.get("draw_id", ""))
-			if draw_id.is_empty() or (enemy_variant_atlas_data.get("variants", {}) as Dictionary).has(draw_id):
-				continue
-			_cache_enemy_sprite(
-				draw_id,
-				str(variant.get("texture", "")),
-				maxi(1, int(variant.get("sprite_frames", 1)))
-			)
+		enemy_sprite_frames[enemy_id] = frames
+		textures[enemy_id] = frames[0] if not frames.is_empty() else null
 	z_index = 0
 	set_process(true)
 
@@ -287,50 +267,44 @@ func _ensure_map_key(map_key: String) -> void:
 
 
 func set_player_sprites(definition: Dictionary) -> void:
-	player_idle_frames = _load_sprite_frames(
-		str(definition.get("battle_idle", "")),
-		maxi(1, int(definition.get("battle_idle_frames", 1)))
-	)
-	player_walk_frames = _load_sprite_frames(
-		str(definition.get("battle_walk", "")),
-		maxi(1, int(definition.get("battle_walk_frames", 1)))
-	)
+	var path := str(definition.get("sprite_sheet", ""))
+	var columns := int(definition.get("sprite_columns", 8))
+	var rows := int(definition.get("sprite_rows", 1))
+	player_walk_frames = SpriteSheetFrames.path_row(path, columns, rows, int(definition.get("sprite_row", 0)))
+	player_idle_frames.clear()
+	if not player_walk_frames.is_empty():
+		player_idle_frames.append(player_walk_frames[0])
 	player_idle_fps = maxf(1.0, float(definition.get("battle_idle_fps", 6.0)))
 	player_walk_fps = maxf(1.0, float(definition.get("battle_walk_fps", 10.0)))
+	player_attack_frames = _unit_attack_frames(str(definition.get("attack_sheet", "")), int(definition.get("attack_rows", 1)), int(definition.get("attack_row", 0)))
+	set_meta("player_tint", Color(str(definition.get("tint", "#ffffff"))))
 
 
-func _load_sprite_frames(path: String, frame_count: int) -> Array[Texture2D]:
-	var result: Array[Texture2D] = []
-	if path.is_empty():
-		return result
-	var strip := GameData.texture(path)
-	if strip == null:
-		return result
-	if frame_count <= 1:
-		result.append(strip)
-		return result
-	var strip_size := strip.get_size()
-	var frame_steps := strip_size.x / float(frame_count)
-	if strip_size.x < float(frame_count) or not is_equal_approx(frame_steps, floorf(frame_steps)):
-		result.append(strip)
-		return result
-	# 帧用 AtlasTexture 共享同一张条带纹理，避免每帧复制像素：
-	# 144 组敌人变体若逐帧 ImageTexture，会额外占数十 MB 显存并拖慢 Web 首帧。
-	var frame_width := strip_size.x / float(frame_count)
-	for index in frame_count:
-		var frame := AtlasTexture.new()
-		frame.atlas = strip
-		frame.region = Rect2(index * frame_width, 0.0, frame_width, strip_size.y)
-		result.append(frame)
-	return result
+func _unit_attack_frames(sheet: String, rows: int, row: int) -> Array[Texture2D]:
+	var key := "%s:%d:%d" % [sheet, rows, row]
+	if not _attack_frame_cache.has(key):
+		_attack_frame_cache[key] = SpriteSheetFrames.path_row(sheet, 8, rows, row)
+	return _attack_frame_cache[key] as Array[Texture2D]
 
 
-func _cache_enemy_sprite(draw_id: String, path: String, frame_count: int) -> void:
-	if draw_id.is_empty() or enemy_sprite_frames.has(draw_id):
-		return
-	var frames := _load_sprite_frames(path, frame_count)
-	enemy_sprite_frames[draw_id] = frames
-	textures[draw_id] = frames[0] if not frames.is_empty() else null
+func _start_player_attack(_weapon_id: String) -> void:
+	player_attack_until = maxf(player_attack_until, time + 0.42)
+
+
+func _mark_enemy_attack(enemy_id: String, origin: Vector2) -> void:
+	var best_index := -1
+	var best_distance := 72.0 * 72.0
+	for index in enemies.size():
+		var enemy := enemies[index]
+		if str(enemy.get("id", "")) != enemy_id:
+			continue
+		var distance := (enemy.get("pos", Vector2.ZERO) as Vector2).distance_squared_to(origin)
+		if distance <= best_distance:
+			best_index = index
+			best_distance = distance
+	if best_index >= 0:
+		var enemy := enemies[best_index]
+		enemy["attack_until"] = time + 0.42
 
 
 # ============================================================ 箭塔（友方工事）
@@ -341,6 +315,10 @@ func _cache_enemy_sprite(draw_id: String, path: String, frame_count: int) -> voi
 func _load_towers() -> void:
 	var data := GameData.load_json("res://data/towers.json")
 	tower_defs = data.get("towers", {}) as Dictionary
+	var weapon_art := data.get("weapon_art", {}) as Dictionary
+	tower_weapon_texture = GameData.texture(str(weapon_art.get("texture", "")))
+	if tower_weapon_texture == null:
+		push_warning("Missing tower weapon texture: %s" % weapon_art.get("texture", ""))
 	tower_textures.clear()
 	for tower_id in tower_defs.keys():
 		var definition: Dictionary = tower_defs[tower_id] as Dictionary
@@ -449,6 +427,7 @@ func spawn_tower(tower_id: String, position: Vector2) -> int:
 		"alive": true,
 		"rebuild_timer": 0.0,
 		"tex": tower_textures.get(tower_id, null) as Texture2D,
+		"weapon_tex": tower_weapon_texture,
 	}
 	_ensure_tower_burst_lanes(tower, 1 + int(tower_stats.get("tower_burst_lanes", 0)))
 	towers.append(tower)
@@ -1025,148 +1004,29 @@ func spawn_enemy(enemy_id: String, center: Vector2, elite_color: String = "") ->
 	return spawn_enemy_at(enemy_id, position, elite_color)
 
 
-func _load_enemy_variants() -> void:
-	enemy_variant_catalog = GameData.load_json(VARIANT_CATALOG_PATH).get("variants", {}) as Dictionary
-	enemy_variant_atlas_data = GameData.load_json(VARIANT_ATLAS_PATH)
-	enemy_variant_atlas_texture = GameData.texture(str(enemy_variant_atlas_data.get("texture", "")))
-	if enemy_variant_atlas_texture != null:
-		enemy_atlas_batch = EnemyAtlasBatch.new()
-		enemy_atlas_batch.name = "EnemyAtlasBatch"
-		add_child(enemy_atlas_batch)
-		enemy_atlas_batch.setup(enemy_variant_atlas_data, enemy_variant_atlas_texture)
-	_variant_pool.clear()
-	_last_variant_ids.clear()
-	_recent_variant_ids.clear()
-	var pool_rng := RandomNumberGenerator.new()
-	pool_rng.seed = _runtime_map_salt.hash()
-	for enemy_id in enemy_variant_catalog.keys():
-		var entries := enemy_variant_catalog[enemy_id] as Array
-		if entries == null or entries.is_empty():
-			continue
-		var shuffled := entries.duplicate(false)
-		for i in range(shuffled.size() - 1, 0, -1):
-			var j := pool_rng.randi_range(0, i)
-			var tmp: Variant = shuffled[i]
-			shuffled[i] = shuffled[j]
-			shuffled[j] = tmp
-		var pool: Array[Dictionary] = []
-		for raw in shuffled:
-			if raw is Dictionary:
-				pool.append(raw as Dictionary)
-			if VARIANTS_PER_ENEMY > 0 and pool.size() >= VARIANTS_PER_ENEMY:
-				break
-		_variant_pool[str(enemy_id)] = pool
-
-
-func _pick_enemy_variant(enemy_id: String, loadout: Dictionary) -> Dictionary:
-	var raw_pool: Variant = _variant_pool.get(enemy_id, null)
-	if raw_pool == null:
-		return {}
-	var pool: Array[Dictionary] = []
-	for item in (raw_pool as Array):
-		if item is Dictionary:
-			pool.append(item as Dictionary)
-	if pool.is_empty():
-		return {}
-	var role := str(loadout.get("role", ""))
-	var attack_class := str(loadout.get("attack_class", ""))
-	var recipe := loadout.get("recipe", {}) as Dictionary
-	var visual_mode := "mounted" if role == "cavalry" else "foot"
-
-	# 先按视觉模式 + 攻击类型过滤。与旧实现不同：不再用武器名做硬相等匹配，
-	# 而是按配方相似度打分，保留一批高分候选后随机抽取，这样武器、护甲、头饰
-	# 才会真正随机组合，且外观与运行时配方一致。
-	var candidates: Array[Dictionary] = []
-	for variant in pool:
-		if str(variant.get("visual_mode", "foot")) != visual_mode:
-			continue
-		if not attack_class.is_empty() and str(variant.get("attack_class", "")) != attack_class:
-			continue
-		candidates.append(variant)
-	if candidates.is_empty():
-		for variant in pool:
-			if str(variant.get("visual_mode", "foot")) == visual_mode:
-				candidates.append(variant)
-	if candidates.is_empty():
-		for variant in pool:
-			candidates.append(variant)
-	if candidates.is_empty():
-		return {}
-
-	var scored: Array[Dictionary] = []
-	var best_score := -1.0
-	var variant_recipe_keys := ["weapon", "offhand", "outfit", "headgear", "backgear", "skin"]
-	for variant in candidates:
-		var variant_recipe := variant.get("recipe", {}) as Dictionary
-		var score := 0.0
-		for key in variant_recipe_keys:
-			if not recipe.is_empty() and str(variant_recipe.get(key, "")) == str(recipe.get(key, "")):
-				score += 1.0
-		# 轻微偏好尚未近期出现的配方，避免连续刷出同一个模子。
-		score += rng.randf_range(0.0, 0.45)
-		best_score = maxf(best_score, score)
-		scored.append({"variant": variant, "score": score})
-	var top: Array[Dictionary] = []
-	for item in scored:
-		if float(item.get("score", 0.0)) >= best_score - 1.5:
-			top.append(item.get("variant", {}) as Dictionary)
-	if top.is_empty():
-		top = candidates
-
-	var recent: Array = _recent_variant_ids.get(enemy_id, []) as Array
-	var fresh: Array[Dictionary] = []
-	for variant in top:
-		if str(variant.get("draw_id", "")) not in recent:
-			fresh.append(variant)
-	if not fresh.is_empty():
-		top = fresh
-	var chosen := top[rng.randi() % top.size()]
-	var chosen_id := str(chosen.get("draw_id", ""))
-	_last_variant_ids[enemy_id] = chosen_id
-	recent.append(chosen_id)
-	while recent.size() > VARIANT_RECENT_MEMORY:
-		recent.pop_front()
-	_recent_variant_ids[enemy_id] = recent
-	return chosen
-
 
 func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "") -> int:
-	if not enemy_data.has(enemy_id):
-		return -1
-	if enemies.size() >= max_alive_enemies():
+	if not enemy_data.has(enemy_id) or enemies.size() >= max_alive_enemies():
 		return -1
 	if map_layout != null and not map_layout.is_point_walkable(position, 14.0):
 		position = map_layout.find_walkable_position(position, 14.0)
 	var definition: Dictionary = enemy_data[enemy_id] as Dictionary
 	var base_behavior := str(definition.get("behavior", "chase"))
 	var loadout := _generate_runtime_loadout(enemy_id, definition)
-	var runtime_visual := _runtime_visual_for(definition, loadout, enemy_id)
-	var draw_id := str(runtime_visual.get("draw_id", enemy_id))
-	var atlas_variants: Dictionary = enemy_variant_atlas_data.get("variants", {}) as Dictionary
-	var uses_atlas := enemy_variant_atlas_texture != null and atlas_variants.has(draw_id)
-	if not uses_atlas and not enemy_sprite_frames.has(draw_id):
-		var variant_path := str(runtime_visual.get("texture", ""))
-		if not variant_path.is_empty():
-			_cache_enemy_sprite(
-				draw_id,
-				variant_path,
-				maxi(1, int(runtime_visual.get("sprite_frames", 8)))
-			)
-	if not uses_atlas and not enemy_sprite_frames.has(draw_id):
-		draw_id = enemy_id
-	var behavior := str(runtime_visual.get("behavior", base_behavior))
+	var draw_id := enemy_id
+	var behavior := base_behavior
 	var runtime_attack_class := str(loadout.get("attack_class", ""))
 	var runtime_role := str(loadout.get("role", ""))
-	if (
-		runtime_visual.is_empty()
-		and runtime_attack_class == "ranged"
-		and definition.has("runtime_attack_range")
-	):
+	if runtime_attack_class == "ranged" and definition.has("runtime_attack_range"):
 		behavior = "ranged"
+	var attack_frames := _unit_attack_frames(
+		str(definition.get("attack_sheet", "")),
+		int(definition.get("attack_rows", 1)),
+		int(definition.get("attack_row", 0))
+	)
 	var is_boss := base_behavior == "boss"
 	var is_elite := not elite_color.is_empty() or base_behavior == "elite"
 	var hp := float(definition.get("hp", 10.0)) * enemy_hp_mult * difficulty_hp_mult
-	var speed_multiplier := maxf(0.1, float(runtime_visual.get("speed_mult", 1.0)))
 	var visual: Dictionary = loadout.get("visual", {}) as Dictionary
 	var runtime_tint := Color.from_string(
 		str(visual.get("tint", "#ffffff")),
@@ -1181,44 +1041,25 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"speed": (
 			float(definition.get("speed", 70.0))
 			* difficulty_speed_mult
-			* speed_multiplier
+			* maxf(0.1, float(definition.get("speed_mult", 1.0)))
 		),
 		"damage": float(definition.get("damage", 8.0)) * difficulty_damage_mult,
-		"radius": float(runtime_visual.get("radius", definition.get("radius", 20.0))),
+		"radius": float(definition.get("radius", 20.0)),
 		"xp": float(definition.get("xp", 1.0)),
-		"scale": float(runtime_visual.get("scale", definition.get("scale", 0.66))),
+		"scale": float(definition.get("scale", 0.66)),
 		"behavior": behavior,
 		"base_behavior": base_behavior,
 		"runtime_role": runtime_role,
 		"runtime_attack_class": runtime_attack_class,
 		"runtime_tint": runtime_tint,
 		"runtime_loadout": loadout,
-		"equipment_recipe": (runtime_visual.get("equipment_recipe", {}) as Dictionary).duplicate(true),
 		"runtime_visual_key": str(loadout.get("visual_key", "")),
 		"charger": bool(definition.get("charger", false)),
 		"armor": float(definition.get("armor", 0.0)),
-		"attack_range": float(runtime_visual.get(
-			"attack_range",
-			definition.get(
-				"runtime_attack_range" if behavior == "ranged" else "attack_range",
-				0.0
-			)
-		)),
-		"attack_cooldown": float(runtime_visual.get(
-			"attack_cooldown",
-			definition.get(
-				"runtime_attack_cooldown" if behavior == "ranged" else "attack_cooldown",
-				2.0
-			)
-		)),
+		"attack_range": float(definition.get("runtime_attack_range" if behavior == "ranged" else "attack_range", 0.0)),
+		"attack_cooldown": float(definition.get("runtime_attack_cooldown" if behavior == "ranged" else "attack_cooldown", 2.0)),
 		"attack_timer": rng.randf_range(0.3, 1.6),
-		"projectile_speed": float(runtime_visual.get(
-			"projectile_speed",
-			definition.get(
-				"runtime_projectile_speed" if behavior == "ranged" else "projectile_speed",
-				280.0
-			)
-		)),
+		"projectile_speed": float(definition.get("runtime_projectile_speed" if behavior == "ranged" else "projectile_speed", 280.0)),
 		"charge_cooldown": float(definition.get("charge_cooldown", 4.0)),
 		"charge_timer": rng.randf_range(2.0, 5.0),
 		"dash_time": 0.0,
@@ -1233,12 +1074,10 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"elite": is_elite,
 		"boss": is_boss,
 		"scale_color": elite_color,
-		"sprite_fps": float(runtime_visual.get(
-			"sprite_fps",
-			definition.get("sprite_fps", 10.0)
-		)),
+		"sprite_fps": float(definition.get("sprite_fps", 10.0)),
 		"facing_x": -1.0,
 		"tex": textures.get(draw_id, null) as Texture2D,
+		"attack_frames": attack_frames,
 		"nav_timer": rng.randf_range(0.0, ENEMY_NAV_REFRESH_NATIVE),
 		"nav_dir": Vector2.ZERO,
 		"nav_goal": position,
@@ -1271,41 +1110,6 @@ func _generate_runtime_loadout(enemy_id: String, definition: Dictionary) -> Dict
 	)
 
 
-func _runtime_visual_for(definition: Dictionary, loadout: Dictionary, enemy_id: String = "") -> Dictionary:
-	var base := _base_runtime_visual(definition, loadout)
-	var variant := _pick_enemy_variant(enemy_id, loadout)
-	if variant.is_empty():
-		return base
-	var merged := base.duplicate(true)
-	var draw_id := str(variant.get("draw_id", enemy_id))
-	merged["draw_id"] = draw_id
-	merged["texture"] = str(variant.get("texture", ""))
-	merged["sprite_frames"] = maxi(1, int(variant.get("frames", 8)))
-	merged["sprite_fps"] = float(variant.get("fps", 10.0))
-	# 记录本次外观对应的烘焙装备配方（武器/护甲/头饰等）。不能直接写回 loadout：
-	# loadout 是 RuntimeLoadout 生成的完整合法快照，烘焙变体只含外观字段，
-	# 覆盖会丢失 mount 等字段并通过不了 validation_errors()。
-	var variant_recipe := variant.get("recipe", {}) as Dictionary
-	if not variant_recipe.is_empty():
-		merged["equipment_recipe"] = variant_recipe.duplicate(true)
-	return merged
-
-
-func _base_runtime_visual(definition: Dictionary, loadout: Dictionary) -> Dictionary:
-	if loadout.is_empty():
-		return {}
-	var visuals: Dictionary = definition.get("runtime_visuals", {}) as Dictionary
-	if visuals.is_empty():
-		return {}
-	var role := str(loadout.get("role", ""))
-	var attack_class := str(loadout.get("attack_class", ""))
-	var key := role
-	if role == "cavalry":
-		key = "cavalry_%s" % attack_class
-	var result: Variant = visuals.get(key, {})
-	return result if result is Dictionary else {}
-
-
 func set_difficulty(progress: float, curve: Dictionary) -> void:
 	var t := clampf(progress, 0.0, 1.0)
 	# 前段平缓、后段加速：避免开局就压血，又在黎明前形成真正的压力。
@@ -1322,13 +1126,17 @@ func spawn_ally(mercenary_id: String, position: Vector2) -> bool:
 	var spawn_position := position
 	if map_layout != null:
 		spawn_position = map_layout.find_walkable_position(position, 14.0)
-	var idle_frames := _load_sprite_frames(
-		str(definition.get("battle_idle", "")),
-		maxi(1, int(definition.get("battle_idle_frames", 1)))
-	)
-	var walk_frames := _load_sprite_frames(
-		str(definition.get("battle_walk", "")),
-		maxi(1, int(definition.get("battle_walk_frames", 1)))
+	var sheet := str(definition.get("sprite_sheet", ""))
+	var columns := int(definition.get("sprite_columns", 8))
+	var rows := int(definition.get("sprite_rows", 1))
+	var walk_frames := SpriteSheetFrames.path_row(sheet, columns, rows, int(definition.get("sprite_row", 0)))
+	var idle_frames: Array[Texture2D] = []
+	if not walk_frames.is_empty():
+		idle_frames.append(walk_frames[0])
+	var attack_frames := _unit_attack_frames(
+		str(definition.get("attack_sheet", "")),
+		int(definition.get("attack_rows", 1)),
+		int(definition.get("attack_row", 0))
 	)
 	allies.append({
 		"id": mercenary_id,
@@ -1340,6 +1148,8 @@ func spawn_ally(mercenary_id: String, position: Vector2) -> bool:
 		"radius": float(definition.get("radius", 17.0)),
 		"scale": float(definition.get("scale", 0.62)),
 		"attack_kind": str(definition.get("attack_kind", "cone")),
+		"weapon": str((definition.get("character_recipe", {}) as Dictionary).get("weapon", "saber")),
+		"action": str((definition.get("character_recipe", {}) as Dictionary).get("action", "")),
 		"attack_range": float(definition.get("attack_range", 130.0)),
 		"attack_cooldown": maxf(0.15, float(definition.get("attack_cooldown", 1.0))),
 		"attack_timer": rng.randf_range(0.1, 0.5),
@@ -1351,6 +1161,7 @@ func spawn_ally(mercenary_id: String, position: Vector2) -> bool:
 		"rarity": str(definition.get("rarity", "common")),
 		"idle_frames": idle_frames,
 		"walk_frames": walk_frames,
+		"attack_frames": attack_frames,
 		"idle_fps": maxf(1.0, float(definition.get("battle_idle_fps", 6.0))),
 		"walk_fps": maxf(1.0, float(definition.get("battle_walk_fps", 10.0))),
 		"tint": Color(str(definition.get("tint", "#ffffff"))),
@@ -1738,6 +1549,7 @@ func play_player_attack_fx(
 	evolved: bool = false,
 	enemy_anchor: Vector2 = Vector2.ZERO
 ) -> void:
+	_start_player_attack(weapon_id)
 	var profiles: Dictionary = attack_fx_data.get("player_weapons", {}) as Dictionary
 	if not profiles.has(weapon_id):
 		return
@@ -1775,6 +1587,7 @@ func play_player_attack_fx(
 
 
 func play_enemy_attack_fx(enemy_id: String, origin: Vector2, direction: Vector2) -> void:
+	_mark_enemy_attack(enemy_id, origin)
 	var profiles: Dictionary = attack_fx_data.get("enemy_attacks", {}) as Dictionary
 	if not profiles.has(enemy_id):
 		return
@@ -1790,6 +1603,10 @@ func play_enemy_attack_fx(enemy_id: String, origin: Vector2, direction: Vector2)
 
 
 func play_ally_attack_fx(mercenary_id: String, origin: Vector2, direction: Vector2) -> void:
+	for ally in allies:
+		if str(ally.get("id", "")) == mercenary_id and (ally.get("pos", Vector2.ZERO) as Vector2).distance_squared_to(origin) < 4.0:
+			ally["attack_until"] = time + 0.42
+			break
 	var profiles: Dictionary = attack_fx_data.get("ally_attacks", {}) as Dictionary
 	if not profiles.has(mercenary_id):
 		return
@@ -2855,7 +2672,7 @@ func _draw_towers() -> void:
 				Rect2(position - Vector2(size * 0.5, size * 0.9), Vector2(size, size)),
 				Color("#6d5a42")
 			)
-		_draw_tower_weapon(tower, position + Vector2(0.0, -size * 0.30), size)
+		_draw_tower_weapon(tower, position + Vector2(0.0, -size * 0.46), size)
 		var stored_xp := float(tower.get("xp", 0.0))
 		if stored_xp > 0.5:
 			var stored_ratio := clampf(stored_xp / 36.0, 0.08, 1.0)
@@ -2928,41 +2745,26 @@ func _world_position_visible(position: Vector2, margin: float = 160.0) -> bool:
 
 
 func _draw_tower_weapon(tower: Dictionary, pivot: Vector2, size: float) -> void:
-	var angle := float(tower.get("aim_angle", -PI * 0.5))
+	var texture := tower.get("weapon_tex", null) as Texture2D
+	if texture == null:
+		return
 	var aim_dir := tower.get("aim_dir", Vector2.UP) as Vector2
+	# Cell 10 points upper-right. Offset its artwork axis so it aims along aim_angle.
+	var angle := float(tower.get("aim_angle", -PI * 0.5)) - PI * 0.25
 	var recoil := clampf(float(tower.get("recoil", 0.0)), 0.0, 1.0)
 	var kick := pivot - aim_dir * (size * 0.035 * recoil)
-	# 先压住贴图里的静态小弩，再画可旋转的弩身，避免出现两把弩。
-	draw_circle(pivot, size * 0.082, Color(0.16, 0.12, 0.09, 0.92))
-	draw_circle(pivot, size * 0.062, Color("#6d563d"))
-	var pulse := 0.82 + recoil * 0.05
+	var weapon_size := size * 0.224
+	var pulse := 0.92 + recoil * 0.08
 	draw_set_transform(kick, angle, Vector2(pulse, pulse))
-	var wood := Color("#8a6a45")
-	var wood_light := Color("#b18a58")
-	var metal := Color("#cfd6cf")
-	# 弩臂：中段木托 + 前方横向弩弓 + 弦
-	draw_rect(Rect2(Vector2(-size * 0.035, -size * 0.018), Vector2(size * 0.20, size * 0.036)), wood)
-	draw_rect(Rect2(Vector2(-size * 0.035, -size * 0.018), Vector2(size * 0.20, size * 0.012)), wood_light)
-	var limb_root := Vector2(size * 0.135, 0.0)
-	var limb_top := Vector2(size * 0.195, -size * 0.095)
-	var limb_bottom := Vector2(size * 0.195, size * 0.095)
-	draw_line(limb_root, limb_top, wood, 3.0)
-	draw_line(limb_root, limb_bottom, wood, 3.0)
-	draw_line(limb_top, limb_bottom, Color(0.86, 0.82, 0.66, 0.85), 1.0)
-	# 已上弦的箭
-	draw_line(Vector2(-size * 0.01, 0.0), Vector2(size * 0.235, 0.0), metal, 2.0)
-	draw_colored_polygon(
-		PackedVector2Array([
-			Vector2(size * 0.235, 0.0),
-			Vector2(size * 0.205, -size * 0.028),
-			Vector2(size * 0.205, size * 0.028),
-		]),
-		Color("#f4e7c2")
+	draw_texture_rect(
+		texture,
+		Rect2(Vector2.ONE * -weapon_size * 0.5, Vector2.ONE * weapon_size),
+		false
 	)
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var muzzle := clampf(float(tower.get("muzzle", 0.0)) / 0.10, 0.0, 1.0)
 	if muzzle > 0.0:
-		var tip := kick + aim_dir * (size * 0.21)
+		var tip := kick + aim_dir * (size * 0.20)
 		draw_circle(tip, size * 0.035 * muzzle + 3.0, Color(1.0, 0.86, 0.48, 0.55 * muzzle))
 		draw_circle(tip, size * 0.016 * muzzle + 1.5, Color(1.0, 0.97, 0.84, 0.9 * muzzle))
 
@@ -3057,11 +2859,8 @@ func _draw_pickups() -> void:
 
 func _draw_enemies() -> void:
 	if not bool(get_meta("draw_enemies", true)):
-		if enemy_atlas_batch != null:
-			enemy_atlas_batch.visible = false
 		return
-	var atlas_enemies: Array[Dictionary] = []
-	var atlas_variants: Dictionary = enemy_variant_atlas_data.get("variants", {}) as Dictionary
+	var attacking_enemies: Array[Dictionary] = []
 	for value in _draw_groups.values():
 		(value as Array).clear()
 	_draw_active_ids.clear()
@@ -3073,9 +2872,9 @@ func _draw_enemies() -> void:
 			continue
 		if absf(position.y - player_pos.y) > VIEW_HALF.y + 120.0:
 			continue
-		var batch_id := str(enemy.get("draw_id", enemy.get("id", "")))
-		if enemy_atlas_batch != null and atlas_variants.has(batch_id):
-			atlas_enemies.append(enemy)
+		var batch_id := str(enemy.get("id", ""))
+		if float(enemy.get("attack_until", 0.0)) > time:
+			attacking_enemies.append(enemy)
 			continue
 		if not _draw_groups.has(batch_id):
 			_draw_groups[batch_id] = []
@@ -3083,12 +2882,12 @@ func _draw_enemies() -> void:
 		if batch.is_empty():
 			_draw_active_ids.append(batch_id)
 		batch.append(enemy)
-	if enemy_atlas_batch != null:
-		enemy_atlas_batch.update_enemies(atlas_enemies, time)
 	for batch_id in _draw_active_ids:
 		_draw_enemy_batch(batch_id, _draw_groups[batch_id] as Array, true)
 	for batch_id in _draw_active_ids:
 		_draw_enemy_batch(batch_id, _draw_groups[batch_id] as Array, false)
+	for enemy in attacking_enemies:
+		_draw_attacking_enemy(enemy)
 
 
 func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
@@ -3161,6 +2960,21 @@ func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
 	draw_multimesh(multimesh, tex)
 
 
+func _draw_attacking_enemy(enemy: Dictionary) -> void:
+	var frame_list: Array = enemy.get("attack_frames", []) as Array
+	if frame_list.is_empty():
+		return
+	var remaining := clampf(float(enemy.get("attack_until", 0.0)) - time, 0.0, 0.42)
+	var index := clampi(int((0.42 - remaining) / 0.42 * frame_list.size()), 0, frame_list.size() - 1)
+	var position := enemy.get("pos", Vector2.ZERO) as Vector2
+	var size := ENEMY_SPRITE_BASE_SIZE * float(enemy.get("scale", 0.66))
+	var flip := -1.0 if float(enemy.get("facing_x", -1.0)) < 0.0 else 1.0
+	draw_circle(position + Vector2(0.0, float(enemy.get("radius", 18.0)) * 0.7), float(enemy.get("radius", 18.0)) * 0.72, Color(0.0, 0.0, 0.0, 0.22))
+	draw_set_transform(position, 0.0, Vector2(flip, 1.0))
+	draw_texture_rect(frame_list[index] as Texture2D, Rect2(Vector2(-size * 0.5, -size * 0.79), Vector2(size, size)), false)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
 func _enemy_instance_transform(position: Vector2, size: float, _shadow: bool, facing_x: float = 1.0) -> Transform2D:
 	return Transform2D(0.0, Vector2(size * signf(facing_x), -size), 0.0, position)
 
@@ -3168,12 +2982,13 @@ func _enemy_instance_transform(position: Vector2, size: float, _shadow: bool, fa
 func _draw_player() -> void:
 	draw_circle(player_pos + Vector2(0, 15), 21.0, Color(0.0, 0.0, 0.0, 0.28))
 	var tint := get_meta("player_tint", Color.WHITE) as Color
-	var frames := player_walk_frames if _player_moving else player_idle_frames
+	var attacking := time < player_attack_until
+	var frames: Array = player_attack_frames if attacking else (player_walk_frames if _player_moving else player_idle_frames)
 	if frames.is_empty():
 		frames = player_walk_frames if not player_walk_frames.is_empty() else player_idle_frames
 	if not frames.is_empty():
-		var fps := player_walk_fps if _player_moving else player_idle_fps
-		var frame_index := posmod(int(time * fps), frames.size())
+		var fps := 14.0 if attacking else (player_walk_fps if _player_moving else player_idle_fps)
+		var frame_index := clampi(int((0.42 - maxf(0.0, player_attack_until - time)) / 0.42 * frames.size()), 0, frames.size() - 1) if attacking else posmod(int(time * fps), frames.size())
 		var draw_size := Vector2.ONE * PLAYER_SPRITE_SIZE
 		var body_bob := sin(time * 10.0) * 1.2 if _player_moving else sin(time * 2.0) * 0.5
 		var flip_x := -1.0 if player_facing.x < -0.01 else 1.0
@@ -3349,7 +3164,8 @@ func _draw_allies() -> void:
 		var size := PLAYER_SPRITE_SIZE * scale_value
 		draw_circle(position + Vector2(0, size * 0.16), size * 0.28, Color(0.0, 0.0, 0.0, 0.25))
 		_draw_ally_ring(position, size)
-		var frames: Array = (
+		var attacking := float(ally.get("attack_until", 0.0)) > time
+		var frames: Array = ally.get("attack_frames", []) as Array if attacking else (
 			ally["walk_frames"] as Array
 			if bool(ally.get("moving", false))
 			else ally["idle_frames"] as Array
@@ -3359,8 +3175,8 @@ func _draw_allies() -> void:
 		if frames.is_empty():
 			draw_circle(position, float(ally["radius"]), Color("#6f9f8f"))
 			continue
-		var fps := float(ally["walk_fps"]) if bool(ally.get("moving", false)) else float(ally["idle_fps"])
-		var frame_index := posmod(
+		var fps := 14.0 if attacking else (float(ally["walk_fps"]) if bool(ally.get("moving", false)) else float(ally["idle_fps"]))
+		var frame_index := clampi(int((0.42 - maxf(0.0, float(ally.get("attack_until", 0.0)) - time)) * fps), 0, frames.size() - 1) if attacking else posmod(
 			int(time * fps) + str(ally["id"]).hash(),
 			frames.size()
 		)

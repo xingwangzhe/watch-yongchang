@@ -383,7 +383,7 @@ func test_about_page_auto_scroll_and_wheel_takeover() -> void:
 	assert_string_contains(font_entry.get("notice_zh", ""), "OFL")
 	assert_true(str(font_entry.get("license_url", "")).begins_with("https://"))
 	var icon_entries: Array = credits.get("icons", [])
-	assert_eq(icon_entries.size(), 102, "101 third-party icons plus the original cursor must be credited")
+	assert_eq(icon_entries.size(), 99, "98 game-icons.net assets and the original cursor must be credited")
 	var third_party_icons := 0
 	var cursor_credited := false
 	for entry in icon_entries:
@@ -783,7 +783,7 @@ func test_character_select_enforces_unlocks_and_keeps_choice() -> void:
 	var portrait_texture := (select.find_child("Portrait", true, false) as TextureRect).texture as AtlasTexture
 	assert_not_null(portrait_texture, "select portrait must use a forge idle frame")
 	if portrait_texture != null:
-		assert_string_contains(portrait_texture.atlas.resource_path, "forge/players/amei/idle.webp")
+		assert_string_contains(portrait_texture.atlas.resource_path, "units/full_sheets/player_actions.webp")
 		assert_eq(portrait_texture.region.size, Vector2(128, 128))
 	assert_false((select.find_child("Character_amei", true, false) as Button).disabled)
 	assert_false((select.find_child("Map_watergate", true, false) as Button).disabled)
@@ -802,7 +802,7 @@ func test_run_uses_selected_character_and_map() -> void:
 	assert_eq(run.weapons.size(), 1)
 	assert_eq(str(run.weapons[0].get("id", "")), "dragon_lantern")
 	assert_eq(int(run.passives.get("colored_paper", 0)), 1)
-	assert_eq((run.battlefield as Battlefield).player_idle_frames.size(), 4)
+	assert_eq((run.battlefield as Battlefield).player_idle_frames.size(), 1)
 	assert_eq((run.battlefield as Battlefield).player_walk_frames.size(), 8)
 
 

@@ -18,8 +18,8 @@ const AUTO_ATTACK_PROJECTILE_PADDING := 18.0
 const AUTO_ATTACK_MAX_LEAD := 56.0
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
-const ICON_KATANA := "res://assets/icons/game_icons/wpn_katana.svg"
-const ICON_BOW := "res://assets/icons/game_icons/wpn_bow.svg"
+const ICON_KATANA := "res://assets/icons/game_icons/wpn_saber.svg"
+const ICON_BOW := "res://assets/icons/game_icons/card_pocket_bow.svg"
 const ICON_DRAGON := "res://assets/icons/game_icons/wpn_dragon_lantern.svg"
 const ICON_OIL := "res://assets/icons/game_icons/ui_lantern.svg"
 const SFX_HIT := preload("res://assets/audio/sfx_hit.ogg")
@@ -146,6 +146,8 @@ var _current_shop_offers: Array[Dictionary] = []
 var mercenaries: Array[String] = []
 var _current_upgrade_options: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
+var _run_seed := 0
+var _world_seed := 0
 var _jinshi_blessing_seed := 0
 var _towers_built := 0
 var _narrative_timer: Timer
@@ -165,8 +167,10 @@ var _gameplay_cursor_active := false
 
 func _ready() -> void:
 	InputSetup.ensure_defaults()
-	_rng.seed = 20261123
-	_jinshi_blessing_seed = int(SaveSystem.data.get("runs", 0))
+	_run_seed = SaveSystem.begin_run()
+	_rng.seed = SaveSystem.derive_seed(_run_seed, "gameplay")
+	_world_seed = SaveSystem.derive_seed(_run_seed, "world")
+	_jinshi_blessing_seed = SaveSystem.derive_seed(_run_seed, "jinshi_blessing")
 	_run_start_merit = int(SaveSystem.data.get("total_merit", 0))
 	_load_data()
 	_build_world()
@@ -396,7 +400,7 @@ func _build_world() -> void:
 	battlefield = Battlefield.new()
 	battlefield.name = "Battlefield"
 	add_child(battlefield)
-	battlefield.setup(20261123, map_def)
+	battlefield.setup(_world_seed, map_def)
 	battlefield.player_hit.connect(_on_player_hit)
 	battlefield.enemy_killed.connect(_on_enemy_killed)
 	battlefield.xp_collected.connect(_on_xp_collected)
@@ -529,7 +533,6 @@ func _setup_player() -> void:
 	xp_need = _xp_need_for_level(1)
 	camera.position = player["pos"] as Vector2
 	hud.update_hud(_hud_state())
-	SaveSystem.autosave({"last_mode": "run"})
 
 
 func _sync_towers() -> void:

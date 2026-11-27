@@ -51,19 +51,19 @@
 				"title_zh": "骑兵、RTS 寻路与运行时配装",
 				"title_en": "Cavalry, RTS Navigation & Runtime Loadouts",
 				"lines_zh": [
-					"CharacterForge 新增 3 种马：枣红马、乌骓马、霜灰马；每种 4 帧待机 + 8 帧行走，采用斜对角快步，马腿、马身、头颈、尾巴和骑手躯干分层起伏。",
-					"新增 6 个骑手条带：明军骑枪、明军骑弓、倭寇骑刀、倭寇骑弓、精英骑枪、Boss 鬼面骑枪；骑乘姿态复用阵营合法的服装、头饰、背挂与武器层。",
-					"运行时不再只吃构建期固定样板：每个敌兵、精英与 Boss 生成时由 RuntimeLoadout 抽样配装、武器、角色、马匹、调色、纹章、旗帜与武器皮肤，结果写入实例并参与批处理缓存。",
-					"组合口径：基础合法装备 75,120；加入马匹与姿态后 974,352；再乘调色/纹章/旗帜/武器皮肤为 700,791,552。后两者共享烘焙图集与实例着色，不是 7 亿张独立 PNG。",
-					"敌兵外观另烘焙 144 组随机变体（9 类 × 12/24 组，含骑乘与步行、12 种武器、10 种服装、8 种头饰、3 种马色），每次生成按合法配方抽取；8 帧动画使用独立共享图集与 MultiMeshInstance2D UV 选帧；全部为项目原创程序化像素绘制，CC BY 4.0。",
+					"骑兵图集中的每一帧都是完整骑手与坐骑组合，不拆分马匹、骑手或身体部件。",
+					"完整人物分类图集区分端正、整洁的明军友方，与衣甲破损、粗粝凶狠的倭寇敌兵；每行包含对应兵种的八帧整人动作。",
+					"角色图集固定使用兵种分类造型。RuntimeLoadout 仍校验阵营合法配装并抽取战斗数据，但随机装备不会改变图集中的外观。",
+					"骑兵行每格均保留完整坐骑与骑手；当前攻击动作复用完整骑乘行，避免攻击时变为步兵，尚无独立骑乘攻击姿势。",
+					"战斗不从装备配方拼接人物，也不加载旧 144 组变体图集；不拆分身体、武器或马匹图层。",
 					"战斗使用共享 BFS 流场、拥挤分离与卡住恢复，并对原生/Web 分别限频刷新导航缓存；骑兵近战/远程、重装步兵、远程与支援单位共用同一套避障与推进。"
 				],
 				"lines_en": [
-					"CharacterForge adds three mounts: Chestnut Bay, Black Warhorse, and Frost Grey. Each has four idle and eight walk frames using a diagonal trot, with legs, barrel, neck, tail, and rider torso rising and falling in separate layers.",
-					"Six mounted strips are included: Ming lancer, Ming horse archer, Wokou saber rider, Wokou horse archer, elite lancer, and the boss oni lancer. Mounted poses reuse faction-legal clothing, headgear, backgear, and weapon layers.",
-					"Runs no longer rely on a small fixed sample set: RuntimeLoadout samples gear, weapon, role, mount, palette, emblem, banner, and weapon skin per enemy, elite, or boss at spawn, stores the snapshot on the instance, and feeds batch caches.",
-					"Combination scope: 75,120 legal base loadouts; 974,352 after mounts and poses; 700,791,552 with palette, emblem, banner, and weapon-skin metadata. The latter two share baked atlases and per-instance tinting; they are not hundreds of millions of separate PNGs.",
-					"Enemy appearances add 144 baked variants (nine classes × 12/24 sets, mounted and foot, twelve weapons, ten outfits, eight headgears, three horse colours). Each spawn samples a legal recipe; all eight-frame animations share an isolated atlas and MultiMeshInstance2D UV selection. All are original procedural pixel art, CC BY 4.0.",
+					"Each cavalry atlas frame shows a complete rider and mount. Riders, horses, and body parts are not assembled as separate layers.",
+					"Complete-character category atlases distinguish upright, orderly Ming allies from rough, battered, hostile-looking Wokou enemies. Each unit row contains eight full-character motion frames.",
+					"RuntimeLoadout still validates faction-legal gear and samples combat data, but random equipment does not alter the fixed category-row appearance.",
+					"Every cavalry frame keeps the complete horse and rider. Cavalry currently reuses its complete mounted row during attacks to avoid switching into an infantry body; dedicated mounted attack poses are not included.",
+					"Combat does not assemble characters from equipment recipes or load the retired 144-variant atlas. Bodies, weapons, and horses are never split into runtime layers.",
 					"Combat shares a BFS flow field, crowd separation, and stuck recovery, with separate native/Web navigation refresh intervals. Mounted melee/ranged, heavy infantry, ranged, and support units use the same obstacle avoidance and advance rules."
 				]
 			},
@@ -192,7 +192,7 @@
 						"title_zh": "RGS_Dev 模块角色（仅分层结构研究）",
 						"title_en": "RGS_Dev modular characters (layering study only)",
 						"note_zh": "CC0 1.0；仅参考身体部件分层与固定握点，未复制或打包其 PNG。",
-						"note_en": "CC0 1.0; used only to study body-part layering and fixed grip anchors. No PNG is copied or packaged.",
+						"note_en": "CC0 1.0; used only as a historical motion reference, not included in the runtime. No PNG is copied or packaged.",
 						"url": "https://rgsdev.itch.io/free-cc0-modular-animated-vector-characters-2d"
 					},
 					{
@@ -292,12 +292,12 @@
 					"代码：AGPL-3.0-or-later；全文见仓库根目录 LICENSE，适用范围见 NOTICE。",
 					"原创非代码资产：CC BY 4.0；项目原创 BGM 母版如明确标注可选 CC0 1.0 或 CC BY 4.0，既有 CC0 奉献保留。当前运行时菜单曲为 CC BY 4.0，关于页曲为 CC BY 3.0。代码与资产范围以 NOTICE 为准。",
 					"动态像素夜景、主菜单 UI 与关于页版式：项目原创；像素夜景导出资产按 CC BY 4.0 发布，生成脚本按 AGPL-3.0-or-later 授权。",
-					"明式抗倭瓦片图集：地形 40 格与道具 24 格由项目程序化绘制；建筑与城防 atlas 中 47 格使用 OpenAI ImageGen 源图，经 pixel-art/model_redraw/qa_architecture_atlas_v1.py 切片并最近邻缩放到 32×32；竖向木栏杆保留原瓦片以维持桥面接缝。原创非代码资产按 CC BY 4.0 发布；AI 使用与瓦片拼接限制见 AI使用与素材声明.md 和 architecture_atlas_model_v1_QA.md。",
+					"明式抗倭地形、建筑、道具与环境动效均从分类瓦片图集读取，采用 PNG 无损格式保留拼接边缘与调色板；原创非代码素材按 CC BY 4.0 发布。",
 					"地图环境动效图集：红灯笼、渔舟、明军旗与烽火四组 4 帧循环，32×32×4×4，源文件 pixel-art/yongchang_tiles/build.py，按 CC BY 4.0 发布。",
 					"瓦片文化取向：明代浙南沿海抗倭堡垒；青灰石墙、黛瓦、白灰墙、红漆门、马头墙、水关、烽火、拒马、渔舟、芦苇滩与石敢当；未使用日式瓦片或日式识别物。",
-					"正式角色精灵：1386 序章主角汤和、1559 正篇唯一主角王陆（虚构守夜乡勇）的六个阵位、九类敌兵、十类佣兵与三匹正式马匹；正式外观由 CharacterForge 配方烘焙到 game/assets/units/forge/，步兵待机 4 帧、行走 8 帧，骑兵另含 6 个骑手动作条带。王陆均衡位使用 OpenAI ImageGen 完整角色待机/行走源图，并由烘焙脚本校验其明军棕肤、海军绿服、布头巾、腰刀与藤牌配方；完整角色分类参考与模块草图见 pixel-art/model_redraw/manifest.json。王陆六张卡是同一人物的阵位，不是六名独立人物；早期 actors 预览图已退出正式运行时。",
-					"角色锻造模板图集：4 肤色 × 16 服装 × 14 头饰 × 5 背挂 × 59 套主副手组合，共 264,320 条原始行；按阵营隔离后为明军 59,392 种、倭寇 15,360 种，合计 74,752 种；加 3 种马 × 3 种骑乘姿态后，骑兵样式容量为明军 9,216、倭寇 5,760、通用 144，合计 15,120，旧步兵总数保持 74,752；步兵 128×128×48 帧，马与骑手各 4 帧待机 + 8 帧行走；19 类武器（含 2 件副手盾）各 5 段具名动作，并区分单手、双手、远程与副手；22 套人体骨架含 3 类双持组合与 42 个合法配对；明军专属为狼筅、戚家刀、藤牌、镋钯、戚家军甲，倭寇专属为倭刀、胴丸、腹卷、阵笠；通用装备可供双方搭配，明倭装备禁止混装；肩肘髋膝踝共享骨架端点，所有握法双臂固定在躯干前层；双持主手按真实配对行生成，盾与副手为独立层；新增明军弓手软帽、龙灯朱金抹额与明军箭囊；远射位、龙灯位与旗令位按原创造型研究重绘脸型、体态与装备；九类敌兵、七名战斗角色、十类佣兵与 3 匹马的待机/行走条由 pixel-art/character_forge/ 的烘焙脚本生成；马匹与骑手源文件 pixel-art/character_forge/build_cavalry.py 与 cavalry_data.py，按 CC BY 4.0 发布。参考包仅研究动作结构，未打包。",
-					"佣兵外观：义师枪兵、义师弓手、义师骑枪、义师骑弓、藤牌乡兵、鸟铳手、令旗手、戚家军客兵、王沛英魂、王德英魂共 10 类；步兵每类 4 帧待机 + 8 帧行走，骑兵读取 CharacterForge 骑乘条带，导出到 game/assets/units/forge/；配装校验限定明军阵营，前史人物只作英魂香火演绎。验收合图为 pixel-art/character_forge/mercenary_roster.png，授权原创非代码资产 CC BY 4.0。",
+					"完整人物动作分类图：主角、友军、敌军、骑兵与攻击姿势按整格帧生成并接入 `game/assets/units/full_sheets/`。每格保持整个人物；骑兵同格绘出骑手和坐骑；攻击格包含人物及手持武器。王陆六张卡仍是同一人物的阵位。输入、格位、尺寸和校验摘要见 `pixel-art/full_composed_atlas/clean/manifest.json`。",
+					"主角、友军、敌军、骑兵及攻击动作使用完整人物分类图集；每帧保留完整人物，骑兵帧包含整匹马与骑手，不拆分人体、不叠加独立装备或武器。",
+					"友军分类图包含义师枪兵、藤牌乡兵、义师弓手与旗手四行完整人物帧；其他佣兵角色读取对应完整分类行。阵营与人物叙事配置保留在角色 JSON 中。",
 					"倭寇类型按明代抗倭史料与项目原创设定作为反派；日式阵笠、胴丸、铁炮等仅用于敌方识别，不用于明军与主角。",
 					"UI 面板与控件素材：面板底板由 WorkBuddy ImageGen 生成；按钮、下拉、滑条、开关、滚动条与提示框由 pixel-art/ui_kit/build.py 程序化重绘（漆面底板 + 描金带 + 四角卷角），原创非代码资产 CC BY 4.0，详见《AI 使用与素材声明》。",
 					"第三方音乐、字体、音效保留原许可；署名与来源见下方音频、字体与图标条目。",
@@ -310,12 +310,12 @@
 					"Code: AGPL-3.0-or-later; full text in the repository-root LICENSE and scope in NOTICE.",
 					"Original non-code assets: CC BY 4.0; specifically identified original BGM masters may also be offered under CC0 1.0, with the prior dedication retained. The shipped menu cue is CC BY 4.0 and the about cue is CC BY 3.0. See NOTICE for the code/asset scope.",
 					"Animated pixel nightscape, menu UI, and about-page layout: project originals; exported nightscape assets are CC BY 4.0, while the generator code is AGPL-3.0-or-later.",
-					"Ming-era coastal-defense tile atlases: 40 terrain and 24 prop tiles are project procedural art; 47 architecture tiles use an OpenAI ImageGen source sheet sliced and nearest-neighbor normalized to 32×32 by pixel-art/model_redraw/qa_architecture_atlas_v1.py, while the vertical wood railing keeps the original tile to preserve bridge joins. Original non-code art is released under CC BY 4.0; AI use and tile-join limits are documented in AI使用与素材声明.md and architecture_atlas_model_v1_QA.md.",
+					"Ming-era coastal-defense terrain, architecture, props, and animated map tiles use lossless PNG category atlases generated by pixel-art/full_composed_atlas/build.py; original non-code art is CC BY 4.0.",
 					"Animated map props: four 4-frame loops for red lanterns, fishing boats, Ming banners, and beacon fire at 32×32 per frame, generated by pixel-art/yongchang_tiles/build.py, released under CC BY 4.0.",
 					"Tile art direction: a Ming-era coastal fort in southern Zhejiang; grey stone walls, dark roof tiles, whitewashed walls, red-lacquer gates, stepped gables, water gates, beacon fires, chevaux-de-frise, fishing boats, reed flats, and stone guardians. No Japanese tiles or Japanese identity markers are used.",
-					"Formal actor sprites: Tang He in the 1386 prologue, Wang Lu (a fictional watchman and the only playable character in 1559) in six formations, nine enemy classes, ten retinue classes, and three formal mounts. CharacterForge recipes bake the formal art into game/assets/units/forge/ with four idle and eight walk frames for infantry and six mounted rider strips. Wang Lu's balanced post uses OpenAI ImageGen complete idle/walk source art, checked against the exact Ming, tan skin, navy-green outfit, cloth headwrap, dao, and rattan-shield recipe; complete-character and modular-category studies are listed in pixel-art/model_redraw/manifest.json. Wang Lu's six cards are formations of one person; the earlier actors preview art is no longer used at runtime.",
-					"Character-forge template atlases: 4 skins × 16 outfits × 14 headgear × 5 backgear × 59 main/offhand loadouts, yielding 264,320 raw rows; faction isolation leaves 59,392 Ming and 15,360 Wokou combinations, 74,752 legal combinations total; adding three mounts × three mounted actions gives cavalry style capacities of 9,216 Ming, 5,760 Wokou, and 144 neutral, 15,120 total, while the old infantry total stays 74,752; infantry uses 128×128 across 48 frames, while mounts and riders each use four idle and eight walk frames; 19 weapon classes (including two offhand shields) each with five named actions, separated into one-handed, two-handed, ranged, and offhand grips; 22 body skeletons including three dual-wield combo families and 42 legal pairs; Ming-exclusive gear is the wolf brush, Qi family saber, rattan shield, tangpa, and Qi Jia armour; Wokou-exclusive gear is the wokou saber, do-maru, haramaki, and jingasa; common gear can be used by either side, while Ming and Wokou gear are never mixed; shared shoulder/elbow/hip/knee/ankle endpoints and both arms locked to the front of the torso for every grip; dual-wield main hands use pair-specific weapon rows, with shield/offhand on a separate layer; added Ming archer soft cap, dragon-lantern gold band, and Ming arrow quiver; the ranged, dragon-lantern, and banner posts were redrawn from the author's original character studies; idle and walk strips for nine enemy classes, seven battle characters, ten retinue classes, and three mounts are generated by scripts under pixel-art/character_forge/; mounted sources are build_cavalry.py and cavalry_data.py, released under CC BY 4.0. Reference packs informed motion structure only and are not packaged.",
-					"Retinue art: ten classes of Righteous spearmen, archers, mounted lancers, mounted archers, rattan-shield militia, bird-gun hands, standard-bearers, Qi-family guest soldiers, and the incense spirits of Wang Pei and Wang De; infantry uses four idle and eight walk frames at 128×128 while cavalry reads CharacterForge mounted strips, exported to game/assets/units/forge/. Recipes are Ming-only; earlier historical figures appear only as incense-spirit drama. Acceptance sheet: pixel-art/character_forge/mercenary_roster.png, original non-code assets under CC BY 4.0.",
+					"Complete-character category sheets cover Tang He, Wang Lu, allies, enemies, cavalry, and attacks. Every frame includes a whole person; mounted frames include the whole horse and rider. See pixel-art/full_composed_atlas/clean/manifest.json for grids and source hashes.",
+					"RuntimeLoadout retains legal equipment recipe counts for validation; those counts do not generate or assemble character sprites. Player, ally, enemy, cavalry, and attack visuals use complete-character category atlas frames, including each full rider-and-horse silhouette.",
+					"Retinue category sheets show complete spearmen, shield militia, archers, and standard bearers. All visual frames remain whole characters; recipes do not overlay equipment on the sprites.",
 					"Wokou types follow Ming-era coastal-defense records and original project fiction as antagonists; Japanese-style hats, armour, and matchlocks identify the enemy only and are not used for the Ming hero or allies.",
 					"UI panels and controls: the panel base is generated with WorkBuddy ImageGen; buttons, dropdowns, sliders, toggles, scrollbars, and tooltips are redrawn procedurally by pixel-art/ui_kit/build.py (lacquer field with a gilt band and corner flourishes); original non-code assets under CC BY 4.0. See the AI Use & Asset Statement.",
 					"Third-party music, fonts, and sound effects keep their original licenses; see the audio, font, and icon entries below.",
@@ -509,54 +509,6 @@
 			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
 		},
 		{
-			"title": "Katana / 腰刀",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/katana.html",
-			"file": "res://assets/icons/game_icons/wpn_katana.svg",
-			"usage_zh": "开局页腰刀军备卡",
-			"usage_en": "Saber loadout card on the run screen",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Barbed Spear / 倒钩长枪",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/barbed-spear.html",
-			"file": "res://assets/icons/game_icons/wpn_spear.svg",
-			"usage_zh": "开局页长枪军备卡",
-			"usage_en": "Long-spear loadout card on the run screen",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Bow arrow / 弓箭",
-			"artist": "Delapouite",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/delapouite/bow-arrow.html",
-			"file": "res://assets/icons/game_icons/wpn_bow.svg",
-			"usage_zh": "开局页弓军备卡",
-			"usage_en": "Bow loadout card on the run screen",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Musket / 手铳",
-			"artist": "Skoll",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/skoll/musket.html",
-			"file": "res://assets/icons/game_icons/wpn_musket.svg",
-			"usage_zh": "开局页手铳军备卡",
-			"usage_en": "Hand-cannon loadout card on the run screen",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
 			"title": "Round shield / 圆盾",
 			"artist": "Willdabeast",
 			"license": "CC BY 3.0",
@@ -577,30 +529,6 @@
 			"file": "res://assets/icons/game_icons/wpn_dragon_lantern.svg",
 			"usage_zh": "开局页龙灯军备卡",
 			"usage_en": "Dragon-lantern loadout card on the run screen",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Cannon / 火炮",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/cannon.html",
-			"file": "res://assets/icons/game_icons/wpn_cannon.svg",
-			"usage_zh": "开局页佛郎机军备卡",
-			"usage_en": "Folangji-cannon loadout card on the run screen",
-			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
-			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
-		},
-		{
-			"title": "Tattered banner / 破损军旗",
-			"artist": "Lorc",
-			"license": "CC BY 3.0",
-			"license_url": "https://creativecommons.org/licenses/by/3.0/",
-			"url": "https://game-icons.net/1x1/lorc/tattered-banner.html",
-			"file": "res://assets/icons/game_icons/wpn_banner.svg",
-			"usage_zh": "开局页令旗军备卡",
-			"usage_en": "Command-banner loadout card on the run screen",
 			"changes_zh": "原始白色透明 SVG；游戏内金色调制，图形未改",
 			"changes_en": "Original white-on-transparent SVG; tinted gold in game, geometry unchanged"
 		},
@@ -1684,6 +1612,42 @@
 			"changes_zh": "项目原创 24×24 四色像素光标；由 pixel-art/watch_cursor/build.py 生成，运行时使用无损 WebP，未手改导出图",
 			"changes_en": "Original 24×24 four-colour pixel cursor generated by pixel-art/watch_cursor/build.py; runtime uses lossless WebP, exported images are not hand-edited",
 			"asset_id": "watch_cursor_pixel_art"
+		},
+		{
+			"title": "Broadsword / 阔剑",
+			"artist": "Lorc",
+			"license": "CC BY 3.0",
+			"license_url": "https://creativecommons.org/licenses/by/3.0/",
+			"url": "https://game-icons.net/1x1/lorc/broadsword.html",
+			"file": "res://assets/icons/game_icons/wpn_saber.svg",
+			"usage_zh": "武器卡与升级卡中的腰刀图标",
+			"usage_en": "Saber icon in weapon and upgrade cards",
+			"changes_zh": "沿用 Game-icons.net 原始 SVG；游戏内统一调色",
+			"changes_en": "Original Game-icons.net SVG; tinted consistently in game"
+		},
+		{
+			"title": "Musket / 火铳",
+			"artist": "Skoll",
+			"license": "CC BY 3.0",
+			"license_url": "https://creativecommons.org/licenses/by/3.0/",
+			"url": "https://game-icons.net/1x1/skoll/musket.html",
+			"file": "res://assets/icons/game_icons/wpn_musket.svg",
+			"usage_zh": "武器卡与升级卡中的火铳图标",
+			"usage_en": "Musket icon in weapon and upgrade cards",
+			"changes_zh": "沿用 Game-icons.net 原始 SVG；游戏内统一调色",
+			"changes_en": "Original Game-icons.net SVG; tinted consistently in game"
+		},
+		{
+			"title": "Cannon / 火炮",
+			"artist": "Lorc",
+			"license": "CC BY 3.0",
+			"license_url": "https://creativecommons.org/licenses/by/3.0/",
+			"url": "https://game-icons.net/1x1/lorc/cannon.html",
+			"file": "res://assets/icons/game_icons/wpn_cannon.svg",
+			"usage_zh": "武器卡与升级卡中的佛郎机图标",
+			"usage_en": "Cannon icon in weapon and upgrade cards",
+			"changes_zh": "沿用 Game-icons.net 原始 SVG；游戏内统一调色",
+			"changes_en": "Original Game-icons.net SVG; tinted consistently in game"
 		}
 	],
 	"fonts": [
@@ -1755,11 +1719,25 @@
 			"license": "原创非代码资产 CC BY 4.0；AI 生成素材",
 			"url": "",
 			"file": "res://assets/units/towers/watchtower.webp",
-			"usage_zh": "望楼 / 箭楼 / 龙首箭楼三档塔身贴图",
+			"usage_zh": "望楼、箭楼、龙首箭楼三档完整塔身贴图；战斗直接使用生成图",
 			"usage_en": "Sprite textures for the three tower tiers",
-			"changes_zh": "OpenAI ImageGen独立箭塔图；Pillow从无辅助线透明色键图切片并最近邻缩放到168x168",
-			"changes_en": "Independent arrow tower sprites generated with OpenAI ImageGen, sliced from a clean chroma-key sheet and nearest-neighbor scaled to 168x168",
+			"changes_zh": "OpenAI ImageGen 箭塔图第0至2格；pixel-art/towers/build.py 从原图去绿幕、裁切主体并最近邻缩放为168x168 PNG及无损WebP；运行时不再叠加程序绘制的旧弩",
+			"changes_en": "Cells 0–2 from the OpenAI ImageGen tower sheet; pixel-art/towers/build.py keys green, crops each structure and exports 168x168 PNG plus lossless WebP; runtime no longer overlays the old procedural crossbow",
 			"asset_id": "watchtower_pixel_art"
+		},
+		{
+			"title": "明式箭塔旋转连弩",
+			"title_en": "Ming Arrow Tower Crossbow",
+			"artist": "OpenAI ImageGen",
+			"artist_en": "OpenAI ImageGen",
+			"license": "原创非代码资产 CC BY 4.0；AI 生成素材",
+			"url": "",
+			"file": "res://assets/units/towers/tower_crossbow.webp",
+			"usage_zh": "箭塔顶部可旋转的连弩贴图",
+			"usage_en": "Rotating crossbow texture mounted on arrow towers",
+			"changes_zh": "取自 weapons_atlas_v5_source.png 第10格；Pillow 去洋红色键并最近邻缩放为168×168；运行时旋转贴图以跟随目标",
+			"changes_en": "Cell 10 from weapons_atlas_v5_source.png; Pillow removes the magenta key and scales with nearest-neighbor to 168x168; runtime rotates the sprite toward targets",
+			"asset_id": "tower_crossbow_imagegen"
 		},
 		{
 			"title": "OpenAI ImageGen",
@@ -1768,10 +1746,11 @@
 			"artist_en": "OpenAI",
 			"license": "AI-generated original non-code assets; attribution and license terms see AI statement",
 			"url": "https://openai.com",
-			"usage_zh": "独立武器、角色模块、马匹和箭塔素材生成工具",
-			"usage_en": "Generation tool for standalone weapons, character modules, horses, and arrow towers",
-			"changes_zh": "模型输出由作者筛选并使用 Pillow 切分、去背、缩放与组合；来源和使用状态见素材授权清单.csv",
-			"changes_en": "Outputs selected by the author and sliced, keyed, scaled, and composited with Pillow; see asset manifest for provenance and use status"
+			"usage_zh": "完整主角、友军、敌军、骑兵及地图分类图集",
+			"usage_en": "Complete-character atlases for player, allies, enemies, cavalry, and map categories",
+			"changes_zh": "按整个人物帧或整格瓦片裁切、统一锚点并压缩；不拆分身体部件，不拼接人体或叠加独立武器/马匹",
+			"changes_en": "Cropped whole-character frames or whole map tiles, normalized anchors, and compressed; no body-part assembly or separate weapon/horse overlays",
+			"asset_id": "full_composed_character_and_tile_atlases"
 		}
 	]
 }

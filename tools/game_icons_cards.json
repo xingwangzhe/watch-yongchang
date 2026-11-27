@@ -532,5 +532,23 @@
     "author": "Skoll",
     "icon": "Bullseye",
     "slug": "bullseye"
+  },
+  {
+    "file": "wpn_saber.svg",
+    "author": "Lorc",
+    "icon": "Broadsword",
+    "slug": "broadsword"
+  },
+  {
+    "file": "wpn_musket.svg",
+    "author": "Skoll",
+    "icon": "Musket",
+    "slug": "musket"
+  },
+  {
+    "file": "wpn_cannon.svg",
+    "author": "Lorc",
+    "icon": "Cannon",
+    "slug": "cannon"
   }
 ]

@@ -4,9 +4,9 @@ These icons come from [game-icons.net](https://game-icons.net/) and are
 licensed under [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
 The full license text is included in `LICENSE-CC-BY-3.0.txt`.
 
-The project uses the original white-on-transparent SVGs as UI textures and
-tints them gold or parchment at runtime. Geometry, paths, and author
-attribution are unchanged. This use does not imply endorsement by the authors.
+All listed SVGs are used from the same icon set and tinted at runtime. Weapon,
+card, and interface icons share this collection. This use does not imply
+endorsement by the authors.
 
 | Local file | Original icon | Author | Source |
 | --- | --- | --- | --- |
@@ -14,14 +14,8 @@ attribution are unchanged. This use does not imply endorsement by the authors.
 | `ui_watchtower.svg` | Watchtower | Delapouite | https://game-icons.net/1x1/delapouite/watchtower.html |
 | `ui_scroll.svg` | Scroll unfurled | Lorc | https://game-icons.net/1x1/lorc/scroll-unfurled.html |
 | `ui_feast.svg` | Bowl of rice | Caro Asercion | https://game-icons.net/1x1/caro-asercion/bowl-of-rice.html |
-| `wpn_katana.svg` | Katana | Delapouite | https://game-icons.net/1x1/delapouite/katana.html |
-| `wpn_spear.svg` | Barbed Spear | Lorc | https://game-icons.net/1x1/lorc/barbed-spear.html |
-| `wpn_bow.svg` | Bow arrow | Delapouite | https://game-icons.net/1x1/delapouite/bow-arrow.html |
-| `wpn_musket.svg` | Musket | Skoll | https://game-icons.net/1x1/skoll/musket.html |
 | `wpn_shield.svg` | Round shield | Willdabeast | https://game-icons.net/1x1/willdabeast/round-shield.html |
 | `wpn_dragon_lantern.svg` | Dragon head | Faithtoken | https://game-icons.net/1x1/faithtoken/dragon-head.html |
-| `wpn_cannon.svg` | Cannon | Lorc | https://game-icons.net/1x1/lorc/cannon.html |
-| `wpn_banner.svg` | Tattered banner | Lorc | https://game-icons.net/1x1/lorc/tattered-banner.html |
 | `card_bamboo.svg` | Bamboo | Delapouite | https://game-icons.net/1x1/delapouite/bamboo.html |
 | `card_boat_fishing.svg` | Fishing boat | Delapouite | https://game-icons.net/1x1/delapouite/boat-fishing.html |
 | `card_herbs.svg` | Herbs bundle | Delapouite | https://game-icons.net/1x1/delapouite/herbs-bundle.html |
@@ -111,5 +105,8 @@ attribution are unchanged. This use does not imply endorsement by the authors.
 | `card_toolbox.svg` | Toolbox | Delapouite | https://game-icons.net/1x1/delapouite/toolbox.html |
 | `card_torch.svg` | Torch | Delapouite | https://game-icons.net/1x1/delapouite/torch.html |
 | `card_bullseye.svg` | Bullseye | Skoll | https://game-icons.net/1x1/skoll/bullseye.html |
+| `wpn_saber.svg` | Broadsword | Lorc | https://game-icons.net/1x1/lorc/broadsword.html |
+| `wpn_musket.svg` | Musket | Skoll | https://game-icons.net/1x1/skoll/musket.html |
+| `wpn_cannon.svg` | Cannon | Lorc | https://game-icons.net/1x1/lorc/cannon.html |
 
 Machine-readable credit entries live in `game/data/credits.json`.

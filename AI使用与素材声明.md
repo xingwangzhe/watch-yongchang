@@ -35,7 +35,7 @@
 |---|---|---|---|
 | OpenAI Codex / WorkBuddy 会话助手 | 编程、重构、测试与文档起草 | GDScript 实现、数据表结构、GUT 用例、构建与部署文档、双语文本草稿 | 作者确定玩法与架构，逐项审查代码、修正实现、运行测试并验收界面；不以模型输出替代人工确认 |
 | WorkBuddy ImageGen | 位图 UI 素材 | UI 图标与面板底图；具体文件以 `素材授权清单.csv` 的生成工具字段为准 | 作者设计风格与提示词，筛掉不合格结果，去背、裁切、缩放并统一接入 UI |
-| OpenAI ImageGen | 完整角色与模块化像素素材 | 永昌堡建筑瓦片（47/48 格）、16 种独立武器、3 种马匹行走图、3 种阵营鞍具、4 座独立箭塔；另生成明军/倭寇步行身体、攻击身体、骑手身体与衣装大图；来源、切分网格和 QA 状态见 `pixel-art/model_redraw/manifest.json` | 作者按项目文化资料确定风格与提示词，筛掉不合格图；用 Pillow 仅做色键去背、裁格、缩放与层合，查看联系表并校验阵营、帧连续性、遮挡和游戏内显示。角色复合图仅用于QA，正式角色仍须满足CharacterForge配方门控 |
+| OpenAI ImageGen | 完整角色与地图分类图集 | 5 组完整人物多帧图（主角、友军、敌军、骑兵、攻击）与地貌、建筑、透明道具、环境动效图集；原始输入与网格见 `pixel-art/full_composed_atlas/clean/manifest.json` | 作者筛选生成结果；Pillow 仅按整帧/整格边界裁切、统一锚点、去除孤立噪点并压缩；不拆分人体部件，不叠装身体、武器、马匹 |
 | Pixel Art Studio（MIT） | 程序化像素美术工具链 | 角色、瓦片、主菜单夜景、光标与 UI 控件的确定性绘制脚本和导出图集 | 作者确定画布、调色板、轮廓、帧数与文化取向；每轮看图检查并修改 `build.py`，不手改导出的 PNG |
 | Python / Pillow | 图像生成与图集烘焙 | CharacterForge 部件、待机/行走条、瓦片、UI 控件与验收合图 | 作者检查关节、握持、阵营隔离、帧连续性和实际 Godot 场景显示 |
 | tesseract、trafilatura、pdftotext | 文化资料检索与文本化 | 仅用于地方史、汤和信俗与永昌堡资料的本地研究 | 作者核对人物、年代、地点与叙事边界；原始 PDF、OCR、缩略图和联系表不随仓库或发行版分发 |
@@ -53,40 +53,15 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 - `game/assets/ui/`：位图 UI 图标与面板底图。ImageGen 产物经过人工筛选、去背、
   裁切与缩放；按钮、滑条、开关和滚动条另由
   `pixel-art/ui_kit/build.py` 程序化绘制。
-- `game/assets/character_forge/`：CharacterForge 的裸体基底、服装、头饰、背挂、
-  武器和副手图集。由 `pixel-art/character_forge/build.py` 按确定性规则绘制。
-- `game/assets/units/forge/`：正式角色、敌兵与佣兵的待机/行走条。由
-  `pixel-art/character_forge/bake_battle_sprites.py` 从合法
-  `character_recipe` 烘焙；战斗、选择页与序章只使用这些文件。王陆均衡位是完整
-  图到配方烘焙的首个样例：AI 图源只绑定明军/棕肤/海军绿服/布头巾/腰刀/藤牌这条
-  精确配方；其余阵位与单位仍由模块图集组合。
-- `game/assets/units/forge/enemy_variants/`：九类敌兵共 144 组随机外观变体，
-  由 `pixel-art/character_forge/bake_enemy_variants.py` 从合法
-  `character_recipe` 烘焙（8 帧 128×128，步行/骑乘、12 种武器、10 种服装、
-  8 种头饰、3 种马色）。运行时按 `game/data/enemy_variants.json` 抽样，
-  由 `pixel-art/character_forge/bake_enemy_variant_atlas.py` 合并为 4608×4096
-  运行图集，渲染通过独立 `MultiMeshInstance2D` 按实例 UV 选择 144 组角色的 8 帧动画；
-  原始变体 PNG 条带仍是图集生成源。
-- `game/assets/units/forge/cavalry/`：3 种未骑乘马与 6 个骑手变体，每种
-  4 帧待机 + 8 帧行走。由 `pixel-art/character_forge/build_cavalry.py` 与
-  `cavalry_data.py` 烘焙；马匹步态、马具、骑手身体与明/倭寇骑手衣装分别来自
-  `horse_gaits_v5_source.png`、`horse_tack_v1_source.png`、`rider_base_v1_source.png`
-  与 `ming_rider_walk_overlay_v1_source.png` / `wokou_rider_walk_overlay_v1_source.png`
-  （OpenAI ImageGen）；切片去青色背景后组合，武器、头饰、背挂按 CharacterForge 配方绘制。战斗、佣兵与
-  图鉴只读取这些正式条带，禁止手改导出的 PNG。
-- `game/assets/tiles/yongchang/`：地形、道具与环境动效由项目程序化绘制；
-  `architecture_atlas_ai_v1.png` 有 47 格来自 OpenAI ImageGen，
-  `wood_railing_vertical` 保留原图以维持桥栏杆接缝。切片流程在
-  `pixel-art/model_redraw/qa_architecture_atlas_v1.py`，输出 32×32 格，
-  再由 `map_renderer.gd` 按现有 48 个瓦片 ID 拼接。方向和重复限制见 QA 文档。
+- `game/data/character_templates.json` 与角色 JSON：保留阵营与合法配装数据，供随机配装校验；它们不再驱动人物图层绘制。
+- `game/assets/units/full_sheets/`：正式主角、友军、敌军、骑兵与攻击动作的完整人物多帧分类图。每格都含完整人物；骑兵每格含骑手与坐骑；攻击姿势包含人物和手持武器。运行时只裁切整帧，不做骨骼、身体部件、马匹或武器叠层。输入与切片映射见 `pixel-art/full_composed_atlas/clean/manifest.json`。
+- `game/assets/tiles/full_sheets/`：地貌 8×5、建筑 8×6、透明场景道具 8×3、环境动效 4×4 分类图，瓦片为 32×32。地图仍按 TileMapLayer 使用整格瓦片。
 - `game/assets/ui/menu_*.png`、`watch_cursor.png`：原创主菜单分层夜景与游戏光标。
-- `game/assets/**/*.webp`：由 `tools/optimize_runtime_images.ts` 从对应 PNG
-  源图确定性派生的运行时纹理；像素画使用无损 WebP，面板底图使用近无损 WebP。
-  源 PNG 保留用于编辑与复跑，导出预设排除未引用的源副本。
-- `game/assets/icons/game_icons/`：第三方 game-icons.net SVG，不是 AI 生成；
-  运行时仅着色，不改变图形。
+- `game/assets/**/*.webp` 与 `game/assets/tiles/full_sheets/*.png`：运行时纹理。完整人物图集与瓦片图集由
+  `pixel-art/full_composed_atlas/build.py` 从登记输入图确定性派生。
+- `game/assets/icons/game_icons/`：武器、卡牌与界面图标统一使用 game-icons.net SVG 图标集；运行时着色，不混用自制武器图标。
 
-角色行走身体、阵营衣装、骑乘层、武器与建筑图块由 OpenAI ImageGen 分别生成；模型不直接生成完整着装角色或骑马角色。walk_base_v4_source.png 进入正式步行角色基础层，独立衣装和 CharacterForge 装备配方叠加烘焙。所有输入大图、切片状态和用途见 pixel-art/model_redraw/manifest.json；正式素材经图集目视检查后才进入运行资源。其他候选图仍只供研究。
+角色、坐骑和装备以完整人物图格生成，不再通过身体层、装备层或武器层拼装。地图分类图以完整地块裁切并缩放；正式运行图由 `pixel-art/full_composed_atlas/build.py` 从输入图集确定性生成。2026-11-27 已复查友军、倭寇、主角、攻击、骑兵与瓦片预览：友军造型端正整洁，倭寇衣甲粗粝破损、神情凶狠；所有角色保持完整，武器与手部遮挡关系未拆层。骑兵攻击暂复用完整骑乘行，因此保持人与马连续，但没有独立攻击姿势。随机配装只影响战斗数据，不改变分类图集中的固定外观。
 
 ### 3.2 文本、数据与剧情
 
@@ -102,10 +77,8 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 - GDScript、测试、构建工具和文档在 AI 辅助下编写，由作者确定架构、审查差异、
   运行 GUT、检查场景与导出产物。
 - `RuntimeLoadout` 在运行时按种子、阵营、档位、角色、地图与波次生成配装快照；
-  组合计数用于说明可抽样空间，不等于逐个烘焙的 PNG 数量。实际渲染共享
-  CharacterForge 烘焙图集、实例调色、纹章与缓存键。
-- CharacterForge、瓦片、UI 和菜单背景的 Python 生成器可由对应 `build.py`
-  重建；导出的 PNG 不手工修改。
+  人物外观读取完整分类动作帧，不把配装部件叠加到人物上。
+- 瓦片、UI 和菜单背景的生成器可由对应 `build.py` 重建；导出的运行时图不手工修改。
 - Web 构建使用 Godot 官方 SCons 参数、Emscripten 稳定工具链和 Binaryen
   `wasm-opt`，不使用自写 wasm 分片或浏览器端拼接脚本。
 
@@ -132,7 +105,7 @@ AI 辅助不改变以下事实：项目代码与原创资产由作者选择、�
 | Godot Engine | Godot contributors | MIT | 游戏引擎；项目锁定 4.7.2-stable |
 | GUT 9.7.1 | Bitwes 与贡献者 | MIT | 仅测试，不进入发行包 |
 | Pixel Art Studio | Gamezxz | MIT | 开发期像素工具；不进入发行包 |
-| game-icons.net SVG 101 个 | Delapouite、Lorc、Skoll、Willdabeast、Faithtoken、Caro Asercion | CC BY 3.0 | UI 与卡牌图标；运行时着色，图形未改；逐项来源见 `ATTRIBUTION.md` |
+| game-icons.net SVG 98 个 | Delapouite、Lorc、Skoll、Willdabeast、Faithtoken、Caro Asercion | CC BY 3.0 | 武器、UI 与卡牌图标统一使用该图标集；逐项来源见 `ATTRIBUTION.md` 和 `credits.json` |
 | LXGW WenKai / 霞鹜文楷 | LXGW / Klee Project | SIL OFL 1.1 | 全局字体；按运行时文案子集化为 WOFF2 以缩小包体，依据 OFL 附加许可仅作游戏内嵌，不提供可安装字体 |
 | Samurai Nights | Maik Hoffmann (Majadroid) | CC BY 4.0 | 主菜单/选择页 BGM；MP3 转 OGG |
 | Views From Atop the Jade Kings Throne | Hitctrl | CC BY 3.0 | 关于页 BGM；原始 OGG |

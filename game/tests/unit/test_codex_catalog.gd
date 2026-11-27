@@ -187,14 +187,16 @@ func test_forge_first_frames_are_used_for_cards_and_enemies() -> void:
 	assert_true(player_texture is AtlasTexture)
 	var player_atlas := player_texture as AtlasTexture
 	assert_eq(player_atlas.region.position, Vector2.ZERO)
-	assert_string_contains(player_atlas.atlas.resource_path, "res://assets/units/forge/players/wanglu/idle")
+	assert_eq(player_atlas.region.size, Vector2(128, 128))
+	assert_string_contains(player_atlas.atlas.resource_path, "res://assets/units/full_sheets/player_actions.webp")
 	codex.select_tab("enemies")
 	await wait_process_frames(2)
 	var enemy_texture := _portrait_texture(codex, "Portrait_scout")
 	assert_true(enemy_texture is AtlasTexture)
 	var enemy_atlas := enemy_texture as AtlasTexture
 	assert_eq(enemy_atlas.region.position, Vector2.ZERO)
-	assert_string_contains(enemy_atlas.atlas.resource_path, "res://assets/units/forge/scout/walk")
+	assert_eq(enemy_atlas.region.size, Vector2(128, 128))
+	assert_string_contains(enemy_atlas.atlas.resource_path, "res://assets/units/full_sheets/enemies_walk.webp")
 	for character in GameData.get_characters().values():
 		assert_false((character as Dictionary).has("texture"))
 
