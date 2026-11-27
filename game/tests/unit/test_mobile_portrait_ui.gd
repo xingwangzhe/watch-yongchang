@@ -173,9 +173,13 @@ func test_portrait_selection_uses_readable_css_sized_panels_and_targets() -> voi
 	var roster := select.get("_character_panel") as PanelContainer
 	var portrait := select.get("_portrait_frame") as PanelContainer
 	var start := select.get("_begin_button") as Button
+	var scroll := select.get("_mobile_scroll") as ScrollContainer
+	var stack := select.get("_mobile_stack") as VBoxContainer
 	assert_gte(title.get_theme_font_size("font_size") / scale, 25.0)
-	assert_lte(roster.custom_minimum_size.x / scale, 80.0, "roster must leave room for selection details")
-	assert_gte(roster.custom_minimum_size.x / scale, 65.0, "roster targets must remain usable")
+	assert_true(scroll.visible, "portrait selection must use a scrollable layout")
+	assert_true(roster.get_parent() == stack, "portrait roster must be stacked above details")
+	assert_true(select.get("_detail_panel").get_parent() == stack, "portrait details must remain reachable below roster")
+	assert_gte((select.get("_char_buttons").values()[0] as Button).custom_minimum_size.y / scale, 44.0)
 	assert_gte(portrait.custom_minimum_size.x / scale, 44.0)
 	assert_gte(start.custom_minimum_size.y / scale, 34.0)
 	assert_false((select.get("_footer_hint") as Label).visible)

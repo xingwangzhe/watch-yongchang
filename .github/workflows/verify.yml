@@ -420,7 +420,8 @@ jobs:
             echo "target_sdk=36"
             echo "version=${APP_VERSION}"
             echo "gamepad_actions=move:left_stick,dpad;attack:A;dash:B;interact:X;codex:Y;auto_attack:Back"
-            echo "gamepad_tests=GUT:test_android_gamepad.gd"
+            echo "controller_runtime_tests=GUT:test_android_gamepad.gd#joypad_axis_event_moves_the_live_player"
+            echo "touch_runtime_tests=GUT:test_android_gamepad.gd#android_touch_swipe_moves_the_live_player_and_attack_button_reaches_run"
             echo "signature=verified_debug_key"
             echo "ANDROID_BUILD_CHECKS_OK"
           } | tee ci-artifacts/android/build-check.log
@@ -457,6 +458,7 @@ jobs:
           sleep 3
           mkdir -p ci-artifacts/android/emulator
           adb exec-out screencap -p > ci-artifacts/android/emulator/screen.png
+          test -s ci-artifacts/android/emulator/screen.png
           adb logcat -d -t 3000 > ci-artifacts/android/emulator/logcat.txt
           adb shell pidof fun.xingwangzhe.watchyongchang
           if grep -E "FATAL EXCEPTION|Fatal signal|SCRIPT ERROR" ci-artifacts/android/emulator/logcat.txt; then
