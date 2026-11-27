@@ -428,39 +428,58 @@ jobs:
           cp "$APK" ci-artifacts/android/watch-yongchang-android.apk
 
       - name: Boot Android 36 emulator and smoke test touch input
+        timeout-minutes: 15
         run: |
           set -euo pipefail
           AVDMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager"
           EMULATOR="$ANDROID_SDK_ROOT/emulator/emulator"
+          emulator_pid=""
+          cleanup_emulator() {
+            local exit_code=$?
+            trap - EXIT
+            if [[ -n "$emulator_pid" ]]; then
+              timeout 5 adb emu kill >/dev/null 2>&1 || true
+              kill "$emulator_pid" >/dev/null 2>&1 || true
+              wait "$emulator_pid" >/dev/null 2>&1 || true
+            fi
+            if [[ "$exit_code" -ne 0 && -f "$RUNNER_TEMP/watch-yongchang-emulator.log" ]]; then
+              tail -n 80 "$RUNNER_TEMP/watch-yongchang-emulator.log" >&2 || true
+            fi
+            exit "$exit_code"
+          }
+          trap cleanup_emulator EXIT
+          adb_cmd() { timeout 30 adb "$@"; }
           echo no | "$AVDMANAGER" create avd --force --name watch-yongchang-api36 \
             --package "system-images;android-36;google_apis;x86_64" --device pixel_2
           "$EMULATOR" -avd watch-yongchang-api36 -no-window -no-audio -no-boot-anim \
             -gpu swiftshader_indirect -no-snapshot -wipe-data \
             > "$RUNNER_TEMP/watch-yongchang-emulator.log" 2>&1 &
-          adb wait-for-device
+          emulator_pid=$!
+          timeout 180 adb wait-for-device
           booted=""
-          for attempt in $(seq 1 60); do
-            booted="$(adb shell getprop sys.boot_completed | tr -d '\r')"
+          boot_deadline=$((SECONDS + 300))
+          while (( SECONDS < boot_deadline )); do
+            booted="$(timeout 10 adb shell getprop sys.boot_completed | tr -d '\r')" || booted=""
             [[ "$booted" == "1" ]] && break
-            sleep 5
+            sleep 3
           done
           test "$booted" = "1"
           # KTR R2 uses a 3:2 display; emulator smoke approximates that ratio only.
-          adb shell wm size 1920x1280
-          adb shell wm density 420
-          adb install --no-streaming game/build/android/watch-yongchang.apk
-          adb logcat -c
-          adb shell monkey -p fun.xingwangzhe.watchyongchang 1
+          adb_cmd shell wm size 1920x1280
+          adb_cmd shell wm density 420
+          adb_cmd install --no-streaming game/build/android/watch-yongchang.apk
+          adb_cmd logcat -c
+          adb_cmd shell monkey -p fun.xingwangzhe.watchyongchang 1
           sleep 12
-          adb shell input tap 170 960
-          adb shell input swipe 170 960 280 960 700
-          adb shell input tap 1720 960
+          adb_cmd shell input tap 170 960
+          adb_cmd shell input swipe 170 960 280 960 700
+          adb_cmd shell input tap 1720 960
           sleep 3
           mkdir -p ci-artifacts/android/emulator
-          adb exec-out screencap -p > ci-artifacts/android/emulator/screen.png
+          timeout 30 adb exec-out screencap -p > ci-artifacts/android/emulator/screen.png
           test -s ci-artifacts/android/emulator/screen.png
-          adb logcat -d -t 3000 > ci-artifacts/android/emulator/logcat.txt
-          adb shell pidof fun.xingwangzhe.watchyongchang
+          adb_cmd logcat -d -t 3000 > ci-artifacts/android/emulator/logcat.txt
+          adb_cmd shell pidof fun.xingwangzhe.watchyongchang
           if grep -E "FATAL EXCEPTION|Fatal signal|SCRIPT ERROR" ci-artifacts/android/emulator/logcat.txt; then
             echo "Android emulator reported a fatal runtime error" >&2
             exit 1
