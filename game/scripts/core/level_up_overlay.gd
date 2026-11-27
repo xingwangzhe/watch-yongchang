@@ -211,13 +211,16 @@ func _build_card(card: Button, index: int) -> void:
 
 	var icon_plate := PanelContainer.new()
 	icon_plate.name = "CardIconPlate"
+	icon_plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	UILayout.place_in(icon_plate, 115, 34, 118, 118, cw, ch, 0.5, 0.0)
 	icon_plate.add_theme_stylebox_override("panel", _icon_plate_style(Color(GOLD, 0.18)))
 	card.add_child(icon_plate)
 	var icon_center := CenterContainer.new()
+	icon_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon_plate.add_child(icon_center)
 	var icon := TextureRect.new()
 	icon.name = "CardIcon"
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.custom_minimum_size = Vector2(82, 82)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

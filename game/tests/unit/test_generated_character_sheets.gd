@@ -37,6 +37,17 @@ func test_actor_catalogs_point_only_to_complete_character_atlases() -> void:
 			assert_false(actor.has("runtime_visuals"), "%s must not select legacy baked variants" % actor_id)
 
 
+func test_player_attack_pose_matches_starting_weapon_family() -> void:
+	var characters: Dictionary = GameData.get_characters()
+	for character_id in ["wanglu", "ashi"]:
+		var character: Dictionary = characters[character_id] as Dictionary
+		assert_eq(str(character.get("starting_weapon", "")), "saber")
+		assert_eq(int(character.get("attack_row", -1)), 1, "%s saber attack must use the dao slash row" % character_id)
+	var spear_character: Dictionary = characters["aqi"] as Dictionary
+	assert_eq(str(spear_character.get("starting_weapon", "")), "spear")
+	assert_eq(int(spear_character.get("attack_row", -1)), 2, "spear post must use the spear thrust row")
+
+
 func test_runtime_sprite_mass_anchor_stays_stable_across_each_animation_row() -> void:
 	var sheets := {
 		"player_actions": Vector2i(8, 3),

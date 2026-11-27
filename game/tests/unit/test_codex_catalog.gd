@@ -178,7 +178,7 @@ func test_history_culture_notes_expand_to_full_text() -> void:
 	var overlay_text := _node_text(codex.find_child("CodexDetailOverlay", true, false))
 	assert_string_contains(overlay_text, "洪武十九年")
 	assert_string_contains(overlay_text, "屯田")
-	assert_string_contains(overlay_text, "《汤和信俗·抵御倭患》")
+	assert_string_contains(overlay_text, "《汤和信俗·抵御倭患第一人》")
 
 
 func test_forge_first_frames_are_used_for_cards_and_enemies() -> void:
@@ -188,7 +188,7 @@ func test_forge_first_frames_are_used_for_cards_and_enemies() -> void:
 	var player_atlas := player_texture as AtlasTexture
 	assert_eq(player_atlas.region.position, Vector2.ZERO)
 	assert_eq(player_atlas.region.size, Vector2(128, 128))
-	assert_string_contains(player_atlas.atlas.resource_path, "res://assets/units/full_sheets/player_actions.webp")
+	assert_string_contains(player_atlas.atlas.resource_path, "res://assets/units/full_sheets/wanglu_watchposts.webp")
 	codex.select_tab("enemies")
 	await wait_process_frames(2)
 	var enemy_texture := _portrait_texture(codex, "Portrait_scout")

@@ -90,12 +90,13 @@ func _drive(run: Node, t: float) -> void:
 			crowd += 1
 	var pickup := Vector2.ZERO
 	var pickup_distance := 280.0
-	for orb in run.battlefield.orbs:
-		var offset := (orb["pos"] as Vector2) - pos
-		var distance := offset.length()
-		if distance > 0.001 and distance < pickup_distance:
-			pickup_distance = distance
-			pickup = offset / distance * 1.8
+	for pickup_group in [run.battlefield.oil_drops, run.battlefield.heal_drops, run.battlefield.scale_drops]:
+		for drop in pickup_group:
+			var offset := (drop["pos"] as Vector2) - pos
+			var distance := offset.length()
+			if distance > 0.001 and distance < pickup_distance:
+				pickup_distance = distance
+				pickup = offset / distance * 1.8
 	var center: Vector2 = run.battlefield.player_spawn_position()
 	var from_center := pos - center
 	var tangent := Vector2(-from_center.y, from_center.x)

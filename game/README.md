@@ -1,6 +1,6 @@
 # game/ — Godot 工程
 
-状态（2026-11-26）：v1.4.0 骑兵、RTS 寻路与 Web About 基线。序章 1386、正篇 1559、王陆 6 种守夜阵位、
+状态（2026-11-27）：v1.10.0 战斗表现、Android 手柄与地图视觉改进。序章 1386、正篇 1559、王陆 6 种守夜阵位、
 3 张地图、7 兵器/12 被动、16 分钟完整胜利流程、双堡图鉴、结算解锁、灯火风险收益、
 龙鳞清屏、Boss 与双语定时字幕已接入；未核实输出授权的 MOSS-TTS-Nano 语音已停止分发。
 三选一卡池扩至 51 属性 / 38 技能 / 22 事件 / 32 箭塔，共 143 张来源可追溯的卡牌，并接入 98 个
@@ -183,7 +183,7 @@ game\launch.bat
 ## 导出
 
 四平台预设已写入 `export_presets.cfg`。2026-11-23 的旧忽略产物早于音频/许可整改，
-在重新导出与复查前不得分发。当前版本为 `1.4.0`；重建与审计结果记录在
+在重新导出与复查前不得分发。当前版本为 `1.10.0`；重建与审计结果记录在
 GitHub Actions 的 `release.yml` 构建报告中。GitHub Release 只由 `v*.*.*` 标签触发
 `.github/workflows/release.yml` 生成。
 历史验收记录：
@@ -196,6 +196,24 @@ GitHub Actions 的 `release.yml` 构建报告中。GitHub Release 只由 `v*.*.*
   macOS 产物，需在 macOS 上做启动验收。
 
 导出模板已安装到 `~/.local/share/godot/export_templates/4.7.2.stable/`。
+
+Android 手机与横屏掌机使用 `Android Phone and Handheld` 预设导出单个通用 APK：
+`build/android/watch-yongchang.apk`。APK 同时包含 `arm64-v8a` 与 `armeabi-v7a`；横屏
+沉浸显示，触屏时显示虚拟摇杆和动作按钮。蓝牙/USB 手柄默认使用左摇杆或十字键移动，
+A 攻击、B 冲刺、X 互动、Y 图鉴、Back 自动攻击切换。构建机需配置 Godot 4.7.2、
+OpenJDK 与 Android SDK（平台/Build Tools 36、NDK r28b、CMake 3.10.2）。
+
+导出命令：
+
+```bash
+ANDROID_SDK_ROOT="$HOME/Android/Sdk" ANDROID_HOME="$HOME/Android/Sdk" \
+  "$GDA_GODOT" --headless --path game --export-debug \
+  "Android Phone and Handheld"
+```
+
+该 APK 使用 Godot 调试签名，可侧载验收；商店发布需自行配置正式签名密钥。
+游戏手柄映射也用于桌面端：左摇杆/十字键移动，A 攻击、B 冲刺、X 互动、Y 图鉴、Back 自动攻击。
+发布 APK 会由流水线验证调试签名、arm64-v8a/armeabi-v7a、版本与最低 Android SDK；未连接设备时不代表实机安装验收。
 构建产物在 `game/build/`，已被 `.gitignore` 排除，不入版本库。
 
 ### Dora SSR 源码包

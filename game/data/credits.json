@@ -295,7 +295,7 @@
 					"明式抗倭地形、建筑、道具与环境动效均从分类瓦片图集读取，采用 PNG 无损格式保留拼接边缘与调色板；原创非代码素材按 CC BY 4.0 发布。",
 					"地图环境动效图集：红灯笼、渔舟、明军旗与烽火四组 4 帧循环，32×32×4×4，源文件 pixel-art/yongchang_tiles/build.py，按 CC BY 4.0 发布。",
 					"瓦片文化取向：明代浙南沿海抗倭堡垒；青灰石墙、黛瓦、白灰墙、红漆门、马头墙、水关、烽火、拒马、渔舟、芦苇滩与石敢当；未使用日式瓦片或日式识别物。",
-					"完整人物动作分类图：主角、友军、敌军、骑兵与攻击姿势按整格帧生成并接入 `game/assets/units/full_sheets/`。每格保持整个人物；骑兵同格绘出骑手和坐骑；攻击格包含人物及手持武器。王陆六张卡仍是同一人物的阵位。输入、格位、尺寸和校验摘要见 `pixel-art/full_composed_atlas/clean/manifest.json`。",
+					"完整人物动作分类图：主角、友军、敌军、骑兵与攻击姿势按整格帧生成并接入 `game/assets/units/full_sheets/`。每格保持整个人物；骑兵同格绘出骑手和坐骑；攻击格包含人物及手持武器。王陆六张卡仍是同一人物的阵位，现使用六张装备姿态各异的完整人物格。输入、格位、尺寸和校验摘要见 `pixel-art/full_composed_atlas/clean/manifest.json`。",
 					"主角、友军、敌军、骑兵及攻击动作使用完整人物分类图集；每帧保留完整人物，骑兵帧包含整匹马与骑手，不拆分人体、不叠加独立装备或武器。",
 					"友军分类图包含义师枪兵、藤牌乡兵、义师弓手与旗手四行完整人物帧；其他佣兵角色读取对应完整分类行。阵营与人物叙事配置保留在角色 JSON 中。",
 					"倭寇类型按明代抗倭史料与项目原创设定作为反派；日式阵笠、胴丸、铁炮等仅用于敌方识别，不用于明军与主角。",
@@ -303,7 +303,8 @@
 					"第三方音乐、字体、音效保留原许可；署名与来源见下方音频、字体与图标条目。",
 					"Godot、GUT、Pixel Art Studio、Pillow、Bun 与 ffmpeg 的使用许可见下方工具条目。",
 					"霞鹜文楷：OFL 1.1，版权归 LXGW 与 Klee Project Authors，全文见 game/assets/fonts/OFL.txt。",
-					"本作与永昌堡、汤和信俗相关机构无隶属关系；历史资料仅用于文化考据与创作。"
+					"本作与永昌堡、汤和信俗相关机构无隶属关系；历史资料仅用于文化考据与创作。",
+					"王陆六种守夜阵位头像：OpenAI ImageGen 生成六种完整人物姿态，纯洋红背景由 pixel-art/full_composed_atlas/build.py 去底并整格裁切，原图见 pixel-art/full_composed_atlas/source/wanglu_watchposts_grid.png；原创非代码资产 CC BY 4.0。"
 				],
 				"lines_en": [
 					"© 2026 xingwangzhe. Attribution rights reserved.",
@@ -321,7 +322,8 @@
 					"Third-party music, fonts, and sound effects keep their original licenses; see the audio, font, and icon entries below.",
 					"Godot, GUT, Pixel Art Studio, Pillow, Bun, and ffmpeg keep their own licenses; see the tool entries below.",
 					"LXGW WenKai: OFL 1.1, copyright LXGW and the Klee Project Authors; full text in game/assets/fonts/OFL.txt.",
-					"This work is not affiliated with Yongchang Fort or Tang He tradition institutions; historical material is used for cultural research and creative work."
+					"This work is not affiliated with Yongchang Fort or Tang He tradition institutions; historical material is used for cultural research and creative work.",
+					"Wang Lu six watch-post portraits: six complete-character poses generated with OpenAI ImageGen; pixel-art/full_composed_atlas/build.py removes the solid magenta key and crops whole frames. Source: pixel-art/full_composed_atlas/source/wanglu_watchposts_grid.png. Original non-code art is CC BY 4.0."
 				]
 			}
 		]

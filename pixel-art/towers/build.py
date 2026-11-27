@@ -42,12 +42,12 @@ def _remove_key(image: Image.Image) -> Image.Image:
     kr, kg, kb = KEY
     for y in range(rgba.height):
         for x in range(rgba.width):
-            r, g, b, _ = pixels[x, y]
+            r, g, b, alpha = pixels[x, y]
+            if alpha == 0:
+                continue
             distance = (r - kr) ** 2 + (g - kg) ** 2 + (b - kb) ** 2
             if distance <= KEY_TOLERANCE**2:
                 pixels[x, y] = (r, g, b, 0)
-            else:
-                pixels[x, y] = (r, g, b, 255)
     return rgba
 
 
@@ -75,11 +75,11 @@ def _fit_weapon(cell: Image.Image) -> Image.Image:
     kr, kg, kb = WEAPON_KEY
     for y in range(rgba.height):
         for x in range(rgba.width):
-            r, g, b, _ = pixels[x, y]
+            r, g, b, alpha = pixels[x, y]
+            if alpha == 0:
+                continue
             if (r - kr) ** 2 + (g - kg) ** 2 + (b - kb) ** 2 <= WEAPON_KEY_TOLERANCE**2:
                 pixels[x, y] = (r, g, b, 0)
-            else:
-                pixels[x, y] = (r, g, b, 255)
     bbox = rgba.getchannel("A").getbbox()
     if bbox is None:
         raise ValueError("crossbow source cell is empty after chroma removal")

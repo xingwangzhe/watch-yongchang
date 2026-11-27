@@ -61,7 +61,7 @@ static func source_label(entry: Dictionary) -> String:
 	if reference.contains("抵御倭患第一人"):
 		_append_source_name(
 			names,
-			"《汤和信俗·抵御倭患》" if chinese else "Tang He Tradition: Defender Against the Wokou"
+			"《汤和信俗·抵御倭患第一人》" if chinese else "Tang He Tradition · First Defender Against the Wokou"
 		)
 	if reference.contains("意绘抗倭英雄汤和"):
 		_append_source_name(

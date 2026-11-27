@@ -12,6 +12,13 @@ const GOLD := Color("#e1b35a")
 const VERMILION := Color("#c05a41")
 const JADE := Color("#7fb7a8")
 const INK := Color(0.018, 0.028, 0.031, 0.88)
+const HUD_ICON_HEART := preload("res://assets/icons/game_icons/hud_heart.svg")
+const HUD_ICON_LEVEL := preload("res://assets/icons/game_icons/hud_level.svg")
+const HUD_ICON_KILLS := preload("res://assets/icons/game_icons/hud_kills.svg")
+const HUD_ICON_MERIT := preload("res://assets/icons/game_icons/hud_merit.svg")
+const HUD_ICON_COIN := preload("res://assets/icons/game_icons/hud_coin.svg")
+const HUD_ICON_LANTERN := preload("res://assets/icons/game_icons/hud_lantern.svg")
+const HUD_ICON_SCALE := preload("res://assets/icons/game_icons/hud_scale.svg")
 
 var _root: Control
 var _hp_bar: ProgressBar
@@ -158,6 +165,8 @@ func _build() -> void:
 	var hp_row := HBoxContainer.new()
 	hp_row.add_theme_constant_override("separation", 8)
 	hp_box.add_child(hp_row)
+	var hp_icon := _hud_icon("HealthIcon", HUD_ICON_HEART, Color("#d88370"), 14)
+	hp_row.add_child(hp_icon)
 	_hp_bar = _make_progress("HpBar", Vector2.ZERO, Vector2(196, 12), Color("#a64535"))
 	_hp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hp_row.add_child(_hp_bar)
@@ -169,7 +178,9 @@ func _build() -> void:
 	xp_row.add_theme_constant_override("separation", 6)
 	hp_box.add_child(xp_row)
 	_level_label = _label("LevelLabel", "", 12, GOLD)
-	_level_label.custom_minimum_size = Vector2(58, 15)
+	_level_label.custom_minimum_size = Vector2(46, 15)
+	var level_icon := _hud_icon("LevelIcon", HUD_ICON_LEVEL, GOLD, 13)
+	xp_row.add_child(level_icon)
 	xp_row.add_child(_level_label)
 	_xp_bar = _make_progress("XpBar", Vector2.ZERO, Vector2(120, 5), Color("#d8a548"))
 	_xp_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -207,15 +218,9 @@ func _build() -> void:
 	var score_box := VBoxContainer.new()
 	score_box.add_theme_constant_override("separation", 0)
 	score_chip.add_child(score_box)
-	_kill_label = _label("KillLabel", "", 12, PAPER)
-	_kill_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	score_box.add_child(_kill_label)
-	_merit_label = _label("MeritLabel", "", 11, GOLD)
-	_merit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	score_box.add_child(_merit_label)
-	_coin_label = _label("CoinLabel", "", 10, Color("#d8b45f"))
-	_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	score_box.add_child(_coin_label)
+	_kill_label = _add_icon_stat_row(score_box, "Kill", HUD_ICON_KILLS, 12, PAPER)
+	_merit_label = _add_icon_stat_row(score_box, "Merit", HUD_ICON_MERIT, 11, GOLD)
+	_coin_label = _add_icon_stat_row(score_box, "Coin", HUD_ICON_COIN, 10, Color("#d8b45f"))
 
 	_minimap = MINIMAP.new()
 	_minimap.name = "Minimap"
@@ -229,7 +234,11 @@ func _build() -> void:
 	oil_box.add_theme_constant_override("separation", 2)
 	oil_chip.add_child(oil_box)
 	_oil_label = _label("OilLabel", "", 10, Color(MUTED, 0.9))
-	oil_box.add_child(_oil_label)
+	var oil_row := HBoxContainer.new()
+	oil_row.add_theme_constant_override("separation", 4)
+	oil_row.add_child(_hud_icon("OilIcon", HUD_ICON_LANTERN, GOLD, 12))
+	oil_row.add_child(_oil_label)
+	oil_box.add_child(oil_row)
 	_oil_meter = OIL_METER.new()
 	_oil_meter.name = "OilMeter"
 	_oil_meter.custom_minimum_size = Vector2(168, 18)
@@ -240,7 +249,11 @@ func _build() -> void:
 	scale_box.add_theme_constant_override("separation", 2)
 	scale_chip.add_child(scale_box)
 	_scale_label = _label("ScaleLabel", "", 10, Color(MUTED, 0.9))
-	scale_box.add_child(_scale_label)
+	var scale_row := HBoxContainer.new()
+	scale_row.add_theme_constant_override("separation", 4)
+	scale_row.add_child(_hud_icon("ScaleIcon", HUD_ICON_SCALE, JADE, 12))
+	scale_row.add_child(_scale_label)
+	scale_box.add_child(scale_row)
 	_scale_meter = SCALE_METER.new()
 	_scale_meter.name = "ScaleMeter"
 	_scale_meter.custom_minimum_size = Vector2(150, 18)
@@ -339,6 +352,32 @@ func _chip_style() -> StyleBoxFlat:
 	box.content_margin_top = 5.0
 	box.content_margin_bottom = 5.0
 	return box
+
+
+func _add_icon_stat_row(parent: VBoxContainer, label_name: String, texture: Texture2D, font_size: int, color: Color) -> Label:
+	var row := HBoxContainer.new()
+	row.name = "%sRow" % label_name
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.alignment = BoxContainer.ALIGNMENT_END
+	row.add_theme_constant_override("separation", 4)
+	parent.add_child(row)
+	row.add_child(_hud_icon("%sIcon" % label_name, texture, color, 12))
+	var value := _label("%sLabel" % label_name, "", font_size, color)
+	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(value)
+	return value
+
+
+func _hud_icon(node_name: String, texture: Texture2D, tint: Color, dimension: int) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.name = node_name
+	icon.texture = texture
+	icon.custom_minimum_size = Vector2(dimension, dimension)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.modulate = tint
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return icon
 
 
 func _build_weapon_slot(index: int) -> Dictionary:

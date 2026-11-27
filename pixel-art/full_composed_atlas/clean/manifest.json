@@ -492,6 +492,151 @@
       ],
       "runtime_bytes": 205980
     },
+    "wanglu_watchposts": {
+      "sources": [
+        {
+          "path": "pixel-art/full_composed_atlas/source/wanglu_watchposts_grid.png",
+          "sha256": "b51515dfcf9c5272ddb29a398336b4c48b2506cd9c87888e9fc3cf2fd5168df4"
+        }
+      ],
+      "runtime": "assets/units/full_sheets/wanglu_watchposts.webp",
+      "runtime_sha256": "3ca07f7f58efc9c2a2e75698cc9b82c83da43e9e2a946b3a8400628b77b7b298",
+      "columns": 6,
+      "rows": 1,
+      "cell_size": [
+        128,
+        128
+      ],
+      "row_names": [
+        "six_distinct_watch_posts"
+      ],
+      "frames": [
+        {
+          "row": 0,
+          "column": 0,
+          "row_name": "six_distinct_watch_posts",
+          "frame": 0,
+          "bbox": [
+            39,
+            25,
+            51,
+            99
+          ],
+          "source_bbox": [
+            0,
+            0,
+            188,
+            363
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 0,
+          "column": 1,
+          "row_name": "six_distinct_watch_posts",
+          "frame": 1,
+          "bbox": [
+            139,
+            6,
+            89,
+            118
+          ],
+          "source_bbox": [
+            0,
+            0,
+            327,
+            432
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 0,
+          "column": 2,
+          "row_name": "six_distinct_watch_posts",
+          "frame": 2,
+          "bbox": [
+            290,
+            25,
+            61,
+            99
+          ],
+          "source_bbox": [
+            0,
+            0,
+            224,
+            364
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 0,
+          "column": 3,
+          "row_name": "six_distinct_watch_posts",
+          "frame": 3,
+          "bbox": [
+            423,
+            25,
+            77,
+            99
+          ],
+          "source_bbox": [
+            0,
+            0,
+            282,
+            364
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        },
+        {
+          "row": 0,
+          "column": 4,
+          "row_name": "six_distinct_watch_posts",
+          "frame": 4,
+          "bbox": [
+            542,
+            24,
+            74,
+            100
+          ],
+          "source_bbox": [
+            0,
+            0,
+            271,
+            365
+          ],
+          "runtime_horizontal_mass_anchor": 63.5
+        },
+        {
+          "row": 0,
+          "column": 5,
+          "row_name": "six_distinct_watch_posts",
+          "frame": 5,
+          "bbox": [
+            666,
+            8,
+            70,
+            116
+          ],
+          "source_bbox": [
+            0,
+            0,
+            256,
+            423
+          ],
+          "runtime_horizontal_mass_anchor": 64.5
+        }
+      ],
+      "source_mode": "RGBA",
+      "source_size": [
+        1536,
+        1024
+      ],
+      "runtime_size": [
+        768,
+        128
+      ],
+      "runtime_bytes": 77434
+    },
     "allies_walk": {
       "sources": [
         {

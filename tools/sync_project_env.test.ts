@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   formatWindowsVersion,
+  formatAndroidVersionCode,
   parseDotEnv,
   renderProjectMeta,
   setProjectSetting,
@@ -41,6 +42,13 @@ WEB_URL=https://example.com/game # inline comment
   test("formats Windows file versions without changing the source version", () => {
     expect(formatWindowsVersion("0.1.0")).toBe("0.1.0.0");
     expect(formatWindowsVersion("12.34.56-rc.1")).toBe("12.34.56.0");
+  });
+
+  test("formats monotonic Android version codes from the source version", () => {
+    expect(formatAndroidVersionCode("1.9.0")).toBe(10900);
+    expect(formatAndroidVersionCode("1.10.0")).toBe(11000);
+    expect(formatAndroidVersionCode("12.34.56-rc.1")).toBe(123456);
+    expect(() => formatAndroidVersionCode("invalid")).toThrow();
   });
 
   test("renders runtime metadata from one source", () => {

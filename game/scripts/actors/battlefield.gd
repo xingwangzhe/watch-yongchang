@@ -8,7 +8,7 @@ signal boss_defeated(enemy_id: String)
 signal scale_collected(color: String)
 signal oil_collected(amount: int)
 signal heal_collected(amount: float)
-signal xp_collected(amount: float)
+signal xp_awarded(amount: float)
 signal ally_support(source_id: String, kind: String, amount: float)
 signal tower_destroyed(tower_id: String, world_position: Vector2)
 signal tower_damaged(tower_id: String, ratio: float)
@@ -19,16 +19,14 @@ const CELL_SIZE := 64.0
 const VIEW_HALF := Vector2(720.0, 430.0)
 const ENEMY_BATCH_CAPACITY := 512
 const HEALTH_BAR_INSTANCE_CAPACITY := 3000
-const ORB_BATCH_CAPACITY := 4096
+const PICKUP_BATCH_CAPACITY := 4096
 const PLAYER_SHOT_BATCH_CAPACITY := 4096
 const WADE_SPEED_FACTOR := 0.62
 const WADE_SPLASH_CAPACITY := 90
 const ENEMY_SPRITE_BASE_SIZE := 96.0
 const PLAYER_SPRITE_SIZE := 96.0
-const AIM_INDICATOR_RADIUS := 78.0
-const AIM_INDICATOR_ARC_RADIUS := 58.0
-const AIM_INDICATOR_HALF_ANGLE := deg_to_rad(18.0)
-const AIM_INDICATOR_HALF_WIDTH := 6.0
+const PLAYER_WALK_CYCLE_DISTANCE := 72.0
+const AIM_POINTER_TEXTURE := preload("res://assets/ui/generated/aim_pointer.png")
 const TOWER_AGGRO := 360.0
 const TOWER_SPRITE_BASE := 168.0
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
@@ -71,7 +69,6 @@ var enemies: Array[Dictionary] = []
 var allies: Array[Dictionary] = []
 var towers: Array[Dictionary] = []
 var tower_shots: Array[Dictionary] = []
-var orbs: Array[Dictionary] = []
 var oil_drops: Array[Dictionary] = []
 var heal_drops: Array[Dictionary] = []
 var scale_drops: Array[Dictionary] = []
@@ -84,7 +81,6 @@ var floaters: Array[Dictionary] = []
 var _free_player_shots: Array[Dictionary] = []
 var _free_enemy_shots: Array[Dictionary] = []
 var _free_tower_shots: Array[Dictionary] = []
-var _free_orbs: Array[Dictionary] = []
 var _free_oil_drops: Array[Dictionary] = []
 var _free_heal_drops: Array[Dictionary] = []
 var _free_scale_drops: Array[Dictionary] = []
@@ -108,7 +104,6 @@ var tower_defs: Dictionary = {}
 var tower_stats: Dictionary = {}
 var tower_textures: Dictionary = {}
 var tower_weapon_texture: Texture2D
-var textures: Dictionary = {}
 var encounter_sites: Array[Dictionary] = []
 var enemy_sprite_frames: Dictionary = {}
 var runtime_loadout: RuntimeLoadout
@@ -116,6 +111,7 @@ var _runtime_map_salt := ""
 var player_idle_frames: Array[Texture2D] = []
 var player_walk_frames: Array[Texture2D] = []
 var player_attack_frames: Array[Texture2D] = []
+var player_attack_scale := 1.0
 var _attack_frame_cache: Dictionary = {}
 var player_attack_until := 0.0
 var player_idle_fps := 6.0
@@ -139,8 +135,6 @@ var _enemy_quad: QuadMesh
 var _health_bar_batch: MultiMesh
 var _health_bar_texture: Texture2D
 var _health_bar_count := 0
-var _orb_glow_batch: MultiMesh
-var _orb_core_batch: MultiMesh
 var _orb_circle_texture: Texture2D
 var _player_shot_batch: MultiMesh
 var _player_shot_texture: Texture2D
@@ -148,6 +142,7 @@ var _enemy_shot_glow_batch: MultiMesh
 var _enemy_shot_core_batch: MultiMesh
 var _player_moving := false
 var _last_player_pos := Vector2.ZERO
+var _player_walk_phase := 0.0
 var _flow_timer := 0.0
 var _world_perf_parts: Dictionary = {}
 
@@ -186,8 +181,6 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 	white_pixel.fill(Color.WHITE)
 	_health_bar_texture = ImageTexture.create_from_image(white_pixel)
 	_orb_circle_texture = _make_circle_texture(32)
-	_orb_glow_batch = _make_pickup_batch()
-	_orb_core_batch = _make_pickup_batch()
 	_player_shot_texture = _make_player_shot_texture()
 	_player_shot_batch = _make_pickup_batch(PLAYER_SHOT_BATCH_CAPACITY)
 	_enemy_shot_glow_batch = _make_pickup_batch()
@@ -208,8 +201,18 @@ func setup(seed_value: int = 20261123, map_definition_value: Dictionary = {}) ->
 			int(definition.get("sprite_rows", 1)),
 			int(definition.get("sprite_row", 0))
 		)
+		if frames.size() != int(definition.get("sprite_frames", 8)):
+			push_error(
+				"Enemy %s has invalid cropped walk frames: expected %d, got %d (sheet=%s row=%d)"
+				% [
+					enemy_id,
+					int(definition.get("sprite_frames", 8)),
+					frames.size(),
+					str(definition.get("sprite_sheet", "")),
+					int(definition.get("sprite_row", 0))
+				]
+			)
 		enemy_sprite_frames[enemy_id] = frames
-		textures[enemy_id] = frames[0] if not frames.is_empty() else null
 	z_index = 0
 	set_process(true)
 
@@ -228,7 +231,7 @@ func _make_circle_texture(size: int) -> Texture2D:
 	return ImageTexture.create_from_image(image)
 
 
-func _make_pickup_batch(capacity: int = ORB_BATCH_CAPACITY) -> MultiMesh:
+func _make_pickup_batch(capacity: int = PICKUP_BATCH_CAPACITY) -> MultiMesh:
 	var batch := MultiMesh.new()
 	batch.transform_format = MultiMesh.TRANSFORM_2D
 	batch.use_colors = true
@@ -278,7 +281,54 @@ func set_player_sprites(definition: Dictionary) -> void:
 	player_idle_fps = maxf(1.0, float(definition.get("battle_idle_fps", 6.0)))
 	player_walk_fps = maxf(1.0, float(definition.get("battle_walk_fps", 10.0)))
 	player_attack_frames = _unit_attack_frames(str(definition.get("attack_sheet", "")), int(definition.get("attack_rows", 1)), int(definition.get("attack_row", 0)))
+	player_attack_scale = _player_attack_visual_scale(player_walk_frames, player_attack_frames)
 	set_meta("player_tint", Color(str(definition.get("tint", "#ffffff"))))
+
+
+func _player_attack_visual_scale(walk_frames: Array, attack_frames: Array) -> float:
+	if walk_frames.is_empty() or attack_frames.is_empty():
+		return 1.0
+	var walk_height := _average_visible_frame_height(walk_frames)
+	var attack_height := _average_visible_frame_height(attack_frames)
+	if walk_height <= 0.0 or attack_height <= 0.0:
+		return 1.0
+	# Keep a little attack crouch while preventing a false change of character size.
+	return clampf(walk_height * 0.95 / attack_height, 1.0, 1.65)
+
+
+func _average_visible_frame_height(frames: Array) -> float:
+	var height_sum := 0.0
+	var count := 0
+	for frame in frames:
+		var texture := frame as Texture2D
+		if texture == null:
+			continue
+		var image := texture.get_image()
+		if image == null or image.is_empty():
+			continue
+		var bounds := Rect2i(128, 128, 0, 0)
+		var max_x := -1
+		var max_y := -1
+		for y in range(image.get_height()):
+			for x in range(image.get_width()):
+				if image.get_pixel(x, y).a <= 0.05:
+					continue
+				bounds.position.x = mini(bounds.position.x, x)
+				bounds.position.y = mini(bounds.position.y, y)
+				max_x = maxi(max_x, x)
+				max_y = maxi(max_y, y)
+		if max_x >= bounds.position.x and max_y >= bounds.position.y:
+			bounds.size = Vector2i(max_x - bounds.position.x + 1, max_y - bounds.position.y + 1)
+			height_sum += float(bounds.size.y)
+			count += 1
+	return height_sum / float(count) if count > 0 else 0.0
+
+
+func player_frame_draw_rect(attacking: bool) -> Rect2:
+	var draw_scale := player_attack_scale if attacking else 1.0
+	var draw_size := Vector2.ONE * PLAYER_SPRITE_SIZE * draw_scale
+	var foot_baseline := PLAYER_SPRITE_SIZE * (0.21 - 4.0 / 128.0)
+	return Rect2(Vector2(-draw_size.x * 0.5, foot_baseline - draw_size.y * (124.0 / 128.0)), draw_size)
 
 
 func _unit_attack_frames(sheet: String, rows: int, row: int) -> Array[Texture2D]:
@@ -423,8 +473,6 @@ func spawn_tower(tower_id: String, position: Vector2) -> int:
 		"flash": 0.0,
 		"hit_cd": 0.0,
 		"heat": 0.0,
-		"xp": 0.0,
-		"xp_pulse": 0.0,
 		"alive": true,
 		"rebuild_timer": 0.0,
 		"tex": tower_textures.get(tower_id, null) as Texture2D,
@@ -511,7 +559,6 @@ func _update_towers(delta: float) -> void:
 			tower["hp"] = minf(float(tower["max_hp"]), float(tower["hp"]) + tower_regen * delta)
 		tower["attack_timer"] = float(tower["attack_timer"]) - delta
 		tower["heat"] = maxf(0.0, float(tower["heat"]) - delta * 1.6)
-		tower["xp_pulse"] = maxf(0.0, float(tower.get("xp_pulse", 0.0)) - delta * 2.4)
 		var position := tower["pos"] as Vector2
 		var size := TOWER_SPRITE_BASE * float(tower.get("sprite_scale", 1.0))
 		var pivot := position + Vector2(0.0, -size * 0.30)
@@ -786,10 +833,6 @@ func _destroy_tower(index: int) -> void:
 	tower["alive"] = false
 	tower["hp"] = 0.0
 	var position := tower["pos"] as Vector2
-	var stored_xp := float(tower.get("xp", 0.0))
-	tower["xp"] = 0.0
-	if stored_xp > 0.001:
-		_spawn_xp_orbs(position, stored_xp)
 	add_effect({
 		"type": "death", "pos": position, "ttl": 0.85, "max_ttl": 0.85,
 		"radius": 96.0, "color": Color("#c4573d"),
@@ -805,18 +848,6 @@ func _destroy_tower(index: int) -> void:
 		tower["rebuild_timer"] = TOWER_REBUILD_DELAY * clampf(1.0 - rebuild, 0.25, 1.0)
 	else:
 		tower["rebuild_timer"] = -1.0
-
-
-func _spawn_xp_orbs(position: Vector2, xp_value: float) -> void:
-	var orb_count := 1 if xp_value <= 8.0 else 2
-	for i in range(orb_count):
-		var offset := Vector2(rng.randf_range(-18.0, 18.0), rng.randf_range(-18.0, 18.0))
-		var orb := _take_pooled(_free_orbs)
-		orb["pos"] = position + offset
-		orb["value"] = maxf(1.0, xp_value / float(orb_count))
-		orb["taken"] = false
-		orb["magnet"] = false
-		orbs.append(orb)
 
 
 func _revive_towers(delta: float) -> void:
@@ -858,7 +889,6 @@ func reset(seed_value: int = 20261123) -> void:
 	allies.clear()
 	towers.clear()
 	tower_shots.clear()
-	orbs.clear()
 	oil_drops.clear()
 	heal_drops.clear()
 	scale_drops.clear()
@@ -876,6 +906,7 @@ func reset(seed_value: int = 20261123) -> void:
 	_contact_cd = 0.0
 	_dead_count = 0
 	_player_moving = false
+	_player_walk_phase = 0.0
 	player_pos = map_layout.start_pos if map_layout != null else Vector2.ZERO
 	_last_player_pos = player_pos
 	rng.seed = seed_value
@@ -899,7 +930,13 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 			)
 			map_layout.request_flow_field(player_pos)
 	player_facing = player.get("facing", player_facing) as Vector2
-	_player_moving = player_pos.distance_squared_to(_last_player_pos) > 0.25
+	var player_frame_distance := player_pos.distance_to(_last_player_pos)
+	_player_moving = player_frame_distance > 0.5
+	if _player_moving and not player_walk_frames.is_empty():
+		_player_walk_phase = fposmod(
+			_player_walk_phase + player_frame_distance * float(player_walk_frames.size()) / PLAYER_WALK_CYCLE_DISTANCE,
+			float(player_walk_frames.size())
+		)
 	_last_player_pos = player_pos
 	player_radius = float(player.get("radius", 18.0))
 	_contact_cd = maxf(0.0, _contact_cd - delta)
@@ -926,7 +963,6 @@ func update_world(delta: float, player: Dictionary, enemy_speed_mult: float = 1.
 	_update_tower_shots(delta)
 	_update_enemy_shots(delta, player)
 	_update_pickups(delta, player)
-	_collect_tower_xp(player_pos)
 	tick_encounters(delta, player_pos)
 	_update_effects(delta)
 	_update_wade_splashes(delta)
@@ -1077,7 +1113,6 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"scale_color": elite_color,
 		"sprite_fps": float(definition.get("sprite_fps", 10.0)),
 		"facing_x": -1.0,
-		"tex": textures.get(draw_id, null) as Texture2D,
 		"attack_frames": attack_frames,
 		"nav_timer": rng.randf_range(0.0, ENEMY_NAV_REFRESH_NATIVE),
 		"nav_dir": Vector2.ZERO,
@@ -1418,8 +1453,6 @@ func nearest_enemies(origin: Vector2, max_range: float, count: int) -> Array[Dic
 
 
 func magnet_all() -> void:
-	for orb in orbs:
-		orb["magnet"] = true
 	for drop in oil_drops:
 		drop["magnet"] = true
 	for drop in heal_drops:
@@ -2429,24 +2462,9 @@ func _update_pickups(delta: float, player: Dictionary) -> void:
 	var target := player.get("pos", Vector2.ZERO) as Vector2
 	var pickup_radius := float(player.get("pickup_radius", 88.0))
 	var pickup_radius_sq := pickup_radius * pickup_radius
-	for orb in orbs:
-		if bool(orb.get("taken", false)):
-			continue
-		var position := orb["pos"] as Vector2
-		var distance_sq := position.distance_squared_to(target)
-		if bool(orb.get("magnet", false)) or distance_sq < pickup_radius_sq:
-			var distance := sqrt(distance_sq)
-			position = position.move_toward(target, maxf(260.0, 540.0 - distance))
-			orb["pos"] = position
-		if position.distance_squared_to(target) < 22.0 * 22.0:
-			orb["taken"] = true
-			xp_collected.emit(float(orb["value"]))
 	_update_drop_array(oil_drops, target, pickup_radius, delta, _free_oil_drops, "oil")
 	_update_drop_array(heal_drops, target, pickup_radius, delta, _free_heal_drops, "heal")
 	_update_drop_array(scale_drops, target, pickup_radius, delta, _free_scale_drops, "scale")
-	for index in range(orbs.size() - 1, -1, -1):
-		if bool(orbs[index].get("taken", false)):
-			_return_pooled(_free_orbs, _swap_remove_at(orbs, index))
 
 
 func _update_drop_array(drops: Array[Dictionary], target: Vector2, pickup_radius: float, delta: float, free_list: Array[Dictionary], kind: String) -> void:
@@ -2537,24 +2555,7 @@ func _kill_enemy(index: int, source_tower: int = -1) -> void:
 	_dead_count += 1
 	var position := enemy["pos"] as Vector2
 	var xp_value := float(enemy.get("xp", 1.0))
-	var stored_in_tower := (
-		source_tower >= 0
-		and source_tower < towers.size()
-		and bool(towers[source_tower].get("alive", false))
-	)
-	if stored_in_tower:
-		var xp_multiplier := maxf(0.0, 1.0 + float(tower_stats.get("tower_xp_gain", 0.0)))
-		towers[source_tower]["xp"] = float(towers[source_tower].get("xp", 0.0)) + xp_value * xp_multiplier
-	else:
-		var orb_count := 1 if xp_value <= 8.0 else 2
-		for i in range(orb_count):
-			var offset := Vector2(rng.randf_range(-18.0, 18.0), rng.randf_range(-18.0, 18.0))
-			var orb := _take_pooled(_free_orbs)
-			orb["pos"] = position + offset
-			orb["value"] = maxf(1.0, xp_value / float(orb_count))
-			orb["taken"] = false
-			orb["magnet"] = false
-			orbs.append(orb)
+	xp_awarded.emit(xp_value)
 	if rng.randf() < 0.045:
 		spawn_oil(position, 1)
 	if bool(enemy.get("elite", false)) or bool(enemy.get("boss", false)):
@@ -2574,29 +2575,6 @@ func _kill_enemy(index: int, source_tower: int = -1) -> void:
 	enemy_killed.emit(str(enemy["id"]), position, bool(enemy.get("elite", false)))
 	if bool(enemy.get("boss", false)):
 		boss_defeated.emit(str(enemy["id"]))
-
-
-func _collect_tower_xp(player_position: Vector2) -> void:
-	for tower in towers:
-		if not bool(tower.get("alive", false)):
-			continue
-		var stored := float(tower.get("xp", 0.0))
-		if stored <= 0.001:
-			continue
-		var harvest_radius := float(tower["radius"]) * 1.45 + 54.0
-		if player_position.distance_to(tower["pos"] as Vector2) > harvest_radius:
-			continue
-		tower["xp"] = 0.0
-		tower["xp_pulse"] = 1.0
-		xp_collected.emit(stored)
-		add_effect({
-			"type": "aura",
-			"pos": tower["pos"],
-			"ttl": 0.42,
-			"max_ttl": 0.42,
-			"radius": harvest_radius,
-			"color": Color("#d9b35f"),
-		})
 
 
 func tick_encounters(delta: float, player_position: Vector2) -> void:
@@ -2716,18 +2694,6 @@ func _draw_towers() -> void:
 				Color("#6d5a42")
 			)
 		_draw_tower_weapon(tower, position + Vector2(0.0, -size * 0.46), size)
-		var stored_xp := float(tower.get("xp", 0.0))
-		if stored_xp > 0.5:
-			var stored_ratio := clampf(stored_xp / 36.0, 0.08, 1.0)
-			var pulse := float(tower.get("xp_pulse", 0.0))
-			var ring_radius := float(tower["radius"]) * 1.08 + pulse * 4.0
-			for tick in 8:
-				if float(tick) / 8.0 > stored_ratio:
-					break
-				var angle := TAU * float(tick) / 8.0 - PI * 0.5
-				var inner := position + Vector2(cos(angle), sin(angle)) * ring_radius
-				var outer := position + Vector2(cos(angle), sin(angle)) * (ring_radius + 6.0)
-				draw_line(inner, outer, Color(0.92, 0.77, 0.36, 0.72 + pulse * 0.2), 2.0)
 		# 血条统一在 _draw_health_bars() 中绘制，避免与敌兵/佣兵血条层叠错位。
 
 
@@ -2852,29 +2818,6 @@ func _draw_light(center: Vector2) -> void:
 
 
 func _draw_pickups() -> void:
-	var orb_count := 0
-	for orb in orbs:
-		if orb_count >= ORB_BATCH_CAPACITY:
-			break
-		var position := orb["pos"] as Vector2
-		if not _world_position_visible(position, 40.0):
-			continue
-		_orb_glow_batch.set_instance_transform_2d(
-			orb_count,
-			Transform2D(0.0, Vector2(14.0, 14.0), 0.0, position)
-		)
-		_orb_glow_batch.set_instance_color(orb_count, Color(0.94, 0.70, 0.27, 0.16))
-		_orb_core_batch.set_instance_transform_2d(
-			orb_count,
-			Transform2D(0.0, Vector2(7.0, 7.0), 0.0, position)
-		)
-		_orb_core_batch.set_instance_color(orb_count, Color(0.98, 0.83, 0.44, 0.96))
-		orb_count += 1
-	_orb_glow_batch.visible_instance_count = orb_count
-	_orb_core_batch.visible_instance_count = orb_count
-	if orb_count > 0:
-		draw_multimesh(_orb_glow_batch, _orb_circle_texture)
-		draw_multimesh(_orb_core_batch, _orb_circle_texture)
 	for drop in oil_drops:
 		var position := drop["pos"] as Vector2
 		if not _world_position_visible(position, 40.0):
@@ -2937,21 +2880,17 @@ func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
 	var first_enemy := batch[0] as Dictionary
 	var enemy_id := str(first_enemy.get("draw_id", first_enemy.get("id", "")))
 	var frames: Array = enemy_sprite_frames.get(enemy_id, []) as Array
+	if frames.is_empty():
+		return
 	var frame_index := 0
-	if not frames.is_empty():
-		frame_index = posmod(
-			int(time * maxf(1.0, float(first_enemy.get("sprite_fps", 10.0))))
-				+ posmod(enemy_id.hash(), frames.size()),
-			frames.size()
-		)
-	var tex := (
-		frames[frame_index] as Texture2D
-		if not frames.is_empty()
-		else first_enemy.get("tex", null) as Texture2D
+	frame_index = posmod(
+		int(time * maxf(1.0, float(first_enemy.get("sprite_fps", 10.0))))
+			+ posmod(enemy_id.hash(), frames.size()),
+		frames.size()
 	)
+	var tex := frames[frame_index] as Texture2D
 	if tex == null:
-		for enemy in batch:
-			draw_circle(enemy["pos"] as Vector2, float(enemy["radius"]), Color("#9b4d40"))
+		push_error("Enemy %s has a null cropped walk frame at index %d" % [enemy_id, frame_index])
 		return
 	var cache_key := "%s:%s" % [batch_id, "shadow" if shadow else "body"]
 	var multimesh: MultiMesh
@@ -3031,92 +2970,24 @@ func _draw_player() -> void:
 		frames = player_walk_frames if not player_walk_frames.is_empty() else player_idle_frames
 	if not frames.is_empty():
 		var fps := 14.0 if attacking else (player_walk_fps if _player_moving else player_idle_fps)
-		var frame_index := clampi(int((0.42 - maxf(0.0, player_attack_until - time)) / 0.42 * frames.size()), 0, frames.size() - 1) if attacking else posmod(int(time * fps), frames.size())
-		var draw_size := Vector2.ONE * PLAYER_SPRITE_SIZE
+		var frame_index := clampi(int((0.42 - maxf(0.0, player_attack_until - time)) / 0.42 * frames.size()), 0, frames.size() - 1) if attacking else (int(_player_walk_phase) if _player_moving else posmod(int(time * fps), frames.size()))
 		var body_bob := sin(time * 10.0) * 1.2 if _player_moving else sin(time * 2.0) * 0.5
 		var flip_x := -1.0 if player_facing.x < -0.01 else 1.0
 		draw_set_transform(player_pos + Vector2(0, body_bob), 0.0, Vector2(flip_x, 1.0))
-		var rect := Rect2(
-			Vector2(-PLAYER_SPRITE_SIZE * 0.5, -PLAYER_SPRITE_SIZE * 0.79),
-			draw_size
-		)
-		draw_texture_rect(frames[frame_index], rect, false, tint)
+		draw_texture_rect(frames[frame_index], player_frame_draw_rect(attacking), false, tint)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
 		draw_circle(player_pos, 22.0, Color("#d8b45a"))
 
 
-static func aim_indicator_geometry(center: Vector2, direction: Vector2) -> Dictionary:
-	var aim := direction.normalized()
-	if aim.length_squared() <= 0.001:
-		aim = Vector2.RIGHT
-	var heading := aim.angle()
-	var start_angle := heading - AIM_INDICATOR_HALF_ANGLE
-	var tip_angle := heading + AIM_INDICATOR_HALF_ANGLE
-	var start := center + Vector2.from_angle(start_angle) * AIM_INDICATOR_ARC_RADIUS
-	var arc_end := center + Vector2.from_angle(tip_angle) * AIM_INDICATOR_ARC_RADIUS
-	var mid := center + aim * AIM_INDICATOR_ARC_RADIUS
-	var tip := center + aim * AIM_INDICATOR_RADIUS
-	var tangent := aim.orthogonal()
-	var base := mid + aim * 5.0
-	return {
-		"center": center,
-		"radius": AIM_INDICATOR_RADIUS,
-		"arc_radius": AIM_INDICATOR_ARC_RADIUS,
-		"start_angle": start_angle,
-		"tip_angle": tip_angle,
-		"start": start,
-		"mid": mid,
-		"arc_end": arc_end,
-		"tip": tip,
-		"left": base + tangent * AIM_INDICATOR_HALF_WIDTH,
-		"right": base - tangent * AIM_INDICATOR_HALF_WIDTH,
-	}
-
-
 func _draw_aim_indicator() -> void:
-	var geometry := aim_indicator_geometry(player_pos, player_aim)
-	var tip := geometry["tip"] as Vector2
-	var left := geometry["left"] as Vector2
-	var right := geometry["right"] as Vector2
-	var mid := geometry["mid"] as Vector2
-	var direction := (tip - player_pos).normalized()
-	var arc_radius := float(geometry["arc_radius"])
-	var start_angle := float(geometry["start_angle"])
-	var end_angle := float(geometry["tip_angle"])
-	var shaft_start := player_pos + direction * 24.0
-	var shaft_end := mid - direction * 8.0
-	draw_arc(
-		player_pos,
-		arc_radius,
-		start_angle,
-		end_angle,
-		12,
-		Color(0.02, 0.025, 0.02, 0.82),
-		6.0,
-		true
-	)
-	draw_arc(
-		player_pos,
-		arc_radius,
-		start_angle,
-		end_angle,
-		12,
-		Color("#f0c363"),
-		2.5,
-		true
-	)
-	draw_line(shaft_start, shaft_end, Color(0.02, 0.025, 0.02, 0.86), 6.0, true)
-	draw_line(shaft_start, shaft_end, Color("#f0c363"), 2.5, true)
-	# The curved guard sits across the aim ray; its arrowhead points downrange.
-	draw_colored_polygon(
-		PackedVector2Array([tip, left, right]),
-		Color(0.02, 0.025, 0.02, 0.88)
-	)
-	draw_colored_polygon(
-		PackedVector2Array([tip, tip.lerp(left, 0.58), tip.lerp(right, 0.58)]),
-		Color("#f0c363")
-	)
+	var direction := player_aim.normalized()
+	if direction.length_squared() <= 0.001:
+		direction = Vector2.RIGHT
+	var pointer_center := player_pos + direction * 40.0
+	draw_set_transform(pointer_center, direction.angle() + deg_to_rad(3.9), Vector2.ONE)
+	draw_texture_rect(AIM_POINTER_TEXTURE, Rect2(-Vector2(21.0, 30.0), Vector2(42.0, 60.0)), false)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func _draw_health_bars() -> void:
@@ -3276,7 +3147,7 @@ func _draw_projectiles() -> void:
 	_player_shot_batch.visible_instance_count = shot_count
 	if shot_count > 0:
 		draw_multimesh(_player_shot_batch, _player_shot_texture)
-	var enemy_shot_count := mini(enemy_shots.size(), ORB_BATCH_CAPACITY)
+	var enemy_shot_count := mini(enemy_shots.size(), PICKUP_BATCH_CAPACITY)
 	for index in range(enemy_shot_count):
 		var position := enemy_shots[index]["pos"] as Vector2
 		_enemy_shot_glow_batch.set_instance_transform_2d(

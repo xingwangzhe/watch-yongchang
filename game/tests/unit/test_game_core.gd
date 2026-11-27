@@ -98,16 +98,19 @@ func test_battlefield_spatial_hash_damage_and_pickups() -> void:
 	var index := field.spawn_enemy_at("scout", Vector2(40, 0))
 	assert_eq(index, 0)
 	assert_eq(field.alive_count(), 1)
+	var xp_received: Array[float] = []
+	field.xp_awarded.connect(func(amount: float) -> void: xp_received.append(amount))
 	var hits := field.damage_circle(Vector2.ZERO, 80.0, 100.0, 10.0)
 	assert_eq(hits, 1)
-	assert_eq(field.orbs.size(), 1, "kills must leave experience pickups")
+	assert_eq(xp_received.size(), 1, "kills must award experience immediately")
+	assert_gt(xp_received[0], 0.0)
 	field.update_world(1.0 / 60.0, {
 		"pos": Vector2(500, 0),
 		"radius": 18.0,
 		"pickup_radius": 0.0,
 	})
 	assert_eq(field.alive_count(), 0, "lethal damage must clear the enemy")
-	assert_eq(field.orbs.size(), 1, "kills must leave experience pickups")
+	assert_eq(xp_received.size(), 1, "walking must not be required to receive kill XP")
 
 
 func test_difficulty_curve_eases_in_and_clamps_at_dawn() -> void:
@@ -153,25 +156,10 @@ func test_high_frequency_battle_objects_reuse_pooled_dictionaries() -> void:
 				break
 	assert_gte(reused_shots, 90, "projectiles must be recycled instead of reallocated every shot")
 
-	var first_orbs: Array[Dictionary] = []
 	for index in range(6):
 		var enemy_index := field.spawn_enemy_at("scout", Vector2(600 + index * 8, 600))
 		field.damage_enemy(enemy_index, 99999.0, Vector2.ZERO, Color.WHITE, false, false)
-	for orb in field.orbs:
-		first_orbs.append(orb)
-		orb["taken"] = true
-	field._update_pickups(0.02, {"pos": Vector2(600, 600), "radius": 18.0, "pickup_radius": 30.0})
-	assert_eq(field.orbs.size(), 0)
-	for index in range(6):
-		var enemy_index := field.spawn_enemy_at("scout", Vector2(600 + index * 8, 600))
-		field.damage_enemy(enemy_index, 99999.0, Vector2.ZERO, Color.WHITE, false, false)
-	var reused_orbs := 0
-	for orb in field.orbs:
-		for previous in first_orbs:
-			if is_same(orb, previous):
-				reused_orbs += 1
-				break
-	assert_gte(reused_orbs, 4, "experience orbs must be recycled from the pool")
+	assert_false(FileAccess.get_file_as_string("res://scripts/actors/battlefield.gd").contains("orbs"), "experience orb drop logic must be removed")
 
 
 func test_enemy_rendering_is_multimesh_batched() -> void:
@@ -196,13 +184,10 @@ func test_health_bars_keep_all_layers_in_one_multimesh_batch() -> void:
 
 func test_pickups_and_projectiles_use_multimesh_batches() -> void:
 	var source := FileAccess.get_file_as_string("res://scripts/actors/battlefield.gd")
-	assert_true(source.contains("draw_multimesh(_orb_glow_batch, _orb_circle_texture)"))
-	assert_true(source.contains("draw_multimesh(_orb_core_batch, _orb_circle_texture)"))
 	assert_true(source.contains("draw_multimesh(_player_shot_batch, _player_shot_texture)"))
 	assert_true(source.contains("draw_multimesh(_enemy_shot_glow_batch, _orb_circle_texture)"))
 	assert_true(source.contains("draw_multimesh(_enemy_shot_core_batch, _orb_circle_texture)"))
-	var pickup_body := source.get_slice("func _draw_pickups", 1).get_slice("for drop in oil_drops", 0)
-	assert_false(pickup_body.contains("draw_circle"), "experience orbs must not issue per-orb draw calls")
+	assert_false(source.contains("orbs"), "experience orb rendering and collection must be removed")
 	var projectile_body := source.get_slice("func _draw_projectiles", 1).get_slice("func _draw_jeff_fx", 0)
 	assert_false(projectile_body.contains("draw_circle(position"), "projectiles must not issue per-shot draw calls")
 

@@ -22,6 +22,42 @@ const ORDER := [
 static func ensure_defaults() -> void:
 	for action in ORDER:
 		_ensure_default_events(action)
+	_ensure_gamepad_defaults()
+
+
+## Standard Android and Bluetooth pad layout: left stick moves, south button attacks,
+## east button dashes, and west button interacts. Kept outside remappable keyboard tokens.
+static func _ensure_gamepad_defaults() -> void:
+	var axes := {
+		"move_left": [[JOY_AXIS_LEFT_X, -1.0]],
+		"move_right": [[JOY_AXIS_LEFT_X, 1.0]],
+		"move_up": [[JOY_AXIS_LEFT_Y, -1.0]],
+		"move_down": [[JOY_AXIS_LEFT_Y, 1.0]],
+	}
+	for action in axes:
+		for binding in axes[action] as Array:
+			var event := InputEventJoypadMotion.new()
+			event.axis = int(binding[0])
+			event.axis_value = float(binding[1])
+			if not InputMap.action_has_event(action, event):
+				InputMap.action_add_event(action, event)
+	var buttons := {
+		"move_left": [JOY_BUTTON_DPAD_LEFT],
+		"move_right": [JOY_BUTTON_DPAD_RIGHT],
+		"move_up": [JOY_BUTTON_DPAD_UP],
+		"move_down": [JOY_BUTTON_DPAD_DOWN],
+		"dash": [JOY_BUTTON_B],
+		"interact": [JOY_BUTTON_X],
+		"attack": [JOY_BUTTON_A],
+		"toggle_codex": [JOY_BUTTON_Y],
+		"toggle_auto_attack": [JOY_BUTTON_BACK],
+	}
+	for action in buttons:
+		for button in buttons[action] as Array:
+			var event := InputEventJoypadButton.new()
+			event.button_index = int(button)
+			if not InputMap.action_has_event(action, event):
+				InputMap.action_add_event(action, event)
 
 
 static func _ensure_default_events(action: String) -> void:
@@ -53,6 +89,7 @@ static func apply_bindings(bindings: Dictionary) -> void:
 		InputMap.action_erase_events(action)
 		for event in events:
 			InputMap.action_add_event(action, event)
+	_ensure_gamepad_defaults()
 
 
 static func _events_from_tokens(tokens: Array) -> Array[InputEvent]:
@@ -98,6 +135,7 @@ static func reset_to_defaults() -> void:
 		if InputMap.has_action(action):
 			InputMap.action_erase_events(action)
 		_ensure_default_events(action)
+	_ensure_gamepad_defaults()
 
 
 static func describe(action: String) -> String:

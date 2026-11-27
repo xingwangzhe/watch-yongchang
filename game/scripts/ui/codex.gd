@@ -426,13 +426,15 @@ func _character_card(character_id: String, index: int) -> PanelContainer:
 	column.add_theme_constant_override("separation", 8)
 	panel.add_child(column)
 	var portrait_row := CenterContainer.new()
+	var portrait_sheet := str(character.get("codex_portrait_sheet", character.get("battle_idle", "")))
+	var portrait_columns := int(character.get("codex_portrait_columns", character.get("sprite_columns", 1)))
 	portrait_row.add_child(_portrait(
-		str(character.get("battle_idle", "")),
-		int(character.get("battle_idle_frames", 1)),
+		portrait_sheet,
+		portrait_columns,
 		"Portrait_%s" % character_id,
 		160,
 		Color(str(character.get("tint", "#e1b35a"))),
-		int(character.get("sprite_columns", 1)), int(character.get("sprite_rows", 1)), int(character.get("sprite_row", 0))
+		portrait_columns, 1, 0, int(character.get("codex_portrait_frame", 0))
 	))
 	column.add_child(portrait_row)
 	var title := _label(
@@ -523,11 +525,12 @@ func _character_detail(character: Dictionary, index: int, unlocked: bool) -> Dic
 		],
 		"subtitle": GameData.loc(character, "alias"),
 		"accent": Color(str(character.get("tint", "#e1b35a"))),
-		"image_path": str(character.get("battle_idle", "")),
-		"image_frames": int(character.get("battle_idle_frames", 1)),
-		"image_columns": int(character.get("sprite_columns", 1)),
-		"image_rows": int(character.get("sprite_rows", 1)),
-		"image_row": int(character.get("sprite_row", 0)),
+		"image_path": str(character.get("codex_portrait_sheet", character.get("battle_idle", ""))),
+		"image_frames": int(character.get("codex_portrait_columns", character.get("battle_idle_frames", 1))),
+		"image_columns": int(character.get("codex_portrait_columns", character.get("sprite_columns", 1))),
+		"image_rows": 1 if character.has("codex_portrait_sheet") else int(character.get("sprite_rows", 1)),
+		"image_row": 0 if character.has("codex_portrait_sheet") else int(character.get("sprite_row", 0)),
+		"image_frame": int(character.get("codex_portrait_frame", 0)),
 		"badges": [
 			{"text": Locale.t("codex.cards.post", {"index": index + 1}), "color": GOLD},
 			{"text": Locale.t("codex.unlocked" if unlocked else "codex.locked"), "color": GREEN if unlocked else MUTED},
@@ -1823,7 +1826,7 @@ func _icon_frame(path: String, size: int, accent: Color) -> PanelContainer:
 	return panel
 
 
-func _portrait(path: String, frames: int, node_name: String, size: int, accent: Color, columns: int = 1, rows: int = 1, row: int = 0) -> PanelContainer:
+func _portrait(path: String, frames: int, node_name: String, size: int, accent: Color, columns: int = 1, rows: int = 1, row: int = 0, frame: int = 0) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = node_name
 	panel.custom_minimum_size = Vector2(size, size)
@@ -1833,7 +1836,11 @@ func _portrait(path: String, frames: int, node_name: String, size: int, accent: 
 	)
 	var texture_rect := TextureRect.new()
 	texture_rect.name = "PortraitTexture"
-	texture_rect.texture = SpriteSheetFrames.path_row(path, columns, rows, row)[0] if columns > 1 and rows > 1 else _first_frame_texture(path, frames)
+	if columns > 1:
+		var portrait_frames := SpriteSheetFrames.path_row(path, columns, rows, row)
+		texture_rect.texture = portrait_frames[clampi(frame, 0, portrait_frames.size() - 1)] if not portrait_frames.is_empty() else null
+	else:
+		texture_rect.texture = _first_frame_texture(path, frames)
 	texture_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	texture_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	texture_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -2238,12 +2245,19 @@ func _show_detail(detail: Dictionary) -> void:
 	var image_path := str(detail.get("image_path", ""))
 	if image_path.is_empty():
 		image_path = str(detail.get("icon_path", ""))
-	var image_texture: Texture2D = SpriteSheetFrames.path_row(
-		image_path,
-		int(detail.get("image_columns", 1)),
-		int(detail.get("image_rows", 1)),
-		int(detail.get("image_row", 0))
-	)[0] if int(detail.get("image_columns", 1)) > 1 else _first_frame_texture(image_path, int(detail.get("image_frames", 1)))
+	var image_columns := int(detail.get("image_columns", 1))
+	var image_texture: Texture2D = null
+	if image_columns > 1:
+		var frames := SpriteSheetFrames.path_row(
+			image_path,
+			image_columns,
+			int(detail.get("image_rows", 1)),
+			int(detail.get("image_row", 0))
+		)
+		if not frames.is_empty():
+			image_texture = frames[clampi(int(detail.get("image_frame", 0)), 0, frames.size() - 1)]
+	else:
+		image_texture = _first_frame_texture(image_path, int(detail.get("image_frames", 1)))
 	_detail_image.texture = image_texture
 	_detail_image_plate.visible = image_texture != null
 	_detail_image_plate.add_theme_stylebox_override(

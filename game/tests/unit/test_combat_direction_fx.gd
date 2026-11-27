@@ -111,6 +111,34 @@ func test_player_faces_left_movement_and_manual_hold_controls_attacks() -> void:
 	Input.action_release("move_left")
 	assert_lt((run.player["facing"] as Vector2).x, 0.0, "left movement must face left")
 
+	Input.action_press("move_up")
+	run._update_player(1.0 / 60.0)
+	Input.action_release("move_up")
+	assert_lt((run.player["facing"] as Vector2).x, 0.0, "up movement must retain the previous left-facing side")
+	assert_lt((run.player["facing"] as Vector2).y, 0.0, "up movement must tilt the facing vector upward")
+
+	Input.action_press("move_right")
+	Input.action_press("move_down")
+	run._update_player(1.0 / 60.0)
+	Input.action_release("move_right")
+	Input.action_release("move_down")
+	assert_gt((run.player["facing"] as Vector2).x, 0.0, "down-right movement must update the horizontal side")
+	assert_gt((run.player["facing"] as Vector2).y, 0.0, "down movement must tilt the facing vector downward")
+
+	Input.action_press("move_down")
+	run._update_player(1.0 / 60.0)
+	Input.action_release("move_down")
+	assert_gt((run.player["facing"] as Vector2).x, 0.0, "down-only movement must retain the previous right-facing side")
+	assert_gt((run.player["facing"] as Vector2).y, 0.0, "down-only movement must keep a downward facing")
+
+	Input.action_press("move_left")
+	Input.action_press("move_up")
+	run._update_player(1.0 / 60.0)
+	Input.action_release("move_left")
+	Input.action_release("move_up")
+	assert_lt((run.player["facing"] as Vector2).x, 0.0, "up-left movement must update the horizontal side")
+	assert_lt((run.player["facing"] as Vector2).y, 0.0, "up-left movement must tilt upward")
+
 	var effects_before: int = run.battlefield.jeff_effects.size()
 	run._attack_held = false
 	for i in range(12):

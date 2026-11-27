@@ -104,6 +104,9 @@ playground/
 third_party/
 assets/third_party/
 generated/
+!game/assets/ui/generated/
+game/assets/ui/generated/*
+!game/assets/ui/generated/aim_pointer.png
 assets/units/
 assets/buildings/
 assets/预览-*.jpg
@@ -122,6 +125,7 @@ game/scenes/dev/
 pixel-art/actors/
 pixel-art/**/__pycache__/
 pixel-art/**/*.png
+!pixel-art/full_composed_atlas/source/wanglu_watchposts_grid.png
 pixel-art/**/*.gif
 pixel-art/**/*.jpg
 pixel-art/**/*.jpeg

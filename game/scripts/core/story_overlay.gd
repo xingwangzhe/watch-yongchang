@@ -106,11 +106,11 @@ func _build() -> void:
 	subtitle_bg.anchor_bottom = 1.0
 	subtitle_bg.offset_left = 210.0
 	subtitle_bg.offset_right = -210.0
-	subtitle_bg.offset_top = -152.0
+	subtitle_bg.offset_top = -180.0
 	subtitle_bg.offset_bottom = -20.0
 	add_child(subtitle_bg)
 
-	# 底部紧凑字幕条：宽 860、高 132，锚定底边，不遮战场主体。
+	# 底部字幕条：来源单独占一行，避免长出处挤进装饰边框。
 	var panel := PanelContainer.new()
 	panel.name = "StoryPanel"
 	panel.anchor_left = 0.0
@@ -119,7 +119,7 @@ func _build() -> void:
 	panel.anchor_bottom = 1.0
 	panel.offset_left = 210.0
 	panel.offset_right = -210.0
-	panel.offset_top = -152.0
+	panel.offset_top = -180.0
 	panel.offset_bottom = -20.0
 	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	var panel_style := StyleBoxTexture.new()
@@ -130,7 +130,7 @@ func _build() -> void:
 	panel_style.texture_margin_bottom = 14.0
 	panel_style.content_margin_left = 20.0
 	panel_style.content_margin_right = 20.0
-	panel_style.content_margin_top = 12.0
+	panel_style.content_margin_top = 18.0
 	panel_style.content_margin_bottom = 8.0
 	panel.add_theme_stylebox_override("panel", panel_style)
 	add_child(panel)
@@ -139,7 +139,7 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 2)
 	panel.add_child(column)
 
-	# 单行信息栏：说话人 · 分类 · 出处（出处过长时省略号裁剪）。
+	# 标题与分类独立一行；较长出处移到完整宽度的第二行。
 	var heading_row := HBoxContainer.new()
 	heading_row.add_theme_constant_override("separation", 10)
 	column.add_child(heading_row)
@@ -151,12 +151,13 @@ func _build() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading_row.add_child(spacer)
-	_source = _label("", 10, Color(MUTED, 0.64))
-	_source.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	_source = _label("", 9, Color(MUTED, 0.72))
+	_source.name = "StorySource"
+	_source.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_source.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_source.clip_text = true
 	_source.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_source.custom_minimum_size = Vector2(280.0, 0.0)
-	heading_row.add_child(_source)
+	column.add_child(_source)
 
 	_speaker = _label("", 16, GOLD)
 	column.add_child(_speaker)

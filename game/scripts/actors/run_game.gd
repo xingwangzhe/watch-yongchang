@@ -4,6 +4,7 @@ const FIXED_STEP := 1.0 / 60.0
 const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
 const ATTACK_BUFFER_DURATION := 0.18
+const PLAYER_FACING_X_DEADZONE := 0.20
 const HUD_REFRESH_INTERVAL := 0.10
 const MAX_CATCHUP_STEPS_NATIVE := 6
 const MAX_CATCHUP_STEPS_WEB := 2
@@ -106,6 +107,7 @@ var _dash_dir := Vector2.RIGHT
 var _dash_buff := 0.0
 var _invuln := 0.0
 var _last_move := Vector2.RIGHT
+var _player_facing_x := 1.0
 var _aim_direction := Vector2.RIGHT
 var _attack_held := false
 var _touch_attack_held := false
@@ -403,7 +405,7 @@ func _build_world() -> void:
 	battlefield.setup(_world_seed, map_def)
 	battlefield.player_hit.connect(_on_player_hit)
 	battlefield.enemy_killed.connect(_on_enemy_killed)
-	battlefield.xp_collected.connect(_on_xp_collected)
+	battlefield.xp_awarded.connect(_on_xp_awarded)
 	battlefield.oil_collected.connect(_on_oil_collected)
 	battlefield.heal_collected.connect(_on_heal_collected)
 	battlefield.scale_collected.connect(_on_scale_collected)
@@ -750,9 +752,16 @@ func _update_player(delta: float) -> void:
 				battlefield.spawn_wade_splash(previous_position, 1.0)
 	player["pos"] = battlefield.resolve_player_move(previous_position, desired_position, float(player["radius"]))
 	if _auto_attack or _attack_held or _attack_buffer > 0.0:
-		player["facing"] = _aim_direction
+		if absf(_aim_direction.x) > PLAYER_FACING_X_DEADZONE:
+			_player_facing_x = signf(_aim_direction.x)
+		var attack_facing := _aim_direction
+		if absf(attack_facing.x) <= PLAYER_FACING_X_DEADZONE:
+			attack_facing.x = _player_facing_x
+		player["facing"] = attack_facing.normalized()
 	elif input_vector.length_squared() > 0.001:
-		player["facing"] = input_vector.normalized()
+		if absf(input_vector.x) > PLAYER_FACING_X_DEADZONE:
+			_player_facing_x = signf(input_vector.x)
+		player["facing"] = Vector2(_player_facing_x, input_vector.y).normalized()
 	var dark := int(player["oil"]) <= 0
 	player["dark"] = dark
 	var ratio := float(player["oil"]) / maxf(1.0, float(player["oil_max"]))
@@ -1366,7 +1375,6 @@ func _recompute_stats() -> void:
 		"tower_thorns": 0.0,
 		"tower_lifesteal": 0.0,
 		"tower_count": 2.0,
-		"tower_xp_gain": 0.0,
 		"tower_gold_gain": 0.0,
 	}
 	for passive_id in passives.keys():
@@ -1511,7 +1519,7 @@ func _add_stat(stats: Dictionary, stat: String, amount: float) -> void:
 		"tower_crit", "tower_chain", "tower_splash", "tower_burn", "tower_slow", \
 		"tower_knockback", "tower_execute", "tower_marksman", "tower_overcharge", \
 		"tower_rebuild", "tower_thorns", "tower_lifesteal", "tower_count", \
-		"tower_xp_gain", "tower_gold_gain":
+		"tower_gold_gain":
 			stats[stat] = float(stats.get(stat, 0.0)) + amount
 
 
@@ -1690,12 +1698,9 @@ func _on_enemy_killed(enemy_id: String, world_position: Vector2, elite: bool) ->
 		_kill_sfx_cd = 0.055
 
 
-func _on_xp_collected(amount: float) -> void:
+func _on_xp_awarded(amount: float) -> void:
 	var multiplier := float(player["xp_mult"]) * (1.5 if bool(player["dark"]) else 1.0)
 	_add_xp(amount * multiplier)
-	if _pickup_sfx_cd <= 0.0:
-		_play_sfx(SFX_PICKUP, _rng.randf_range(1.12, 1.24), 0.34)
-		_pickup_sfx_cd = 0.10
 
 
 func _add_xp(amount: float) -> void:

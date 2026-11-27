@@ -46,7 +46,26 @@ func test_full_character_sheets_map_complete_rows_for_runtime_units() -> void:
 	for enemy_id in GameData.get_enemies():
 		var enemy: Dictionary = GameData.get_enemies()[enemy_id] as Dictionary
 		var frames: Array = field.enemy_sprite_frames.get(str(enemy_id), []) as Array
-		assert_eq(frames.size(), 8, "%s uses eight complete walk frames" % enemy_id)
+		var sprite_sheet := str(enemy.get("sprite_sheet", ""))
+		var sprite_columns := int(enemy.get("sprite_columns", 0))
+		var sprite_rows := int(enemy.get("sprite_rows", 0))
+		var sprite_row := int(enemy.get("sprite_row", -1))
+		var expected_frames := int(enemy.get("sprite_frames", 0))
+		assert_eq(frames.size(), expected_frames, "%s uses all declared walk frames" % enemy_id)
+		assert_eq(sprite_columns, 8, "%s is an eight-column categorized atlas" % enemy_id)
+		assert_gte(sprite_row, 0, "%s row must be declared" % enemy_id)
+		assert_lt(sprite_row, sprite_rows, "%s row must fit its atlas" % enemy_id)
+		for frame_index in range(frames.size()):
+			var frame := frames[frame_index] as AtlasTexture
+			assert_not_null(frame, "%s frame %d must be an AtlasTexture crop" % [enemy_id, frame_index])
+			if frame == null:
+				continue
+			assert_eq(frame.atlas.resource_path, sprite_sheet, "%s frame uses only its category atlas" % enemy_id)
+			assert_eq(
+				frame.region,
+				Rect2(Vector2(frame_index * 128, sprite_row * 128), Vector2(128, 128)),
+				"%s frame %d crops only its declared 128x128 atlas cell" % [enemy_id, frame_index]
+			)
 		assert_true(str(enemy.get("sprite_sheet", "")).begins_with("res://assets/units/full_sheets/"))
 		assert_true(ResourceLoader.exists(str(enemy.get("attack_sheet", ""))))
 		var index := field.spawn_enemy_at(str(enemy_id), Vector2(180.0 + field.enemies.size() * 10.0, 180.0))
@@ -72,3 +91,25 @@ func test_players_and_allies_use_full_character_frames_without_rig_assembly() ->
 	assert_eq((field.allies[0].get("walk_frames", []) as Array).size(), 8)
 	assert_eq((field.allies[0].get("attack_frames", []) as Array).size(), 8)
 	assert_false(field.allies[0].has("runtime_rig"))
+
+
+func test_player_attack_frames_match_walk_visual_height_and_keep_foot_anchor() -> void:
+	var definition: Dictionary = GameData.get_characters()["wanglu"] as Dictionary
+	var field := Battlefield.new()
+	add_child_autofree(field)
+	field.set_player_sprites(definition)
+	assert_gt(field.player_attack_scale, 1.0)
+	assert_lt(field.player_attack_scale, 1.4)
+	var walk_height := field._average_visible_frame_height(field.player_walk_frames)
+	var attack_height := field._average_visible_frame_height(field.player_attack_frames)
+	assert_almost_eq(
+		attack_height * field.player_attack_scale / walk_height,
+		0.95,
+		0.025,
+		"uniform scaling should preserve a slight attack crouch"
+	)
+	var walk_rect := field.player_frame_draw_rect(false)
+	var attack_rect := field.player_frame_draw_rect(true)
+	var walk_draw_bottom := walk_rect.position.y + 124.0 / 128.0 * walk_rect.size.y
+	var attack_draw_bottom := attack_rect.position.y + 124.0 / 128.0 * attack_rect.size.y
+	assert_almost_eq(attack_draw_bottom, walk_draw_bottom, 0.0001, "attack and walk share the same foot baseline")

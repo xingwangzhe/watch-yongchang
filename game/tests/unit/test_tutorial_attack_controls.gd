@@ -379,24 +379,14 @@ func test_pause_focus_and_tutorial_clear_attack_state_and_block_toggle() -> void
 	run.tutorial_overlay._finish(false)
 
 
-func test_aim_indicator_has_a_clear_guard_arc_and_downrange_arrow() -> void:
-	var center := Vector2(100, 100)
-	var right := Battlefield.aim_indicator_geometry(center, Vector2.RIGHT)
-	assert_eq(right["mid"], Vector2(158, 100))
-	assert_eq(right["tip"], Vector2(178, 100))
-	assert_almost_eq((right["start"] as Vector2).distance_to(center), 58.0, 0.001)
-	assert_almost_eq((right["arc_end"] as Vector2).distance_to(center), 58.0, 0.001)
-	assert_almost_eq(
-		(right["start"] as Vector2).distance_to(right["arc_end"] as Vector2),
-		116.0 * sin(deg_to_rad(18.0)),
-		0.001
-	)
-	var left := Battlefield.aim_indicator_geometry(center, Vector2.LEFT)
-	assert_eq(left["mid"], Vector2(42, 100))
-	assert_eq(left["tip"], Vector2(22, 100))
-	var fallback := Battlefield.aim_indicator_geometry(Vector2.ZERO, Vector2.ZERO)
-	assert_eq(fallback["mid"], Vector2(58, 0))
-	assert_eq(fallback["tip"], Vector2(78, 0))
+func test_aim_indicator_uses_generated_transparent_pointer() -> void:
+	var texture := load("res://assets/ui/generated/aim_pointer.png") as Texture2D
+	assert_not_null(texture)
+	if texture != null:
+		assert_eq(texture.get_size(), Vector2(360, 520))
+		var image := texture.get_image()
+		assert_eq(image.get_pixel(0, 0).a, 0.0, "the generated arc must keep transparent margins")
+		assert_gt(image.get_pixel(343, 249).a, 0.0, "the directional tip must remain visible")
 
 
 func test_cursor_asset_and_headless_lifecycle() -> void:

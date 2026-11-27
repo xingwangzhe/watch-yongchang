@@ -25,6 +25,7 @@ ACTOR_MIN_COMPONENT = 1800
 
 ACTORS = {
     "player_actions": (8, 3, ["walk", "dao_attack", "spear_thrust"]),
+    "wanglu_watchposts": (6, 1, ["six_distinct_watch_posts"]),
     "allies_walk": (8, 4, ["spear", "shield", "archer", "banner"]),
     "enemies_walk": (8, 5, ["scout", "ronin", "shield", "gunner", "archer"]),
     "cavalry_walk": (8, 4, ["ming_lancer", "ming_archer", "wokou_saber", "wokou_heavy"]),
@@ -36,10 +37,14 @@ ACTORS = {
 
 # Each entry maps an output row to a complete-character source row.
 SOURCE_SHEETS = {
+    "wanglu_watchposts": [("wanglu_watchposts_grid.png", 0)],
     "allies_walk": [("combined_complete_units.png", 0), ("combined_complete_units.png", 1), ("combined_complete_units.png", 2), ("combined_complete_units.png", 3)],
     "enemies_walk": [("enemies_walk.png", row) for row in range(5)],
 }
-SOURCE_COLUMNS = {"enemies_walk": 7}
+SOURCE_COLUMNS = {"enemies_walk": 7, "wanglu_watchposts": 3}
+SOURCE_FRAME_MAP = {
+    "wanglu_watchposts": [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2)],
+}
 COMBINED_ROW_BOUNDS = [
     (0, 166), (166, 320), (320, 478), (478, 638),
     (638, 800), (800, 960), (960, 1120), (1120, 1254),
@@ -142,16 +147,30 @@ def normalize_actor_sheet(key: str, columns: int, rows: int, row_names: list[str
         source_columns = SOURCE_COLUMNS.get(key, columns)
         row_frames: list[Image.Image] = []
         for column in range(columns):
-            source_column = column % source_columns
+            if key in SOURCE_FRAME_MAP:
+                source_row, source_column = SOURCE_FRAME_MAP[key][column]
+            else:
+                source_row, source_column = source_row, column % source_columns
             x0, x1 = split_bounds(source.width, source_columns, source_column)
             if row_bounds:
                 y0, y1 = row_bounds[row]
+            elif key == "wanglu_watchposts":
+                y0, y1 = split_bounds(source.height, 2, source_row)
             elif source_name == "combined_complete_units.png":
                 y0, y1 = COMBINED_ROW_BOUNDS[source_row]
             else:
                 source_rows_count = ACTORS[key][1] if source_name == f"{key}.png" else 5
                 y0, y1 = split_bounds(source.height, source_rows_count, source_row)
             cell = source.crop((x0, y0, x1, y1))
+            if key == "wanglu_watchposts":
+                pixels = cell.load()
+                for py in range(cell.height):
+                    for px in range(cell.width):
+                        red, green, blue, alpha_value = pixels[px, py]
+                        distance = ((255 - red) ** 2 + green**2 + (255 - blue) ** 2) ** 0.5
+                        if distance < 80:
+                            keyed_alpha = round(max(0.0, min(1.0, (distance - 16.0) / 64.0)) * alpha_value)
+                            pixels[px, py] = (red, green, blue, keyed_alpha)
             alpha = remove_small_components(
                 cell.getchannel("A"),
                 500 if key == "cavalry_walk" else ACTOR_MIN_COMPONENT,

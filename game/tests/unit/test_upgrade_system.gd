@@ -130,10 +130,16 @@ func test_battlefield_applies_slow_burn_stun_and_soul_magnet() -> void:
 		"pickup_radius": 0.0,
 	})
 	assert_lt(float(enemy.get("hp", 0.0)), hp_before, "burn damage must tick during world updates")
+	var xp_received: Array[float] = []
+	field.xp_awarded.connect(func(amount: float) -> void: xp_received.append(amount))
 	assert_eq(field.damage_circle(Vector2(24, 0), 24.0, 99999.0, 0.0), 1)
-	assert_eq(field.orbs.size(), 1)
+	assert_eq(xp_received.size(), 1, "enemy death must award XP immediately")
+	assert_gt(xp_received[0], 0.0)
 	field.magnet_all()
-	assert_true(bool(field.orbs[0].get("magnet", false)))
+	assert_false(
+		FileAccess.get_file_as_string("res://scripts/actors/battlefield.gd").contains("orbs"),
+		"XP must not create collectible orbs"
+	)
 
 
 func test_enemy_batch_flips_y_to_match_canvas_texture_uv() -> void:
@@ -215,6 +221,28 @@ func test_level_up_blocks_mouse_and_number_input_for_point_two_seconds() -> void
 	assert_true(overlay.is_locked(), "re-showing options must restart the input lock")
 	overlay._choose(0)
 	assert_eq(selected, [1], "direct selection must also respect a restarted lock")
+
+
+func test_upgrade_card_children_do_not_block_full_card_click_area() -> void:
+	var overlay := LevelUpOverlay.new()
+	add_child_autofree(overlay)
+	await wait_process_frames(2)
+	var pool := UpgradeCatalog.build_card_pool({}, {}, 0.8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20261127
+	var options := UpgradeCatalog.pick_three(pool, rng)
+	overlay.show_options(options, 1)
+	await wait_seconds(0.25)
+	for i in range(3):
+		var card := overlay.find_child("UpgradeCard%d" % (i + 1), true, false) as Button
+		assert_not_null(card)
+		assert_eq(card.mouse_filter, Control.MOUSE_FILTER_STOP, "the full card must receive pointer input")
+		for child in card.find_children("*", "Control", true, false):
+			assert_eq(
+				(child as Control).mouse_filter,
+				Control.MOUSE_FILTER_IGNORE,
+				"card content must pass mouse and touch input through to the full-card Button"
+			)
 
 
 func test_touch_controls_use_lantern_patrol_language() -> void:

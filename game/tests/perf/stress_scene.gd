@@ -67,12 +67,14 @@ func _ready() -> void:
 	for i in range(pickup_count):
 		var angle := TAU * float(i) / float(maxi(1, pickup_count))
 		var ring := 300.0 + float(i % 5) * 70.0
-		field.orbs.append({
-			"pos": Vector2(cos(angle), sin(angle)) * ring,
-			"value": 1.0,
-			"taken": false,
-			"magnet": false,
-		})
+		var position := Vector2(cos(angle), sin(angle)) * ring
+		match i % 3:
+			0:
+				field.spawn_oil(position, 2)
+			1:
+				field.spawn_heal(position, 9.0)
+			_:
+				field.spawn_scale(position, ["red", "gold", "blue", "green", "black"][i % 5])
 	var shot_count := clampi(int(OS.get_environment("WATCH_STRESS_SHOTS")), 0, 2000)
 	for i in range(shot_count):
 		var angle := TAU * float(i) / float(maxi(1, shot_count))

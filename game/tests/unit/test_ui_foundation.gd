@@ -826,7 +826,7 @@ func test_character_select_enforces_unlocks_and_keeps_choice() -> void:
 	var portrait_texture := (select.find_child("Portrait", true, false) as TextureRect).texture as AtlasTexture
 	assert_not_null(portrait_texture, "select portrait must use a forge idle frame")
 	if portrait_texture != null:
-		assert_string_contains(portrait_texture.atlas.resource_path, "units/full_sheets/player_actions.webp")
+		assert_string_contains(portrait_texture.atlas.resource_path, "units/full_sheets/wanglu_watchposts.webp")
 		assert_eq(portrait_texture.region.size, Vector2(128, 128))
 	assert_false((select.find_child("Character_amei", true, false) as Button).disabled)
 	assert_false((select.find_child("Map_watergate", true, false) as Button).disabled)

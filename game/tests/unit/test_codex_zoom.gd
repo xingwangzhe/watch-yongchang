@@ -94,19 +94,19 @@ func test_zoom_requires_a_visible_detail_image() -> void:
 	assert_false(codex.zoom_is_open())
 
 
-func test_cards_show_complete_atlas_frames_for_six_posts() -> void:
+func test_cards_show_distinct_complete_atlas_frames_for_six_posts() -> void:
 	var codex = await _open_codex()
-	var paths: Dictionary = {}
+	var frame_positions: Dictionary = {}
 	for character_id in ["wanglu", "amei", "ashi", "achong", "agong", "aqi"]:
 		var portrait: Node = codex.find_child("Portrait_%s" % character_id, true, false)
 		assert_not_null(portrait)
 		var texture_rect := portrait.find_child("PortraitTexture", true, false) as TextureRect
 		var texture := texture_rect.texture as AtlasTexture
 		assert_true(texture is AtlasTexture)
-		assert_eq(texture.region.position, Vector2.ZERO)
-		assert_string_contains(texture.atlas.resource_path, "res://assets/units/full_sheets/player_actions.webp")
-		paths[texture.atlas.resource_path] = true
-	assert_eq(paths.size(), 1, "the six posts share the complete player action atlas")
+		assert_eq(texture.region.size, Vector2(128, 128))
+		assert_string_contains(texture.atlas.resource_path, "res://assets/units/full_sheets/wanglu_watchposts.webp")
+		frame_positions[texture.region.position] = true
+	assert_eq(frame_positions.size(), 6, "each Wang Lu watch post has a distinct complete-character portrait frame")
 
 
 func test_english_codex_text_and_controls_fit_at_both_resolutions() -> void:

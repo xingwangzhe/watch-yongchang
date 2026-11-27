@@ -85,6 +85,19 @@ export function formatWindowsVersion(version: string): string {
   return `${Number(match[1])}.${Number(match[2])}.${Number(match[3])}.0`;
 }
 
+export function formatAndroidVersionCode(version: string): number {
+  const match = /^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/.exec(version);
+  if (!match) {
+    throw new Error(`APP_VERSION must be semver-like, got ${version}`);
+  }
+  const [, major, minor, patch] = match.map(Number);
+  const code = major * 10_000 + minor * 100 + patch;
+  if (!Number.isSafeInteger(code) || code < 1 || code > 2_100_000_000) {
+    throw new Error(`APP_VERSION cannot be encoded as an Android version code: ${version}`);
+  }
+  return code;
+}
+
 export function renderProjectMeta(env: ProjectEnv): string {
   const metadata = {
     schema_version: 1,
@@ -253,9 +266,12 @@ function expectedFiles(env: ProjectEnv): Map<string, string> {
   );
 
   const windowsVersion = formatWindowsVersion(env.APP_VERSION);
+  const androidVersionCode = formatAndroidVersionCode(env.APP_VERSION);
   let nextPresets = setConfigLines(presets, {
     "application/file_version": quoteGodot(windowsVersion),
     "application/product_version": quoteGodot(windowsVersion),
+    "version/code": String(androidVersionCode),
+    "version/name": quoteGodot(env.APP_VERSION),
     "application/company_name": quoteGodot(env.AUTHOR),
     "application/product_name": quoteGodot(env.GAME_NAME_ZH),
     "application/file_description": quoteGodot(

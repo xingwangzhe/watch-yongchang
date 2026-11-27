@@ -337,6 +337,17 @@ func _refresh() -> void:
 
 
 func _character_portrait(character: Dictionary) -> Texture2D:
+	var codex_path := str(character.get("codex_portrait_sheet", ""))
+	if not codex_path.is_empty():
+		var codex_frames := SpriteSheetFrames.path_row(
+			codex_path,
+			int(character.get("codex_portrait_columns", 1)),
+			1,
+			0
+		)
+		var codex_index := int(character.get("codex_portrait_frame", 0))
+		if codex_index >= 0 and codex_index < codex_frames.size():
+			return codex_frames[codex_index]
 	var frames := SpriteSheetFrames.path_row(
 		str(character.get("sprite_sheet", "")),
 		int(character.get("sprite_columns", 8)),

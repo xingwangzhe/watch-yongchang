@@ -4,8 +4,8 @@
       "id": "narr_1386_01",
       "speaker_zh": "旁白",
       "speaker_en": "Narrator",
-      "zh": "洪武十九年，东海未靖。汤和奉命巡海，筑宁村所，列五十九城。",
-      "en": "In the nineteenth year of Hongwu, the eastern sea was still unsettled. Tang He inspected the coast, built Ningcun garrison, and linked fifty-nine coastal posts.",
+      "zh": "洪武十九年，汤和经略沿海卫所，宁村所亦在其列。",
+      "en": "In the nineteenth year of Hongwu, Tang He oversaw coastal garrisons, including Ningcun.",
       "category": "史实",
       "source_ref": "《汤和信俗·抵御倭患第一人》"
     },
@@ -15,8 +15,8 @@
       "speaker_en": "Tang He",
       "zh": "海防不能只靠官军。寓兵于民，所城才守得久。",
       "en": "Coastal defence cannot rest on soldiers alone. Let the people share the watch, and the garrison will endure.",
-      "category": "制度",
-      "source_ref": "《意绘抗倭英雄汤和》"
+      "category": "演绎",
+      "source_ref": "虚构对话；卫所与乡兵背景见《文化来源》"
     },
     {
       "id": "narr_1386_03",
@@ -42,8 +42,8 @@
       "speaker_en": "Tang He",
       "zh": "最后立乡兵旗。农时种田，警时执械；旗一响，各家都要应。",
       "en": "Finally raise the militia banner. Farm in peace, take up arms in alarm; when the banner sounds, every household answers.",
-      "category": "制度",
-      "source_ref": "《意绘抗倭英雄汤和》"
+      "category": "演绎",
+      "source_ref": "虚构对话；乡兵制度背景见《文化来源》"
     },
     {
       "id": "narr_1386_06",

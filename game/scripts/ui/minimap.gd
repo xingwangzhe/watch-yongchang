@@ -278,8 +278,6 @@ func _draw_entities() -> void:
 			_append_dot(enemy["pos"] as Vector2, 4.0, Color("#e08055"))
 		else:
 			_append_dot(enemy["pos"] as Vector2, 2.8, Color("#c95a48"))
-	for orb in battlefield.orbs:
-		_append_pickup_point(orb["pos"] as Vector2, Color("#e8c45f"), 1.0)
 	for drop in battlefield.oil_drops:
 		_append_pickup_point(drop["pos"] as Vector2, Color("#e6a642"), 1.4)
 	for drop in battlefield.heal_drops:

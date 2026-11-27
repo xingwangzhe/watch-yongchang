@@ -306,7 +306,7 @@ func _paint_base() -> void:
 	for y in layout.world_tiles.y:
 		for x in layout.world_tiles.x:
 			var cell := Vector2i(x, y)
-			_place_terrain(cell, _pick_clustered_name(variants, cell, 5, 5))
+			_place_terrain(cell, _pick_clustered_name(variants, cell, 5, 3))
 
 
 func _paint_area(area: Dictionary) -> void:
@@ -352,16 +352,66 @@ func _paint_area(area: Dictionary) -> void:
 
 func _paint_terrain_area(area: Dictionary, rect: Rect2i) -> void:
 	var variants := _area_tiles(area)
-	for y in range(rect.position.y, rect.position.y + rect.size.y):
-		for x in range(rect.position.x, rect.position.x + rect.size.x):
+	var base_variants := _base_terrain_variants()
+	var edge_salt := int(area.get("edge_salt", 79))
+	# Terrain rectangles describe broad biomes, not man-made plots. Bend each edge
+	# with low-frequency noise so broad sand and mud fields do not end in box-shaped cuts.
+	var edge_amplitude := minf(4.0, maxf(1.0, float(mini(rect.size.x, rect.size.y)) * 0.12))
+	var paint_rect := rect.grow(4)
+	for y in range(paint_rect.position.y, paint_rect.end.y):
+		for x in range(paint_rect.position.x, paint_rect.end.x):
 			var cell := Vector2i(x, y)
 			if not layout.cell_in_bounds(cell):
 				continue
+			var top := rect.position.y + _terrain_edge_offset(Vector2i(x, rect.position.y), edge_salt + 11, edge_amplitude)
+			var bottom := rect.end.y + _terrain_edge_offset(Vector2i(x, rect.end.y), edge_salt + 17, edge_amplitude)
+			var left := rect.position.x + _terrain_edge_offset(Vector2i(rect.position.x, y), edge_salt + 23, edge_amplitude)
+			var right := rect.end.x + _terrain_edge_offset(Vector2i(rect.end.x, y), edge_salt + 29, edge_amplitude)
+			# A biome already touching the world edge should remain flush with that edge.
+			if rect.position.x == 0:
+				left = 0
+			if rect.position.y == 0:
+				top = 0
+			if rect.end.x == layout.world_tiles.x:
+				right = rect.end.x
+			if rect.end.y == layout.world_tiles.y:
+				bottom = rect.end.y
+			if x < left or x >= right or y < top or y >= bottom:
+				var underlying_tile := terrain_tile_name(cell)
+				if not underlying_tile.is_empty():
+					layout.set_minimap_color(cell, layout.minimap_color_for_tile(underlying_tile))
+				continue
 			if layout.is_water_cell(cell) or layout.is_bridge_cell(cell) or layout.is_solid_cell(cell):
 				continue
-			var tile_name := _pick_clustered_name(variants, cell, 79, 4)
+			var edge_depth := minf(
+				minf(float(x - left), float(right - 1 - x)),
+				minf(float(y - top), float(bottom - 1 - y))
+			)
+			var tile_name := _pick_clustered_name(variants, cell, 79, 3)
+			if edge_depth < 3.0:
+				var blend := clampf((edge_depth + 0.75) / 3.0, 0.0, 1.0)
+				var target_weight := blend * blend * (3.0 - 2.0 * blend)
+				var transition_noise := _smooth_hash_noise(cell, edge_salt + 53, 4)
+				if transition_noise >= target_weight:
+					tile_name = _pick_clustered_name(base_variants, cell, edge_salt + 59, 4)
 			if _place_terrain(cell, tile_name):
 				layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
+
+
+func _terrain_edge_offset(cell: Vector2i, salt: int, amplitude: float) -> int:
+	# Mix two smooth spatial scales: broad shoreline bends with a gentle secondary wobble.
+	var broad := _smooth_hash_noise(cell, salt, 7) - 0.5
+	var detail := _smooth_hash_noise(cell, salt + 1, 13) - 0.5
+	return roundi((broad * 0.72 + detail * 0.28) * 2.0 * amplitude)
+
+
+func _base_terrain_variants() -> Array:
+	var variants := [layout.base_tile]
+	if layout.base_tile.ends_with("_a"):
+		variants.append(layout.base_tile.trim_suffix("_a") + "_b")
+	elif layout.base_tile.ends_with("_b"):
+		variants.append(layout.base_tile.trim_suffix("_b") + "_a")
+	return variants
 
 
 func _paint_road_area(area: Dictionary, rect: Rect2i) -> void:
@@ -602,6 +652,7 @@ func _paint_patch_area(area: Dictionary) -> void:
 	var variants := _area_tiles(area)
 	if variants.is_empty():
 		return
+	var base_variants := _base_terrain_variants()
 	var salt := int(area.get("salt", 19))
 	var min_cell := Vector2i(floori(center.x - radius.x), floori(center.y - radius.y))
 	var max_cell := Vector2i(ceili(center.x + radius.x), ceili(center.y + radius.y))
@@ -616,12 +667,40 @@ func _paint_patch_area(area: Dictionary) -> void:
 				(float(x) + 0.5 - center.x) / maxf(0.5, radius.x),
 				(float(y) + 0.5 - center.y) / maxf(0.5, radius.y)
 			)
-			var edge := (float(_hash_cell(cell, salt)) / 1000003.0 - 0.5) * 0.22
-			if normalized.length_squared() > 1.0 + edge:
+			var normalized_distance := normalized.length()
+			# Low-frequency value noise bends the ellipse as a continuous shoreline;
+			# adjacent cells share the same broad contour instead of making speckled holes.
+			var edge_noise := (_smooth_hash_noise(cell, salt + 4181, 5) - 0.5) * 0.38
+			if normalized_distance > 1.0 + edge_noise:
 				continue
-			var tile_name := _pick_clustered_name(variants, cell, salt + 37, 4)
+			# Smaller terrain clusters keep pale sand and wet-mud variants from forming large square slabs.
+			var tile_name := _pick_clustered_name(variants, cell, salt + 37, 2)
+			var edge_depth := (1.0 - normalized_distance) * minf(radius.x, radius.y)
+			if edge_depth < 3.0:
+				var blend := clampf((edge_depth + 0.75) / 3.0, 0.0, 1.0)
+				var target_weight := blend * blend * (3.0 - 2.0 * blend)
+				var transition_noise := _smooth_hash_noise(cell, salt + 4199, 4)
+				if transition_noise >= target_weight:
+					tile_name = _pick_clustered_name(base_variants, cell, salt + 4211, 4)
 			if _place_terrain(cell, tile_name):
 				layout.set_minimap_color(cell, layout.minimap_color_for_tile(tile_name))
+
+
+func _smooth_hash_noise(cell: Vector2i, salt: int, scale: int) -> float:
+	var size := maxi(1, scale)
+	var px := float(cell.x) / float(size)
+	var py := float(cell.y) / float(size)
+	var x0 := floori(px)
+	var y0 := floori(py)
+	var tx := px - float(x0)
+	var ty := py - float(y0)
+	tx = tx * tx * (3.0 - 2.0 * tx)
+	ty = ty * ty * (3.0 - 2.0 * ty)
+	var a := float(_hash_cell(Vector2i(x0, y0), salt)) / 1000003.0
+	var b := float(_hash_cell(Vector2i(x0 + 1, y0), salt)) / 1000003.0
+	var c := float(_hash_cell(Vector2i(x0, y0 + 1), salt)) / 1000003.0
+	var d := float(_hash_cell(Vector2i(x0 + 1, y0 + 1), salt)) / 1000003.0
+	return lerpf(lerpf(a, b, tx), lerpf(c, d, tx), ty)
 
 
 func _paint_grove_area(area: Dictionary) -> void:
@@ -744,7 +823,20 @@ func _paint_building_area(area: Dictionary, rect: Rect2i) -> void:
 	elif rect.size.y >= 8 and _hash_cell(rect.position, 211) % 3 == 0:
 		ridge_count = 2
 	ridge_count = clampi(int(area.get("ridge_count", ridge_count)), 1, 3)
-	var ridge_rows: Array[int] = [0 if rect.size.y < 3 else maxi(1, int((rect.size.y - 1) / 2.0))]
+	var ridge_rows: Array[int] = []
+	# Keep ridge rows inside the roof, with clear verge and eave rows.
+	var roof_interior_rows := maxi(0, rect.size.y - 2)
+	var actual_ridge_count := mini(ridge_count, roof_interior_rows)
+	var central_ridge_row := clampi(int((rect.size.y - 1) / 2.0), 1, rect.size.y - 2)
+	for ridge_index in range(actual_ridge_count):
+		var ridge_row := central_ridge_row if actual_ridge_count == 1 else 1 + roundi(
+			float(ridge_index + 1) * float(roof_interior_rows)
+			/ float(actual_ridge_count + 1)
+		)
+		ridge_rows.append(clampi(ridge_row, 1, rect.size.y - 2))
+	if actual_ridge_count > 0 and not ridge_rows.has(central_ridge_row):
+		ridge_rows[0] = central_ridge_row
+		ridge_rows.sort()
 	# Keep residential roof families consistent inside a neighborhood block.
 	var district_cell := Vector2i(floori(float(rect.position.x) / 24.0), floori(float(rect.position.y) / 26.0))
 	var roof_variant := _hash_cell(district_cell, 263) % 3
@@ -1565,16 +1657,9 @@ func _draw_shading(target: OverlayLayer) -> void:
 	for rect in layout.highland_rects:
 		var origin := Vector2(rect.position) * tile
 		var size := Vector2(rect.size) * tile
-		target.add_rect(Rect2(origin + Vector2(0, size.y), Vector2(size.x, 8)), Color(0.0, 0.0, 0.0, 0.16))
-		target.add_rect(Rect2(origin, size), Color(1.0, 0.86, 0.55, 0.045))
-		target.add_line(origin, origin + Vector2(size.x, 0), Color(1.0, 0.94, 0.72, 0.16), 2.0)
-		target.add_line(origin, origin + Vector2(0, size.y), Color(1.0, 0.94, 0.72, 0.10), 2.0)
-		target.add_line(
-			origin + Vector2(0, size.y),
-			origin + Vector2(size.x, size.y),
-			Color(0.0, 0.0, 0.0, 0.14),
-			5.0
-		)
+		# Keep only a barely visible lift. Rectangle outlines made natural sand banks
+		# read like hard-edged platforms and exposed the data rectangle in play.
+		target.add_rect(Rect2(origin, size), Color(1.0, 0.86, 0.55, 0.018))
 
 	# 2) 道路：只描外轮廓，让路径从地表里跳出来；桥面视为路面，不描边。
 	for cell in _road_cells.keys():
@@ -1583,17 +1668,18 @@ func _draw_shading(target: OverlayLayer) -> void:
 			continue
 		var x0 := float(road_cell.x) * tile
 		var y0 := float(road_cell.y) * tile
-		var edge := Color(0.11, 0.09, 0.06, 0.55)
+		# Keep roads readable without tracing every zig-zag into a dark rectangular maze.
+		var edge := Color(0.11, 0.09, 0.06, 0.22)
 		if not _is_road_like(road_cell + Vector2i.UP):
-			target.add_line(Vector2(x0, y0), Vector2(x0 + tile, y0), edge, 2.0)
-			target.add_line(Vector2(x0 + 3.0, y0 + 3.0), Vector2(x0 + tile - 3.0, y0 + 3.0), Color(0.86, 0.76, 0.55, 0.10), 1.0)
+			target.add_line(Vector2(x0, y0), Vector2(x0 + tile, y0), edge, 1.0)
+			target.add_line(Vector2(x0 + 3.0, y0 + 3.0), Vector2(x0 + tile - 3.0, y0 + 3.0), Color(0.86, 0.76, 0.55, 0.06), 1.0)
 		if not _is_road_like(road_cell + Vector2i.DOWN):
-			target.add_line(Vector2(x0, y0 + tile), Vector2(x0 + tile, y0 + tile), edge, 2.0)
-			target.add_line(Vector2(x0 + 2.0, y0 + tile - 2.0), Vector2(x0 + tile - 2.0, y0 + tile - 2.0), Color(0.0, 0.0, 0.0, 0.15), 2.0)
+			target.add_line(Vector2(x0, y0 + tile), Vector2(x0 + tile, y0 + tile), edge, 1.0)
+			target.add_line(Vector2(x0 + 2.0, y0 + tile - 2.0), Vector2(x0 + tile - 2.0, y0 + tile - 2.0), Color(0.0, 0.0, 0.0, 0.08), 1.0)
 		if not _is_road_like(road_cell + Vector2i.LEFT):
-			target.add_line(Vector2(x0, y0), Vector2(x0, y0 + tile), edge, 2.0)
+			target.add_line(Vector2(x0, y0), Vector2(x0, y0 + tile), edge, 1.0)
 		if not _is_road_like(road_cell + Vector2i.RIGHT):
-			target.add_line(Vector2(x0 + tile, y0), Vector2(x0 + tile, y0 + tile), edge, 2.0)
+			target.add_line(Vector2(x0 + tile, y0), Vector2(x0 + tile, y0 + tile), edge, 1.0)
 
 	# 3) 桥面：只在朝水的一侧描连续投影，不在每块甲板上切出黑缝。
 	for cell in _bridge_cells.keys():

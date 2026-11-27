@@ -1677,10 +1677,10 @@
 		"fishing_magnet": {
 			"name_zh": "渔网收魂",
 			"name_en": "Soul Net",
-			"desc_zh": "每 7.0 秒收拢全屏经验与掉落。",
-			"desc_en": "Every 7.0s, pull in experience and drops.",
-			"culture_zh": "网一收，海面就空了。守夜人把散落的灯魂一并捞回。",
-			"culture_en": "One haul empties the sea. Keepers gather the scattered lamp-souls with it.",
+			"desc_zh": "每 7.0 秒收拢全屏补给与龙鳞。",
+			"desc_en": "Every 7.0s, pull in all supplies and dragon scales.",
+			"culture_zh": "网一收，海面就空了。守夜人把散落的补给一并捞回。",
+			"culture_en": "One haul empties the sea. Keepers gather scattered supplies with it.",
 			"icon": "res://assets/icons/game_icons/card_fishing_net.svg",
 			"max_level": 5,
 			"rarity": "rare",
@@ -3025,20 +3025,20 @@
 			]
 		},
 		"tower_gleanings": {
-			"name_zh": "塔下拾遗",
-			"name_en": "Gleanings Below",
-			"desc_zh": "箭塔击杀的经验 +12%。",
-			"desc_en": "Tower kills grant +12% XP.",
-			"culture_zh": "塔下的箭簇与散落的行囊，守夜人顺手就捡了。",
-			"culture_en": "Bolts and spilled packs below the tower: the watch picks them up in passing.",
+			"name_zh": "守夜所得",
+			"name_en": "Watch's Learning",
+			"desc_zh": "所有击杀获得经验 +12%。",
+			"desc_en": "Gain +12% XP from all kills.",
+			"culture_zh": "箭塔与守夜人共同守望，战果立即化为守夜人的经验。",
+			"culture_en": "The tower and watch keep the night together; every kill immediately teaches the watch.",
 			"icon": "res://assets/icons/game_icons/card_arrowhead.svg",
 			"max_level": 4,
 			"rarity": "common",
 			"category": "工事",
-			"source_ref": "data/towers.json",
+			"source_ref": "data/enemies.json",
 			"effects": [
 				{
-					"stat": "tower_xp_gain",
+					"stat": "xp_mult",
 					"amount": 0.12
 				}
 			]
