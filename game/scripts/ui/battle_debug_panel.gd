@@ -6,10 +6,12 @@ extends CanvasLayer
 @onready var _simulation: Label = $Panel/Rows/Simulation
 @onready var _work: Label = $Panel/Rows/Work
 @onready var _render: Label = $Panel/Rows/Render
+@onready var _rooms_button: Button = $Panel/Rows/Rooms
 
 
 func _ready() -> void:
 	_panel.visible = OS.is_debug_build()
+	_rooms_button.pressed.connect(_open_debug_rooms)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -29,3 +31,8 @@ func update_metrics(metrics: Dictionary) -> void:
 	_simulation.text = "steps %d/%d | enemies %d" % [int(metrics.get("steps", 0)), int(metrics.get("max_steps", 0)), int(metrics.get("enemies", 0))]
 	_work.text = "world %.2f ms | flow %.2f ms | HUD %.2f ms" % [float(metrics.get("world_ms", 0.0)), float(metrics.get("flow_ms", 0.0)), float(metrics.get("hud_ms", 0.0))]
 	_render.text = "draw %d | objects %d | elapsed %.1f s" % [int(metrics.get("draw_calls", 0)), int(metrics.get("objects", 0)), float(metrics.get("elapsed", 0.0))]
+
+
+func _open_debug_rooms() -> void:
+	if OS.is_debug_build():
+		get_tree().change_scene_to_file("res://scenes/debug/debug_hub.tscn")
