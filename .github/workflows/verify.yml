@@ -319,7 +319,7 @@ jobs:
   android-platform:
     name: Android APK and gamepad checks
     needs: gut
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 60
     env:
       GODOT_BIN: ${{ github.workspace }}/.tools/godot
@@ -344,7 +344,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
-          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.1.13356709 cmake;3.10.2.4988404 emulator system-images;android-36;google_apis;x86_64
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.1.13356709 cmake;3.10.2.4988404 emulator system-images;android-36;google_apis;arm64-v8a
           accept-android-sdk-licenses: true
           log-accepted-android-sdk-licenses: false
 
@@ -358,9 +358,9 @@ jobs:
           fi
           mkdir -p .tools "$HOME/.local/share/godot/export_templates" "$HOME/.config/godot"
           curl -fL --retry 3 -o "$RUNNER_TEMP/godot.zip" \
-            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.arm64.zip"
           unzip -q "$RUNNER_TEMP/godot.zip" -d .tools
-          mv ".tools/Godot_v${GODOT_VERSION}_linux.x86_64" "$GODOT_BIN"
+          mv ".tools/Godot_v${GODOT_VERSION}_linux.arm64" "$GODOT_BIN"
           chmod +x "$GODOT_BIN"
           curl -fL --retry 3 -o "$RUNNER_TEMP/godot-templates.tpz" \
             "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
@@ -449,14 +449,10 @@ jobs:
           }
           trap cleanup_emulator EXIT
           adb_cmd() { timeout 30 adb "$@"; }
-          if [[ -e /dev/kvm ]]; then
-            sudo chmod a+rw /dev/kvm
-          else
-            echo "Android x86_64 emulator requires KVM, but /dev/kvm is unavailable." >&2
-            exit 1
-          fi
+          test -e /dev/kvm
+          sudo chmod a+rw /dev/kvm
           echo no | "$AVDMANAGER" create avd --force --name watch-yongchang-api36 \
-            --package "system-images;android-36;google_apis;x86_64" --device pixel_2
+            --package "system-images;android-36;google_apis;arm64-v8a" --device pixel_2
           "$EMULATOR" -avd watch-yongchang-api36 -no-window -no-audio -no-boot-anim \
             -accel on -gpu swiftshader_indirect -no-snapshot -wipe-data \
             > "$RUNNER_TEMP/watch-yongchang-emulator.log" 2>&1 &
