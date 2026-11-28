@@ -60,17 +60,51 @@ func _apply_responsive_layout(view_size: Vector2, css_size: Vector2) -> void:
 	var scale_x := view_size.x / css_size.x
 	var scale_y := view_size.y / css_size.y
 	var text_scale := minf(scale_x, scale_y)
-	var panel_height := 192.0 * scale_y
+	var portrait := css_size.y > css_size.x
+	var panel_height := (132.0 if portrait else 192.0) * scale_y
 	for panel in [_backing, _panel]:
-		panel.offset_left = 18.0 * scale_x
-		panel.offset_right = -18.0 * scale_x
-		panel.offset_top = -panel_height - 10.0 * scale_y
-		panel.offset_bottom = -10.0 * scale_y
-	_speaker.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 * text_scale)))
-	_category.add_theme_font_size_override("font_size", maxi(12, roundi(11.0 * text_scale)))
-	_source.add_theme_font_size_override("font_size", maxi(12, roundi(10.0 * text_scale)))
-	_body.add_theme_font_size_override("font_size", maxi(20, roundi(18.0 * text_scale)))
-	_body.custom_minimum_size.y = 52.0 * scale_y
+		panel.offset_left = (10.0 if portrait else 18.0) * scale_x
+		panel.offset_right = -(10.0 if portrait else 18.0) * scale_x
+		if portrait:
+			panel.anchor_top = 0.0
+			panel.anchor_bottom = 0.0
+			var top := maxf(_safe_top_in_css() + 8.0, css_size.y * 0.28)
+			panel.offset_top = top * scale_y
+			panel.offset_bottom = panel.offset_top + panel_height
+		else:
+			panel.anchor_top = 1.0
+			panel.anchor_bottom = 1.0
+			panel.offset_top = -panel_height - 10.0 * scale_y
+			panel.offset_bottom = -10.0 * scale_y
+	_speaker.add_theme_font_size_override("font_size", maxi(18, roundi((19.0 if portrait else 18.0) * text_scale)))
+	_category.add_theme_font_size_override("font_size", maxi(14, roundi((13.0 if portrait else 11.0) * text_scale)))
+	_source.add_theme_font_size_override("font_size", maxi(12, roundi((12.0 if portrait else 10.0) * text_scale)))
+	_body.add_theme_font_size_override("font_size", maxi(20, roundi((20.0 if portrait else 18.0) * text_scale)))
+	_body.custom_minimum_size.y = (66.0 if portrait else 52.0) * scale_y
+	if portrait:
+		_speaker.custom_minimum_size.x = 76.0 * scale_x
+		_source.custom_minimum_size.x = 92.0 * scale_x
+		_margin.add_theme_constant_override("margin_left", roundi(10.0 * scale_x))
+		_margin.add_theme_constant_override("margin_right", roundi(10.0 * scale_x))
+		_margin.add_theme_constant_override("margin_top", roundi(6.0 * scale_y))
+		_margin.add_theme_constant_override("margin_bottom", roundi(6.0 * scale_y))
+	else:
+		_speaker.custom_minimum_size.x = 120.0
+		_source.custom_minimum_size.x = 280.0
+		_margin.add_theme_constant_override("margin_left", 20)
+		_margin.add_theme_constant_override("margin_right", 20)
+		_margin.add_theme_constant_override("margin_top", 12)
+		_margin.add_theme_constant_override("margin_bottom", 10)
+
+
+func _safe_top_in_css() -> float:
+	if not OS.has_feature("web"):
+		return 0.0
+	var raw: Variant = JavaScriptBridge.eval(
+		"""(() => { const e=document.createElement('div'); e.style.cssText='position:fixed;inset:0;visibility:hidden;padding-top:env(safe-area-inset-top)'; document.body.appendChild(e); const n=parseFloat(getComputedStyle(e).paddingTop)||0; e.remove(); return n; })()""",
+		true
+	)
+	return maxf(0.0, float(raw))
 
 
 func show_line(line: Dictionary) -> void:

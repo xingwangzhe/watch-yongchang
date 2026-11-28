@@ -8,6 +8,7 @@ const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const GOLD := Color("#e1b35a")
 const PAPER := Color("#efe1c2")
 const JOYSTICK_RADIUS := 68.0
+const JOYSTICK_ICON := preload("res://assets/icons/game_icons/card_compass.svg")
 const INTERACT_SIZE := Vector2(156.0, 82.0)
 
 var enabled := false
@@ -18,6 +19,7 @@ var _move_point := Vector2.ZERO
 var _scale_x := 1.0
 var _scale_y := 1.0
 var _joystick_radius := JOYSTICK_RADIUS
+var _safe_bottom := 0.0
 
 
 func _ready() -> void:
@@ -38,6 +40,7 @@ func _apply_layout(view_size: Vector2, css_size: Vector2) -> void:
 		return
 	_scale_x = view_size.x / css_size.x
 	_scale_y = view_size.y / css_size.y
+	_safe_bottom = _read_safe_bottom_inset() * _scale_y
 	_joystick_radius = JOYSTICK_RADIUS * minf(_scale_x, _scale_y)
 	if _move_touch < 0:
 		_move_center = _joystick_rest_position()
@@ -88,17 +91,30 @@ func _update_move(position: Vector2) -> void:
 func _interact_rect() -> Rect2:
 	var size_value := _interact_size()
 	return Rect2(
-		Vector2(size.x - size_value.x - 18.0 * _scale_x, size.y - size_value.y - _bottom_inset() * _scale_y),
+		Vector2(size.x - size_value.x - 18.0 * _scale_x, size.y - size_value.y - _bottom_inset() * _scale_y - _safe_bottom),
 		size_value
 	)
 
 
 func _interact_size() -> Vector2:
-	return INTERACT_SIZE * Vector2(_scale_x, _scale_y)
+	var css := _css_view_size()
+	var portrait := css.y > css.x
+	var design_size := Vector2(176.0, 94.0) if portrait else INTERACT_SIZE
+	return design_size * Vector2(_scale_x, _scale_y)
 
 
 func _joystick_rest_position() -> Vector2:
-	return Vector2(18.0 * _scale_x + _joystick_radius, size.y - _bottom_inset() * _scale_y - _joystick_radius)
+	return Vector2(18.0 * _scale_x + _joystick_radius, size.y - _bottom_inset() * _scale_y - _safe_bottom - _joystick_radius)
+
+
+func _read_safe_bottom_inset() -> float:
+	if not OS.has_feature("web"):
+		return 0.0
+	var raw: Variant = JavaScriptBridge.eval(
+		"""(() => { const e=document.createElement('div'); e.style.cssText='position:fixed;inset:0;visibility:hidden;padding-bottom:env(safe-area-inset-bottom)'; document.body.appendChild(e); const n=parseFloat(getComputedStyle(e).paddingBottom)||0; e.remove(); return n; })()""",
+		true
+	)
+	return float(raw) * _scale_y
 
 
 func _bottom_inset() -> float:
@@ -113,11 +129,17 @@ func _draw() -> void:
 	var stick := _move_point if _move_touch >= 0 else rest
 	draw_circle(rest, _joystick_radius, Color(0.02, 0.03, 0.03, 0.34))
 	draw_arc(rest, _joystick_radius, 0.0, TAU, 40, Color(GOLD, 0.72), 2.0, true)
-	draw_circle(stick, 27.0 * minf(_scale_x, _scale_y), Color(GOLD, 0.34))
-	draw_arc(stick, 27.0 * minf(_scale_x, _scale_y), 0.0, TAU, 24, Color(PAPER, 0.9), 2.0, true)
+	var icon_scale := minf(_scale_x, _scale_y)
+	var base_size := Vector2.ONE * 48.0 * icon_scale
+	draw_texture_rect(JOYSTICK_ICON, Rect2(rest - base_size * 0.5, base_size), false, Color(GOLD, 0.60))
+	var knob_radius := 30.0 * icon_scale
+	draw_circle(stick, knob_radius, Color(0.02, 0.03, 0.03, 0.96))
+	draw_arc(stick, knob_radius, 0.0, TAU, 24, Color(PAPER, 0.96), 2.0 * icon_scale, true)
+	var thumb_size := Vector2.ONE * 40.0 * icon_scale
+	draw_texture_rect(JOYSTICK_ICON, Rect2(stick - thumb_size * 0.5, thumb_size), false, Color(PAPER))
 	var button := _interact_rect()
 	draw_rect(button, Color(0.04, 0.05, 0.05, 0.76), true)
 	draw_rect(button, Color(GOLD, 0.9), false, 2.0)
 	var text_scale := minf(_scale_x, _scale_y)
-	draw_string(UI_FONT, button.position + Vector2(0.0, button.size.y * 0.60), Locale.t("prologue.touch_interact"), HORIZONTAL_ALIGNMENT_CENTER, button.size.x, maxi(16, roundi(20.0 * text_scale)), PAPER)
-	draw_string(UI_FONT, rest + Vector2(-_joystick_radius, _joystick_radius + 21.0 * text_scale), Locale.t("prologue.touch_move"), HORIZONTAL_ALIGNMENT_CENTER, _joystick_radius * 2.0, maxi(14, roundi(15.0 * text_scale)), PAPER)
+	draw_string(UI_FONT, button.position + Vector2(0.0, button.size.y * 0.60), Locale.t("prologue.touch_interact"), HORIZONTAL_ALIGNMENT_CENTER, button.size.x, maxi(20, roundi(26.0 * text_scale)), PAPER)
+	draw_string(UI_FONT, rest + Vector2(-_joystick_radius, _joystick_radius + 25.0 * text_scale), Locale.t("prologue.touch_move"), HORIZONTAL_ALIGNMENT_CENTER, _joystick_radius * 2.0, maxi(18, roundi(20.0 * text_scale)), PAPER)

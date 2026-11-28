@@ -216,7 +216,7 @@ func test_portrait_story_card_stays_above_touch_controls() -> void:
 	assert_lt(panel_bottom_css, css_size.y * 0.60, "story panel must leave the joystick and attack deck unobstructed")
 
 
-func test_portrait_hud_right_column_stays_inside_mobile_viewport() -> void:
+func test_portrait_hud_stacks_readable_status_and_exposes_pause_button() -> void:
 	var hud := HudScript.new()
 	add_child(hud)
 	await wait_process_frames(2)
@@ -224,16 +224,28 @@ func test_portrait_hud_right_column_stays_inside_mobile_viewport() -> void:
 	var css_size := Vector2(390.0, 844.0)
 	hud.call("_apply_responsive_layout_for", view_size, css_size)
 	var root := hud.get("_root") as Control
-	var left_hp := root.get_node("TopLeftChip") as Control
-	var right_timer := root.get_node("TimerChip") as Control
-	var right_score := root.get_node("ScoreChip") as Control
-	var right_scales := root.get_node("ScaleChip") as Control
-	var right_columns: Array[Control] = [right_timer, right_score, right_scales]
-	for control in right_columns:
+	var stacked_status: Array[Control] = [
+		root.get_node("TopLeftChip"),
+		root.get_node("TimerChip"),
+		root.get_node("AttackModeChip"),
+		root.get_node("ScoreChip"),
+		root.get_node("OilChip"),
+		root.get_node("ScaleChip"),
+	]
+	for index in stacked_status.size():
+		var control := stacked_status[index]
 		var rect: Rect2 = control.get_global_rect()
 		assert_gte(rect.position.x, 0.0, "%s must not be clipped at the left edge" % control.name)
 		assert_lte(rect.end.x, view_size.x, "%s must stay inside the portrait viewport" % control.name)
-	assert_lt(left_hp.get_global_rect().end.x, right_timer.get_global_rect().position.x)
+		if index > 0:
+			var previous: Rect2 = stacked_status[index - 1].get_global_rect()
+			assert_gte(rect.position.y, previous.end.y, "%s must follow the previous status row" % control.name)
+	var pause_button := root.get_node("MobilePauseButton") as Button
+	assert_true(pause_button.visible, "portrait battle must expose a touch pause entry")
+	var pause_events: Array[bool] = []
+	hud.pause_requested.connect(func() -> void: pause_events.append(true))
+	pause_button.pressed.emit()
+	assert_eq(pause_events.size(), 1, "pause button must emit pause_requested")
 	hud.free()
 
 

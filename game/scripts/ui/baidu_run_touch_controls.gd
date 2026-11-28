@@ -109,21 +109,30 @@ func _draw() -> void:
 		return
 	var rest := _baidu_joystick_center()
 	var stick := _move_point if _move_touch >= 0 else rest
-	draw_circle(rest, joystick_radius, Color(0.02, 0.03, 0.03, 0.34))
-	draw_arc(rest, joystick_radius, 0.0, TAU, 40, Color(GOLD, 0.72), 2.0, true)
-	draw_circle(stick, 26.0 * ui_scale, Color(GOLD, 0.36))
-	draw_arc(stick, 26.0 * ui_scale, 0.0, TAU, 24, Color(PAPER, 0.9), 2.0, true)
-	_draw_button("attack", attack_radius, Locale.t("touch.attack"), VERMILION)
-	_draw_button("dash", dash_radius, Locale.t("touch.dash"), GOLD)
-	_draw_button("auto", auto_radius, Locale.t("touch.auto"), BAIDU_JADE)
+	draw_circle(rest, joystick_radius + 8.0 * ui_scale, Color(0.01, 0.02, 0.02, 0.48))
+	draw_arc(rest, joystick_radius, 0.0, TAU, 48, Color(GOLD, 0.68), 1.5 * ui_scale, true)
+	var knob_radius := 28.0 * ui_scale
+	draw_circle(stick, knob_radius, Color(0.03, 0.04, 0.04, 0.96))
+	draw_arc(stick, knob_radius, 0.0, TAU, 32, Color(GOLD, 0.96), 2.5 * ui_scale, true)
+	_draw_atlas_icon(JOYSTICK_ICON, stick, 30.0 * ui_scale, PAPER)
+	_draw_button("attack", attack_radius, Locale.t("touch.attack"), VERMILION, ATTACK_ICON)
+	_draw_button("dash", dash_radius, Locale.t("touch.dash"), GOLD, DASH_ICON)
+	_draw_button("auto", auto_radius, Locale.t("touch.auto"), BAIDU_JADE, AUTO_ICON)
 
 
-func _draw_button(kind: String, radius: float, label: String, color: Color) -> void:
+func _draw_button(kind: String, radius: float, label: String, color: Color, icon: Texture2D) -> void:
 	var center := _button_center(kind)
 	var scaled_radius := radius
-	draw_circle(center, scaled_radius, Color(color, 0.32))
-	draw_arc(center, scaled_radius, 0.0, TAU, 32, Color(color, 0.88), 2.0, true)
-	draw_string(UI_FONT, center + Vector2(-scaled_radius, 5.0), label, HORIZONTAL_ALIGNMENT_CENTER, scaled_radius * 2.0, 14, PAPER)
+	draw_circle(center, scaled_radius + 7.0 * ui_scale, Color(0.01, 0.02, 0.02, 0.48))
+	draw_circle(center, scaled_radius, Color(0.09, 0.06, 0.03, 0.88))
+	draw_arc(center, scaled_radius, 0.0, TAU, 40, Color(color, 0.94), 3.0 * ui_scale, true)
+	_draw_atlas_icon(icon, center, minf(42.0, scaled_radius * 1.3), PAPER)
+	draw_string(UI_FONT, center + Vector2(-scaled_radius, scaled_radius + 23.0 * ui_scale), label, HORIZONTAL_ALIGNMENT_CENTER, scaled_radius * 2.0, maxi(16, roundi(13.0 * ui_scale)), PAPER)
+
+
+func _draw_atlas_icon(icon: Texture2D, center: Vector2, size_css: float, tint: Color) -> void:
+	var icon_size := Vector2.ONE * size_css * ui_scale
+	draw_texture_rect(icon, Rect2(center - icon_size * 0.5, icon_size), false, tint)
 
 
 func release_all() -> void:

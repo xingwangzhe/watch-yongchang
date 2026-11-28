@@ -5,6 +5,7 @@ const DEBUG_SCENES := [
 	"res://scenes/debug/terrain_lab.tscn",
 	"res://scenes/debug/enemy_animation_lab.tscn",
 	"res://scenes/debug/attack_feedback_lab.tscn",
+	"res://scenes/debug/shop_lab.tscn",
 	"res://scenes/components/battle_debug_panel.tscn",
 ]
 

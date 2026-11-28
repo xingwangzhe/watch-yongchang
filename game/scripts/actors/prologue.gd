@@ -137,7 +137,10 @@ func _try_interact() -> void:
 	var marker_id := _next_objective_marker()
 	if marker_id.is_empty():
 		return
-	if _player_pos.distance_to(_marker_position(marker_id)) > 70.0:
+	var interaction_range := 70.0
+	if _is_portrait_view():
+		interaction_range = 140.0
+	if _player_pos.distance_to(_marker_position(marker_id)) > interaction_range:
 		_objective.text = Locale.t("prologue.too_far")
 		_interaction_hint_timer.start(1.4)
 		return
@@ -324,26 +327,41 @@ func _apply_ui_layout(view_size: Vector2, css_size: Vector2) -> void:
 	# Canvas coordinates are larger than CSS pixels on narrow portrait screens.
 	# Scale both type and hit areas by that ratio so the rendered controls stay legible.
 	var margin_x := 18.0 * scale_x
-	var title_y := 20.0 * scale_y
-	_title_label.add_theme_font_size_override("font_size", maxi(28, roundi(26.0 * text_scale)))
-	UILayout.place(_title_label, margin_x, title_y, maxf(200.0, view_size.x - margin_x * 2.0), 42.0 * scale_y)
-	_subtitle_label.add_theme_font_size_override("font_size", maxi(18, roundi(16.0 * text_scale)))
-	UILayout.place(_subtitle_label, margin_x, title_y + 48.0 * scale_y, view_size.x - margin_x * 2.0, 68.0 * scale_y)
-	UILayout.place(_rule_line, margin_x, title_y + 122.0 * scale_y, 180.0 * scale_x, 3.0 * scale_y)
-	_source_label.add_theme_font_size_override("font_size", maxi(12, roundi(11.0 * text_scale)))
-	UILayout.place(_source_label, margin_x, title_y + 132.0 * scale_y, view_size.x - margin_x * 2.0, 56.0 * scale_y)
-	_objective.add_theme_font_size_override("font_size", maxi(18, roundi(16.0 * text_scale)))
+	var safe_top := 0.0
+	var safe_bottom := 0.0
+	if OS.has_feature("web"):
+		var raw_safe: Variant = JavaScriptBridge.eval(
+			"""(() => { const e=document.createElement('div'); e.style.cssText='position:fixed;inset:0;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)'; document.body.appendChild(e); const s=getComputedStyle(e); const n=[s.paddingTop,s.paddingBottom].map(v=>parseFloat(v)||0); e.remove(); return JSON.stringify(n); })()""",
+			true
+		)
+		var safe_values: Variant = JSON.parse_string(str(raw_safe))
+		if safe_values is Array and safe_values.size() >= 2:
+			safe_top = float(safe_values[0]) * scale_y
+			safe_bottom = float(safe_values[1]) * scale_y
+	var title_y := maxf(16.0, safe_top + 10.0 * scale_y)
+	_title_label.add_theme_font_size_override("font_size", maxi(30, roundi(28.0 * text_scale)))
+	var top_button_w := minf(120.0 * scale_x, view_size.x * 0.32)
+	UILayout.place(_title_label, margin_x, title_y, maxf(160.0 * scale_x, view_size.x - margin_x * 2.0 - top_button_w - 12.0 * scale_x), 44.0 * scale_y)
+	_subtitle_label.add_theme_font_size_override("font_size", maxi(20, roundi(18.0 * text_scale)))
+	_subtitle_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UILayout.place(_subtitle_label, margin_x, title_y + 48.0 * scale_y, view_size.x - margin_x * 2.0, 58.0 * scale_y)
+	UILayout.place(_rule_line, margin_x, title_y + 112.0 * scale_y, 180.0 * scale_x, 3.0 * scale_y)
+	_source_label.add_theme_font_size_override("font_size", maxi(14, roundi(13.0 * text_scale)))
+	_source_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UILayout.place(_source_label, margin_x, title_y + 120.0 * scale_y, view_size.x - margin_x * 2.0, 46.0 * scale_y)
+	_objective.add_theme_font_size_override("font_size", maxi(20, roundi(18.0 * text_scale)))
 	_objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	UILayout.place(_objective, margin_x, view_size.y - 380.0 * scale_y, view_size.x - margin_x * 2.0, 56.0 * scale_y)
-	_progress.add_theme_font_size_override("font_size", maxi(14, roundi(12.0 * text_scale)))
-	UILayout.place(_progress, margin_x, view_size.y - 224.0 * scale_y, view_size.x - margin_x * 2.0, 38.0 * scale_y)
+	_objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UILayout.place(_objective, margin_x, view_size.y - 420.0 * scale_y - safe_bottom, view_size.x - margin_x * 2.0, 72.0 * scale_y)
+	_progress.add_theme_font_size_override("font_size", maxi(16, roundi(14.0 * text_scale)))
+	UILayout.place(_progress, margin_x, view_size.y - (230.0 * scale_y + safe_bottom), view_size.x - margin_x * 2.0, 42.0 * scale_y)
 	_hint_label.visible = false
 	var button_w := minf(156.0 * scale_x, view_size.x * 0.35)
-	var button_h := 44.0 * scale_y
-	_skip.add_theme_font_size_override("font_size", maxi(14, roundi(14.0 * text_scale)))
-	UILayout.place(_skip, view_size.x - margin_x - button_w, 16.0 * scale_y, button_w, button_h)
-	_continue.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 * text_scale)))
-	UILayout.place(_continue, (view_size.x - button_w * 1.45) * 0.5, view_size.y - 290.0 * scale_y, button_w * 1.45, button_h)
+	var button_h := 48.0 * scale_y
+	_skip.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 * text_scale)))
+	UILayout.place(_skip, view_size.x - margin_x - button_w, title_y, button_w, button_h)
+	_continue.add_theme_font_size_override("font_size", maxi(18, roundi(18.0 * text_scale)))
+	UILayout.place(_continue, (view_size.x - button_w * 1.45) * 0.5, view_size.y - (290.0 * scale_y + safe_bottom), button_w * 1.45, button_h)
 
 
 func _draw() -> void:
@@ -473,18 +491,27 @@ func _draw_militia() -> void:
 
 func _draw_tanghe() -> void:
 	var bob := sin(_time * 4.0) * 2.0
-	draw_circle(_player_pos + Vector2(0, 20), 24.0, Color(0, 0, 0, 0.26))
-	draw_circle(_player_pos, 48.0, Color(0.94, 0.70, 0.30, 0.055))
+	var portrait := _is_portrait_view()
+	var character_scale := 2.0 if portrait else 1.0
+	var character_size := 80.0 * character_scale
+	draw_circle(_player_pos + Vector2(0, 20) * character_scale, 24.0 * character_scale, Color(0, 0, 0, 0.26))
+	draw_circle(_player_pos, 48.0 * character_scale, Color(0.94, 0.70, 0.30, 0.055))
 	_draw_sprite_sheet_frame(
 		_tanghe_idle,
 		int(_time * 6.0),
 		_tanghe_frames,
-		Rect2(_player_pos - Vector2(40, 46) + Vector2(0, bob), Vector2(80, 80)),
+		Rect2(_player_pos - Vector2(character_size * 0.5, character_size * 0.575) + Vector2(0, bob * character_scale), Vector2.ONE * character_size),
 		Color(1.05, 0.98, 0.82, 1.0),
 		_tanghe_rows, 0
 	)
-	draw_circle(_player_pos + Vector2(0, -45), 5.0, Color(1.0, 0.81, 0.42, 0.55))
-	draw_string(UI_FONT, _player_pos + Vector2(-40, 60), Locale.t("prologue.character_tanghe"), HORIZONTAL_ALIGNMENT_CENTER, 80, 14, Color(GOLD, 0.85))
+	draw_circle(_player_pos + Vector2(0, -45 * character_scale), 5.0 * character_scale, Color(1.0, 0.81, 0.42, 0.55))
+	var label_size := 20 if portrait else 14
+	draw_string(UI_FONT, _player_pos + Vector2(-character_size * 0.5, character_size * 0.75), Locale.t("prologue.character_tanghe"), HORIZONTAL_ALIGNMENT_CENTER, character_size, label_size, Color(GOLD, 0.95))
+
+
+func _is_portrait_view() -> bool:
+	var view_size := get_viewport().get_visible_rect().size
+	return view_size.y > view_size.x
 
 
 func _draw_sprite_sheet_frame(

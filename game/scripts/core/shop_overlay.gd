@@ -21,6 +21,16 @@ var _reroll_button: Button
 var _continue_button: Button
 var _cards: Array[Button] = []
 var _offers: Array[Dictionary] = []
+var _panel: PanelContainer
+var _column: VBoxContainer
+var _header: HBoxContainer
+var _heading: VBoxContainer
+var _wallet: VBoxContainer
+var _grid: GridContainer
+var _scroll: ScrollContainer
+var _footer: VBoxContainer
+var _action_row: HBoxContainer
+var _portrait_layout := false
 
 
 func _ready() -> void:
@@ -30,6 +40,8 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
 	visible = false
+	get_viewport().size_changed.connect(_apply_responsive_layout)
+	_apply_responsive_layout()
 
 
 func show_shop(
@@ -135,46 +147,55 @@ func _build() -> void:
 	lantern_glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(lantern_glow)
 
-	var panel := PanelContainer.new()
-	UILayout.place(panel, 32, 18, 1216, 684, 0.5, 0.5)
-	panel.add_theme_stylebox_override("panel", _panel_style())
-	add_child(panel)
-	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 8)
-	panel.add_child(column)
+	_panel = PanelContainer.new()
+	UILayout.place(_panel, 32, 18, 1216, 684, 0.5, 0.5)
+	_panel.add_theme_stylebox_override("panel", _panel_style())
+	add_child(_panel)
+	_column = VBoxContainer.new()
+	_column.add_theme_constant_override("separation", 8)
+	_panel.add_child(_column)
 
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 14)
-	column.add_child(header)
-	var heading := VBoxContainer.new()
-	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(heading)
+	_header = HBoxContainer.new()
+	_header.add_theme_constant_override("separation", 14)
+	_column.add_child(_header)
+	_heading = VBoxContainer.new()
+	_heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_header.add_child(_heading)
 	_title = _label(Locale.t("shop.title"), 35, GOLD)
-	heading.add_child(_title)
+	_heading.add_child(_title)
 	_subtitle = _label(Locale.t("shop.subtitle"), 13, Color(MUTED, 0.82))
-	heading.add_child(_subtitle)
-	var wallet := VBoxContainer.new()
-	wallet.custom_minimum_size = Vector2(230, 58)
-	header.add_child(wallet)
+	_heading.add_child(_subtitle)
+	_wallet = VBoxContainer.new()
+	_wallet.custom_minimum_size = Vector2(230, 58)
+	_header.add_child(_wallet)
 	_coin_label = _label("", 20, GOLD)
 	_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	wallet.add_child(_coin_label)
+	_wallet.add_child(_coin_label)
 	_merc_label = _label("", 11, Color(PAPER, 0.72))
 	_merc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_merc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	wallet.add_child(_merc_label)
+	_wallet.add_child(_merc_label)
 
 	var rule := ColorRect.new()
 	rule.color = Color(GOLD, 0.28)
 	rule.custom_minimum_size = Vector2(0, 1)
-	column.add_child(rule)
+	_column.add_child(rule)
 
-	var grid := GridContainer.new()
-	grid.columns = 4
-	grid.add_theme_constant_override("h_separation", 10)
-	grid.add_theme_constant_override("v_separation", 10)
-	grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	column.add_child(grid)
+	_scroll = ScrollContainer.new()
+	_scroll.name = "OfferScroll"
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_column.add_child(_scroll)
+	_grid = GridContainer.new()
+	_grid.name = "OfferGrid"
+	_grid.columns = 4
+	_grid.add_theme_constant_override("h_separation", 10)
+	_grid.add_theme_constant_override("v_separation", 10)
+	_grid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(_grid)
 	for i in range(12):
 		var card := Button.new()
 		card.name = "ShopCard%d" % (i + 1)
@@ -195,23 +216,203 @@ func _build() -> void:
 			_card_style(Color(0.082, 0.074, 0.050, 1.0), Color(GOLD, 1.0))
 		)
 		card.pressed.connect(_choose.bind(i))
-		grid.add_child(card)
+		_grid.add_child(card)
 		_cards.append(card)
 		_build_card(card, i)
 
-	var footer := HBoxContainer.new()
-	footer.add_theme_constant_override("separation", 12)
-	column.add_child(footer)
+	_footer = VBoxContainer.new()
+	_footer.add_theme_constant_override("separation", 6)
+	_column.add_child(_footer)
 	_hint = _label(Locale.t("shop.hint"), 12, Color(MUTED, 0.66))
 	_hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	footer.add_child(_hint)
+	_footer.add_child(_hint)
+	_action_row = HBoxContainer.new()
+	_action_row.add_theme_constant_override("separation", 12)
+	_footer.add_child(_action_row)
 	_reroll_button = _button(Locale.t("shop.reroll", {"cost": 0}), false)
 	_reroll_button.pressed.connect(func() -> void: reroll_requested.emit())
-	footer.add_child(_reroll_button)
+	_action_row.add_child(_reroll_button)
 	_continue_button = _button(Locale.t("shop.continue"), true)
 	_continue_button.pressed.connect(func() -> void: closed.emit())
-	footer.add_child(_continue_button)
+	_action_row.add_child(_continue_button)
+	_apply_responsive_layout()
+
+
+func _apply_responsive_layout() -> void:
+	if not is_instance_valid(_panel) or not _panel.is_inside_tree():
+		return
+	var viewport_size := get_viewport_rect().size
+	var screen_size := _display_size()
+	_portrait_layout = screen_size.y > screen_size.x
+	var scale := UILayout.display_scale(viewport_size, screen_size)
+	if _portrait_layout:
+		var inset := UILayout.display_units(8.0, scale)
+		_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_panel.offset_left = inset
+		_panel.offset_top = inset
+		_panel.offset_right = -inset
+		_panel.offset_bottom = -inset
+		_column.add_theme_constant_override("separation", int(UILayout.display_units(6.0, scale)))
+		_header.add_theme_constant_override("separation", int(UILayout.display_units(6.0, scale)))
+		if _wallet.get_parent() != _heading:
+			_wallet.get_parent().remove_child(_wallet)
+			_heading.add_child(_wallet)
+		_wallet.custom_minimum_size = Vector2.ZERO
+		_wallet.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		_merc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		_title.add_theme_font_size_override("font_size", maxi(26, roundi(30.0 / scale)))
+		_subtitle.add_theme_font_size_override("font_size", maxi(15, roundi(15.0 / scale)))
+		_coin_label.add_theme_font_size_override("font_size", maxi(18, roundi(20.0 / scale)))
+		_merc_label.add_theme_font_size_override("font_size", maxi(14, roundi(14.0 / scale)))
+		_grid.columns = 1
+		_grid.add_theme_constant_override("h_separation", 0)
+		_grid.add_theme_constant_override("v_separation", int(UILayout.display_units(7.0, scale)))
+		_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		var card_width := maxf(0.0, viewport_size.x - inset * 2.0 - UILayout.display_units(44.0, scale))
+		var card_height := UILayout.display_units(170.0, scale)
+		for i in range(_cards.size()):
+			var card := _cards[i]
+			card.custom_minimum_size = Vector2(card_width, card_height)
+			_layout_mobile_card(card, card_width, card_height, scale)
+		_hint.add_theme_font_size_override("font_size", maxi(14, roundi(14.0 / scale)))
+		_action_row.add_theme_constant_override("separation", int(UILayout.display_units(8.0, scale)))
+		_reroll_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_continue_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_reroll_button.custom_minimum_size = Vector2(0.0, UILayout.display_units(48.0, scale))
+		_continue_button.custom_minimum_size = Vector2(0.0, UILayout.display_units(48.0, scale))
+		_reroll_button.add_theme_font_override("font", UI_FONT)
+		_continue_button.add_theme_font_override("font", UI_FONT)
+		var action_font := maxi(18, roundi(17.0 / scale))
+		_reroll_button.add_theme_font_size_override("font_size", action_font)
+		_continue_button.add_theme_font_size_override("font_size", action_font)
+	else:
+		_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_panel.offset_left = 0.0
+		_panel.offset_top = 0.0
+		_panel.offset_right = 0.0
+		_panel.offset_bottom = 0.0
+		UILayout.place(_panel, 32, 18, 1216, 684, 0.5, 0.5)
+		_column.add_theme_constant_override("separation", 8)
+		_grid.columns = 4
+		_grid.add_theme_constant_override("h_separation", 10)
+		_grid.add_theme_constant_override("v_separation", 10)
+		for card in _cards:
+			card.custom_minimum_size = Vector2(272, 168)
+			_layout_desktop_card(card)
+		if _wallet.get_parent() != _header:
+			_wallet.get_parent().remove_child(_wallet)
+			_header.add_child(_wallet)
+		_title.add_theme_font_size_override("font_size", 35)
+		_subtitle.add_theme_font_size_override("font_size", 13)
+		_coin_label.add_theme_font_size_override("font_size", 20)
+		_merc_label.add_theme_font_size_override("font_size", 11)
+		_hint.add_theme_font_size_override("font_size", 12)
+		_wallet.custom_minimum_size = Vector2(230, 58)
+		_wallet.size_flags_horizontal = Control.SIZE_SHRINK_END
+		_coin_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_merc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		_footer.add_theme_constant_override("separation", 0)
+		_action_row.add_theme_constant_override("separation", 12)
+		_reroll_button.custom_minimum_size = Vector2(168, 42)
+		_continue_button.custom_minimum_size = Vector2(168, 42)
+		_reroll_button.add_theme_font_size_override("font_size", 15)
+		_continue_button.add_theme_font_size_override("font_size", 15)
+
+
+func _display_size() -> Vector2:
+	if GameSettings.is_web_platform():
+		var raw := str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true))
+		var parsed: Variant = JSON.parse_string(raw)
+		if parsed is Array and (parsed as Array).size() >= 2:
+			return Vector2(float(parsed[0]), float(parsed[1]))
+	var window_size := Vector2(DisplayServer.window_get_size())
+	if window_size.x > 0.0 and window_size.y > 0.0:
+		return window_size
+	return get_viewport_rect().size
+
+
+func _layout_mobile_card(card: Button, width: float, height: float, scale: float) -> void:
+	var inset := UILayout.display_units(10.0, scale)
+	var right := width - inset
+	var top := UILayout.display_units(7.0, scale)
+	var icon_size := UILayout.display_units(42.0, scale)
+	var card_name := card.name
+	var number := int(card_name.trim_prefix("ShopCard")) - 1
+	var font := maxi(14, roundi(12.0 / scale))
+	for name in ["CardAccent"]:
+		var node := card.find_child(name, true, false) as Control
+		node.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+		node.offset_bottom = UILayout.display_units(3.0, scale)
+	var number_label := card.find_child("Label", true, false) as Label
+	# The first label is the card index; locate all known labels by their node names instead.
+	var kind := card.find_child("CardKind", true, false) as Label
+	var icon_plate := card.find_child("CardIconPlate", true, false) as Control
+	var title := card.find_child("CardTitle", true, false) as Label
+	var description := card.find_child("CardDescription", true, false) as Label
+	var effect := card.find_child("CardEffect", true, false) as Label
+	var meta := card.find_child("CardMeta", true, false) as Label
+	var price := card.find_child("CardPrice", true, false) as Label
+	if is_instance_valid(number_label):
+		UILayout.place_in(number_label, inset, top, UILayout.display_units(22.0, scale), UILayout.display_units(18.0, scale), width, height)
+		_set_label_size(number_label, font)
+	UILayout.place_in(kind, right - UILayout.display_units(120.0, scale), top, UILayout.display_units(120.0, scale), UILayout.display_units(18.0, scale), width, height, 1.0, 0.0)
+	_set_label_size(kind, font)
+	UILayout.place_in(icon_plate, inset, UILayout.display_units(29.0, scale), icon_size, icon_size, width, height)
+	var icon := icon_plate.find_child("CardIcon", true, false) as TextureRect
+	icon.custom_minimum_size = Vector2.ONE * UILayout.display_units(30.0, scale)
+	UILayout.place_in(title, inset + icon_size + UILayout.display_units(8.0, scale), UILayout.display_units(30.0, scale), width - icon_size - inset * 2.0 - UILayout.display_units(8.0, scale), UILayout.display_units(44.0, scale), width, height)
+	_set_label_size(title, maxi(18, roundi(20.0 / scale)))
+	UILayout.place_in(description, inset, UILayout.display_units(77.0, scale), right - inset, UILayout.display_units(30.0, scale), width, height)
+	description.max_lines_visible = 2
+	_set_label_size(description, maxi(15, roundi(15.0 / scale)))
+	UILayout.place_in(effect, inset, UILayout.display_units(108.0, scale), right - inset, UILayout.display_units(24.0, scale), width, height)
+	effect.max_lines_visible = 1
+	_set_label_size(effect, maxi(15, roundi(15.0 / scale)))
+	UILayout.place_in(price, inset, height - UILayout.display_units(27.0, scale), UILayout.display_units(120.0, scale), UILayout.display_units(20.0, scale), width, height)
+	_set_label_size(price, maxi(16, roundi(16.0 / scale)))
+	UILayout.place_in(meta, right - UILayout.display_units(126.0, scale), height - UILayout.display_units(26.0, scale), UILayout.display_units(126.0, scale), UILayout.display_units(19.0, scale), width, height, 1.0, 0.0)
+	_set_label_size(meta, font)
+	card.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 / scale)))
+	card.focus_mode = Control.FOCUS_NONE
+
+
+func _layout_desktop_card(card: Button) -> void:
+	var width := 272.0
+	var height := 168.0
+	var accent := card.find_child("CardAccent", true, false) as ColorRect
+	UILayout.place_in(accent, 0, 0, width, 3, width, height, 0.0, 0.0)
+	var number := card.find_child("Label", true, false) as Label
+	if is_instance_valid(number):
+		UILayout.place_in(number, 7, 5, 18, 16, width, height)
+	var kind := card.find_child("CardKind", true, false) as Label
+	UILayout.place_in(kind, 54, 5, 208, 16, width, height, 1.0, 0.0)
+	var icon_plate := card.find_child("CardIconPlate", true, false) as Control
+	UILayout.place_in(icon_plate, 8, 25, 42, 42, width, height)
+	var title := card.find_child("CardTitle", true, false) as Label
+	UILayout.place_in(title, 57, 23, 205, 24, width, height)
+	var description := card.find_child("CardDescription", true, false) as Label
+	UILayout.place_in(description, 8, 71, 255, 42, width, height)
+	var effect := card.find_child("CardEffect", true, false) as Label
+	UILayout.place_in(effect, 8, 115, 255, 26, width, height)
+	var meta := card.find_child("CardMeta", true, false) as Label
+	UILayout.place_in(meta, 150, 148, 112, 16, width, height, 1.0, 0.0)
+	var price := card.find_child("CardPrice", true, false) as Label
+	UILayout.place_in(price, 8, 144, 138, 20, width, height)
+	_set_label_size(kind, 9)
+	_set_label_size(title, 16)
+	_set_label_size(description, 10)
+	_set_label_size(effect, 10)
+	_set_label_size(meta, 8)
+	_set_label_size(price, 14)
+	card.add_theme_font_size_override("font_size", 14)
+	card.focus_mode = Control.FOCUS_ALL
+
+
+func _set_label_size(label: Label, size: int) -> void:
+	if is_instance_valid(label) and size > 0:
+		label.add_theme_font_size_override("font_size", size)
 
 
 func _build_card(card: Button, index: int) -> void:

@@ -98,7 +98,14 @@ func _draw() -> void:
 		if reduced_motion
 		else Vector2(sin(_time * 0.035) * 5.0, cos(_time * 0.025) * 2.5)
 	)
-	draw_texture_rect(BACKDROP, Rect2(-8.0 + drift.x, -5.0 + drift.y, w + 16.0, h + 10.0), false)
+	if size.y > size.x:
+		var source_size := Vector2(BACKDROP.get_size())
+		var cover_scale := maxf(size.x / source_size.x, size.y / source_size.y)
+		var cover_size := source_size * cover_scale
+		var cover_origin := (size - cover_size) * 0.5 + drift
+		draw_texture_rect(BACKDROP, Rect2(cover_origin, cover_size), false)
+	else:
+		draw_texture_rect(BACKDROP, Rect2(-8.0 + drift.x, -5.0 + drift.y, w + 16.0, h + 10.0), false)
 	_draw_clouds(drift)
 	_draw_waves(drift)
 	_draw_moon_shimmer(drift)

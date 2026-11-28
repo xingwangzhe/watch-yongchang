@@ -30,7 +30,12 @@ var _hint: Label
 var _prev_button: Button
 var _next_button: Button
 var _skip_button: Button
+var _footer: HBoxContainer
 var _tabs: Array[Button] = []
+var _panel: PanelContainer
+var _content_margin: MarginContainer
+var _portrait := false
+var _ui_scale := 1.0
 
 
 func _ready() -> void:
@@ -47,6 +52,8 @@ func _ready() -> void:
 	_build()
 	visible = false
 	Locale.language_changed.connect(_refresh)
+	get_viewport().size_changed.connect(_apply_responsive_layout)
+	_apply_responsive_layout()
 
 
 func open(first_run: bool = false) -> void:
@@ -113,6 +120,9 @@ func _refresh(_code: String = "") -> void:
 	_body.text = Locale.t("tutorial.page%d.body" % page_number)
 	_body.add_theme_font_size_override("font_size", 15 if page_number == 4 else 17)
 	_note.text = Locale.t("tutorial.page%d.note" % page_number)
+	if _portrait:
+		_body.text = Locale.t("tutorial.mobile.page%d.body" % page_number)
+		_note.text = Locale.t("tutorial.mobile.page%d.note" % page_number)
 	_prev_button.disabled = _page == 0
 	if _page == PAGE_COUNT - 1:
 		_next_button.text = Locale.t("tutorial.finish" if _first_run else "tutorial.close")
@@ -126,6 +136,57 @@ func _refresh(_code: String = "") -> void:
 		tab.text = Locale.t("tutorial.tab_%s" % ["controls", "culture", "systems", "attributes"][index])
 		tab.button_pressed = index == _page
 		tab.add_theme_stylebox_override("normal", _tab_style(index == _page))
+	_apply_responsive_layout()
+
+
+func _apply_responsive_layout() -> void:
+	if not is_instance_valid(_panel):
+		return
+	var viewport_size := get_viewport_rect().size
+	var screen_size := Vector2(DisplayServer.window_get_size())
+	if OS.has_feature("web"):
+		var parsed: Variant = JSON.parse_string(str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true)))
+		if parsed is Array and (parsed as Array).size() >= 2:
+			screen_size = Vector2(float(parsed[0]), float(parsed[1]))
+	if screen_size.x <= 0.0 or screen_size.y <= 0.0:
+		screen_size = viewport_size
+	_ui_scale = UILayout.display_scale(viewport_size, screen_size)
+	_portrait = screen_size.y > screen_size.x
+	if _portrait:
+		var margin := UILayout.display_units(10.0, _ui_scale)
+		var top := UILayout.display_units(12.0, _ui_scale)
+		var panel_height := minf(viewport_size.y - top * 2.0, UILayout.display_units(420.0, _ui_scale))
+		top = (viewport_size.y - panel_height) * 0.5
+		UILayout.place(_panel, margin, top, viewport_size.x - margin * 2.0, panel_height)
+		_hint.visible = false
+		_footer.add_theme_constant_override("separation", UILayout.display_units(4.0, _ui_scale))
+		_skip_button.custom_minimum_size = Vector2(88.0 / _ui_scale, UILayout.display_units(48.0, _ui_scale))
+		_prev_button.custom_minimum_size = Vector2(68.0 / _ui_scale, UILayout.display_units(48.0, _ui_scale))
+		_next_button.custom_minimum_size = Vector2(108.0 / _ui_scale, UILayout.display_units(48.0, _ui_scale))
+		for button in [_skip_button, _prev_button, _next_button]:
+			button.add_theme_font_size_override("font_size", maxi(14, roundi(14.0 / _ui_scale)))
+		for tab in _tabs:
+			tab.custom_minimum_size.y = UILayout.display_units(48.0, _ui_scale)
+			tab.add_theme_font_size_override("font_size", maxi(14, roundi(14.0 / _ui_scale)))
+		_body.add_theme_font_size_override("font_size", maxi(17, roundi(17.0 / _ui_scale)))
+		_page_title.add_theme_font_size_override("font_size", maxi(22, roundi(22.0 / _ui_scale)))
+		_title_label.add_theme_font_size_override("font_size", maxi(23, roundi(23.0 / _ui_scale)))
+		_hint.add_theme_font_size_override("font_size", maxi(14, roundi(14.0 / _ui_scale)))
+		_content_margin.add_theme_constant_override("margin_left", roundi(16.0 / _ui_scale))
+		_content_margin.add_theme_constant_override("margin_right", roundi(16.0 / _ui_scale))
+		_content_margin.add_theme_constant_override("margin_top", roundi(12.0 / _ui_scale))
+		_content_margin.add_theme_constant_override("margin_bottom", roundi(10.0 / _ui_scale))
+		var content := _content_margin.get_parent() as Control
+		content.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		_body.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	else:
+		_hint.visible = true
+		UILayout.place(_panel, 120.0, 55.0, 1040.0, 610.0, 0.5, 0.5)
+		_skip_button.custom_minimum_size = Vector2(146.0, 44.0)
+		_prev_button.custom_minimum_size = Vector2(108.0, 44.0)
+		_next_button.custom_minimum_size = Vector2(150.0, 44.0)
+		_title_label.add_theme_font_size_override("font_size", 29)
+		_page_title.add_theme_font_size_override("font_size", 28)
 
 
 func _build() -> void:
@@ -137,6 +198,7 @@ func _build() -> void:
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
 	var panel := PanelContainer.new()
+	_panel = panel
 	panel.name = "TutorialPanel"
 	UILayout.place(panel, 120.0, 55.0, 1040.0, 610.0, 0.5, 0.5)
 	panel.add_theme_stylebox_override("panel", _panel_style())
@@ -196,6 +258,7 @@ func _build() -> void:
 	content.add_theme_stylebox_override("panel", _flat_style(Color(0.025, 0.040, 0.041, 0.82), Color(GOLD, 0.20), 1, 4))
 	column.add_child(content)
 	var content_margin := MarginContainer.new()
+	_content_margin = content_margin
 	content_margin.add_theme_constant_override("margin_left", 24)
 	content_margin.add_theme_constant_override("margin_right", 24)
 	content_margin.add_theme_constant_override("margin_top", 20)
@@ -218,6 +281,7 @@ func _build() -> void:
 	content_column.add_child(_note)
 
 	var footer := HBoxContainer.new()
+	_footer = footer
 	footer.add_theme_constant_override("separation", 10)
 	column.add_child(footer)
 	_skip_button = _button("TutorialSkipButton", Locale.t("tutorial.skip"), false)

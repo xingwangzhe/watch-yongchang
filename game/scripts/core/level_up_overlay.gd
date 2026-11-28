@@ -20,6 +20,13 @@ var _input_locked := false
 var _cards: Array[Button] = []
 var _options: Array[Dictionary] = []
 var _hint_pool := 0
+var _column: VBoxContainer
+var _card_row: HBoxContainer
+var _mobile_scroll: ScrollContainer
+var _mobile_stack: VBoxContainer
+var _card_slots: Array[Control] = []
+var _portrait_layout := false
+var _display_scale := 1.0
 
 
 func _ready() -> void:
@@ -29,6 +36,8 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
+	get_viewport().size_changed.connect(_apply_responsive_layout)
+	_apply_responsive_layout()
 	visible = false
 
 
@@ -150,6 +159,7 @@ func _build() -> void:
 	add_child(right_glow)
 
 	var column := VBoxContainer.new()
+	_column = column
 	UILayout.place(column, 54.0, 24.0, 1172.0, 672.0, 0.5, 0.5)
 	column.add_theme_constant_override("separation", 8)
 	add_child(column)
@@ -165,6 +175,7 @@ func _build() -> void:
 	column.add_child(_pool_label)
 
 	var row := HBoxContainer.new()
+	_card_row = row
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 18)
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -182,10 +193,119 @@ func _build() -> void:
 		row.add_child(card)
 		_cards.append(card)
 		_build_card(card, i)
+		_cache_mobile_card_layout(card)
+		var slot := Control.new()
+		slot.name = "MobileUpgradeCardSlot%d" % (i + 1)
+		slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_card_slots.append(slot)
+
+	_mobile_scroll = ScrollContainer.new()
+	_mobile_scroll.name = "MobileUpgradeScroll"
+	_mobile_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_mobile_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_mobile_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_mobile_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mobile_scroll.visible = false
+	column.add_child(_mobile_scroll)
+	_mobile_stack = VBoxContainer.new()
+	_mobile_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mobile_stack.add_theme_constant_override("separation", 20)
+	_mobile_scroll.add_child(_mobile_stack)
 
 	_hint = _label(Locale.t("levelup.hint", {"pool": 0}), 11, Color(MUTED, 0.58))
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(_hint)
+
+
+func _screen_size() -> Vector2:
+	if OS.has_feature("web"):
+		var parsed: Variant = JSON.parse_string(str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true)))
+		if parsed is Array and (parsed as Array).size() >= 2:
+			var css_size := Vector2(float(parsed[0]), float(parsed[1]))
+			if css_size.x > 0.0 and css_size.y > 0.0:
+				return css_size
+	var window_size := Vector2(DisplayServer.window_get_size())
+	return window_size if window_size.x > 0.0 and window_size.y > 0.0 else get_viewport_rect().size
+
+
+func _apply_responsive_layout() -> void:
+	if not is_instance_valid(_column):
+		return
+	var viewport_size := get_viewport_rect().size
+	var screen_size := _screen_size()
+	_display_scale = UILayout.display_scale(viewport_size, screen_size)
+	_portrait_layout = screen_size.y > screen_size.x
+	if _portrait_layout:
+		var margin := UILayout.display_units(12.0, _display_scale)
+		var top := UILayout.display_units(18.0, _display_scale)
+		var bottom := UILayout.display_units(18.0, _display_scale)
+		UILayout.place(_column, margin, top, viewport_size.x - margin * 2.0, viewport_size.y - top - bottom)
+		_column.add_theme_constant_override("separation", UILayout.display_units(6.0, _display_scale))
+		_title.add_theme_font_size_override("font_size", maxi(28, roundi(30.0 / _display_scale)))
+		_subtitle.add_theme_font_size_override("font_size", maxi(19, roundi(20.0 / _display_scale)))
+		_pool_label.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 / _display_scale)))
+		_hint.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 / _display_scale)))
+		_card_row.visible = false
+		_mobile_scroll.visible = true
+		_hint.visible = false
+		# Resize the actual Controls, rather than scaling their draw transform.
+		# ScrollContainer measures Control sizes and otherwise leaves a narrow hit
+		# region even when the card appears wider.
+		var available_width := maxf(1.0, viewport_size.x - margin * 2.0)
+		var width_scale := available_width / 348.0
+		var height_scale := width_scale * 0.76
+		for index in range(_cards.size()):
+			var card := _cards[index]
+			var slot := _card_slots[index]
+			if slot.get_parent() != _mobile_stack:
+				if card.get_parent() == _card_row:
+					_card_row.remove_child(card)
+				_mobile_stack.add_child(slot)
+				if card.get_parent() != slot:
+					if card.get_parent() != null:
+							card.get_parent().remove_child(card)
+					slot.add_child(card)
+			var card_size := Vector2(available_width, 490.0 * height_scale)
+			card.custom_minimum_size = card_size
+			card.size = card_size
+			card.position = Vector2.ZERO
+			card.scale = Vector2.ONE
+			card.pivot_offset = Vector2.ZERO
+			_apply_mobile_card_layout(card, width_scale, height_scale)
+			slot.custom_minimum_size = card_size
+			slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			slot.size = card_size
+		_card_row.visible = false
+	else:
+		UILayout.place(_column, 54.0, 24.0, 1172.0, 672.0, 0.5, 0.5)
+		_column.add_theme_constant_override("separation", 8)
+		_title.add_theme_font_size_override("font_size", 38)
+		_subtitle.add_theme_font_size_override("font_size", 15)
+		_pool_label.add_theme_font_size_override("font_size", 11)
+		_hint.add_theme_font_size_override("font_size", 11)
+		_hint.visible = true
+		_mobile_scroll.visible = false
+		_card_row.visible = true
+		for index in range(_cards.size()):
+			var card := _cards[index]
+			var slot := _card_slots[index]
+			if card.get_parent() == slot:
+				slot.remove_child(card)
+				_mobile_stack.remove_child(slot)
+				_card_row.add_child(card)
+			card.custom_minimum_size = Vector2(348.0, 490.0)
+			card.scale = Vector2.ONE
+			card.pivot_offset = Vector2.ZERO
+			for node in card.find_children("*", "Control", true, false):
+				var control := node as Control
+				var base_offsets: Vector4 = control.get_meta("mobile_base_offsets", Vector4.ZERO)
+				control.offset_left = base_offsets.x
+				control.offset_top = base_offsets.y
+				control.offset_right = base_offsets.z
+				control.offset_bottom = base_offsets.w
+				control.custom_minimum_size = control.get_meta("mobile_base_minimum", Vector2.ZERO)
+				if control is Label:
+					control.add_theme_font_size_override("font_size", int(control.get_meta("mobile_base_font_size", 12)))
 
 
 func _build_card(card: Button, index: int) -> void:
@@ -293,6 +413,34 @@ func _build_card(card: Button, index: int) -> void:
 	card.add_child(category)
 
 
+func _cache_mobile_card_layout(card: Button) -> void:
+	for node in card.find_children("*", "Control", true, false):
+		var control := node as Control
+		control.set_meta("mobile_base_offsets", Vector4(
+			control.offset_left, control.offset_top,
+			control.offset_right, control.offset_bottom
+		))
+		control.set_meta("mobile_base_minimum", control.custom_minimum_size)
+		if control is Label:
+			control.set_meta("mobile_base_font_size", control.get_theme_font_size("font_size"))
+
+
+func _apply_mobile_card_layout(card: Button, width_scale: float, height_scale: float) -> void:
+	var font_scale := width_scale * 0.88
+	for node in card.find_children("*", "Control", true, false):
+		var control := node as Control
+		var base_offsets: Vector4 = control.get_meta("mobile_base_offsets", Vector4.ZERO)
+		control.offset_left = base_offsets.x * width_scale
+		control.offset_right = base_offsets.z * width_scale
+		control.offset_top = base_offsets.y * height_scale
+		control.offset_bottom = base_offsets.w * height_scale
+		var base_minimum: Vector2 = control.get_meta("mobile_base_minimum", Vector2.ZERO)
+		control.custom_minimum_size = Vector2(base_minimum.x * width_scale, base_minimum.y * height_scale)
+		if control is Label:
+			var base_font_size := float(control.get_meta("mobile_base_font_size", 12))
+			control.add_theme_font_size_override("font_size", maxi(10, roundi(base_font_size * font_scale)))
+
+
 func _apply_option(card: Button, option: Dictionary, index: int) -> void:
 	var family := str(option.get("family", ""))
 	var color := UpgradeCatalog.family_color(family)
@@ -342,12 +490,15 @@ func _apply_option(card: Button, option: Dictionary, index: int) -> void:
 
 func _animate_card(card: Button, index: int) -> void:
 	card.modulate = Color(1, 1, 1, 0)
-	card.scale = Vector2(0.97, 0.97)
+	var target_scale := Vector2.ONE * (348.0 / maxf(1.0, card.custom_minimum_size.x) if _portrait_layout else 1.0)
+	if _portrait_layout:
+		target_scale = card.scale
+	card.scale = target_scale * 0.97
 	card.pivot_offset = card.size * 0.5
 	var tween := create_tween()
 	tween.set_parallel(true)
 	tween.tween_property(card, "modulate:a", 1.0, 0.22).set_delay(float(index) * 0.055)
-	tween.tween_property(card, "scale", Vector2.ONE, 0.24).set_delay(float(index) * 0.055)
+	tween.tween_property(card, "scale", target_scale, 0.24).set_delay(float(index) * 0.055)
 
 
 func _level_pips(level: int, max_level: int) -> String:

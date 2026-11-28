@@ -4,6 +4,7 @@ const ROOMS := [
 	{"title": "地表与河岸", "path": "res://scenes/debug/terrain_lab.tscn", "hint": "固定地图种子 · 地形 / 河岸 / 建筑"},
 	{"title": "敌人移动与攻击", "path": "res://scenes/debug/enemy_animation_lab.tscn", "hint": "完整敌人帧 · 图集行 / 帧号 / 攻击反馈"},
 	{"title": "玩家攻击反馈", "path": "res://scenes/debug/attack_feedback_lab.tscn", "hint": "真实 Battlefield · 特效 / 范围 / 镜头反馈"},
+	{"title": "灯下军市 UI", "path": "res://scenes/debug/shop_lab.tscn", "hint": "独立页面 · 商品卡 / 滚动 / 手机竖屏"},
 ]
 
 

@@ -31,11 +31,15 @@ signal closed
 var _credits: Dictionary = {}
 var _scroll: ScrollContainer
 var _content: VBoxContainer
+var _page_margin: MarginContainer
 var _backdrop: Control
 var _status: Label
 var _progress_fill: ColorRect
 var _about_player: AudioStreamPlayer
 var _about_stream: AudioStream
+var _mobile_portrait := false
+var _display_scale := 1.0
+var _font_size_tag_regex: RegEx
 var _auto_scroll := true
 var _delay_left := START_DELAY
 var _scroll_accum := 0.0
@@ -57,10 +61,14 @@ var defer_content := false
 
 
 func _ready() -> void:
+	_font_size_tag_regex = RegEx.new()
+	_font_size_tag_regex.compile("\\[font_size=(\\d+)\\]")
 	_build_theme()
 	_build_background()
 	_build_roll_shell()
 	_build_chrome()
+	get_viewport().size_changed.connect(_apply_responsive_layout)
+	_apply_responsive_layout()
 	GameSettings.changed.connect(_sync_about_volume)
 	if GameSettings.is_web_platform():
 		_pending_content = true
@@ -287,7 +295,9 @@ func _materialize_slot(index: int) -> void:
 	if not is_instance_valid(slot):
 		return
 	slot.custom_minimum_size.y = 0.0
-	slot.add_child(_create_spec_node(record["spec"] as Dictionary))
+	var spec_node := _create_spec_node(record["spec"] as Dictionary)
+	slot.add_child(spec_node)
+	_apply_spec_text_size(spec_node)
 	record["materialized"] = true
 	_web_slots[index] = record
 
@@ -297,17 +307,24 @@ func _estimate_spec_height(spec: Dictionary) -> float:
 		"line":
 			var font_size := maxi(12, int(spec.get("font_size", 18)))
 			var text := str(spec.get("text", ""))
+			if _mobile_portrait:
+				font_size = maxi(font_size, 16)
+				var css_width := maxf(120.0, get_viewport_rect().size.x * _display_scale - 40.0)
+				var chars_per_line_mobile := maxi(6, int(css_width / float(font_size)))
+				var line_count_mobile := maxi(1, int(ceil(float(text.length()) / float(chars_per_line_mobile))))
+				return UILayout.display_units(float(line_count_mobile * int(ceil(float(font_size) * 1.45)) + 4), _display_scale)
 			var chars_per_line := maxi(12, int(820.0 / float(font_size)))
 			var line_count := maxi(1, int(ceil(float(text.length()) / float(chars_per_line))))
 			return float(line_count * int(ceil(float(font_size) * 1.45))) + 4.0
 		"link":
-			return float(maxi(24, int(spec.get("font_size", 14)))) + 8.0
+			var link_size := maxi(int(spec.get("font_size", 14)), 16) if _mobile_portrait else int(spec.get("font_size", 14))
+			return UILayout.display_units(float(link_size + 12), _display_scale) if _mobile_portrait else float(maxi(24, link_size)) + 8.0
 		"rule":
 			return 1.0
 		"spacer":
 			return float(spec.get("height", 0.0))
 		"rich":
-			return float(spec.get("estimated_height", 120.0))
+			return UILayout.display_units(float(spec.get("estimated_height", 120.0)), _display_scale) if _mobile_portrait else float(spec.get("estimated_height", 120.0))
 	return 8.0
 
 
@@ -415,6 +432,7 @@ func _build_roll_shell() -> void:
 	_scroll.offset_bottom = -56.0
 
 	var page_margin := MarginContainer.new()
+	_page_margin = page_margin
 	page_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	page_margin.add_theme_constant_override("margin_left", 210)
 	page_margin.add_theme_constant_override("margin_right", 210)
@@ -432,6 +450,48 @@ func _build_roll_shell() -> void:
 	_build_index = 0
 	_building = false
 	_ready_for_scroll = false
+
+
+func _apply_responsive_layout() -> void:
+	if not is_instance_valid(_page_margin) or not is_instance_valid(_scroll):
+		return
+	var viewport_size := get_viewport_rect().size
+	var screen_size := Vector2(DisplayServer.window_get_size())
+	if OS.has_feature("web"):
+		var parsed: Variant = JSON.parse_string(str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true)))
+		if parsed is Array and (parsed as Array).size() >= 2:
+			screen_size = Vector2(float(parsed[0]), float(parsed[1]))
+	if screen_size.x <= 0.0 or screen_size.y <= 0.0:
+		screen_size = viewport_size
+	var scale := UILayout.display_scale(viewport_size, screen_size)
+	var portrait := screen_size.y > screen_size.x
+	_mobile_portrait = portrait
+	_display_scale = scale
+	var header := get_node_or_null("AboutHeader") as Label
+	var brand := get_node_or_null("AboutBrand") as Label
+	var footer := get_node_or_null("AboutBackButton") as Button
+	var footer_row := footer.get_parent() as HBoxContainer if is_instance_valid(footer) else null
+	var hint := get_node_or_null("AboutHint") as Label
+	if is_instance_valid(header):
+		UILayout.place(header, UILayout.display_units(18.0, scale), UILayout.display_units(10.0, scale), viewport_size.x - UILayout.display_units(36.0, scale), UILayout.display_units(34.0, scale))
+		header.add_theme_font_size_override("font_size", maxi(19, roundi((22.0 if portrait else 20.0) / scale)))
+	if is_instance_valid(brand):
+		brand.visible = not portrait
+	if is_instance_valid(hint):
+		hint.visible = not portrait
+	if is_instance_valid(footer_row):
+		var footer_h := UILayout.display_units(62.0 if portrait else 40.0, scale)
+		UILayout.place(footer_row, UILayout.display_units(8.0, scale), -footer_h - UILayout.display_units(6.0, scale), viewport_size.x - UILayout.display_units(16.0, scale), footer_h, 0.0, 1.0)
+	_scroll.offset_top = UILayout.display_units(52.0 if portrait else 48.0, scale)
+	_scroll.offset_bottom = -UILayout.display_units(76.0 if portrait else 56.0, scale)
+	_page_margin.add_theme_constant_override("margin_left", int(UILayout.display_units(20.0 if portrait else 72.0, scale)))
+	_page_margin.add_theme_constant_override("margin_right", int(UILayout.display_units(20.0 if portrait else 72.0, scale)))
+	_page_margin.add_theme_constant_override("margin_top", int(UILayout.display_units(28.0, scale)))
+	_page_margin.add_theme_constant_override("margin_bottom", int(UILayout.display_units(72.0 if portrait else 120.0, scale)))
+	if footer is Button and portrait:
+		(footer as Button).custom_minimum_size = Vector2(UILayout.display_units(150.0, scale), UILayout.display_units(50.0, scale))
+		(footer as Button).add_theme_font_size_override("font_size", maxi(18, roundi(17.0 / scale)))
+	_apply_content_text_sizes()
 
 
 func _start_web_roll_build() -> void:
@@ -701,8 +761,11 @@ func _bb_url(text: String, url: String, font_size: int, color: Color) -> String:
 
 
 func _bb_color(text: String, font_size: int, color: Color) -> String:
+	var resolved_size := font_size
+	if _mobile_portrait:
+		resolved_size = roundi(float(maxi(font_size, 16)) / maxf(0.05, _display_scale))
 	return "[font_size=%d][color=#%s]%s[/color][/font_size]" % [
-		font_size,
+		resolved_size,
 		color.to_html(false),
 		_bb_escape(text),
 	]
@@ -1015,7 +1078,9 @@ func _add_rich_block(bbcode: String, entries: int = 1) -> void:
 
 
 func _instantiate_spec(spec: Dictionary) -> void:
-	_content.add_child(_create_spec_node(spec))
+	var node := _create_spec_node(spec)
+	_content.add_child(node)
+	_apply_spec_text_size(node)
 
 
 func _create_spec_node(spec: Dictionary) -> Control:
@@ -1028,20 +1093,36 @@ func _create_spec_node(spec: Dictionary) -> Control:
 			label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			label.add_theme_font_override("font", UI_FONT)
-			label.add_theme_font_size_override("font_size", int(spec.get("font_size", 18)))
+			label.set_meta("about_font_key", "font_size")
+			label.set_meta("about_base_font_size", int(spec.get("font_size", 18)))
 			label.add_theme_color_override("font_color", spec.get("color", PAPER) as Color)
 			var label_name := str(spec.get("name", ""))
 			if not label_name.is_empty():
 				label.name = label_name
 			return label
 		"link":
+			if _mobile_portrait:
+				var rich_link := RichTextLabel.new()
+				rich_link.bbcode_enabled = true
+				rich_link.fit_content = true
+				rich_link.scroll_active = false
+				rich_link.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				rich_link.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				rich_link.mouse_filter = Control.MOUSE_FILTER_PASS
+				rich_link.add_theme_font_override("normal_font", UI_FONT)
+				rich_link.set_meta("about_font_key", "normal_font_size")
+				rich_link.set_meta("about_base_font_size", maxi(int(spec.get("font_size", 14)), 16))
+				rich_link.text = _bb_center(_bb_url(str(spec.get("text", "")), str(spec.get("url", "")), int(spec.get("font_size", 14)), GOLD))
+				rich_link.meta_clicked.connect(_open_url)
+				return rich_link
 			var link := LinkButton.new()
 			link.text = str(spec.get("text", ""))
 			var url := str(spec.get("url", ""))
 			link.tooltip_text = url
 			link.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			link.add_theme_font_override("font", UI_FONT)
-			link.add_theme_font_size_override("font_size", int(spec.get("font_size", 14)))
+			link.set_meta("about_font_key", "font_size")
+			link.set_meta("about_base_font_size", int(spec.get("font_size", 14)))
 			link.add_theme_color_override("font_color", Color(GOLD, 0.76))
 			link.add_theme_color_override("font_hover_color", GOLD)
 			link.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -1069,9 +1150,56 @@ func _create_spec_node(spec: Dictionary) -> Control:
 			rich.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			rich.mouse_filter = Control.MOUSE_FILTER_PASS
 			rich.add_theme_font_override("normal_font", UI_FONT)
-			rich.add_theme_font_size_override("normal_font_size", 16)
+			rich.set_meta("about_font_key", "normal_font_size")
+			rich.set_meta("about_base_font_size", 16)
+			rich.set_meta("about_base_bbcode", str(spec.get("bbcode", "")))
 			rich.add_theme_color_override("default_color", PAPER)
 			rich.meta_clicked.connect(_open_url)
-			rich.text = str(spec.get("bbcode", ""))
+			rich.text = _scale_about_bbcode(str(spec.get("bbcode", "")))
 			return rich
 	return Control.new()
+
+
+func _apply_content_text_sizes() -> void:
+	if not is_instance_valid(_content):
+		return
+	for node in _content.find_children("*", "Control", true, false):
+		_apply_spec_text_size(node)
+
+
+func _apply_spec_text_size(node: Node) -> void:
+	var base_size := int(node.get_meta("about_base_font_size", 0))
+	if base_size <= 0 or not node is Control:
+		return
+	var font_key := str(node.get_meta("about_font_key", "font_size"))
+	var css_size := maxi(base_size, 16) if _mobile_portrait else base_size
+	var logical_size := roundi(float(css_size) / maxf(0.05, _display_scale)) if _mobile_portrait else css_size
+	(node as Control).add_theme_font_size_override(font_key, logical_size)
+	if node is RichTextLabel:
+		var base_bbcode := str(node.get_meta("about_base_bbcode", ""))
+		if not base_bbcode.is_empty():
+			(node as RichTextLabel).text = _scale_about_bbcode(base_bbcode)
+	if node is Label and _mobile_portrait:
+		(node as Label).add_theme_constant_override("line_spacing", roundi(3.0 / maxf(0.05, _display_scale)))
+	elif node is RichTextLabel and _mobile_portrait:
+		(node as RichTextLabel).add_theme_constant_override("line_separation", roundi(3.0 / maxf(0.05, _display_scale)))
+
+
+func _scale_about_bbcode(source: String) -> String:
+	if not _mobile_portrait or _font_size_tag_regex == null:
+		return source
+	var matches := _font_size_tag_regex.search_all(source)
+	if matches.is_empty():
+		return source
+	var result := ""
+	var cursor := 0
+	for found in matches:
+		var start := found.get_start()
+		var end := found.get_end()
+		result += source.substr(cursor, start - cursor)
+		var css_size := maxi(16, int(found.get_string(1)))
+		var logical_size := roundi(float(css_size) / maxf(0.05, _display_scale))
+		result += "[font_size=%d]" % logical_size
+		cursor = end
+	result += source.substr(cursor)
+	return result

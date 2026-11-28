@@ -1,6 +1,8 @@
 class_name RunHUD
 extends CanvasLayer
 
+signal pause_requested
+
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const PANEL_TEXTURE := preload("res://assets/ui/panel_dark.webp")
 const OIL_METER := preload("res://scripts/ui/oil_meter.gd")
@@ -53,6 +55,20 @@ var _slot_style_normal: StyleBoxFlat
 var _slot_style_evolved: StyleBoxFlat
 var _weapon_signature := ""
 var _last_boss_visible := false
+var _pause_button: Button
+var _portrait_layout := false
+var _score_box: VBoxContainer
+var _score_stats_row: HBoxContainer
+var _portrait_resources_row: HBoxContainer
+var _oil_info_row: HBoxContainer
+var _scale_info_row: HBoxContainer
+var _oil_compact_row: HBoxContainer
+var _scale_compact_row: HBoxContainer
+var _oil_box: VBoxContainer
+var _scale_box: VBoxContainer
+var _health_rows_box: BoxContainer
+var _hp_row: HBoxContainer
+var _xp_row: HBoxContainer
 
 
 func _ready() -> void:
@@ -66,13 +82,42 @@ func _apply_responsive_layout() -> void:
 	if not is_instance_valid(_root) or not _root.is_inside_tree():
 		return
 	var viewport_size := _root.get_viewport_rect().size
-	var size := Vector2(DisplayServer.window_get_size())
+	var size := _display_size()
 	_apply_responsive_layout_for(viewport_size, size)
 
 
+func _display_size() -> Vector2:
+	if GameSettings.is_web_platform():
+		var raw := str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true))
+		var parsed: Variant = JSON.parse_string(raw)
+		if parsed is Array and (parsed as Array).size() >= 2:
+			var values: Array = parsed
+			if float(values[0]) > 0.0 and float(values[1]) > 0.0:
+				return Vector2(float(values[0]), float(values[1]))
+	var window_size := Vector2(DisplayServer.window_get_size())
+	if window_size.x > 0.0 and window_size.y > 0.0:
+		return window_size
+	return _root.get_viewport_rect().size
+
+
 func _apply_responsive_layout_for(viewport_size: Vector2, size: Vector2) -> void:
-	if size.x >= size.y:
+	if viewport_size.x >= viewport_size.y:
+		_portrait_layout = false
+		_set_portrait_health_layout(false)
+		_set_portrait_resource_layout(false)
 		UILayout.scale_theme_fonts(_root, 1.0)
+		_pause_button.visible = false
+		_hp_bar.custom_minimum_size = Vector2(196, 12)
+		_xp_bar.custom_minimum_size = Vector2(120, 5)
+		_oil_meter.custom_minimum_size = Vector2(168, 18)
+		_scale_meter.custom_minimum_size = Vector2(150, 18)
+		_set_portrait_icon_size("HealthIcon", 14.0, 1.0)
+		_set_portrait_icon_size("LevelIcon", 13.0, 1.0)
+		_set_portrait_icon_size("KillIcon", 12.0, 1.0)
+		_set_portrait_icon_size("MeritIcon", 12.0, 1.0)
+		_set_portrait_icon_size("CoinIcon", 12.0, 1.0)
+		_set_portrait_icon_size("OilIcon", 12.0, 1.0)
+		_set_portrait_icon_size("ScaleIcon", 12.0, 1.0)
 		UILayout.place(_root.get_node("TopLeftChip"), 14, 10, 292, 54)
 		UILayout.place(_root.get_node("AttackModeChip"), 14, 72, 292, 42)
 		UILayout.place(_root.get_node("TimerChip"), 520, 10, 240, 50, 0.5, 0.0)
@@ -92,32 +137,170 @@ func _apply_responsive_layout_for(viewport_size: Vector2, size: Vector2) -> void
 		UILayout.place(_banner_panel, 424, 112, 432, 92, 0.5, 0.0)
 		UILayout.place(_boss_panel, 390, 96, 500, 62, 0.5, 0.0)
 		return
-	# Portrait web layout: two compact status rows stay above the playfield.
-	# The bottom 28% remains clear for joystick and attack controls.
+	# Portrait layout uses a single readable column above the playfield.
+	# Keep the lower area clear for the joystick and action controls.
+	_portrait_layout = true
+	_set_portrait_health_layout(true)
+	_set_portrait_resource_layout(true)
 	var scale := UILayout.display_scale(viewport_size, size)
 	UILayout.scale_theme_fonts(_root, 1.0 / scale)
-	var top_y := UILayout.display_units(8.0, scale)
-	var row_gap := UILayout.display_units(6.0, scale)
-	var row_height := UILayout.display_units(46.0, scale)
-	var left_width := UILayout.display_units(size.x * 0.43, scale)
-	var right_width := UILayout.display_units(size.x * 0.43, scale)
+	_apply_portrait_hud_fonts(scale)
+	_hp_bar.custom_minimum_size = Vector2(110.0, UILayout.display_units(7.0, scale))
+	_xp_bar.custom_minimum_size = Vector2(80.0, UILayout.display_units(5.0, scale))
+	_oil_meter.custom_minimum_size = Vector2(168.0, UILayout.display_units(10.0, scale))
+	_scale_meter.custom_minimum_size = Vector2(150.0, UILayout.display_units(10.0, scale))
 	var side_x := UILayout.display_units(8.0, scale)
-	var right_x := UILayout.display_units(size.x - 8.0, scale) - right_width
-	UILayout.place(_root.get_node("TopLeftChip"), side_x, top_y, left_width, row_height)
-	UILayout.place(_root.get_node("TimerChip"), right_x, top_y, right_width, row_height, 1.0, 0.0)
-	UILayout.place(_root.get_node("AttackModeChip"), side_x, top_y + row_height + row_gap, left_width, UILayout.display_units(38.0, scale))
-	UILayout.place(_root.get_node("ScoreChip"), right_x, top_y + row_height + row_gap, right_width, UILayout.display_units(38.0, scale), 1.0, 0.0)
+	var content_width := UILayout.display_units(size.x - 16.0, scale)
+	var row_gap := UILayout.display_units(2.0, scale)
+	var pause_height := UILayout.display_units(38.0, scale)
+	var pause_width := UILayout.display_units(88.0, scale)
+	var health_height := UILayout.display_units(38.0, scale)
+	var status_height := UILayout.display_units(38.0, scale)
+	var score_height := UILayout.display_units(38.0, scale)
+	var y := UILayout.display_units(6.0, scale)
+	_pause_button.visible = true
+	var health_width := content_width - pause_width - row_gap
+	UILayout.place(_pause_button, UILayout.display_units(size.x - 12.0, scale) - pause_width, y, pause_width, pause_height)
+	var actual_health_height := _place_portrait_row(_root.get_node("TopLeftChip"), side_x, y, health_width, health_height)
+	y += maxf(actual_health_height, pause_height) + row_gap
+	var status_gap := UILayout.display_units(4.0, scale)
+	var timer_width := (content_width - status_gap) * 0.48
+	var attack_width := content_width - timer_width - status_gap
+	var timer_actual_height := _place_portrait_row(_root.get_node("TimerChip"), side_x, y, timer_width, status_height)
+	var attack_actual_height := _place_portrait_row(_root.get_node("AttackModeChip"), side_x + timer_width + status_gap, y, attack_width, status_height)
+	y += maxf(timer_actual_height, attack_actual_height) + row_gap
+	var resource_height := _place_portrait_row(_root.get_node("ScoreChip"), side_x, y, content_width, score_height)
 	_minimap.visible = false
-	UILayout.place(_root.get_node("OilChip"), side_x, top_y + row_height * 2.0 + row_gap * 2.0, left_width, UILayout.display_units(32.0, scale))
-	UILayout.place(_root.get_node("ScaleChip"), right_x, top_y + row_height * 2.0 + row_gap * 2.0, right_width, UILayout.display_units(32.0, scale), 1.0, 0.0)
+	_root.get_node("OilChip").visible = false
+	_root.get_node("ScaleChip").visible = false
+	var hud_bottom_css := (y + resource_height) * scale
 	var weapon_row := _root.get_node("WeaponRow") as Control
 	weapon_row.visible = false
 	_passive_label.visible = false
 	_root.get_node("BuildChip").visible = false
 	_move_hint.visible = false
 	var center_width := UILayout.display_units(size.x - 16.0, scale)
-	UILayout.place(_banner_panel, UILayout.display_units(8.0, scale), UILayout.display_units(size.y * 0.30, scale), center_width, UILayout.display_units(74.0, scale))
-	UILayout.place(_boss_panel, UILayout.display_units(8.0, scale), UILayout.display_units(size.y * 0.22, scale), center_width, UILayout.display_units(52.0, scale))
+	# Notices stay below the compact HUD instead of covering the central playfield.
+	var notice_top := hud_bottom_css + 6.0
+	var boss_y := UILayout.display_units(notice_top, scale)
+	var banner_y := UILayout.display_units(notice_top + 2.0, scale)
+	UILayout.place(_boss_panel, UILayout.display_units(8.0, scale), boss_y, center_width, UILayout.display_units(52.0, scale))
+	UILayout.place(_banner_panel, UILayout.display_units(8.0, scale), banner_y, center_width, UILayout.display_units(44.0, scale))
+
+
+func _place_portrait_row(control: Control, x: float, y: float, width: float, preferred_height: float) -> float:
+	var height := maxf(preferred_height, control.get_combined_minimum_size().y)
+	UILayout.place(control, x, y, width, height)
+	return height
+
+
+func _set_portrait_health_layout(portrait: bool) -> void:
+	if _health_rows_box == null or _hp_row == null or _xp_row == null:
+		return
+	var is_horizontal := _health_rows_box is HBoxContainer
+	if is_horizontal == portrait:
+		return
+	var parent := _root.get_node("TopLeftChip") as PanelContainer
+	var old_box := _health_rows_box
+	old_box.remove_child(_hp_row)
+	old_box.remove_child(_xp_row)
+	parent.remove_child(old_box)
+	var replacement: BoxContainer = HBoxContainer.new() if portrait else VBoxContainer.new()
+	replacement.add_theme_constant_override("separation", 6 if portrait else 4)
+	replacement.add_child(_hp_row)
+	replacement.add_child(_xp_row)
+	parent.add_child(replacement)
+	_health_rows_box = replacement
+	old_box.queue_free()
+
+
+func _set_portrait_resource_layout(portrait: bool) -> void:
+	if _score_box == null or _oil_box == null or _scale_box == null:
+		return
+	var oil_chip := _root.get_node("OilChip") as PanelContainer
+	var scale_chip := _root.get_node("ScaleChip") as PanelContainer
+	if portrait:
+		if _oil_info_row.get_parent() == _oil_box:
+			_oil_box.remove_child(_oil_info_row)
+			_oil_box.remove_child(_oil_meter)
+			_scale_box.remove_child(_scale_info_row)
+			_scale_box.remove_child(_scale_meter)
+			_oil_compact_row.add_child(_oil_info_row)
+			_oil_compact_row.add_child(_oil_meter)
+			_scale_compact_row.add_child(_scale_info_row)
+			_scale_compact_row.add_child(_scale_meter)
+			_portrait_resources_row.add_child(_oil_compact_row)
+			_portrait_resources_row.add_child(_scale_compact_row)
+			_score_box.add_child(_portrait_resources_row)
+		_oil_info_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_scale_info_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_oil_compact_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_scale_compact_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_oil_meter.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_scale_meter.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		oil_chip.visible = false
+		scale_chip.visible = false
+	else:
+		if _portrait_resources_row.get_parent() == _score_box:
+			_score_box.remove_child(_portrait_resources_row)
+			_portrait_resources_row.remove_child(_oil_compact_row)
+			_portrait_resources_row.remove_child(_scale_compact_row)
+			_oil_compact_row.remove_child(_oil_info_row)
+			_oil_compact_row.remove_child(_oil_meter)
+			_scale_compact_row.remove_child(_scale_info_row)
+			_scale_compact_row.remove_child(_scale_meter)
+			_oil_box.add_child(_oil_info_row)
+			_oil_box.add_child(_oil_meter)
+			_scale_box.add_child(_scale_info_row)
+			_scale_box.add_child(_scale_meter)
+		_oil_info_row.size_flags_horizontal = Control.SIZE_FILL
+		_scale_info_row.size_flags_horizontal = Control.SIZE_FILL
+		_oil_compact_row.size_flags_horizontal = Control.SIZE_FILL
+		_scale_compact_row.size_flags_horizontal = Control.SIZE_FILL
+		_oil_meter.size_flags_horizontal = Control.SIZE_FILL
+		_scale_meter.size_flags_horizontal = Control.SIZE_FILL
+		oil_chip.visible = true
+		scale_chip.visible = true
+
+
+func _apply_portrait_hud_fonts(scale: float) -> void:
+	# Keep the three compact top bands on one type scale. Only the timer gets a
+	# small emphasis; its digits must not dominate the health and resource values.
+	_set_portrait_font_size(_hp_label, 15.0, scale)
+	_set_portrait_font_size(_shield_label, 14.0, scale)
+	_set_portrait_font_size(_level_label, 15.0, scale)
+	_set_portrait_font_size(_attack_mode_label, 15.0, scale)
+	_set_portrait_font_size(_attack_toggle_label, 11.0, scale)
+	_set_portrait_font_size(_timer_label, 18.0, scale)
+	_set_portrait_font_size(_clock_label, 11.0, scale)
+	_set_portrait_font_size(_kill_label, 15.0, scale)
+	_set_portrait_font_size(_merit_label, 15.0, scale)
+	_set_portrait_font_size(_coin_label, 15.0, scale)
+	_set_portrait_font_size(_oil_label, 15.0, scale)
+	_set_portrait_font_size(_scale_label, 15.0, scale)
+	_set_portrait_font_size(_pause_button, 16.0, scale)
+	_set_portrait_font_size(_banner_title, 24.0, scale)
+	_set_portrait_font_size(_banner_subtitle, 16.0, scale)
+	_set_portrait_font_size(_boss_name, 18.0, scale)
+	_set_portrait_icon_size("HealthIcon", 14.0, scale)
+	_set_portrait_icon_size("LevelIcon", 14.0, scale)
+	_set_portrait_icon_size("KillIcon", 14.0, scale)
+	_set_portrait_icon_size("MeritIcon", 14.0, scale)
+	_set_portrait_icon_size("CoinIcon", 14.0, scale)
+	_set_portrait_icon_size("OilIcon", 14.0, scale)
+	_set_portrait_icon_size("ScaleIcon", 14.0, scale)
+
+
+func _set_portrait_font_size(control: Control, display_pixels: float, scale: float) -> void:
+	control.add_theme_font_size_override("font_size", roundi(UILayout.display_units(display_pixels, scale)))
+
+
+func _set_portrait_icon_size(node_name: String, display_pixels: float, scale: float) -> void:
+	var icon := _root.find_child(node_name, true, false) as TextureRect
+	if icon == null:
+		return
+	var dimension := UILayout.display_units(display_pixels, scale)
+	icon.custom_minimum_size = Vector2.ONE * dimension
 
 
 func update_hud(state: Dictionary) -> void:
@@ -140,9 +323,12 @@ func update_hud(state: Dictionary) -> void:
 	_set_label_text(_level_label, Locale.t("hud.level", {"level": int(state.get("level", 1))}))
 	_set_label_text(_timer_label, _clock_text(float(state.get("elapsed", 0.0)), float(state.get("duration", 960.0))))
 	_set_label_text(_clock_label, Locale.t("hud.dawn_in", {"time": _clock_text(maxf(0.0, float(state.get("duration", 960.0)) - float(state.get("elapsed", 0.0))), 960.0)}))
-	_set_label_text(_kill_label, Locale.t("hud.kills", {"count": int(state.get("kills", 0))}))
-	_set_label_text(_merit_label, Locale.t("hud.merit", {"count": int(state.get("merit", 0))}))
-	_set_label_text(_coin_label, Locale.t("hud.coin", {"count": int(state.get("coin", 0))}))
+	var kills := int(state.get("kills", 0))
+	var merit := int(state.get("merit", 0))
+	var coins := int(state.get("coin", 0))
+	_set_label_text(_kill_label, str(kills) if _portrait_layout else Locale.t("hud.kills", {"count": kills}))
+	_set_label_text(_merit_label, str(merit) if _portrait_layout else Locale.t("hud.merit", {"count": merit}))
+	_set_label_text(_coin_label, str(coins) if _portrait_layout else Locale.t("hud.coin", {"count": coins}))
 	_oil_meter.set_values(int(state.get("oil", 0)), int(state.get("oil_max", 6)), bool(state.get("dark", false)))
 	_set_label_text(_oil_label, Locale.t("hud.dark" if bool(state.get("dark", false)) else "hud.oil", {"current": int(state.get("oil", 0)), "max": int(state.get("oil_max", 6))}))
 	_scale_meter.set_scales(state.get("scales", []) as Array)
@@ -215,15 +401,36 @@ func _build() -> void:
 	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_root)
+	_pause_button = Button.new()
+	_pause_button.name = "MobilePauseButton"
+	_pause_button.text = "菜单"
+	_pause_button.visible = false
+	_pause_button.focus_mode = Control.FOCUS_NONE
+	_pause_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	_pause_button.add_theme_font_override("font", UI_FONT)
+	_pause_button.add_theme_font_size_override("font_size", 16)
+	_pause_button.add_theme_color_override("font_color", PAPER)
+	_pause_button.add_theme_color_override("font_hover_color", Color.WHITE)
+	_pause_button.add_theme_stylebox_override("normal", _mobile_pause_style())
+	_pause_button.add_theme_stylebox_override("hover", _mobile_pause_style(true))
+	_pause_button.add_theme_stylebox_override("pressed", _mobile_pause_style(true))
+	_pause_button.add_theme_stylebox_override("focus", _mobile_pause_style())
+	_pause_button.pressed.connect(func() -> void: pause_requested.emit())
+	_root.add_child(_pause_button)
 
 	# 紧凑小组件：不再使用铺满屏幕的上下遮罩，只给每组信息一块半透明小底板，
 	# 让战场尽量完整露出。所有坐标仍按 1280×720 设计基准。
 	var top_left := _chip("TopLeftChip", 14, 10, 292, 54, 0, 0)
-	var hp_box := VBoxContainer.new()
-	hp_box.add_theme_constant_override("separation", 4)
+	# In portrait, put health and level/XP on one compact line. The old stacked
+	# bars consumed most of the first screenful before the battlefield began.
+	var hp_box := HBoxContainer.new()
+	_health_rows_box = hp_box
+	hp_box.add_theme_constant_override("separation", 6)
 	top_left.add_child(hp_box)
 	var hp_row := HBoxContainer.new()
+	_hp_row = hp_row
 	hp_row.add_theme_constant_override("separation", 8)
+	hp_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hp_box.add_child(hp_row)
 	var hp_icon := _hud_icon("HealthIcon", HUD_ICON_HEART, Color("#d88370"), 14)
 	hp_row.add_child(hp_icon)
@@ -235,7 +442,9 @@ func _build() -> void:
 	_hp_label.custom_minimum_size = Vector2(66, 16)
 	hp_row.add_child(_hp_label)
 	var xp_row := HBoxContainer.new()
+	_xp_row = xp_row
 	xp_row.add_theme_constant_override("separation", 6)
+	xp_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hp_box.add_child(xp_row)
 	_level_label = _label("LevelLabel", "", 12, GOLD)
 	_level_label.custom_minimum_size = Vector2(46, 15)
@@ -275,12 +484,21 @@ func _build() -> void:
 
 	# 右上：战绩小条 + 小地图；二者不重叠，也不压住战场中心。
 	var score_chip := _chip("ScoreChip", 846, 10, 198, 52, 0, 0)
-	var score_box := VBoxContainer.new()
-	score_box.add_theme_constant_override("separation", 0)
-	score_chip.add_child(score_box)
-	_kill_label = _add_icon_stat_row(score_box, "Kill", HUD_ICON_KILLS, 12, PAPER)
-	_merit_label = _add_icon_stat_row(score_box, "Merit", HUD_ICON_MERIT, 11, GOLD)
-	_coin_label = _add_icon_stat_row(score_box, "Coin", HUD_ICON_COIN, 10, Color("#d8b45f"))
+	_score_box = VBoxContainer.new()
+	_score_box.add_theme_constant_override("separation", 3)
+	score_chip.add_child(_score_box)
+	_score_stats_row = HBoxContainer.new()
+	_score_stats_row.add_theme_constant_override("separation", 2)
+	_score_box.add_child(_score_stats_row)
+	_kill_label = _add_icon_stat_row(_score_stats_row, "Kill", HUD_ICON_KILLS, 12, PAPER)
+	_merit_label = _add_icon_stat_row(_score_stats_row, "Merit", HUD_ICON_MERIT, 11, GOLD)
+	_coin_label = _add_icon_stat_row(_score_stats_row, "Coin", HUD_ICON_COIN, 10, Color("#d8b45f"))
+	_portrait_resources_row = HBoxContainer.new()
+	_portrait_resources_row.add_theme_constant_override("separation", 6)
+	_oil_compact_row = HBoxContainer.new()
+	_oil_compact_row.add_theme_constant_override("separation", 4)
+	_scale_compact_row = HBoxContainer.new()
+	_scale_compact_row.add_theme_constant_override("separation", 4)
 
 	_minimap = MINIMAP.new()
 	_minimap.name = "Minimap"
@@ -290,34 +508,34 @@ func _build() -> void:
 
 	# 左下：灯火 / 阵法小条
 	var oil_chip := _chip("OilChip", 14, 658, 182, 44, 0, 1)
-	var oil_box := VBoxContainer.new()
-	oil_box.add_theme_constant_override("separation", 2)
-	oil_chip.add_child(oil_box)
+	_oil_box = VBoxContainer.new()
+	_oil_box.add_theme_constant_override("separation", 2)
+	oil_chip.add_child(_oil_box)
 	_oil_label = _label("OilLabel", "", 10, Color(MUTED, 0.9))
-	var oil_row := HBoxContainer.new()
-	oil_row.add_theme_constant_override("separation", 4)
-	oil_row.add_child(_hud_icon("OilIcon", HUD_ICON_LANTERN, GOLD, 12))
-	oil_row.add_child(_oil_label)
-	oil_box.add_child(oil_row)
+	_oil_info_row = HBoxContainer.new()
+	_oil_info_row.add_theme_constant_override("separation", 4)
+	_oil_info_row.add_child(_hud_icon("OilIcon", HUD_ICON_LANTERN, GOLD, 12))
+	_oil_info_row.add_child(_oil_label)
+	_oil_box.add_child(_oil_info_row)
 	_oil_meter = OIL_METER.new()
 	_oil_meter.name = "OilMeter"
 	_oil_meter.custom_minimum_size = Vector2(168, 18)
-	oil_box.add_child(_oil_meter)
+	_oil_box.add_child(_oil_meter)
 
 	var scale_chip := _chip("ScaleChip", 202, 658, 168, 44, 0, 1)
-	var scale_box := VBoxContainer.new()
-	scale_box.add_theme_constant_override("separation", 2)
-	scale_chip.add_child(scale_box)
+	_scale_box = VBoxContainer.new()
+	_scale_box.add_theme_constant_override("separation", 2)
+	scale_chip.add_child(_scale_box)
 	_scale_label = _label("ScaleLabel", "", 10, Color(MUTED, 0.9))
-	var scale_row := HBoxContainer.new()
-	scale_row.add_theme_constant_override("separation", 4)
-	scale_row.add_child(_hud_icon("ScaleIcon", HUD_ICON_SCALE, JADE, 12))
-	scale_row.add_child(_scale_label)
-	scale_box.add_child(scale_row)
+	_scale_info_row = HBoxContainer.new()
+	_scale_info_row.add_theme_constant_override("separation", 4)
+	_scale_info_row.add_child(_hud_icon("ScaleIcon", HUD_ICON_SCALE, JADE, 12))
+	_scale_info_row.add_child(_scale_label)
+	_scale_box.add_child(_scale_info_row)
 	_scale_meter = SCALE_METER.new()
 	_scale_meter.name = "ScaleMeter"
 	_scale_meter.custom_minimum_size = Vector2(150, 18)
-	scale_box.add_child(_scale_meter)
+	_scale_box.add_child(_scale_meter)
 
 	# 底部居中：兵器槽 / 被动
 	var weapon_row := HBoxContainer.new()
@@ -414,7 +632,20 @@ func _chip_style() -> StyleBoxFlat:
 	return box
 
 
-func _add_icon_stat_row(parent: VBoxContainer, label_name: String, texture: Texture2D, font_size: int, color: Color) -> Label:
+func _mobile_pause_style(hovered: bool = false) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.36, 0.12, 0.08, 0.97) if hovered else Color(0.20, 0.08, 0.06, 0.94)
+	box.border_color = Color(GOLD, 0.95)
+	box.set_border_width_all(2)
+	box.set_corner_radius_all(8)
+	box.content_margin_left = 12.0
+	box.content_margin_right = 12.0
+	box.content_margin_top = 6.0
+	box.content_margin_bottom = 6.0
+	return box
+
+
+func _add_icon_stat_row(parent: Container, label_name: String, texture: Texture2D, font_size: int, color: Color) -> Label:
 	var row := HBoxContainer.new()
 	row.name = "%sRow" % label_name
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL

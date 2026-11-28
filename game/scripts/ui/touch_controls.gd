@@ -10,6 +10,10 @@ const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const GOLD := Color("#e1b35a")
 const PAPER := Color("#efe1c2")
 const VERMILION := Color("#c05a41")
+const JOYSTICK_ICON := preload("res://assets/icons/game_icons/card_compass.svg")
+const ATTACK_ICON := preload("res://assets/icons/game_icons/wpn_saber.svg")
+const DASH_ICON := preload("res://assets/icons/game_icons/card_arrow_flights.svg")
+const AUTO_ICON := preload("res://assets/icons/game_icons/card_targeting.svg")
 
 const JOYSTICK_RADIUS := 62.0
 const ATTACK_RADIUS := 58.0
@@ -215,19 +219,21 @@ func _layout_for(viewport_size: Vector2, display_size: Vector2) -> void:
 	ui_scale = clampf(minf(scale_x, scale_y), MIN_UI_SCALE, 6.0)
 	joystick_radius = JOYSTICK_RADIUS * ui_scale
 	attack_radius = ATTACK_RADIUS * ui_scale
-	dash_radius = DASH_RADIUS * ui_scale
-	auto_radius = AUTO_RADIUS * ui_scale
 
 	# Layout with safe area insets
 	var safe_w := viewport_size.x - _safe_left - _safe_right
 	var safe_h := viewport_size.y - _safe_top - _safe_bottom
 
 	var portrait := viewport_size.y > viewport_size.x
+	var auxiliary_scale := 0.80 if portrait else 1.0
+	dash_radius = DASH_RADIUS * ui_scale * auxiliary_scale
+	auto_radius = AUTO_RADIUS * ui_scale * auxiliary_scale
 	if portrait:
 		_joystick_center = Vector2(_safe_left + safe_w * 0.18, _safe_top + safe_h * 0.82)
 		_attack_center = Vector2(_safe_left + safe_w * 0.81, _safe_top + safe_h * 0.82)
-		_dash_center = Vector2(_safe_left + safe_w * 0.84, _safe_top + safe_h * 0.64)
-		_auto_center = Vector2(_safe_left + safe_w * 0.63, _safe_top + safe_h * 0.61)
+		var auxiliary_x := _safe_left + safe_w - 34.0 * ui_scale
+		_auto_center = Vector2(auxiliary_x, _safe_top + safe_h * 0.537)
+		_dash_center = Vector2(auxiliary_x, _safe_top + safe_h * 0.67)
 	else:
 		_joystick_center = Vector2(_safe_left + safe_w * 0.12, _safe_top + safe_h * 0.72)
 		_attack_center = Vector2(_safe_left + safe_w * 0.85, _safe_top + safe_h * 0.70)
@@ -254,6 +260,8 @@ func _layout_labels(viewport_size: Vector2) -> void:
 	for spec in _label_specs:
 		var label: Label = spec["label"]
 		var max_width := minf(float(spec["max_width"]) * ui_scale, max_width_cap)
+		if viewport_size.y > viewport_size.x and (label == _dash_label or label == _auto_label):
+			max_width = 76.0 * ui_scale
 		var font_size := _fit_font_size(label, int(spec["size"]), max_width)
 		var height := maxf(20.0 * ui_scale, float(font_size) + 8.0)
 		var x := 0.0
@@ -265,11 +273,11 @@ func _layout_labels(viewport_size: Vector2) -> void:
 			x = _attack_center.x - max_width * 0.5
 			y = _attack_center.y + attack_radius + 10.0 * ui_scale
 		elif label == _dash_label:
-			x = _dash_center.x - max_width * 0.5
-			y = _dash_center.y + dash_radius + 8.0 * ui_scale
+			x = _safe_left + viewport_size.x - _safe_right - 84.0 * ui_scale
+			y = _dash_center.y - dash_radius - 12.0 * ui_scale - height - 4.0 * ui_scale
 		else:
-			x = _auto_center.x - max_width * 0.5
-			y = _auto_center.y + auto_radius + 6.0 * ui_scale
+			x = _safe_left + viewport_size.x - _safe_right - 84.0 * ui_scale
+			y = _auto_center.y - auto_radius - 10.0 * ui_scale - height - 4.0 * ui_scale
 		UILayout.place(label, x, y, max_width, height)
 
 
@@ -296,7 +304,7 @@ func _input(event: InputEvent) -> void:
 		var position := local.position
 		if touch.pressed:
 			using_touch = true
-			if _is_mobile_web and position.distance_to(_orientation_center) <= 25.0 * ui_scale:
+			if _orientation_toggle_visible() and position.distance_to(_orientation_center) <= 25.0 * ui_scale:
 				_orientation_touch = touch.index
 				_toggle_mobile_web_orientation()
 				get_viewport().set_input_as_handled()
@@ -422,7 +430,7 @@ func _draw() -> void:
 	_draw_auto()
 	_draw_attack()
 	_draw_dash()
-	if _is_mobile_web:
+	if _orientation_toggle_visible():
 		var radius := 19.0 * ui_scale
 		draw_circle(_orientation_center, radius + 4.0 * ui_scale, Color(0.01, 0.02, 0.02, 0.68))
 		draw_arc(_orientation_center, radius, 0.0, TAU, 32, Color(GOLD, 0.9), 2.0 * ui_scale)
@@ -431,23 +439,20 @@ func _draw() -> void:
 		draw_rect(Rect2(_orientation_center - icon_size * ui_scale * 0.5, icon_size * ui_scale), Color(PAPER, 0.95), false, 2.0 * ui_scale)
 
 
+func _orientation_toggle_visible() -> bool:
+	var viewport_size := get_viewport_rect().size
+	return _is_mobile_web and viewport_size.x >= viewport_size.y
+
+
 func _draw_joystick() -> void:
 	draw_circle(_joystick_center, joystick_radius + 8.0 * ui_scale, Color(0.01, 0.02, 0.02, 0.48))
 	draw_arc(_joystick_center, joystick_radius, 0.0, TAU, 48, Color(GOLD, 0.42), 1.5 * ui_scale)
-	draw_arc(_joystick_center, joystick_radius * 0.52, 0.0, TAU, 32, Color(GOLD, 0.20), 1.0 * ui_scale)
-	for i in range(8):
-		var direction := Vector2.RIGHT.rotated(TAU * float(i) / 8.0)
-		draw_line(
-			_joystick_center + direction * (joystick_radius * 0.70),
-			_joystick_center + direction * (joystick_radius * 0.86),
-			Color(GOLD, 0.26),
-			1.0 * ui_scale
-		)
 	var knob := _joystick_center + move_vector * joystick_radius * 0.56
-	var knob_radius := 24.0 * ui_scale
-	draw_circle(knob, knob_radius, Color(0.10, 0.07, 0.03, 0.94))
-	draw_arc(knob, knob_radius, 0.0, TAU, 32, Color(GOLD, 0.88), 2.0 * ui_scale)
-	draw_circle(knob, 6.0 * ui_scale, Color(VERMILION, 0.92))
+	var knob_radius := 28.0 * ui_scale
+	draw_circle(knob, knob_radius, Color(0.03, 0.04, 0.04, 0.96))
+	draw_arc(knob, knob_radius, 0.0, TAU, 32, Color(GOLD, 0.96), 2.5 * ui_scale)
+	var icon_size := Vector2.ONE * 30.0 * ui_scale
+	draw_texture_rect(JOYSTICK_ICON, Rect2(knob - icon_size * 0.5, icon_size), false, Color(PAPER))
 
 
 func _draw_attack() -> void:
@@ -467,19 +472,8 @@ func _draw_attack() -> void:
 		Color(VERMILION, 1.0 if active else 0.82),
 		3.0 * ui_scale
 	)
-	var blade_dir := Vector2.RIGHT.rotated(-0.62)
-	draw_line(
-		_attack_center - blade_dir * 18.0 * ui_scale,
-		_attack_center + blade_dir * 18.0 * ui_scale,
-		Color(PAPER, 0.98),
-		4.0 * ui_scale
-	)
-	draw_line(
-		_attack_center + blade_dir * 18.0 * ui_scale,
-		_attack_center + blade_dir * 6.0 * ui_scale + Vector2(-7, -8) * ui_scale,
-		Color(GOLD, 0.98),
-		2.0 * ui_scale
-	)
+	var icon_size := Vector2.ONE * 42.0 * ui_scale
+	draw_texture_rect(ATTACK_ICON, Rect2(_attack_center - icon_size * 0.5, icon_size), false, Color(PAPER, 0.98))
 
 
 func _draw_auto() -> void:
@@ -495,18 +489,8 @@ func _draw_auto() -> void:
 	)
 	if auto_active:
 		draw_circle(_auto_center, auto_radius - 6.0 * ui_scale, Color(GOLD, 0.20))
-	draw_line(
-		_auto_center + Vector2(-9, -7) * ui_scale,
-		_auto_center + Vector2(9, 0) * ui_scale,
-		Color(PAPER, 0.96),
-		2.0 * ui_scale
-	)
-	draw_line(
-		_auto_center + Vector2(9, 0) * ui_scale,
-		_auto_center + Vector2(-9, 7) * ui_scale,
-		Color(PAPER, 0.96),
-		2.0 * ui_scale
-	)
+	var icon_size := Vector2.ONE * 30.0 * ui_scale
+	draw_texture_rect(AUTO_ICON, Rect2(_auto_center - icon_size * 0.5, icon_size), false, Color(PAPER, 0.98))
 
 
 func _draw_dash() -> void:
@@ -521,22 +505,5 @@ func _draw_dash() -> void:
 		Color(VERMILION, 0.72),
 		3.0 * ui_scale
 	)
-	var forward := Vector2.RIGHT.rotated(-0.35)
-	draw_line(
-		_dash_center - forward * 14.0 * ui_scale,
-		_dash_center + forward * 14.0 * ui_scale,
-		Color(GOLD, 0.96),
-		3.0 * ui_scale
-	)
-	draw_line(
-		_dash_center + forward * 14.0 * ui_scale,
-		_dash_center + forward * 6.0 * ui_scale + Vector2(-4, -6) * ui_scale,
-		Color(GOLD, 0.96),
-		2.0 * ui_scale
-	)
-	draw_line(
-		_dash_center + forward * 14.0 * ui_scale,
-		_dash_center + forward * 6.0 * ui_scale + Vector2(-4, 6) * ui_scale,
-		Color(GOLD, 0.96),
-		2.0 * ui_scale
-	)
+	var icon_size := Vector2.ONE * 32.0 * ui_scale
+	draw_texture_rect(DASH_ICON, Rect2(_dash_center - icon_size * 0.5, icon_size), false, Color(GOLD, 0.98))

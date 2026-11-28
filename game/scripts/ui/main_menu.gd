@@ -72,6 +72,10 @@ var _binding_labels: Dictionary = {}
 var _capture_action := ""
 var web_platform_override := -1
 var _portrait_layout := false
+var _portrait_menu_scroll: ScrollContainer
+var _portrait_menu_stack: VBoxContainer
+var _settings_column: VBoxContainer
+var _settings_grow: Control
 
 
 func _ready() -> void:
@@ -82,6 +86,7 @@ func _ready() -> void:
 	_build_menu()
 	_build_watch_panel()
 	_build_footer()
+	_build_portrait_menu_scroll()
 	_build_settings_overlay()
 	_build_controls_overlay()
 	_build_tutorial_overlay()
@@ -91,6 +96,7 @@ func _ready() -> void:
 	_refresh_texts()
 	get_viewport().size_changed.connect(_apply_responsive_layout)
 	_apply_responsive_layout()
+	_disable_web_page_scrolling()
 	_update_stats()
 	_install_autosave_timer()
 	SaveSystem.autosave({"last_mode": "menu"})
@@ -101,14 +107,36 @@ func _ready() -> void:
 func _apply_responsive_layout(size_override: Vector2 = Vector2.ZERO, viewport_override: Vector2 = Vector2.ZERO) -> void:
 	if not is_instance_valid(_start_button) or not _start_button.is_inside_tree():
 		return
-	var size := size_override if size_override.x > 0.0 and size_override.y > 0.0 else Vector2(DisplayServer.window_get_size())
 	var viewport_size := viewport_override if viewport_override.x > 0.0 and viewport_override.y > 0.0 else get_viewport_rect().size
+	var size := size_override
+	if size.x <= 0.0 or size.y <= 0.0:
+		if OS.has_feature("web"):
+			var screen_value: Variant = JSON.parse_string(str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true)))
+			if screen_value is Array and (screen_value as Array).size() >= 2:
+				size = Vector2(float(screen_value[0]), float(screen_value[1]))
+		if size.x <= 0.0 or size.y <= 0.0:
+			size = Vector2(DisplayServer.window_get_size())
 	var portrait := size.y > size.x
 	if not portrait:
 		_portrait_layout = false
+		if is_instance_valid(_portrait_menu_scroll):
+			_portrait_menu_scroll.visible = false
+			var desktop_buttons: Array[Button] = [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]
+			for button in desktop_buttons:
+				if button.get_parent() == _portrait_menu_stack:
+					_portrait_menu_stack.remove_child(button)
+					add_child(button)
 		UILayout.scale_theme_fonts(self, 1.0)
 		$BrandMark.visible = true
 		$WatchPanel.visible = true
+		$Build.visible = true
+		$Hint.visible = true
+		$Era.custom_minimum_size = Vector2.ZERO
+		$Tagline.custom_minimum_size = Vector2.ZERO
+		$Title.add_theme_font_size_override("font_size", 94)
+		$TitleShadow.add_theme_font_size_override("font_size", 94)
+		$Era.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		$Tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 		UILayout.place($Seal, 96.0, 110.0, 60.0, 84.0)
 		UILayout.place($TitleShadow, 178.0, 92.0, 1024.0, 64.0)
 		UILayout.place($Title, 174.0, 88.0, 1024.0, 64.0)
@@ -122,9 +150,12 @@ func _apply_responsive_layout(size_override: Vector2 = Vector2.ZERO, viewport_ov
 			var button := normal_buttons[index]
 			UILayout.place(button, 180.0, 300.0 + index * 46.0, 320.0, 44.0)
 			button.custom_minimum_size = Vector2(320.0, 48.0)
+			button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		UILayout.place($Hint, 182.0, 644.0, 600.0, 24.0, 0.0, 1.0)
 		UILayout.place($Build, 1000.0, 674.0, 180.0, 20.0, 1.0, 1.0)
 		if is_instance_valid(_settings_panel):
+			_settings_grow.visible = true
+			_settings_grow.custom_minimum_size = Vector2.ZERO
 			UILayout.place(_settings_panel, 340.0, 40.0, 600.0, 640.0, 0.5, 0.0)
 			_settings_panel.custom_minimum_size = Vector2(600.0, 640.0)
 			_settings_close_button.custom_minimum_size = Vector2(42.0, 38.0)
@@ -134,38 +165,98 @@ func _apply_responsive_layout(size_override: Vector2 = Vector2.ZERO, viewport_ov
 	_portrait_layout = true
 	var scale := UILayout.display_scale(viewport_size, size)
 	UILayout.scale_theme_fonts(self, 1.0 / scale)
-	var left := UILayout.display_units(22.0, scale)
-	var width := UILayout.display_units(maxf(220.0, size.x - 44.0), scale)
+	var width_css := minf(440.0, maxf(220.0, size.x - 32.0))
+	var left := UILayout.display_units((size.x - width_css) * 0.5, scale)
+	var width := UILayout.display_units(width_css, scale)
 	# Keep a single readable column in portrait; the right-side status panel disappears.
-	UILayout.place($Seal, left, UILayout.display_units(24.0, scale), UILayout.display_units(42.0, scale), UILayout.display_units(58.0, scale))
-	UILayout.place($TitleShadow, left + UILayout.display_units(56.0, scale), UILayout.display_units(16.0, scale), UILayout.display_units(300.0, scale), UILayout.display_units(70.0, scale))
-	UILayout.place($Title, left + UILayout.display_units(52.0, scale), UILayout.display_units(12.0, scale), UILayout.display_units(300.0, scale), UILayout.display_units(70.0, scale))
+	var title_group_css := minf(172.0, size.x - 36.0)
+	var title_group_left := UILayout.display_units((size.x - title_group_css) * 0.5, scale)
+	UILayout.place($Seal, title_group_left, UILayout.display_units(8.0, scale), UILayout.display_units(38.0, scale), UILayout.display_units(48.0, scale))
+	UILayout.place($TitleShadow, title_group_left + UILayout.display_units(48.0, scale), UILayout.display_units(8.0, scale), UILayout.display_units(230.0, scale), UILayout.display_units(52.0, scale))
+	UILayout.place($Title, title_group_left + UILayout.display_units(44.0, scale), UILayout.display_units(4.0, scale), UILayout.display_units(230.0, scale), UILayout.display_units(52.0, scale))
+	$Title.add_theme_font_size_override("font_size", maxi(52, roundi(58.0 / scale)))
+	$TitleShadow.add_theme_font_size_override("font_size", maxi(52, roundi(58.0 / scale)))
 	$Era.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	$Tagline.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UILayout.place($Era, left, UILayout.display_units(96.0, scale), width, UILayout.display_units(34.0, scale))
-	UILayout.place($Tagline, left, UILayout.display_units(134.0, scale), width, UILayout.display_units(48.0, scale))
-	$TitleRule.position = Vector2(left, UILayout.display_units(190.0, scale))
+	$Era.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	$Tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	UILayout.place($Era, left, UILayout.display_units(64.0, scale), width, UILayout.display_units(28.0, scale))
+	UILayout.place($Tagline, left, UILayout.display_units(92.0, scale), width, UILayout.display_units(48.0, scale))
+	$TitleRule.position = Vector2(left, UILayout.display_units(142.0, scale))
 	$TitleRule.size = Vector2(width, UILayout.display_units(1.0, scale))
 	$BrandMark.visible = false
 	$WatchPanel.visible = false
 	var buttons: Array[Button] = [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]
-	var top := 210.0
-	var button_h := 50.0
-	var gap := 7.0
-	for index in range(buttons.size()):
-		var button := buttons[index]
-		UILayout.place(button, left, UILayout.display_units(top + index * (button_h + gap), scale), width, UILayout.display_units(button_h, scale))
-		button.custom_minimum_size = Vector2(width, UILayout.display_units(button_h, scale))
-	UILayout.place($Hint, left, UILayout.display_units(size.y - 118.0, scale), width, UILayout.display_units(24.0, scale))
-	UILayout.place($Build, left, UILayout.display_units(size.y - 82.0, scale), width, UILayout.display_units(20.0, scale))
+	var scroll_top := UILayout.display_units(154.0, scale)
+	var footer_height := UILayout.display_units(8.0, scale)
+	_portrait_menu_scroll.offset_left = left
+	_portrait_menu_scroll.offset_right = -left
+	_portrait_menu_scroll.offset_top = scroll_top
+	_portrait_menu_scroll.offset_bottom = -footer_height
+	_portrait_menu_scroll.visible = true
+	_portrait_menu_scroll.scroll_vertical = 0
+	for button in buttons:
+		if button.get_parent() != _portrait_menu_stack:
+			if button.get_parent() != null:
+				button.get_parent().remove_child(button)
+			_portrait_menu_stack.add_child(button)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.custom_minimum_size = Vector2(0.0, UILayout.display_units(62.0, scale))
+		button.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.add_theme_font_size_override("font_size", maxi(26, roundi(28.0 / scale)))
+	_portrait_menu_stack.add_theme_constant_override("separation", int(UILayout.display_units(2.0, scale)))
+	_portrait_menu_stack.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_portrait_menu_stack.alignment = BoxContainer.ALIGNMENT_CENTER
+	var hint_h := UILayout.display_units(28.0, scale)
+	UILayout.place($Hint, left, 720.0 - hint_h - UILayout.display_units(8.0, scale), width, hint_h, 0.0, 1.0)
+	$Hint.visible = false
+	UILayout.place($Build, left, 720.0 - UILayout.display_units(42.0, scale), width, UILayout.display_units(24.0, scale), 0.0, 1.0)
+	$Build.visible = false
+	$Era.add_theme_font_size_override("font_size", maxi(25, roundi(27.0 / scale)))
+	$Tagline.add_theme_font_size_override("font_size", maxi(22, roundi(22.0 / scale)))
+	$Hint.add_theme_font_size_override("font_size", maxi(18, roundi(20.0 / scale)))
+	$Era.custom_minimum_size.y = UILayout.display_units(30.0, scale)
+	$Tagline.custom_minimum_size.y = UILayout.display_units(48.0, scale)
+	$Hint.custom_minimum_size.y = UILayout.display_units(32.0, scale)
 	$Build.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	if is_instance_valid(_settings_panel):
-		var panel_size := Vector2(UILayout.display_units(size.x - 24.0, scale), UILayout.display_units(size.y - 56.0, scale))
-		UILayout.place(_settings_panel, UILayout.display_units(12.0, scale), UILayout.display_units(28.0, scale), panel_size.x, panel_size.y)
+		var panel_width := UILayout.display_units(size.x - 24.0, scale)
+		var max_panel_height := UILayout.display_units(size.y - 56.0, scale)
+		_settings_grow.visible = false
+		_settings_grow.custom_minimum_size = Vector2.ZERO
+		# VBoxContainer reports an unreliable minimum before wrapped labels have
+		# their final width. Reserve a measured phone-height content panel instead
+		# of shrinking to that transient minimum (which can clip every setting row).
+		var panel_height := minf(max_panel_height, UILayout.display_units(430.0, scale))
+		var panel_top := maxf(UILayout.display_units(16.0, scale), (viewport_size.y - panel_height) * 0.5)
+		var panel_size := Vector2(panel_width, panel_height)
+		UILayout.place(_settings_panel, UILayout.display_units(12.0, scale), panel_top, panel_size.x, panel_size.y)
 		_settings_panel.custom_minimum_size = panel_size
 		_settings_close_button.custom_minimum_size = Vector2(UILayout.display_units(42.0, scale), UILayout.display_units(42.0, scale))
 		_renderer_option.custom_minimum_size.x = UILayout.display_units(180.0, scale)
 		_orientation_option.custom_minimum_size = Vector2(UILayout.display_units(180.0, scale), UILayout.display_units(38.0, scale))
+
+
+func _build_portrait_menu_scroll() -> void:
+	_portrait_menu_scroll = ScrollContainer.new()
+	_portrait_menu_scroll.name = "PortraitMenuScroll"
+	_portrait_menu_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_portrait_menu_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_portrait_menu_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
+	_portrait_menu_scroll.z_index = 1
+	_portrait_menu_scroll.visible = false
+	_portrait_menu_scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(_portrait_menu_scroll)
+	_portrait_menu_stack = VBoxContainer.new()
+	_portrait_menu_stack.name = "PortraitMenuButtons"
+	_portrait_menu_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_portrait_menu_scroll.add_child(_portrait_menu_stack)
+
+
+func _disable_web_page_scrolling() -> void:
+	if not OS.has_feature("web"):
+		return
+	JavaScriptBridge.eval("(function(){document.documentElement.style.overflow='hidden';document.documentElement.style.overscrollBehavior='none';document.body.style.overflow='hidden';document.body.style.overscrollBehavior='none';var canvas=document.querySelector('canvas');if(canvas)canvas.style.touchAction='none';})();", true)
 
 
 func open_settings() -> void:
@@ -269,8 +360,14 @@ func _build_header() -> void:
 	title.add_theme_constant_override("outline_size", 6)
 	title.add_theme_color_override("font_outline_color", Color("#160d08"))
 
-	_register_label(_label("Era", "", Vector2(180.0, 208.0), 21, MUTED), "app.era")
-	_register_label(_label("Tagline", "", Vector2(182.0, 242.0), 19, Color(PAPER, 0.92)), "app.tagline")
+	var era := _label("Era", "", Vector2(180.0, 208.0), 21, Color("#fff0d6"))
+	era.add_theme_constant_override("outline_size", 8)
+	era.add_theme_color_override("font_outline_color", Color("#080d12"))
+	_register_label(era, "app.era")
+	var tagline := _label("Tagline", "", Vector2(182.0, 242.0), 19, Color("#fff2dc"))
+	tagline.add_theme_constant_override("outline_size", 8)
+	tagline.add_theme_color_override("font_outline_color", Color("#080d12"))
+	_register_label(tagline, "app.tagline")
 
 	var rule := ColorRect.new()
 	rule.name = "TitleRule"
@@ -462,6 +559,7 @@ func _build_settings_overlay() -> void:
 	_settings_panel.add_child(margin)
 
 	var column := VBoxContainer.new()
+	_settings_column = column
 	column.add_theme_constant_override("separation", 8)
 	margin.add_child(column)
 
@@ -580,6 +678,7 @@ func _build_settings_overlay() -> void:
 	column.add_child(_settings_note)
 
 	var grow := Control.new()
+	_settings_grow = grow
 	grow.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(grow)
 

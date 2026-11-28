@@ -43,6 +43,10 @@ var _detail_panel: PanelContainer
 var _portrait_frame: PanelContainer
 var _footer_hint: Label
 var _back_button: Button
+var _footer_row: HBoxContainer
+var _footer_rule: ColorRect
+var _mobile_footer: PanelContainer
+var _mobile_footer_row: HBoxContainer
 
 
 func _ready() -> void:
@@ -58,6 +62,7 @@ func _ready() -> void:
 		_selected_map = "tideland"
 	_build_theme()
 	_build_ui()
+	_build_mobile_footer()
 	_refresh()
 	_apply_responsive_layout()
 	get_viewport().size_changed.connect(_apply_responsive_layout)
@@ -138,7 +143,7 @@ func _build_ui() -> void:
 	add_child(_mobile_scroll)
 	_mobile_stack = VBoxContainer.new()
 	_mobile_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_mobile_stack.add_theme_constant_override("separation", 10)
+	_mobile_stack.add_theme_constant_override("separation", 6)
 	_mobile_scroll.add_child(_mobile_stack)
 	_build_character_panel(panels)
 	_build_detail_panel(panels)
@@ -258,10 +263,12 @@ func _build_detail_panel(parent: HBoxContainer) -> void:
 # 不再使用绝对坐标，杜绝说明文字与按钮重叠。
 func _build_footer(parent: VBoxContainer) -> void:
 	var footer_rule := ColorRect.new()
+	_footer_rule = footer_rule
 	footer_rule.color = Color(GOLD, 0.22)
 	footer_rule.custom_minimum_size = Vector2(0, 1)
 	parent.add_child(footer_rule)
 	var row := HBoxContainer.new()
+	_footer_row = row
 	row.add_theme_constant_override("separation", 12)
 	row.custom_minimum_size = Vector2(0, 46)
 	parent.add_child(row)
@@ -289,6 +296,19 @@ func _build_footer(parent: VBoxContainer) -> void:
 	_begin_button.custom_minimum_size = Vector2(180, 44)
 	_begin_button.pressed.connect(_begin_run)
 	row.add_child(_begin_button)
+
+
+func _build_mobile_footer() -> void:
+	_mobile_footer = PanelContainer.new()
+	_mobile_footer.name = "MobileSelectionFooter"
+	_mobile_footer.add_theme_stylebox_override("panel", _panel_box(12))
+	_mobile_footer.visible = false
+	_mobile_footer.z_index = 5
+	add_child(_mobile_footer)
+	_mobile_footer_row = HBoxContainer.new()
+	_mobile_footer_row.name = "MobileSelectionActions"
+	_mobile_footer_row.add_theme_constant_override("separation", 12)
+	_mobile_footer.add_child(_mobile_footer_row)
 
 
 func _responsive_screen_size(viewport_size: Vector2) -> Vector2:
@@ -339,28 +359,67 @@ func _apply_responsive_layout_for(viewport_size: Vector2, screen_size: Vector2) 
 		_mobile_scroll.offset_left = margin
 		_mobile_scroll.offset_right = -margin
 		_mobile_scroll.offset_top = 58.0 / scale
-		_mobile_scroll.offset_bottom = -margin
+		var footer_h := UILayout.display_units(76.0, scale)
+		var safe_bottom := UILayout.display_units(18.0, scale)
+		_mobile_scroll.offset_bottom = -margin - footer_h - safe_bottom
 		_character_panel.custom_minimum_size = Vector2(0, 0)
 		_detail_panel.custom_minimum_size = Vector2(0, 0)
 		_character_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_detail_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_portrait_frame.custom_minimum_size = Vector2(72.0 / scale, 72.0 / scale)
+		_portrait_frame.custom_minimum_size = Vector2(80.0 / scale, 80.0 / scale)
 		var body := _portrait_frame.get_parent() as HBoxContainer
 		if body != null:
 			body.add_theme_constant_override("separation", int(8.0 / scale))
 		_footer_hint.visible = false
-		_back_button.custom_minimum_size = Vector2(74.0 / scale, 40.0 / scale)
-		_begin_button.custom_minimum_size = Vector2(88.0 / scale, 40.0 / scale)
-		for button in _char_buttons.values():
-			(button as Button).custom_minimum_size.y = 48.0 / scale
+		_footer_row.visible = false
+		_footer_rule.visible = false
+		_mobile_footer.visible = true
+		UILayout.place(_mobile_footer, margin, 720.0 - footer_h - safe_bottom, viewport_size.x - margin * 2.0, footer_h, 0.0, 1.0)
+		_mobile_footer.custom_minimum_size = Vector2(0.0, footer_h)
+		if _back_button.get_parent() != _mobile_footer_row:
+			if _back_button.get_parent() != null:
+				_back_button.get_parent().remove_child(_back_button)
+			_mobile_footer_row.add_child(_back_button)
+		if _begin_button.get_parent() != _mobile_footer_row:
+			if _begin_button.get_parent() != null:
+				_begin_button.get_parent().remove_child(_begin_button)
+			_mobile_footer_row.add_child(_begin_button)
+		_back_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_begin_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_back_button.custom_minimum_size = Vector2(112.0 / scale, 54.0 / scale)
+		_begin_button.custom_minimum_size = Vector2(128.0 / scale, 54.0 / scale)
+		for character_id in _char_buttons.keys():
+			var character_button := _char_buttons[character_id] as Button
+			character_button.custom_minimum_size.y = 44.0 / scale
+			var labels: Dictionary = _char_labels[character_id]
+			(labels["title"] as Label).add_theme_font_size_override("font_size", roundi(18.0 / scale))
+			(labels["meta"] as Label).add_theme_font_size_override("font_size", roundi(14.0 / scale))
+		_name_label.add_theme_font_size_override("font_size", roundi(26.0 / scale))
+		_alias_label.add_theme_font_size_override("font_size", roundi(18.0 / scale))
+		_role_label.add_theme_font_size_override("font_size", roundi(16.0 / scale))
+		_note_label.add_theme_font_size_override("font_size", roundi(16.0 / scale))
+		_loadout_label.add_theme_font_size_override("font_size", roundi(14.0 / scale))
 		for button in _map_buttons.values():
-			(button as Button).custom_minimum_size = Vector2(0, 44.0 / scale)
+			(button as Button).custom_minimum_size = Vector2(0, 52.0 / scale)
 		_map_description.custom_minimum_size.y = 0.0
 		_note_label.custom_minimum_size.y = 0.0
 		_loadout_label.custom_minimum_size.y = 0.0
 		_back_button.custom_minimum_size.x = 112.0 / scale
 		_begin_button.custom_minimum_size.x = 128.0 / scale
 	else:
+		_mobile_footer.visible = false
+		_footer_rule.visible = true
+		_footer_row.visible = true
+		if _back_button.get_parent() != _footer_row:
+			if _back_button.get_parent() != null:
+				_back_button.get_parent().remove_child(_back_button)
+			_footer_row.add_child(_back_button)
+			_footer_row.move_child(_back_button, 0)
+		if _begin_button.get_parent() != _footer_row:
+			if _begin_button.get_parent() != null:
+				_begin_button.get_parent().remove_child(_begin_button)
+			_footer_row.add_child(_begin_button)
+			_footer_row.move_child(_begin_button, _footer_row.get_child_count() - 1)
 		_title_label.add_theme_font_size_override("font_size", 48)
 		UILayout.place(_title_label, 72, 34, 640, 56)
 		_subtitle_label.visible = true

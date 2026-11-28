@@ -3,7 +3,7 @@ extends Node2D
 const FIXED_STEP := 1.0 / 60.0
 const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
-const PORTRAIT_CAMERA_ZOOM := 2.8
+const PORTRAIT_CAMERA_ZOOM := 10.5
 const ATTACK_BUFFER_DURATION := 0.18
 const PLAYER_FACING_X_DEADZONE := 0.20
 const HUD_REFRESH_INTERVAL := 0.10
@@ -55,6 +55,7 @@ const TOWER_SLOTS := [
 
 var battlefield: Battlefield
 var camera: Camera2D
+var _camera_base_zoom := Vector2.ONE
 var hud: RunHUD
 var touch_controls: TouchControls
 var narrative: NarrativePlayer
@@ -64,6 +65,7 @@ var level_up_overlay: LevelUpOverlay
 var shop_overlay: ShopOverlay
 var overlay_layer: CanvasLayer
 var pause_overlay: Control
+var _pause_panel: PanelContainer
 var result_overlay: Control
 var codex_overlay: Control
 var result_title: Label
@@ -191,9 +193,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_sync_gameplay_cursor()
-	# Camera framing must keep up while story and tutorial overlays pause the run.
-	_update_camera(delta)
 	if _paused or _game_over:
+		# Keep framing current while overlays pause the simulation.
+		_update_camera(delta)
 		return
 	var max_steps := max_catchup_steps()
 	_accum = minf(_accum + delta, FIXED_STEP * float(max_steps))
@@ -203,6 +205,8 @@ func _process(delta: float) -> void:
 		_accum -= FIXED_STEP
 		steps += 1
 	_last_steps = steps
+	# Follow the position produced by this frame's fixed simulation steps.
+	_update_camera(delta)
 	var flow_started := Time.get_ticks_usec()
 	var flow_cells := (
 		FLOW_CELLS_PER_FRAME_WEB
@@ -441,6 +445,9 @@ func _build_world() -> void:
 	camera = Camera2D.new()
 	camera.name = "RunCamera"
 	camera.position_smoothing_enabled = false
+	var viewport_size := get_viewport_rect().size
+	_camera_base_zoom = Vector2.ONE * portrait_camera_zoom(viewport_size)
+	camera.zoom = _camera_base_zoom
 	camera.limit_left = 0
 	camera.limit_top = 0
 	camera.limit_right = int(battlefield.map_layout.world_size.x)
@@ -458,6 +465,8 @@ func _build_ui() -> void:
 	hud = HUD_SCENE.instantiate() as RunHUD
 	hud.name = "HUD"
 	add_child(hud)
+	if hud.has_signal("pause_requested"):
+		hud.pause_requested.connect(_on_pause_requested)
 	hud.bind_world(battlefield, map_def, camera)
 	if OS.has_feature("baidu_h5"):
 		touch_controls = BAIDU_TOUCH_CONTROLS_SCENE.instantiate() as TouchControls
@@ -468,6 +477,7 @@ func _build_ui() -> void:
 	touch_controls.attack_pressed.connect(_on_touch_attack_pressed)
 	touch_controls.attack_released.connect(_on_touch_attack_released)
 	touch_controls.auto_toggle_requested.connect(_on_touch_auto_toggled)
+	get_viewport().size_changed.connect(_layout_pause_overlay)
 	narrative = NarrativePlayer.new()
 	narrative.name = "Narrative"
 	add_child(narrative)
@@ -2528,6 +2538,10 @@ func _set_pause(paused: bool) -> void:
 	_sync_gameplay_cursor()
 
 
+func _on_pause_requested() -> void:
+	_set_pause(not _paused)
+
+
 func _release_attack() -> void:
 	_attack_held = false
 	_touch_attack_held = false
@@ -2581,8 +2595,13 @@ func _update_camera(delta: float) -> void:
 		return
 	var viewport_size := get_viewport_rect().size
 	var target_zoom := portrait_camera_zoom(viewport_size) if viewport_size.y > viewport_size.x else 1.0
-	var zoom_blend := clampf(1.0 - exp(-8.0 * delta), 0.0, 1.0)
-	camera.zoom = camera.zoom.lerp(Vector2.ONE * target_zoom, zoom_blend)
+	var next_base_zoom := Vector2.ONE * target_zoom
+	if not _camera_base_zoom.is_equal_approx(next_base_zoom):
+		_camera_base_zoom = next_base_zoom
+		camera.zoom = _camera_base_zoom
+		# FeedbackManager composes hit zoom from the camera's bound baseline.
+		# Rebind only when the viewport orientation/size mode changes.
+		FeedbackManager.bind_camera(camera)
 	var target := player["pos"] as Vector2
 	var blend := 1.0 - exp(-12.0 * delta)
 	camera.position = camera.position.lerp(target, clampf(blend, 0.0, 1.0))
@@ -2860,14 +2879,16 @@ func _build_pause_overlay() -> void:
 	dim.color = Color(0.006, 0.010, 0.012, 0.82)
 	pause_overlay.add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var panel := PanelContainer.new()
-	UILayout.place(panel, 390, 125, 500, 470, 0.5, 0.5)
-	panel.add_theme_stylebox_override("panel", _panel_texture_box())
-	pause_overlay.add_child(panel)
+	_pause_panel = PanelContainer.new()
+	_pause_panel.name = "PausePanel"
+	_pause_panel.add_theme_stylebox_override("panel", _panel_texture_box())
+	pause_overlay.add_child(_pause_panel)
 	var column := VBoxContainer.new()
+	column.name = "PauseColumn"
 	column.add_theme_constant_override("separation", 12)
-	panel.add_child(column)
+	_pause_panel.add_child(column)
 	var title := _label(Locale.t("pause.title"), 36, GOLD)
+	title.name = "PauseTitle"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(title)
 	var rule := ColorRect.new()
@@ -2896,8 +2917,68 @@ func _build_pause_overlay() -> void:
 	back.pressed.connect(_return_to_menu)
 	column.add_child(back)
 	var hint := _label(Locale.t("pause.hint"), 12, Color(MUTED, 0.56))
+	hint.name = "PauseHint"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(hint)
+	_layout_pause_overlay()
+
+
+func _layout_pause_overlay() -> void:
+	if not is_instance_valid(_pause_panel):
+		return
+	var viewport_size := get_viewport_rect().size
+	var screen_size := Vector2(DisplayServer.window_get_size())
+	if OS.has_feature("web"):
+		var parsed: Variant = JSON.parse_string(str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true)))
+		if parsed is Array and (parsed as Array).size() >= 2:
+			screen_size = Vector2(float(parsed[0]), float(parsed[1]))
+	if screen_size.x <= 0.0 or screen_size.y <= 0.0:
+		screen_size = viewport_size
+	var portrait := screen_size.y > screen_size.x
+	if not portrait:
+		UILayout.place(_pause_panel, 390, 125, 500, 470, 0.5, 0.5)
+		var column := _pause_panel.get_node_or_null("PauseColumn") as VBoxContainer
+		if column != null:
+			column.add_theme_constant_override("separation", 12)
+		var title := pause_overlay.find_child("PauseTitle", true, false) as Label
+		var stats := pause_overlay.find_child("PauseStats", true, false) as Label
+		var hint := pause_overlay.find_child("PauseHint", true, false) as Label
+		if title != null:
+			title.add_theme_font_size_override("font_size", 36)
+		if stats != null:
+			stats.add_theme_font_size_override("font_size", 15)
+			stats.custom_minimum_size.y = 86.0
+		if hint != null:
+			hint.add_theme_font_size_override("font_size", 12)
+		for button_name in ["ResumeButton", "PauseTutorialButton", "RestartButton", "PauseBackButton"]:
+			var button := pause_overlay.find_child(button_name, true, false) as Button
+			if button != null:
+				button.custom_minimum_size.y = 42.0
+				button.add_theme_font_size_override("font_size", 16)
+		return
+	var scale := UILayout.display_scale(viewport_size, screen_size)
+	var width := UILayout.display_units(minf(screen_size.x - 28.0, 420.0), scale)
+	var height := UILayout.display_units(minf(screen_size.y - 32.0, 420.0), scale)
+	UILayout.place(_pause_panel, (viewport_size.x - width) * 0.5, (viewport_size.y - height) * 0.5, width, height)
+	var column := _pause_panel.get_node_or_null("PauseColumn") as VBoxContainer
+	if column != null:
+		column.add_theme_constant_override("separation", roundi(8.0 / scale))
+	var title := pause_overlay.find_child("PauseTitle", true, false) as Label
+	var stats := pause_overlay.find_child("PauseStats", true, false) as Label
+	var hint := pause_overlay.find_child("PauseHint", true, false) as Label
+	if title != null:
+		title.add_theme_font_size_override("font_size", roundi(UILayout.display_units(34.0, scale)))
+	if stats != null:
+		stats.add_theme_font_size_override("font_size", roundi(UILayout.display_units(16.0, scale)))
+		stats.custom_minimum_size.y = UILayout.display_units(48.0, scale)
+	if hint != null:
+		hint.add_theme_font_size_override("font_size", roundi(UILayout.display_units(13.0, scale)))
+	for button_name in ["ResumeButton", "PauseTutorialButton", "RestartButton", "PauseBackButton"]:
+		var button := pause_overlay.find_child(button_name, true, false) as Button
+		if button != null:
+			button.custom_minimum_size.y = UILayout.display_units(50.0, scale)
+			button.add_theme_font_size_override("font_size", roundi(UILayout.display_units(18.0, scale)))
+			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 
 func _build_result_overlay() -> void:
