@@ -336,7 +336,7 @@ jobs:
           echo "GODOT_VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Export Android APK with community action
-        uses: mlm-games/godot-build-action@d8d3b12df9bef83adf3221a19770b1cd4eb675ed # v1.3.1
+        uses: mlm-games/godot-build-action@1bb6f49794b8826423504b7d8c610c5412c5f503 # main 2026-08-31
         with:
           EXPORT_PRESET_NAME: Android Phone and Handheld
           GODOT_VER: ${{ env.GODOT_VERSION }}
