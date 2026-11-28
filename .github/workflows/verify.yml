@@ -383,6 +383,17 @@ jobs:
           } | tee ci-artifacts/android/build-check.log
           cp "$APK" ci-artifacts/android/watch-yongchang-android.apk
 
+      - name: Install Android 36 emulator image
+        run: |
+          set -euo pipefail
+          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools"
+          SDKMANAGER_ROOT="$(dirname "$(dirname "$(command -v sdkmanager)")")"
+          if [[ ! -e "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]]; then
+            ln -s "$SDKMANAGER_ROOT" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
+          fi
+          yes | sdkmanager --licenses >/dev/null
+          yes | sdkmanager emulator "system-images;android-36;google_apis;x86_64"
+
       - name: Boot Android 36 emulator and smoke test touch input
         timeout-minutes: 15
         run: |
