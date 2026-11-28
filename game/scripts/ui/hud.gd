@@ -88,26 +88,32 @@ func _apply_responsive_layout() -> void:
 		UILayout.place(_banner_panel, 424, 112, 432, 92, 0.5, 0.0)
 		UILayout.place(_boss_panel, 390, 96, 500, 62, 0.5, 0.0)
 		return
-	# Portrait web layout: keep primary status in a compact top stack and reserve the
-	# lower screen for movement/attack controls. Minimap and secondary build text hide.
+	# Portrait web layout: two compact status rows stay above the playfield.
+	# The bottom 28% remains clear for joystick and attack controls.
 	var scale := UILayout.display_scale(viewport_size, size)
-	var full_width := UILayout.display_units(maxf(180.0, size.x - 24.0), scale)
 	UILayout.scale_theme_fonts(_root, 1.0 / scale)
-	UILayout.place(_root.get_node("TopLeftChip"), UILayout.display_units(12, scale), UILayout.display_units(10, scale), full_width, UILayout.display_units(54, scale))
-	UILayout.place(_root.get_node("AttackModeChip"), UILayout.display_units(12, scale), UILayout.display_units(70, scale), full_width, UILayout.display_units(42, scale))
-	UILayout.place(_root.get_node("TimerChip"), UILayout.display_units((size.x - 240.0) * 0.5, scale), UILayout.display_units(118, scale), UILayout.display_units(240, scale), UILayout.display_units(48, scale))
-	UILayout.place(_root.get_node("ScoreChip"), UILayout.display_units(12, scale), UILayout.display_units(170, scale), full_width, UILayout.display_units(58, scale))
+	var top_y := UILayout.display_units(8.0, scale)
+	var row_gap := UILayout.display_units(6.0, scale)
+	var row_height := UILayout.display_units(46.0, scale)
+	var left_width := UILayout.display_units(size.x * 0.43, scale)
+	var right_width := UILayout.display_units(size.x * 0.43, scale)
+	var side_x := UILayout.display_units(8.0, scale)
+	var right_x := UILayout.display_units(size.x - 8.0, scale)
+	UILayout.place(_root.get_node("TopLeftChip"), side_x, top_y, left_width, row_height)
+	UILayout.place(_root.get_node("TimerChip"), right_x, top_y, right_width, row_height, 1.0, 0.0)
+	UILayout.place(_root.get_node("AttackModeChip"), side_x, top_y + row_height + row_gap, left_width, UILayout.display_units(38.0, scale))
+	UILayout.place(_root.get_node("ScoreChip"), right_x, top_y + row_height + row_gap, right_width, UILayout.display_units(38.0, scale), 1.0, 0.0)
 	_minimap.visible = false
-	UILayout.place(_root.get_node("OilChip"), UILayout.display_units(12, scale), UILayout.display_units(236, scale), full_width, UILayout.display_units(44, scale))
-	UILayout.place(_root.get_node("ScaleChip"), UILayout.display_units(12, scale), UILayout.display_units(284, scale), full_width, UILayout.display_units(44, scale))
+	UILayout.place(_root.get_node("OilChip"), side_x, top_y + row_height * 2.0 + row_gap * 2.0, left_width, UILayout.display_units(32.0, scale))
+	UILayout.place(_root.get_node("ScaleChip"), right_x, top_y + row_height * 2.0 + row_gap * 2.0, right_width, UILayout.display_units(32.0, scale), 1.0, 0.0)
 	var weapon_row := _root.get_node("WeaponRow") as Control
-	weapon_row.scale = Vector2(0.84, 0.84)
-	UILayout.place(weapon_row, UILayout.display_units((size.x - 525.0) * 0.5, scale), UILayout.display_units(size.y - 58.0, scale), UILayout.display_units(625, scale), UILayout.display_units(48, scale))
-	UILayout.place(_passive_label, UILayout.display_units(8, scale), UILayout.display_units(332, scale), UILayout.display_units(size.x - 16.0, scale), UILayout.display_units(20, scale))
+	weapon_row.visible = false
+	_passive_label.visible = false
 	_root.get_node("BuildChip").visible = false
 	_move_hint.visible = false
-	UILayout.place(_banner_panel, UILayout.display_units(8, scale), UILayout.display_units(240, scale), UILayout.display_units(size.x - 16.0, scale), UILayout.display_units(92, scale))
-	UILayout.place(_boss_panel, UILayout.display_units(8, scale), UILayout.display_units(440, scale), UILayout.display_units(size.x - 16.0, scale), UILayout.display_units(62, scale))
+	var center_width := UILayout.display_units(size.x - 16.0, scale)
+	UILayout.place(_banner_panel, UILayout.display_units(8.0, scale), UILayout.display_units(size.y * 0.30, scale), center_width, UILayout.display_units(74.0, scale))
+	UILayout.place(_boss_panel, UILayout.display_units(8.0, scale), UILayout.display_units(size.y * 0.22, scale), center_width, UILayout.display_units(52.0, scale))
 
 
 func update_hud(state: Dictionary) -> void:

@@ -3,7 +3,7 @@ extends Node2D
 const FIXED_STEP := 1.0 / 60.0
 const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
-const PORTRAIT_CAMERA_ZOOM := 1.18
+const PORTRAIT_CAMERA_ZOOM := 1.72
 const ATTACK_BUFFER_DURATION := 0.18
 const PLAYER_FACING_X_DEADZONE := 0.20
 const HUD_REFRESH_INTERVAL := 0.10
@@ -2590,7 +2590,10 @@ func _update_camera(delta: float) -> void:
 
 
 static func portrait_camera_zoom(viewport_size: Vector2) -> float:
-	return PORTRAIT_CAMERA_ZOOM if viewport_size.y > viewport_size.x else 1.0
+	if viewport_size.y <= viewport_size.x:
+		return 1.0
+	# Portrait mobile framing uses a fixed closer view; HUD scale stays independent.
+	return PORTRAIT_CAMERA_ZOOM
 
 
 func debug_prepare_capture(mode: String, page: int = 0) -> Dictionary:

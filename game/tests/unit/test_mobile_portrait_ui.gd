@@ -5,6 +5,8 @@ const MainMenuScene := preload("res://scenes/main_menu.tscn")
 const CharacterSelectScene := preload("res://scenes/character_select.tscn")
 const RunGameScript := preload("res://scripts/actors/run_game.gd")
 const TouchControlsScript := preload("res://scripts/ui/touch_controls.gd")
+const HudScript := preload("res://scripts/ui/hud.gd")
+const StoryScript := preload("res://scripts/core/story_overlay.gd")
 const SETTINGS_PATH := "user://test_mobile_portrait_settings.cfg"
 const RENDERER_PATH := "user://test_mobile_portrait_renderer.cfg"
 
@@ -189,6 +191,7 @@ func test_portrait_selection_uses_readable_css_sized_panels_and_targets() -> voi
 
 func test_portrait_battle_camera_and_web_touch_targets_scale_to_mobile_view() -> void:
 	assert_gt(RunGameScript.portrait_camera_zoom(Vector2(1280.0, 2768.0)), 1.0)
+	assert_gte(RunGameScript.portrait_camera_zoom(Vector2(1280.0, 2768.0)), 1.6)
 	assert_eq(RunGameScript.portrait_camera_zoom(Vector2(1280.0, 720.0)), 1.0)
 	var controls := TouchControlsScript.new()
 	add_child_autofree(controls)
@@ -196,6 +199,20 @@ func test_portrait_battle_camera_and_web_touch_targets_scale_to_mobile_view() ->
 	controls.call("_layout_for", Vector2(1280.0, 2768.0), Vector2(390.0, 844.0))
 	assert_gte(controls.joystick_radius / (1280.0 / 390.0), 48.0)
 	assert_gte(controls.attack_radius / (1280.0 / 390.0), 45.0)
+
+
+func test_portrait_story_card_stays_above_touch_controls() -> void:
+	var story := StoryScript.new()
+	add_child_autofree(story)
+	await wait_process_frames(2)
+	var view_size := Vector2(1280.0, 2768.0)
+	var css_size := Vector2(390.0, 844.0)
+	story.call("_apply_responsive_layout", view_size, css_size)
+	var panel := story.get("_panel") as Control
+	var scale := view_size.x / css_size.x
+	var panel_bottom_css := panel.offset_bottom / scale
+	assert_lte(panel_bottom_css, 142.0 + 156.0 + 2.0)
+	assert_lt(panel_bottom_css, css_size.y * 0.60, "story panel must leave the joystick and attack deck unobstructed")
 
 
 func _remove_file(path: String) -> void:
