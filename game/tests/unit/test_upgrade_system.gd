@@ -193,7 +193,11 @@ func test_level_up_blocks_mouse_and_number_input_for_point_two_seconds() -> void
 
 	assert_true(overlay.is_locked())
 	assert_false(overlay.can_choose(0))
-	assert_true(overlay._hint.visible)
+	assert_eq(
+		overlay._hint.visible,
+		not overlay._portrait_layout,
+		"portrait keeps the compact one-page card layout without the redundant lock hint"
+	)
 	assert_string_contains(str(overlay._hint.text), "选择锁定")
 	assert_true(str(overlay._hint.text).contains("0.") or str(overlay._hint.text).contains("1.0"))
 	for i in range(3):

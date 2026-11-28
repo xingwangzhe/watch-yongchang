@@ -45,8 +45,8 @@ func test_about_page_displays_author_and_source_links() -> void:
 	add_child_autofree(about)
 	await wait_process_frames(3)
 	var author := about.find_child("AboutAuthor", true, false) as Label
-	var repository := about.find_child("AboutRepositoryLink", true, false) as LinkButton
-	var web := about.find_child("AboutWebLink", true, false) as LinkButton
+	var repository := about.find_child("AboutRepositoryLink", true, false) as Control
+	var web := about.find_child("AboutWebLink", true, false) as Control
 	assert_not_null(author)
 	assert_string_contains(author.text, ProjectMeta.author)
 	assert_string_contains(author.text, ProjectMeta.author_email)

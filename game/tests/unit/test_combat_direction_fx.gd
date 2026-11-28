@@ -198,6 +198,116 @@ func test_mouse_motion_event_sets_aim_direction_from_screen_space() -> void:
 	assert_lt(run._aim_direction.x, -0.9, "mouse left of the player must aim left")
 
 
+func test_auto_attack_target_does_not_reverse_player_movement_facing() -> void:
+	var run: Variant = await _started_run()
+	run.battlefield.enemies.clear()
+	var origin: Vector2 = run.battlefield.player_spawn_position()
+	run.player["pos"] = origin
+	var enemy_index: int = run.battlefield.spawn_enemy_at("scout", origin + Vector2.LEFT * 80.0)
+	assert_gte(enemy_index, 0)
+	run._auto_attack = true
+	Input.action_press("move_right")
+
+	var start_position: Vector2 = run.player["pos"]
+	run._update_player(1.0 / 60.0)
+	var movement := (run.player["pos"] as Vector2) - start_position
+
+	assert_lt(run._aim_direction.x, 0.0, "auto attack should still aim toward its left-side target")
+	assert_gt(movement.x, 0.0, "targeting must not reverse rightward movement")
+	assert_gt((run.player["facing"] as Vector2).x, 0.0, "the character must face its movement while moving")
+	assert_gt(run._player_facing_x, 0.0, "attack aim must not overwrite the movement-facing state")
+
+
+func test_auto_attack_without_target_does_not_reverse_player_movement_facing() -> void:
+	var run: Variant = await _started_run()
+	run.battlefield.enemies.clear()
+	var origin: Vector2 = run.battlefield.player_spawn_position()
+	run.player["pos"] = origin
+	run._auto_attack = true
+	run._has_mouse_screen_pos = true
+	run._mouse_screen_pos = run.get_viewport().get_canvas_transform() * (origin + Vector2.RIGHT * 100.0)
+	Input.action_press("move_left")
+
+	var start_position: Vector2 = run.player["pos"]
+	run._update_player(1.0 / 60.0)
+	var movement := (run.player["pos"] as Vector2) - start_position
+
+	assert_gt(run._aim_direction.x, 0.0, "the retained manual aim points right when auto attack has no target")
+	assert_lt(movement.x, 0.0, "missing targets must not reverse leftward movement")
+	assert_lt((run.player["facing"] as Vector2).x, 0.0, "the character must face its movement while moving")
+	assert_lt(run._player_facing_x, 0.0, "attack aim must not overwrite the movement-facing state")
+
+
+func test_auto_attack_target_changes_keep_movement_vector_continuous() -> void:
+	var run: Variant = await _started_run()
+	run.battlefield.enemies.clear()
+	var origin: Vector2 = run.battlefield.player_spawn_position()
+	run.player["pos"] = origin
+	var left_index: int = run.battlefield.spawn_enemy_at("scout", origin + Vector2.LEFT * 80.0)
+	var right_index: int = run.battlefield.spawn_enemy_at("scout", origin + Vector2.RIGHT * 80.0)
+	assert_gte(left_index, 0)
+	assert_gte(right_index, 0)
+	run.battlefield.enemies[right_index]["alive"] = false
+	run._auto_attack = true
+	Input.action_press("move_right")
+
+	run._update_player(1.0 / 60.0)
+	var first_position: Vector2 = run.player["pos"]
+	var first_aim: Vector2 = run._aim_direction
+	run.battlefield.enemies[left_index]["alive"] = false
+	run.battlefield.enemies[right_index]["alive"] = true
+	run._update_player(1.0 / 60.0)
+	var second_position: Vector2 = run.player["pos"]
+	var second_aim: Vector2 = run._aim_direction
+	var first_movement := first_position - origin
+	var second_movement := second_position - first_position
+
+	assert_lt(first_aim.x, 0.0, "the first target is left of the player")
+	assert_gt(second_aim.x, 0.0, "the moved target is right of the player")
+	assert_gt(first_movement.x, 0.0)
+	assert_gt(second_movement.x, 0.0)
+	assert_gt(first_movement.dot(second_movement), 0.0, "changing targets must not flip movement direction")
+	assert_almost_eq(first_movement.length(), second_movement.length(), 0.02, "target changes must not interrupt movement speed")
+	assert_gt((run.player["facing"] as Vector2).x, 0.0, "the character must keep facing right throughout the target switch")
+
+
+func test_manual_stationary_aim_and_attack_direction_remain_responsive() -> void:
+	var run: Variant = await _started_run()
+	run.battlefield.enemies.clear()
+	var origin: Vector2 = run.battlefield.player_spawn_position()
+	run.player["pos"] = origin
+	run._has_mouse_screen_pos = true
+	run._mouse_screen_pos = run.get_viewport().get_canvas_transform() * (origin + Vector2.LEFT * 100.0)
+	Input.action_press("attack")
+	run._update_player(1.0 / 60.0)
+
+	assert_lt(run._aim_direction.x, 0.0, "stationary manual aim must follow the mouse")
+	assert_lt((run.player["facing"] as Vector2).x, 0.0, "a stationary player must face the manual aim")
+	assert_eq(run.player["pos"], origin, "stationary aiming must not move the player")
+
+	Input.action_press("move_right")
+	run._update_player(1.0 / 60.0)
+	assert_lt(run._aim_direction.x, 0.0, "manual attack direction must remain independent of movement")
+	assert_gt((run.player["facing"] as Vector2).x, 0.0, "moving right must face right while attacking left")
+	assert_gt((run.player["pos"] as Vector2).x, origin.x)
+
+	run.battlefield.jeff_effects.clear()
+	for weapon in run.weapons:
+		weapon["timer"] = 0.0
+	run._update_weapons(0.01)
+	assert_gt(run.battlefield.jeff_effects.size(), 0, "manual attack must still fire")
+	assert_almost_eq(absf(float(run.battlefield.jeff_effects[-1]["rotation"])), PI, 0.01)
+
+
+func _started_run():
+	var run := (load("res://scenes/run.tscn") as PackedScene).instantiate()
+	add_child_autofree(run)
+	await wait_process_frames(3)
+	run.story._skip_all()
+	await wait_process_frames(2)
+	return run
+
+
 func _mouse_motion_event(position: Vector2) -> InputEventMouseMotion:
 	var event := InputEventMouseMotion.new()
 	event.position = position

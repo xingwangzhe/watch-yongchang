@@ -144,6 +144,7 @@ func test_detail_opens_and_closes_with_button_backdrop_and_escape() -> void:
 		assert_ne((label as Label).autowrap_mode, TextServer.AUTOWRAP_OFF)
 	var close := overlay.find_child("DetailClose", true, false) as Button
 	assert_not_null(close)
+	assert_eq(close.get_focus_mode_with_override(), Control.FOCUS_ALL)
 	close.pressed.emit()
 	assert_false(codex.detail_is_open())
 

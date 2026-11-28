@@ -33,6 +33,9 @@ var _hitstop_active: bool = false
 var _zoom_target: float = 1.0
 var _zoom_current: float = 1.0
 var _base_camera_zoom: Vector2 = Vector2.ONE
+var _base_camera_offset: Vector2 = Vector2.ZERO
+var _last_applied_camera_zoom: Vector2 = Vector2.ONE
+var _last_applied_camera_offset: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
@@ -51,7 +54,11 @@ func _ready() -> void:
 
 ## 策划改完参数后调用；池容量变化会重建池。
 func reload_config() -> void:
-	shake.configure(config.shake_decay, config.shake_offset_max, config.shake_noise_frequency)
+	shake.configure(
+		config.shake_decay,
+		minf(config.shake_offset_max, 4.0),
+		config.shake_noise_frequency
+	)
 	if sfx_pool != null:
 		sfx_pool.configure(
 			config.sfx_hit_voices,
@@ -72,11 +79,28 @@ func set_config(next_config: FeedbackConfig) -> void:
 
 
 func bind_camera(camera: Camera2D) -> void:
+	if camera == _camera and camera != null and is_instance_valid(camera):
+		# The caller may have set a new portrait baseline just before rebinding.
+		# Preserve the current follow baseline and cancel only the transient zoom punch.
+		_sync_camera_baseline()
+		_zoom_target = 1.0
+		_zoom_current = 1.0
+		if not _camera.zoom.is_equal_approx(_base_camera_zoom):
+			_camera.zoom = _base_camera_zoom
+		_last_applied_camera_zoom = _base_camera_zoom
+		return
+	_restore_camera_feedback()
 	_camera = camera
 	if _camera != null and is_instance_valid(_camera):
 		_base_camera_zoom = _camera.zoom
+		_base_camera_offset = _camera.offset
+		_last_applied_camera_zoom = _camera.zoom
+		_last_applied_camera_offset = _camera.offset
 	else:
 		_base_camera_zoom = Vector2.ONE
+		_base_camera_offset = Vector2.ZERO
+		_last_applied_camera_zoom = Vector2.ONE
+		_last_applied_camera_offset = Vector2.ZERO
 	_zoom_target = 1.0
 	_zoom_current = 1.0
 
@@ -133,11 +157,8 @@ func on_hit(data: HitData) -> void:
 		_push_pop(data)
 		if config.sfx_enabled and sfx_pool != null:
 			sfx_pool.play(data.weight)
-		if config.shake_enabled:
-			var amount := config.shake_heavy_trauma if data.weight >= 2 else config.shake_light_trauma
-			if data.critical:
-				amount = maxf(amount, config.shake_light_trauma * 2.0)
-			shake.add(amount)
+		if config.shake_enabled and data.weight >= 2:
+			shake.add(minf(config.shake_heavy_trauma, 0.25))
 		if config.zoom_enabled:
 			_add_zoom(data)
 		_maybe_hitstop(data)
@@ -226,8 +247,10 @@ func _push_pop(data: HitData) -> void:
 
 
 func _add_zoom(data: HitData) -> void:
-	if data.weight >= 2 or data.critical:
-		_zoom_target = maxf(_zoom_target, config.zoom_heavy_amount)
+	if data.weight >= 2:
+		# Keep the punch subtle; zoom remains a transient feedback layer over the
+		# camera's current follow/portrait baseline.
+		_zoom_target = maxf(_zoom_target, clampf(config.zoom_heavy_amount, 1.0, 1.015))
 
 
 func _maybe_hitstop(data: HitData) -> void:
@@ -331,11 +354,22 @@ func _process(delta: float) -> void:
 			var eased := 1.0 + (1.0 - t) * (1.0 - t) * (2.7 * t - 1.7)
 			entry["scale"] = Vector2(lerp(1.35, 1.0, eased), lerp(0.72, 1.0, eased))
 
-	if _camera != null and is_instance_valid(_camera):
-		_camera.offset = shake.update(real_delta) * config.shake_strength
-		_camera.zoom = _base_camera_zoom * _zoom_current
+	var shake_offset := Vector2.ZERO
+	if config.shake_enabled:
+		shake_offset = shake.update(real_delta) * clampf(config.shake_strength, 0.0, 1.0)
 	else:
-		shake.update(real_delta)
+		shake.reset()
+
+	if _camera != null and is_instance_valid(_camera):
+		_sync_camera_baseline()
+		var next_offset := _base_camera_offset + shake_offset
+		var next_zoom := _base_camera_zoom * _zoom_current
+		if not _camera.offset.is_equal_approx(next_offset):
+			_camera.offset = next_offset
+		if not _camera.zoom.is_equal_approx(next_zoom):
+			_camera.zoom = next_zoom
+		_last_applied_camera_offset = next_offset
+		_last_applied_camera_zoom = next_zoom
 
 
 ## 由 Battlefield._draw() 末尾调用，字段与战场共用同一坐标系与 draw transform。
@@ -405,10 +439,33 @@ func reset_runtime() -> void:
 		Engine.time_scale = _saved_time_scale
 		_hitstop_active = false
 		_hitstop_until_usec = 0
-	if _camera != null and is_instance_valid(_camera):
-		_camera.offset = Vector2.ZERO
-		_camera.zoom = _base_camera_zoom
+	_restore_camera_feedback()
 	_camera = null
+	_base_camera_zoom = Vector2.ONE
+	_base_camera_offset = Vector2.ZERO
+	_last_applied_camera_zoom = Vector2.ONE
+	_last_applied_camera_offset = Vector2.ZERO
+
+
+func _sync_camera_baseline() -> void:
+	if _camera == null or not is_instance_valid(_camera):
+		return
+	# Camera follow and portrait layout own absolute values. Treat changes since
+	# our last output as the new baseline, then compose hit feedback on top.
+	if not _camera.offset.is_equal_approx(_last_applied_camera_offset):
+		_base_camera_offset = _camera.offset
+	if not _camera.zoom.is_equal_approx(_last_applied_camera_zoom):
+		_base_camera_zoom = _camera.zoom
+
+
+func _restore_camera_feedback() -> void:
+	if _camera == null or not is_instance_valid(_camera):
+		return
+	_sync_camera_baseline()
+	_camera.offset = _base_camera_offset
+	_camera.zoom = _base_camera_zoom
+	_last_applied_camera_offset = _base_camera_offset
+	_last_applied_camera_zoom = _base_camera_zoom
 
 
 func hitstop_active() -> bool:

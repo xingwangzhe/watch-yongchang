@@ -72,7 +72,6 @@ func test_english_main_menu_surfaces_fit_at_design_and_wide_sizes() -> void:
 		menu.close_controls()
 		menu.close_settings()
 		await wait_process_frames(1)
-
 		menu._tutorial_overlay.open(false)
 		for page_index in TutorialOverlay.PAGE_COUNT:
 			menu._tutorial_overlay._go_page(page_index)
@@ -91,6 +90,49 @@ func test_english_main_menu_surfaces_fit_at_design_and_wide_sizes() -> void:
 		menu.hide_web_exit_notice()
 		host.queue_free()
 		await wait_process_frames(1)
+
+
+func test_portrait_english_controls_panel_has_phone_sized_touch_targets() -> void:
+	var original_viewport_size: Vector2i = get_viewport().size
+	var screen_size := Vector2(390.0, 844.0)
+	var viewport_size := _logical_viewport(screen_size)
+	var scale := screen_size.x / viewport_size.x
+	get_viewport().size = Vector2i(roundi(viewport_size.x), roundi(viewport_size.y))
+	await wait_process_frames(2)
+	var host := _host(viewport_size)
+	var menu := (load("res://scenes/main_menu.tscn") as PackedScene).instantiate()
+	host.add_child(menu)
+	menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	await wait_process_frames(4)
+	menu.call("_apply_responsive_layout", viewport_size, screen_size)
+	menu.open_controls()
+	await wait_process_frames(3)
+	menu.call("_apply_controls_responsive_layout", viewport_size, screen_size, Vector4(6, 24, 6, 20), scale, true)
+	await wait_process_frames(2)
+
+	var panel := menu.find_child("ControlsPanel", true, false) as Control
+	var scroll := menu.find_child("ControlsScroll", true, false) as ScrollContainer
+	var rows := menu.find_child("ControlsRows", true, false) as VBoxContainer
+	var panel_css_rect := Rect2(panel.get_global_rect().position * scale, panel.get_global_rect().size * scale)
+	var panel_bounds := Rect2(Vector2.ZERO, screen_size)
+	assert_true(panel_bounds.encloses(panel_css_rect), "controls panel must stay inside the phone viewport")
+	assert_gte(panel_css_rect.position.x, 18.0 - EPSILON, "controls panel must respect the left safe inset")
+	assert_gte(panel_css_rect.position.y, 36.0 - EPSILON, "controls panel must respect the top safe inset")
+	assert_lte(panel_css_rect.end.x, screen_size.x - 18.0 + EPSILON, "controls panel must respect the right safe inset")
+	assert_lte(panel_css_rect.end.y, screen_size.y - 32.0 + EPSILON, "controls panel must respect the bottom safe inset")
+	for action in InputSetup.ORDER:
+		var row := rows.find_child("Row_%s" % action, true, false) as HBoxContainer
+		var rebind := row.find_child("Rebind_%s" % action, true, false) as Button
+		var action_label := row.find_child("Label_%s" % action, true, false) as Label
+		assert_gte(rebind.custom_minimum_size.y * scale, 44.0, "rebind target must meet touch height for %s" % action)
+		assert_eq(action_label.autowrap_mode, TextServer.AUTOWRAP_WORD_SMART)
+		assert_true(scroll.get_global_rect().intersects(row.get_global_rect()))
+		_assert_label(action_label, panel.get_global_rect(), "portrait controls %s" % action)
+
+	menu.close_controls()
+	host.queue_free()
+	get_viewport().size = original_viewport_size
+	await wait_process_frames(2)
 
 
 func test_english_character_select_copy_fits_for_every_choice() -> void:
@@ -181,6 +223,169 @@ func test_english_hud_fits_with_long_weapon_and_retinue_names() -> void:
 	await wait_process_frames(2)
 
 
+func test_portrait_standard_upgrade_choices_fit_one_phone_page() -> void:
+	var original_viewport_size: Vector2i = get_viewport().size
+	for canvas_size in [Vector2i(360, 800), Vector2i(390, 844)]:
+		var screen_size := Vector2(canvas_size)
+		var viewport_size := _logical_viewport(screen_size)
+		var scale := screen_size.x / viewport_size.x
+		get_viewport().size = Vector2i(roundi(viewport_size.x), roundi(viewport_size.y))
+		await wait_process_frames(2)
+		var host := _host(viewport_size)
+		var overlay := LevelUpOverlay.new()
+		host.add_child(overlay)
+		overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		await wait_process_frames(2)
+		overlay._apply_responsive_layout_for(viewport_size, screen_size, Vector4(6.0, 24.0, 6.0, 20.0))
+		overlay.show_options(_upgrade_options(), 12, {"pool": 120, "taken": 36})
+		await wait_process_frames(4)
+		await wait_seconds(0.22)
+		var scroll_rect: Rect2 = overlay._mobile_scroll.get_global_rect()
+		for index in range(3):
+			var card := overlay.find_child("UpgradeCard%d" % (index + 1), true, false) as Button
+			assert_true(card.visible, "all three standard choices must stay visible in the list")
+			assert_true(
+				scroll_rect.encloses(card.get_global_rect()),
+				"standard choice %d should fit in one portrait page at %s: card=%s scroll=%s" % [
+					index + 1, canvas_size, card.get_global_rect(), scroll_rect,
+				]
+			)
+		var scroll_bar := overlay._mobile_scroll.get_v_scroll_bar()
+		assert_lte(
+			scroll_bar.max_value - scroll_bar.page,
+			EPSILON,
+			"standard three-choice page should not need vertical scrolling at %s" % canvas_size
+		)
+
+	get_viewport().size = original_viewport_size
+	await wait_process_frames(2)
+
+
+func test_portrait_upgrade_cards_and_hud_banner_fit_phone_sizes() -> void:
+	var original_viewport_size: Vector2i = get_viewport().size
+	for canvas_size in [Vector2i(360, 800), Vector2i(390, 844)]:
+		var screen_size := Vector2(canvas_size)
+		var viewport_size := _logical_viewport(screen_size)
+		var scale := screen_size.x / viewport_size.x
+		get_viewport().size = Vector2i(roundi(viewport_size.x), roundi(viewport_size.y))
+		await wait_process_frames(2)
+		var bounds := Rect2(Vector2.ZERO, viewport_size)
+		var host := _host(viewport_size)
+		var overlay := LevelUpOverlay.new()
+		host.add_child(overlay)
+		overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		await wait_process_frames(2)
+		overlay._apply_responsive_layout_for(viewport_size, screen_size, Vector4(6.0, 24.0, 6.0, 20.0))
+		var options := _upgrade_options()
+		options[0]["title"] = "A Long Lantern Watch Blessing That Needs To Wrap Cleanly"
+		overlay.show_options(options, 12, {"pool": 120, "taken": 36})
+		await wait_process_frames(3)
+		await wait_seconds(0.25)
+
+		assert_true(overlay._portrait_layout, "level-up cards must use portrait layout at %s" % canvas_size)
+		assert_true(
+			bounds.encloses(overlay._column.get_global_rect()),
+			"level-up column must fit at %s: rect=%s bounds=%s" % [canvas_size, overlay._column.get_global_rect(), bounds]
+		)
+		assert_true(overlay._mobile_scroll.clip_contents, "off-screen cards must scroll inside the portrait viewport")
+		var first_card := overlay.find_child("UpgradeCard1", true, false) as Button
+		var first_card_rect := first_card.get_global_rect()
+		assert_true(overlay._mobile_scroll.get_global_rect().encloses(first_card_rect), "first upgrade card must be fully visible and tappable")
+		assert_eq(first_card.mouse_filter, Control.MOUSE_FILTER_STOP, "the card surface must receive taps")
+		assert_gte(first_card.size.x * scale, screen_size.x - 36.0 - EPSILON, "card hit width must respect the 12px gutters and safe insets")
+		assert_gte(first_card.size.y * scale, 180.0, "compact card hit area must remain comfortable to tap")
+		assert_lte(first_card.size.y * scale, 280.0, "long copy may grow one card, but must not restore desktop card height")
+		assert_false(first_card.disabled, "the card must become tappable after the opening input lock")
+		var long_title := first_card.find_child("CardTitle", true, false) as Label
+		assert_true(long_title.autowrap_mode != TextServer.AUTOWRAP_OFF, "long upgrade titles must wrap")
+		assert_gte(long_title.get_line_count(), 2, "the long title must wrap onto a second line")
+		assert_gte(long_title.get_visible_line_count(), long_title.get_line_count(), "wrapped title lines must remain visible")
+		var chosen: Array[int] = []
+		overlay.chosen.connect(func(index: int) -> void: chosen.append(index))
+		first_card.pressed.emit()
+		assert_eq(chosen, [0], "the full-width card button must emit its choice")
+		for index in range(3):
+			var card := overlay.find_child("UpgradeCard%d" % (index + 1), true, false) as Button
+			assert_true(card.visible, "all three options must remain available")
+			var card_bounds := card.get_global_rect()
+			for label_node in card.find_children("*", "Label", true, false):
+				_assert_label(label_node as Label, card_bounds, "upgrade card %d %s" % [index + 1, canvas_size])
+
+		var hud := RunHUD.new()
+		add_child_autofree(hud)
+		await wait_process_frames(2)
+		hud._apply_responsive_layout_for(viewport_size, screen_size)
+		hud.update_hud({"boss_active": true, "boss_name": "Wokou Vanguard", "boss_hp": 80, "boss_max_hp": 100})
+		hud.show_banner(
+			"A Long Lantern Watch Banner That Wraps Without Leaving The Screen",
+			"A supporting message long enough to wrap while staying beneath important HUD values.",
+			5.0
+		)
+		await wait_process_frames(3)
+		var banner := hud.find_child("BannerPanel", true, false) as Control
+		var boss := hud.find_child("BossPanel", true, false) as Control
+		var banner_rect := banner.get_global_rect()
+		assert_true(bounds.encloses(banner_rect), "portrait banner must stay inside %s" % canvas_size)
+		var boss_rect := boss.get_global_rect()
+		assert_true(bounds.encloses(boss_rect), "portrait boss notice must stay inside %s" % canvas_size)
+		assert_false(banner_rect.intersects(boss_rect), "banner must stack below the active boss notice")
+		for node_name in ["TopLeftChip", "AttackModeChip", "TimerChip", "ScoreChip", "MobilePauseButton"]:
+			var hud_control := hud.find_child(node_name, true, false) as Control
+			if hud_control != null and hud_control.visible:
+				assert_false(banner_rect.intersects(hud_control.get_global_rect()), "banner must not cover %s" % node_name)
+		var banner_title := hud.find_child("BannerTitle", true, false) as Label
+		var banner_subtitle := hud.find_child("BannerSubtitle", true, false) as Label
+		assert_gte(banner_title.get_line_count(), 2, "long banner title must wrap")
+		_assert_label(banner_title, banner_rect, "portrait banner title %s" % canvas_size)
+		_assert_label(banner_subtitle, banner_rect, "portrait banner subtitle %s" % canvas_size)
+		host.queue_free()
+		hud.queue_free()
+
+
+func test_portrait_long_upgrade_copy_reflows_without_overlapping() -> void:
+	var original_viewport_size: Vector2i = get_viewport().size
+	for canvas_size in [Vector2i(360, 800), Vector2i(390, 844)]:
+		var screen_size := Vector2(canvas_size)
+		var viewport_size := _logical_viewport(screen_size)
+		var scale := screen_size.x / viewport_size.x
+		get_viewport().size = Vector2i(roundi(viewport_size.x), roundi(viewport_size.y))
+		await wait_process_frames(2)
+		var host := _host(viewport_size)
+		var overlay := LevelUpOverlay.new()
+		host.add_child(overlay)
+		overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		await wait_process_frames(2)
+		overlay._apply_responsive_layout_for(viewport_size, screen_size, Vector4(6.0, 24.0, 6.0, 20.0))
+		var options := _upgrade_options()
+		options[0]["title"] = "守望烽火连营 · 卫所器械全面整备"
+		options[0]["description"] = "提升长枪与弩矢的命中距离，改善连续出手后的收招间隔，并让每次攻击保持清晰方向。此卡用于检查长文在手机窄屏上的折行、卡片高度、间距和触控命中区域。"
+		options[0]["culture"] = "永昌堡沿海守望依赖烽火、巡夜与乡兵协作。此段仅展示文本布局，不新增史实陈述。"
+		options[0]["effect_summary"] = "射程 +18% · 冷却 -10% · 额外箭矢 +1"
+		overlay.show_options(options, 12, {"pool": 120, "taken": 36})
+		await wait_process_frames(4)
+		await wait_seconds(0.22)
+		var card := overlay.find_child("UpgradeCard1", true, false) as Button
+		var title := card.find_child("CardTitle", true, false) as Label
+		var description := card.find_child("CardDescription", true, false) as Label
+		var effect := card.find_child("CardEffect", true, false) as Label
+		var culture_label := card.find_child("CardCultureLabel", true, false) as Label
+		var culture := card.find_child("CardCulture", true, false) as Label
+		var meta_rule := card.find_child("CardMetaRule", true, false) as Control
+		var layout_epsilon := EPSILON / scale
+		assert_lte(title.get_global_rect().end.y, description.get_global_rect().position.y + layout_epsilon)
+		assert_lte(description.get_global_rect().end.y, effect.get_global_rect().position.y + layout_epsilon)
+		assert_lte(effect.get_global_rect().end.y, culture_label.get_global_rect().position.y + layout_epsilon)
+		assert_lte(culture_label.get_global_rect().end.y, culture.get_global_rect().position.y + layout_epsilon)
+		assert_lte(culture.get_global_rect().end.y, meta_rule.get_global_rect().position.y + layout_epsilon)
+		for label in [title, description, effect, culture_label, culture]:
+			assert_gte(label.get_visible_line_count(), label.get_line_count(), "long copy must remain fully visible")
+		assert_lte(card.size.y * scale, 280.0, "long-copy card should grow only to fit its measured text")
+		host.queue_free()
+
+	get_viewport().size = original_viewport_size
+	await wait_process_frames(2)
+
+
 func test_english_card_and_settlement_surfaces_do_not_clip_copy() -> void:
 	var original_viewport_size: Vector2i = get_viewport().size
 	get_viewport().size = Vector2i(DESIGN_W, DESIGN_H)
@@ -244,6 +449,10 @@ func _host(canvas_size: Vector2) -> Control:
 	return host
 
 
+func _logical_viewport(screen_size: Vector2) -> Vector2:
+	return Vector2(DESIGN_W, DESIGN_W * screen_size.y / screen_size.x)
+
+
 func _upgrade_options() -> Array[Dictionary]:
 	var pool := UpgradeCatalog.build_card_pool({}, {}, 0.8)
 	var options: Array[Dictionary] = []
@@ -260,17 +469,20 @@ func _assert_surface(root: Node, bounds: Rect2, label: String) -> void:
 		var control := node as Control
 		if not control.is_visible_in_tree() or control.size.x <= 0.0 or control.size.y <= 0.0:
 			continue
+		var scroll_child := _has_scroll_ancestor(control)
 		if control is Label:
 			var clip_rect := _clip_rect(control, bounds)
-			_assert_inside(control.get_global_rect(), clip_rect, "%s: %s" % [label, _path(control)])
-			_assert_label(control as Label, clip_rect, label)
+			if not scroll_child:
+				_assert_inside(control.get_global_rect(), clip_rect, "%s: %s" % [label, _path(control)])
+			_assert_label(control as Label, clip_rect, label, not scroll_child)
 		elif control is Button:
 			var clip_rect := _clip_rect(control, bounds)
-			_assert_inside(control.get_global_rect(), clip_rect, "%s: %s" % [label, _path(control)])
-			_assert_button(control as Button, clip_rect, label)
+			if not scroll_child:
+				_assert_inside(control.get_global_rect(), clip_rect, "%s: %s" % [label, _path(control)])
+			_assert_button(control as Button, clip_rect, label, not scroll_child)
 
 
-func _assert_label(label: Label, clip_rect: Rect2, surface: String) -> void:
+func _assert_label(label: Label, clip_rect: Rect2, surface: String, check_bounds: bool = true) -> void:
 	var text := label.text
 	if text.strip_edges().is_empty():
 		return
@@ -314,10 +526,11 @@ func _assert_label(label: Label, clip_rect: Rect2, surface: String) -> void:
 			text,
 		]
 	)
-	_assert_inside(label.get_global_rect(), clip_rect, "%s: text %s" % [surface, _path(label)])
+	if check_bounds:
+		_assert_inside(label.get_global_rect(), clip_rect, "%s: text %s" % [surface, _path(label)])
 
 
-func _assert_button(button: Button, clip_rect: Rect2, surface: String) -> void:
+func _assert_button(button: Button, clip_rect: Rect2, surface: String, check_bounds: bool = true) -> void:
 	var text := button.text
 	if text.strip_edges().is_empty():
 		return
@@ -340,7 +553,8 @@ func _assert_button(button: Button, clip_rect: Rect2, surface: String) -> void:
 			text,
 		]
 	)
-	_assert_inside(button.get_global_rect(), clip_rect, "%s: button %s" % [surface, _path(button)])
+	if check_bounds:
+		_assert_inside(button.get_global_rect(), clip_rect, "%s: button %s" % [surface, _path(button)])
 
 
 func _assert_inside(rect: Rect2, clip_rect: Rect2, label: String) -> void:
@@ -350,11 +564,22 @@ func _assert_inside(rect: Rect2, clip_rect: Rect2, label: String) -> void:
 	assert_lte(rect.end.y, clip_rect.end.y + EPSILON, "%s crosses the bottom edge" % label)
 
 
+func _has_scroll_ancestor(control: Control) -> bool:
+	var ancestor := control.get_parent()
+	while ancestor != null:
+		if ancestor is ScrollContainer:
+			return true
+		ancestor = ancestor.get_parent()
+	return false
+
+
 func _clip_rect(control: Control, fallback: Rect2) -> Rect2:
 	var rect := fallback
 	var ancestor := control.get_parent()
 	while ancestor != null:
-		if ancestor is Control and (ancestor as Control).clip_contents:
+		if ancestor is ScrollContainer:
+			rect = rect.intersection((ancestor as Control).get_global_rect())
+		elif ancestor is Control and (ancestor as Control).clip_contents:
 			rect = rect.intersection((ancestor as Control).get_global_rect())
 		ancestor = ancestor.get_parent()
 	return rect

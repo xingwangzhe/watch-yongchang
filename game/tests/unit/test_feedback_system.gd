@@ -2,14 +2,19 @@ extends GutTest
 ## 打击反馈系统：对象池复用、分层开关、容量上限、Trauma 衰减、Hitstop 默认关闭。
 
 var _target: Dictionary = {}
+var _camera: Camera2D
 
 
 func before_each() -> void:
+	FeedbackManager.reset_runtime()
 	_target = {"flash": 0.0, "knockback": Vector2.ZERO}
 
 
 func after_each() -> void:
 	FeedbackManager.reset_runtime()
+	if is_instance_valid(_camera):
+		_camera.free()
+	_camera = null
 
 
 func test_hit_data_pool_reuses_instances_and_resets_fields() -> void:
@@ -104,6 +109,79 @@ func test_trauma_decays_and_offset_is_bounded() -> void:
 	var offset := shake.update(0.1)
 	assert_lt(shake.trauma, 1.0, "trauma must decay")
 	assert_lte(offset.length(), 8.0, "shake offset must stay within configured bound")
+
+
+func test_normal_and_critical_hits_leave_camera_follow_baseline_static() -> void:
+	var base_offset := Vector2(6.0, -4.0)
+	var base_zoom := Vector2(0.82, 0.82)
+	_camera = Camera2D.new()
+	_camera.offset = base_offset
+	_camera.zoom = base_zoom
+	FeedbackManager.bind_camera(_camera)
+
+	for _i in range(20):
+		FeedbackManager.emit_hit(Vector2.ZERO, Vector2.RIGHT, 5.0, false, 1, _target)
+		FeedbackManager.emit_hit(Vector2.ZERO, Vector2.RIGHT, 5.0, true, 1, _target)
+	FeedbackManager._process(1.0 / 60.0)
+
+	assert_eq(_camera.offset, base_offset, "routine and critical hits must not shake the camera")
+	assert_eq(_camera.zoom, base_zoom, "routine and critical hits must not punch camera zoom")
+	assert_eq(FeedbackManager.shake.trauma, 0.0)
+	assert_eq(FeedbackManager._zoom_target, 1.0)
+
+
+func test_portrait_rebind_restores_latest_zoom_and_pan_baseline() -> void:
+	var saved_hitstop := FeedbackManager.config.hitstop_enabled
+	FeedbackManager.config.hitstop_enabled = false
+	var original_offset := Vector2(3.0, -2.0)
+	var original_zoom := Vector2(0.92, 0.92)
+	_camera = Camera2D.new()
+	_camera.offset = original_offset
+	_camera.zoom = original_zoom
+	FeedbackManager.bind_camera(_camera)
+	FeedbackManager.emit_hit(
+		Vector2.ZERO, Vector2.RIGHT, 50.0, false, 2, _target, Color.WHITE, "boss"
+	)
+	FeedbackManager._process(1.0 / 60.0)
+	assert_gt(FeedbackManager._zoom_current, 1.0, "a heavy hit may use a brief zoom punch")
+	assert_lte(FeedbackManager._zoom_current, 1.015, "camera zoom feedback must stay subtle")
+
+	var portrait_offset := Vector2(14.0, -8.0)
+	var portrait_zoom := Vector2(0.76, 0.76)
+	_camera.offset = portrait_offset
+	_camera.zoom = portrait_zoom
+	FeedbackManager.bind_camera(_camera)
+	assert_eq(FeedbackManager._base_camera_offset, portrait_offset)
+	assert_eq(FeedbackManager._base_camera_zoom, portrait_zoom)
+	FeedbackManager._process(1.0 / 60.0)
+	FeedbackManager.reset_runtime()
+
+	assert_eq(
+		_camera.offset, portrait_offset, "feedback restore must keep the resized pan baseline"
+	)
+	assert_eq(
+		_camera.zoom, portrait_zoom, "feedback restore must keep the resized portrait zoom"
+	)
+	FeedbackManager.config.hitstop_enabled = saved_hitstop
+
+
+func test_rebinding_same_camera_does_not_promote_feedback_zoom_to_baseline() -> void:
+	var saved_hitstop := FeedbackManager.config.hitstop_enabled
+	FeedbackManager.config.hitstop_enabled = false
+	var base_zoom := Vector2(0.9, 0.9)
+	_camera = Camera2D.new()
+	_camera.zoom = base_zoom
+	FeedbackManager.bind_camera(_camera)
+	FeedbackManager.emit_hit(
+		Vector2.ZERO, Vector2.RIGHT, 50.0, false, 2, _target, Color.WHITE, "boss"
+	)
+	FeedbackManager._process(1.0 / 60.0)
+	FeedbackManager.bind_camera(_camera)
+	FeedbackManager._process(1.0 / 60.0)
+
+	assert_eq(FeedbackManager._base_camera_zoom, base_zoom)
+	assert_eq(_camera.zoom, base_zoom, "rebinding must cancel feedback without capturing its zoom")
+	FeedbackManager.config.hitstop_enabled = saved_hitstop
 
 
 func test_sfx_pool_preallocates_voices_once() -> void:

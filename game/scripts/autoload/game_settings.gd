@@ -504,10 +504,21 @@ func _apply_display() -> void:
 	if DisplayServer.window_get_mode() != mode:
 		DisplayServer.window_set_mode(mode)
 	if not fullscreen:
-		DisplayServer.window_set_size(Vector2i(1280, 720))
+		var window_size := _windowed_size()
+		DisplayServer.window_set_size(window_size)
 		var usable := DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
-		var centered := usable.position + (usable.size - Vector2i(1280, 720)) / 2
+		var centered := usable.position + (usable.size - window_size) / 2
 		DisplayServer.window_set_position(centered)
+
+
+func _windowed_size() -> Vector2i:
+	var width := int(ProjectSettings.get_setting("display/window/size/width_override", 0))
+	var height := int(ProjectSettings.get_setting("display/window/size/height_override", 0))
+	if width <= 0:
+		width = int(ProjectSettings.get_setting("display/window/size/viewport_width", 1280))
+	if height <= 0:
+		height = int(ProjectSettings.get_setting("display/window/size/viewport_height", 720))
+	return Vector2i(maxi(width, 1), maxi(height, 1))
 
 
 func _apply_performance() -> void:

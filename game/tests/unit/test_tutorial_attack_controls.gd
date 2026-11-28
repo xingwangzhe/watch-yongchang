@@ -70,9 +70,14 @@ func test_first_run_shows_bilingual_paged_tutorial_and_skip_persists() -> void:
 	Locale.set_language("en", false)
 	assert_string_contains(str(overlay._page_title.text), "Systems")
 	overlay._go_page(0)
-	assert_string_contains(str(overlay._body.text), "Hold-click")
-	assert_string_contains(str(overlay._body.text), "nearest enemy")
-	assert_string_contains(str(overlay._body.text), "Press X")
+	if overlay._portrait:
+		assert_string_contains(str(overlay._body.text), "Drag the lower-left joystick")
+		assert_string_contains(str(overlay._body.text), "tap Auto Attack")
+		assert_string_contains(str(overlay._body.text), "tap Pause")
+	else:
+		assert_string_contains(str(overlay._body.text), "Hold-click")
+		assert_string_contains(str(overlay._body.text), "nearest enemy")
+		assert_string_contains(str(overlay._body.text), "Press X")
 
 	overlay._skip_button.pressed.emit()
 	assert_false(overlay.visible)

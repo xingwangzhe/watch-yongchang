@@ -16,6 +16,7 @@ var _source: Label
 var _category: Label
 var _voice: VoiceLinePlayer
 var _backing: ColorRect
+var _margin: MarginContainer
 
 
 func _ready() -> void:
@@ -163,6 +164,7 @@ func _build() -> void:
 	_root.add_child(_panel)
 
 	var margin := MarginContainer.new()
+	_margin = margin
 	margin.add_theme_constant_override("margin_left", 20)
 	margin.add_theme_constant_override("margin_right", 20)
 	margin.add_theme_constant_override("margin_top", 12)

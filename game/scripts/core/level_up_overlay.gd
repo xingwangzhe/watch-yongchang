@@ -44,6 +44,8 @@ func _ready() -> void:
 func show_options(options: Array[Dictionary], level: int, info: Dictionary = {}) -> void:
 	_options = options
 	visible = true
+	if _portrait_layout:
+		_mobile_scroll.scroll_vertical = 0
 	_unlock_at_msec = Time.get_ticks_msec() + INPUT_LOCK_MSEC
 	_input_locked = true
 	_hint_pool = int(info.get("pool", options.size()))
@@ -64,6 +66,8 @@ func show_options(options: Array[Dictionary], level: int, info: Dictionary = {})
 		card.visible = true
 		_apply_option(card, options[i], i)
 		_animate_card(card, i)
+		if _portrait_layout:
+			call_deferred("_fit_mobile_card_copy", card)
 
 
 func hide_options() -> void:
@@ -185,6 +189,7 @@ func _build() -> void:
 		var card := Button.new()
 		card.name = "UpgradeCard%d" % (i + 1)
 		card.custom_minimum_size = Vector2(348.0, 490.0)
+		card.mouse_filter = Control.MOUSE_FILTER_STOP
 		card.clip_contents = true
 		card.add_theme_stylebox_override("normal", _card_style(Color(0.045, 0.060, 0.062, 0.98), Color(GOLD, 0.28)))
 		card.add_theme_stylebox_override("hover", _card_style(Color(0.070, 0.082, 0.076, 0.99), Color(GOLD, 0.88)))
@@ -201,16 +206,20 @@ func _build() -> void:
 
 	_mobile_scroll = ScrollContainer.new()
 	_mobile_scroll.name = "MobileUpgradeScroll"
+	_mobile_scroll.mouse_filter = Control.MOUSE_FILTER_STOP
 	_mobile_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_mobile_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	_mobile_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_mobile_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_mobile_scroll.clip_contents = true
 	_mobile_scroll.visible = false
 	column.add_child(_mobile_scroll)
 	_mobile_stack = VBoxContainer.new()
 	_mobile_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_mobile_stack.add_theme_constant_override("separation", 20)
+	_mobile_stack.add_theme_constant_override("separation", 8)
 	_mobile_scroll.add_child(_mobile_stack)
+	for slot in _card_slots:
+		_mobile_stack.add_child(slot)
 
 	_hint = _label(Locale.t("levelup.hint", {"pool": 0}), 11, Color(MUTED, 0.58))
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -231,41 +240,60 @@ func _screen_size() -> Vector2:
 func _apply_responsive_layout() -> void:
 	if not is_instance_valid(_column):
 		return
-	var viewport_size := get_viewport_rect().size
-	var screen_size := _screen_size()
+	_apply_responsive_layout_for(get_viewport_rect().size, _screen_size(), UILayout.safe_area_insets())
+
+
+func _apply_responsive_layout_for(
+	viewport_size: Vector2,
+	screen_size: Vector2,
+	safe_insets: Vector4 = Vector4.ZERO
+) -> void:
+	if not is_instance_valid(_column):
+		return
 	_display_scale = UILayout.display_scale(viewport_size, screen_size)
 	_portrait_layout = screen_size.y > screen_size.x
 	if _portrait_layout:
-		var margin := UILayout.display_units(12.0, _display_scale)
-		var top := UILayout.display_units(18.0, _display_scale)
-		var bottom := UILayout.display_units(18.0, _display_scale)
-		UILayout.place(_column, margin, top, viewport_size.x - margin * 2.0, viewport_size.y - top - bottom)
+		var margin_left := UILayout.display_units(12.0 + safe_insets.x, _display_scale)
+		var margin_right := UILayout.display_units(12.0 + safe_insets.z, _display_scale)
+		var top := UILayout.display_units(18.0 + safe_insets.y, _display_scale)
+		var bottom := UILayout.display_units(18.0 + safe_insets.w, _display_scale)
+		UILayout.place(
+			_column,
+			margin_left,
+			top,
+			viewport_size.x - margin_left - margin_right,
+			viewport_size.y - top - bottom
+		)
 		_column.add_theme_constant_override("separation", UILayout.display_units(6.0, _display_scale))
 		_title.add_theme_font_size_override("font_size", maxi(28, roundi(30.0 / _display_scale)))
 		_subtitle.add_theme_font_size_override("font_size", maxi(19, roundi(20.0 / _display_scale)))
 		_pool_label.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 / _display_scale)))
 		_hint.add_theme_font_size_override("font_size", maxi(16, roundi(16.0 / _display_scale)))
+		for label in [_title, _subtitle, _pool_label, _hint]:
+			label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_card_row.visible = false
 		_mobile_scroll.visible = true
 		_hint.visible = false
 		# Resize the actual Controls, rather than scaling their draw transform.
 		# ScrollContainer measures Control sizes and otherwise leaves a narrow hit
 		# region even when the card appears wider.
-		var available_width := maxf(1.0, viewport_size.x - margin * 2.0)
+		var available_width := maxf(1.0, viewport_size.x - margin_left - margin_right)
 		var width_scale := available_width / 348.0
-		var height_scale := width_scale * 0.76
+		var height_scale := width_scale
+		_mobile_stack.add_theme_constant_override("separation", roundi(8.0 * width_scale))
 		for index in range(_cards.size()):
 			var card := _cards[index]
 			var slot := _card_slots[index]
+			if card.get_parent() == _card_row:
+				_card_row.remove_child(card)
 			if slot.get_parent() != _mobile_stack:
-				if card.get_parent() == _card_row:
-					_card_row.remove_child(card)
 				_mobile_stack.add_child(slot)
-				if card.get_parent() != slot:
-					if card.get_parent() != null:
-							card.get_parent().remove_child(card)
-					slot.add_child(card)
-			var card_size := Vector2(available_width, 490.0 * height_scale)
+			if card.get_parent() != slot:
+				if card.get_parent() != null:
+					card.get_parent().remove_child(card)
+				slot.add_child(card)
+			var card_size := Vector2(available_width, 195.0 * height_scale)
 			card.custom_minimum_size = card_size
 			card.size = card_size
 			card.position = Vector2.ZERO
@@ -283,6 +311,8 @@ func _apply_responsive_layout() -> void:
 		_subtitle.add_theme_font_size_override("font_size", 15)
 		_pool_label.add_theme_font_size_override("font_size", 11)
 		_hint.add_theme_font_size_override("font_size", 11)
+		for label in [_title, _subtitle, _pool_label, _hint]:
+			label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		_hint.visible = true
 		_mobile_scroll.visible = false
 		_card_row.visible = true
@@ -291,7 +321,9 @@ func _apply_responsive_layout() -> void:
 			var slot := _card_slots[index]
 			if card.get_parent() == slot:
 				slot.remove_child(card)
-				_mobile_stack.remove_child(slot)
+			if card.get_parent() != _card_row:
+				if card.get_parent() != null:
+					card.get_parent().remove_child(card)
 				_card_row.add_child(card)
 			card.custom_minimum_size = Vector2(348.0, 490.0)
 			card.scale = Vector2.ONE
@@ -360,6 +392,7 @@ func _build_card(card: Button, index: int) -> void:
 	card.add_child(title)
 
 	var rule := ColorRect.new()
+	rule.name = "CardTitleRule"
 	rule.color = Color(GOLD, 0.24)
 	UILayout.place_in(rule, 40, 238, 268, 1, cw, ch, 0.5, 0.0)
 	rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -380,6 +413,7 @@ func _build_card(card: Button, index: int) -> void:
 	card.add_child(effect)
 
 	var culture_label := _label(Locale.t("levelup.culture_label"), 10, Color(VERMILION, 0.92))
+	culture_label.name = "CardCultureLabel"
 	UILayout.place_in(culture_label, 22, 340, 304, 16, cw, ch, 0.5, 0.0)
 	card.add_child(culture_label)
 
@@ -390,6 +424,7 @@ func _build_card(card: Button, index: int) -> void:
 	card.add_child(culture)
 
 	var meta_rule := ColorRect.new()
+	meta_rule.name = "CardMetaRule"
 	meta_rule.color = Color(GOLD, 0.14)
 	UILayout.place_in(meta_rule, 22, 450, 304, 1, cw, ch, 0.5, 0.0)
 	meta_rule.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -427,18 +462,100 @@ func _cache_mobile_card_layout(card: Button) -> void:
 
 func _apply_mobile_card_layout(card: Button, width_scale: float, height_scale: float) -> void:
 	var font_scale := width_scale * 0.88
-	for node in card.find_children("*", "Control", true, false):
-		var control := node as Control
-		var base_offsets: Vector4 = control.get_meta("mobile_base_offsets", Vector4.ZERO)
-		control.offset_left = base_offsets.x * width_scale
-		control.offset_right = base_offsets.z * width_scale
-		control.offset_top = base_offsets.y * height_scale
-		control.offset_bottom = base_offsets.w * height_scale
-		var base_minimum: Vector2 = control.get_meta("mobile_base_minimum", Vector2.ZERO)
-		control.custom_minimum_size = Vector2(base_minimum.x * width_scale, base_minimum.y * height_scale)
-		if control is Label:
-			var base_font_size := float(control.get_meta("mobile_base_font_size", 12))
-			control.add_theme_font_size_override("font_size", maxi(10, roundi(base_font_size * font_scale)))
+	var compact_rects := {
+		"CardAccent": Vector4(0, 0, 348, 4),
+		"CardNumber": Vector4(10, 4, 28, 16),
+		"CardFamily": Vector4(120, 4, 218, 16),
+		"CardIconPlate": Vector4(10, 24, 54, 54),
+		"CardKind": Vector4(5, 80, 64, 14),
+		"CardTitle": Vector4(72, 21, 266, 34),
+		"CardTitleRule": Vector4(66, 22, 1, 82),
+		"CardDescription": Vector4(72, 56, 266, 40),
+		"CardEffect": Vector4(12, 97, 324, 20),
+		"CardCultureLabel": Vector4(12, 118, 324, 12),
+		"CardCulture": Vector4(12, 130, 324, 25),
+		"CardMetaRule": Vector4(12, 156, 324, 1),
+		"CardLevel": Vector4(12, 159, 100, 14),
+		"CardRarity": Vector4(112, 159, 128, 14),
+		"CardCategory": Vector4(242, 159, 94, 14),
+	}
+	for control_name in compact_rects:
+		_set_mobile_card_rect(card, str(control_name), compact_rects[control_name], width_scale, height_scale)
+	var icon := card.find_child("CardIcon", true, false) as TextureRect
+	icon.custom_minimum_size = Vector2(38, 38) * width_scale
+	for pair in [
+		["CardFamily", 10], ["CardNumber", 10], ["CardKind", 10],
+		["CardTitle", 16], ["CardDescription", 13], ["CardEffect", 12],
+		["CardCultureLabel", 10], ["CardCulture", 11], ["CardLevel", 10],
+		["CardRarity", 10], ["CardCategory", 9],
+	]:
+		var label := card.find_child(str(pair[0]), true, false) as Label
+		label.add_theme_font_size_override("font_size", maxi(9, roundi(float(pair[1]) * font_scale)))
+	(card.find_child("CardTitle", true, false) as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	(card.find_child("CardDescription", true, false) as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	(card.find_child("CardEffect", true, false) as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	(card.find_child("CardCulture", true, false) as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	(card.find_child("CardCulture", true, false) as Label).vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	(card.find_child("CardCategory", true, false) as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+
+
+func _set_mobile_card_rect(
+	card: Button,
+	control_name: String,
+	base_rect: Vector4,
+	width_scale: float,
+	height_scale: float
+) -> void:
+	var control := card.find_child(control_name, true, false) as Control
+	if control == null:
+		return
+	control.anchor_left = 0.0
+	control.anchor_right = 0.0
+	control.anchor_top = 0.0
+	control.anchor_bottom = 0.0
+	control.offset_left = base_rect.x * width_scale
+	control.offset_top = base_rect.y * height_scale
+	control.offset_right = (base_rect.x + base_rect.z) * width_scale
+	control.offset_bottom = (base_rect.y + base_rect.w) * height_scale
+
+
+func _fit_mobile_card_copy(card: Button) -> void:
+	await get_tree().process_frame
+	if not _portrait_layout or not is_instance_valid(card):
+		return
+	var scale := card.size.x / 348.0
+	var title := card.find_child("CardTitle", true, false) as Label
+	var description := card.find_child("CardDescription", true, false) as Label
+	var effect := card.find_child("CardEffect", true, false) as Label
+	var culture_label := card.find_child("CardCultureLabel", true, false) as Label
+	var culture := card.find_child("CardCulture", true, false) as Label
+	var title_height := maxf(34.0, title.get_combined_minimum_size().y / scale)
+	var description_height := maxf(40.0, description.get_combined_minimum_size().y / scale)
+	var effect_height := maxf(20.0, effect.get_combined_minimum_size().y / scale)
+	var culture_label_height := maxf(12.0, culture_label.get_combined_minimum_size().y / scale)
+	var culture_height := maxf(25.0, culture.get_combined_minimum_size().y / scale)
+	var description_y := 21.0 + title_height + 1.0
+	var effect_y := description_y + description_height + 1.0
+	var culture_label_y := effect_y + effect_height + 1.0
+	var culture_y := culture_label_y + culture_label_height
+	var meta_y := culture_y + culture_height + 1.0
+	_set_mobile_card_rect(card, "CardTitle", Vector4(72, 21, 266, title_height), scale, scale)
+	_set_mobile_card_rect(card, "CardDescription", Vector4(72, description_y, 266, description_height), scale, scale)
+	_set_mobile_card_rect(card, "CardEffect", Vector4(12, effect_y, 324, effect_height), scale, scale)
+	_set_mobile_card_rect(card, "CardCultureLabel", Vector4(12, culture_label_y, 324, culture_label_height), scale, scale)
+	_set_mobile_card_rect(card, "CardCulture", Vector4(12, culture_y, 324, culture_height), scale, scale)
+	_set_mobile_card_rect(card, "CardMetaRule", Vector4(12, meta_y, 324, 1), scale, scale)
+	var footer_y := meta_y + 2.0
+	_set_mobile_card_rect(card, "CardLevel", Vector4(12, footer_y, 100, 14), scale, scale)
+	_set_mobile_card_rect(card, "CardRarity", Vector4(112, footer_y, 128, 14), scale, scale)
+	_set_mobile_card_rect(card, "CardCategory", Vector4(242, footer_y, 94, 14), scale, scale)
+	var card_size := Vector2(card.size.x, maxf(195.0, footer_y + 17.0) * scale)
+	card.custom_minimum_size = card_size
+	card.size = card_size
+	var slot := card.get_parent() as Control
+	if slot != null:
+		slot.custom_minimum_size = card_size
+		slot.size = card_size
 
 
 func _apply_option(card: Button, option: Dictionary, index: int) -> void:

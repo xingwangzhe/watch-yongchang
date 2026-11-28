@@ -325,10 +325,15 @@ func _responsive_screen_size(viewport_size: Vector2) -> Vector2:
 
 func _apply_responsive_layout() -> void:
 	var viewport_size := get_viewport_rect().size
-	_apply_responsive_layout_for(viewport_size, _responsive_screen_size(viewport_size))
+	var screen_size := _responsive_screen_size(viewport_size)
+	_apply_responsive_layout_for(viewport_size, screen_size, UILayout.safe_area_insets())
 
 
-func _apply_responsive_layout_for(viewport_size: Vector2, screen_size: Vector2) -> void:
+func _apply_responsive_layout_for(
+	viewport_size: Vector2,
+	screen_size: Vector2,
+	safe_insets: Vector4 = Vector4.ZERO
+) -> void:
 	if not is_instance_valid(_panels):
 		return
 	var scale := UILayout.display_scale(viewport_size, screen_size)
@@ -350,17 +355,25 @@ func _apply_responsive_layout_for(viewport_size: Vector2, screen_size: Vector2) 
 			_panels.add_child(_detail_panel)
 	if portrait:
 		var margin := UILayout.display_units(12.0, scale)
+		var left_inset := UILayout.display_units(safe_insets.x, scale)
+		var right_inset := UILayout.display_units(safe_insets.z, scale)
 		_title_label.add_theme_font_size_override("font_size", maxi(24, int(34.0 / scale)))
-		UILayout.place(_title_label, 16.0 / scale, 8.0 / scale, 240.0 / scale, 42.0 / scale)
+		UILayout.place(
+			_title_label,
+			UILayout.display_units(16.0 + safe_insets.x, scale),
+			UILayout.display_units(8.0 + safe_insets.y, scale),
+			maxf(160.0 / scale, viewport_size.x - left_inset - right_inset - UILayout.display_units(150.0, scale)),
+			42.0 / scale
+		)
 		_subtitle_label.visible = false
 		_rule.visible = false
 		_merit_label.add_theme_font_size_override("font_size", maxi(11, int(14.0 / scale)))
 		UILayout.place(_merit_label, 220.0 / scale, 18.0 / scale, screen_size.x / scale - 232.0 / scale, 26.0 / scale, 1.0, 0.0)
-		_mobile_scroll.offset_left = margin
-		_mobile_scroll.offset_right = -margin
-		_mobile_scroll.offset_top = 58.0 / scale
+		_mobile_scroll.offset_left = margin + left_inset
+		_mobile_scroll.offset_right = -(margin + right_inset)
+		_mobile_scroll.offset_top = UILayout.display_units(58.0 + safe_insets.y, scale)
 		var footer_h := UILayout.display_units(76.0, scale)
-		var safe_bottom := UILayout.display_units(18.0, scale)
+		var safe_bottom := UILayout.display_units(maxf(18.0, safe_insets.w + 8.0), scale)
 		_mobile_scroll.offset_bottom = -margin - footer_h - safe_bottom
 		_character_panel.custom_minimum_size = Vector2(0, 0)
 		_detail_panel.custom_minimum_size = Vector2(0, 0)
@@ -374,7 +387,15 @@ func _apply_responsive_layout_for(viewport_size: Vector2, screen_size: Vector2) 
 		_footer_row.visible = false
 		_footer_rule.visible = false
 		_mobile_footer.visible = true
-		UILayout.place(_mobile_footer, margin, 720.0 - footer_h - safe_bottom, viewport_size.x - margin * 2.0, footer_h, 0.0, 1.0)
+		UILayout.place(
+			_mobile_footer,
+			margin + left_inset,
+			720.0 - footer_h - safe_bottom,
+			viewport_size.x - margin * 2.0 - left_inset - right_inset,
+			footer_h,
+			0.0,
+			1.0
+		)
 		_mobile_footer.custom_minimum_size = Vector2(0.0, footer_h)
 		if _back_button.get_parent() != _mobile_footer_row:
 			if _back_button.get_parent() != null:

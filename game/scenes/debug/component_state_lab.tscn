@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dq5d306mie17u"]
+
+[ext_resource type="Script" path="res://scripts/dev/debug_component_lab.gd" id="1_b1nv4"]
+
+[node name="ComponentStateLab" type="Control" unique_id=142189184]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_b1nv4")

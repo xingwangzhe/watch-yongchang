@@ -81,6 +81,40 @@ static func display_units(value: float, scale: float) -> float:
 	return value / maxf(0.05, scale)
 
 
+## Read CSS safe-area values on Web and the display safe rectangle on native platforms.
+static func safe_area_insets() -> Vector4:
+	if OS.has_feature("web"):
+		var raw := str(JavaScriptBridge.eval(
+			"""(() => {
+				const e = document.createElement('div');
+				e.style.cssText = 'position:fixed;inset:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);visibility:hidden;pointer-events:none';
+				document.body.appendChild(e);
+				const s = getComputedStyle(e);
+				const v = [s.paddingLeft, s.paddingTop, s.paddingRight, s.paddingBottom].map(x => parseFloat(x) || 0);
+				e.remove();
+				return JSON.stringify(v);
+			})()""",
+			true
+		))
+		var parsed: Variant = JSON.parse_string(raw)
+		if parsed is Array and (parsed as Array).size() >= 4:
+			return Vector4(float(parsed[0]), float(parsed[1]), float(parsed[2]), float(parsed[3]))
+	var window_size := DisplayServer.window_get_size()
+	if window_size.x <= 0 or window_size.y <= 0:
+		return Vector4.ZERO
+	var window_rect := Rect2i(DisplayServer.window_get_position(), window_size)
+	var safe_rect := DisplayServer.get_display_safe_area()
+	var inner := Rect2(safe_rect).intersection(Rect2(window_rect))
+	if inner.size.x <= 0.0 or inner.size.y <= 0.0:
+		return Vector4.ZERO
+	return Vector4(
+		maxf(0.0, inner.position.x - window_rect.position.x),
+		maxf(0.0, inner.position.y - window_rect.position.y),
+		maxf(0.0, window_rect.end.x - inner.end.x),
+		maxf(0.0, window_rect.end.y - inner.end.y)
+	)
+
+
 ## Apply a device-pixel font scale while retaining the unscaled theme values.
 static func scale_theme_fonts(root: Control, factor: float) -> void:
 	for node in root.find_children("*", "Control", true, false):

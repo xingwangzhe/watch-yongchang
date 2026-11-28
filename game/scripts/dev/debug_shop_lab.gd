@@ -14,9 +14,13 @@ func _ready() -> void:
 	room_title = "灯下军市 UI / 独立预览"
 	super._ready()
 	_rng.seed = 20261128
+	var shop_layer := CanvasLayer.new()
+	shop_layer.name = "ShopLayer"
+	shop_layer.layer = 65
+	add_child(shop_layer)
 	_shop = ShopOverlay.new()
 	_shop.name = "ShopOverlay"
-	add_child(_shop)
+	shop_layer.add_child(_shop)
 	_shop.buy_requested.connect(_buy_offer)
 	_shop.reroll_requested.connect(_reroll_offers)
 	_shop.closed.connect(_close_shop)

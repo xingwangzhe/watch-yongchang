@@ -22,6 +22,7 @@ func before_each() -> void:
 func after_each() -> void:
 	if is_instance_valid(_prologue):
 		_prologue.queue_free()
+		await get_tree().process_frame
 	GameSettings.config_path = GameSettings.CONFIG_PATH
 	GameSettings.renderer_mirror_override = ""
 	GameSettings.web_platform_override = -1
@@ -67,7 +68,9 @@ func test_portrait_prologue_text_and_controls_keep_css_pixel_readability() -> vo
 	var narrative_body := narrative.get("_body") as Label
 	var narrative_panel := narrative.get("_panel") as PanelContainer
 	assert_gte(narrative_body.get_theme_font_size("font_size") / scale, 17.9)
-	assert_lte(absf(narrative_panel.offset_bottom) / (view_size.y / css_size.y), 11.0)
+	var narrative_rect := narrative_panel.get_global_rect()
+	assert_gte(narrative_rect.position.y / scale, 12.0)
+	assert_lte(narrative_rect.end.y / scale, css_size.y * 0.60)
 	var touch := _prologue.get("_touch_controls") as PrologueTouchControls
 	touch.size = view_size
 	touch.call("_apply_layout", view_size, css_size)
@@ -169,7 +172,12 @@ func test_portrait_selection_uses_readable_css_sized_panels_and_targets() -> voi
 	var select := CharacterSelectScene.instantiate()
 	add_child_autofree(select)
 	await wait_process_frames(2)
-	select.call("_apply_responsive_layout_for", Vector2(1280.0, 2768.0), Vector2(390.0, 844.0))
+	select.call(
+		"_apply_responsive_layout_for",
+		Vector2(1280.0, 2768.0),
+		Vector2(390.0, 844.0),
+		Vector4(6.0, 24.0, 6.0, 20.0)
+	)
 	var scale := 1280.0 / 390.0
 	var title := select.get("_title_label") as Label
 	var roster := select.get("_character_panel") as PanelContainer
@@ -178,7 +186,9 @@ func test_portrait_selection_uses_readable_css_sized_panels_and_targets() -> voi
 	var scroll := select.get("_mobile_scroll") as ScrollContainer
 	var stack := select.get("_mobile_stack") as VBoxContainer
 	assert_gte(title.get_theme_font_size("font_size") / scale, 25.0)
+	assert_gte(title.offset_top / scale, 31.9, "selection title must clear the top safe area")
 	assert_true(scroll.visible, "portrait selection must use a scrollable layout")
+	assert_gte(-scroll.offset_bottom / scale, 76.0 + 20.0 + 12.0, "selection scroll area must leave room for the safe footer")
 	assert_true(roster.get_parent() == stack, "portrait roster must be stacked above details")
 	assert_true(select.get("_detail_panel").get_parent() == stack, "portrait details must remain reachable below roster")
 	assert_gte((select.get("_char_buttons").values()[0] as Button).custom_minimum_size.y / scale, 44.0)
@@ -222,26 +232,38 @@ func test_portrait_hud_stacks_readable_status_and_exposes_pause_button() -> void
 	await wait_process_frames(2)
 	var view_size := Vector2(1280.0, 2768.0)
 	var css_size := Vector2(390.0, 844.0)
-	hud.call("_apply_responsive_layout_for", view_size, css_size)
+	hud.call("_apply_responsive_layout_for", view_size, css_size, Vector4(6.0, 24.0, 6.0, 20.0))
 	var root := hud.get("_root") as Control
-	var stacked_status: Array[Control] = [
-		root.get_node("TopLeftChip"),
-		root.get_node("TimerChip"),
-		root.get_node("AttackModeChip"),
-		root.get_node("ScoreChip"),
-		root.get_node("OilChip"),
-		root.get_node("ScaleChip"),
-	]
-	for index in stacked_status.size():
-		var control := stacked_status[index]
+	var scale := view_size.x / css_size.x
+	var health_chip := root.get_node("TopLeftChip") as Control
+	var timer_chip := root.get_node("TimerChip") as Control
+	var attack_chip := root.get_node("AttackModeChip") as Control
+	var score_chip := root.get_node("ScoreChip") as Control
+	for control in [health_chip, timer_chip, attack_chip, score_chip]:
 		var rect: Rect2 = control.get_global_rect()
-		assert_gte(rect.position.x, 0.0, "%s must not be clipped at the left edge" % control.name)
+		assert_gte(rect.position.x, 0.0, "%s must stay inside the portrait viewport" % control.name)
+		assert_gte(rect.position.y, 0.0, "%s must stay inside the portrait viewport" % control.name)
 		assert_lte(rect.end.x, view_size.x, "%s must stay inside the portrait viewport" % control.name)
-		if index > 0:
-			var previous: Rect2 = stacked_status[index - 1].get_global_rect()
-			assert_gte(rect.position.y, previous.end.y, "%s must follow the previous status row" % control.name)
+		assert_lte(rect.end.y, view_size.y, "%s must stay inside the portrait viewport" % control.name)
+		assert_gte(rect.position.x / scale, 6.0, "%s must clear the left safe area" % control.name)
+		assert_gte(rect.position.y / scale, 24.0, "%s must clear the top safe area" % control.name)
+		assert_lte(rect.end.x / scale, css_size.x - 6.0, "%s must clear the right safe area" % control.name)
+	assert_gte(timer_chip.get_global_rect().position.y, health_chip.get_global_rect().end.y)
+	assert_false(
+		timer_chip.get_global_rect().intersects(attack_chip.get_global_rect()),
+		"timer and attack mode share a row without overlapping"
+	)
+	assert_gte(
+		score_chip.get_global_rect().position.y,
+		maxf(timer_chip.get_global_rect().end.y, attack_chip.get_global_rect().end.y)
+	)
+	assert_false((root.get_node("OilChip") as Control).visible)
+	assert_false((root.get_node("ScaleChip") as Control).visible)
+	assert_true(score_chip.find_child("OilMeter", true, false) != null)
+	assert_true(score_chip.find_child("ScaleMeter", true, false) != null)
 	var pause_button := root.get_node("MobilePauseButton") as Button
 	assert_true(pause_button.visible, "portrait battle must expose a touch pause entry")
+	assert_lte(pause_button.get_global_rect().end.x / scale, css_size.x - 6.0)
 	var pause_events: Array[bool] = []
 	hud.pause_requested.connect(func() -> void: pause_events.append(true))
 	pause_button.pressed.emit()

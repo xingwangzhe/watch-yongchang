@@ -1112,8 +1112,12 @@ func _create_spec_node(spec: Dictionary) -> Control:
 				rich_link.add_theme_font_override("normal_font", UI_FONT)
 				rich_link.set_meta("about_font_key", "normal_font_size")
 				rich_link.set_meta("about_base_font_size", maxi(int(spec.get("font_size", 14)), 16))
+				rich_link.tooltip_text = str(spec.get("url", ""))
 				rich_link.text = _bb_center(_bb_url(str(spec.get("text", "")), str(spec.get("url", "")), int(spec.get("font_size", 14)), GOLD))
 				rich_link.meta_clicked.connect(_open_url)
+				var mobile_link_name := str(spec.get("name", ""))
+				if not mobile_link_name.is_empty():
+					rich_link.name = mobile_link_name
 				return rich_link
 			var link := LinkButton.new()
 			link.text = str(spec.get("text", ""))

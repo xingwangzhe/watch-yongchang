@@ -121,6 +121,7 @@ var _touch_attack_held := false
 var _attack_buffer := 0.0
 var _auto_attack := false
 var debug_invincible := false
+@export var debug_preview_only := false
 var _mouse_screen_pos := Vector2.ZERO
 var _has_mouse_screen_pos := false
 var _move_trail_timer := 0.0
@@ -177,15 +178,26 @@ var debug_panel: CanvasLayer
 
 func _ready() -> void:
 	InputSetup.ensure_defaults()
-	_run_seed = SaveSystem.begin_run()
-	_rng.seed = SaveSystem.derive_seed(_run_seed, "gameplay")
-	_world_seed = SaveSystem.derive_seed(_run_seed, "world")
-	_jinshi_blessing_seed = SaveSystem.derive_seed(_run_seed, "jinshi_blessing")
-	_run_start_merit = int(SaveSystem.data.get("total_merit", 0))
+	if debug_preview_only:
+		process_mode = Node.PROCESS_MODE_DISABLED
+		_run_seed = 20261128
+		_rng.seed = _run_seed
+		_world_seed = _run_seed + 1
+		_jinshi_blessing_seed = _run_seed + 2
+		_run_start_merit = 0
+	else:
+		_run_seed = SaveSystem.begin_run()
+		_rng.seed = SaveSystem.derive_seed(_run_seed, "gameplay")
+		_world_seed = SaveSystem.derive_seed(_run_seed, "world")
+		_jinshi_blessing_seed = SaveSystem.derive_seed(_run_seed, "jinshi_blessing")
+		_run_start_merit = int(SaveSystem.data.get("total_merit", 0))
 	_load_data()
 	_build_world()
 	_build_ui()
 	_setup_player()
+	if debug_preview_only:
+		_paused = true
+		return
 	AudioBus.play_battle_bgm()
 	_schedule_intro()
 	_enable_web_perf_probe()
@@ -788,17 +800,15 @@ func _update_player(delta: float) -> void:
 				_wade_sfx_cd = 0.11
 				battlefield.spawn_wade_splash(previous_position, 1.0)
 	player["pos"] = battlefield.resolve_player_move(previous_position, desired_position, float(player["radius"]))
-	if _auto_attack or _attack_held or _attack_buffer > 0.0:
-		if absf(_aim_direction.x) > PLAYER_FACING_X_DEADZONE:
-			_player_facing_x = signf(_aim_direction.x)
+	if input_vector.length_squared() > 0.001:
+		if absf(input_vector.x) > PLAYER_FACING_X_DEADZONE:
+			_player_facing_x = signf(input_vector.x)
+		player["facing"] = Vector2(_player_facing_x, input_vector.y).normalized()
+	elif _auto_attack or _attack_held or _attack_buffer > 0.0:
 		var attack_facing := _aim_direction
 		if absf(attack_facing.x) <= PLAYER_FACING_X_DEADZONE:
 			attack_facing.x = _player_facing_x
 		player["facing"] = attack_facing.normalized()
-	elif input_vector.length_squared() > 0.001:
-		if absf(input_vector.x) > PLAYER_FACING_X_DEADZONE:
-			_player_facing_x = signf(input_vector.x)
-		player["facing"] = Vector2(_player_facing_x, input_vector.y).normalized()
 	var dark := int(player["oil"]) <= 0
 	player["dark"] = dark
 	var ratio := float(player["oil"]) / maxf(1.0, float(player["oil_max"]))
@@ -2471,7 +2481,7 @@ func _begin_defeat() -> void:
 	_show_result(false)
 
 
-func _show_result(victory: bool) -> void:
+func _show_result(victory: bool, preview_only: bool = false) -> void:
 	if result_overlay.visible:
 		return
 	_game_over = true
@@ -2491,11 +2501,34 @@ func _show_result(victory: bool) -> void:
 		"unlocks": " · ".join(unlocks),
 	}) if not unlocks.is_empty() else Locale.t("result.no_unlocks")
 	result_overlay.visible = true
-	SaveSystem.record_run(merit, kills, victory, elapsed)
-	_result_recorded = true
-	SaveSystem.data["run_scales"] = scales.size()
-	SaveSystem.autosave({"last_mode": "result"})
-	_sync_gameplay_cursor()
+	if not preview_only:
+		SaveSystem.record_run(merit, kills, victory, elapsed)
+		_result_recorded = true
+		SaveSystem.data["run_scales"] = scales.size()
+		SaveSystem.autosave({"last_mode": "result"})
+		_sync_gameplay_cursor()
+
+
+func debug_preview_state(state: String) -> void:
+	if not debug_preview_only:
+		push_error("debug_preview_state requires debug_preview_only=true")
+		return
+	match state:
+		"pause":
+			_set_pause(true)
+			for node in pause_overlay.find_children("*", "Button", true, false):
+				(node as Button).disabled = true
+		"result_victory", "result_defeat":
+			elapsed = 846.0
+			kills = 682
+			merit = 144
+			level = 20
+			scales = ["blue", "gold"]
+			_show_result(state == "result_victory", true)
+			for node in result_overlay.find_children("*", "Button", true, false):
+				(node as Button).disabled = true
+		_:
+			push_error("Unknown run debug state: %s" % state)
 
 
 func _new_unlocks(before: int, after: int) -> Array[String]:

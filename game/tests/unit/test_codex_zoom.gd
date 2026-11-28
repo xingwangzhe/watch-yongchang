@@ -16,6 +16,8 @@ func test_zoom_opens_from_detail_image_and_exits_by_backdrop_close_and_escape() 
 	detail_hit.pressed.emit()
 	await wait_process_frames(2)
 	assert_true(codex.detail_is_open())
+	var detail_close := codex.find_child("DetailClose", true, false) as Button
+	assert_eq(detail_close.get_focus_mode_with_override(), Control.FOCUS_ALL)
 
 	var zoom_hit := codex.find_child("DetailZoomHit", true, false) as Button
 	assert_not_null(zoom_hit)
@@ -23,6 +25,8 @@ func test_zoom_opens_from_detail_image_and_exits_by_backdrop_close_and_escape() 
 	await wait_process_frames(2)
 	assert_true(codex.zoom_is_open())
 	var overlay := codex.find_child("CodexZoomOverlay", true, false) as Control
+	var zoom_close := overlay.find_child("ZoomClose", true, false) as Button
+	assert_eq(zoom_close.get_focus_mode_with_override(), Control.FOCUS_ALL)
 	assert_not_null(overlay)
 	assert_true(overlay.visible)
 	var image := overlay.find_child("ZoomImage", true, false) as TextureRect

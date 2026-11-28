@@ -25,10 +25,12 @@ const WADE_SPEED_FACTOR := 0.62
 const WADE_SPLASH_CAPACITY := 90
 const ENEMY_SPRITE_BASE_SIZE := 96.0
 const PLAYER_SPRITE_SIZE := 96.0
+const MOUNTED_UNIT_DRAW_SCALE := 1.35
 const PLAYER_WALK_CYCLE_DISTANCE := 72.0
 const AIM_POINTER_TEXTURE := preload("res://assets/ui/generated/aim_pointer.png")
 const TOWER_AGGRO := 360.0
 const TOWER_SPRITE_BASE := 168.0
+const TOWER_PROJECTILE_KIND := "crossbow_bolt"
 const UI_FONT := preload("res://assets/fonts/LXGWWenKai-Regular.woff2")
 const PAPER := Color("#efe1c2")
 const GOLD := Color("#e1b35a")
@@ -702,6 +704,7 @@ func _fire_tower_arrow(
 	shot["hit"] = hit_list
 	shot["color"] = color
 	shot["critical"] = critical
+	shot["projectile_kind"] = TOWER_PROJECTILE_KIND
 	shot["burn"] = float(tower_stats.get("tower_burn", 0.0))
 	shot["slow"] = float(tower_stats.get("tower_slow", 0.0))
 	shot["knockback"] = float(tower_stats.get("tower_knockback", 0.0))
@@ -1084,6 +1087,7 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		str(visual.get("tint", "#ffffff")),
 		Color.WHITE
 	)
+	var mounted := str(definition.get("sprite_sheet", "")).ends_with("/cavalry_walk.webp")
 	var enemy := {
 		"id": enemy_id,
 		"draw_id": draw_id,
@@ -1099,6 +1103,7 @@ func spawn_enemy_at(enemy_id: String, position: Vector2, elite_color: String = "
 		"radius": float(definition.get("radius", 20.0)),
 		"xp": float(definition.get("xp", 1.0)),
 		"scale": float(definition.get("scale", 0.66)),
+		"mounted": mounted,
 		"behavior": behavior,
 		"base_behavior": base_behavior,
 		"runtime_role": runtime_role,
@@ -1199,6 +1204,7 @@ func spawn_ally(mercenary_id: String, position: Vector2) -> bool:
 		"damage": float(definition.get("damage", 10.0)),
 		"radius": float(definition.get("radius", 17.0)),
 		"scale": float(definition.get("scale", 0.62)),
+		"mounted": sheet.ends_with("/cavalry_walk.webp"),
 		"attack_kind": str(definition.get("attack_kind", "cone")),
 		"weapon": str((definition.get("character_recipe", {}) as Dictionary).get("weapon", "saber")),
 		"action": str((definition.get("character_recipe", {}) as Dictionary).get("action", "")),
@@ -2800,26 +2806,60 @@ func _draw_tower_shots() -> void:
 		var position := shot["pos"] as Vector2
 		var vel := shot["vel"] as Vector2
 		var direction := vel.normalized()
-		var color := shot["color"] as Color
+		if direction.is_zero_approx():
+			direction = Vector2.RIGHT
+		var color := shot.get("color", Color("#efe0b4")) as Color
 		var critical := bool(shot.get("critical", false))
-		var side := Vector2(-direction.y, direction.x)
-		var shaft := 24.0 if not critical else 28.0
+		var geometry := _tower_projectile_geometry(position, direction)
 		# 飞行拖尾：三节递减，让高速箭矢的轨迹看得见。
 		for trail_index in range(3):
 			var back := position - direction * (8.0 + float(trail_index) * 9.0)
-			draw_line(back, back - direction * 7.0, Color(color, 0.20 - float(trail_index) * 0.055), 2.0, true)
-		# 箭矢按真实形状绘制（杆 + 箭头 + 尾羽），不用长线条冒充。
-		var tail := position - direction * shaft
-		draw_line(tail, position, color, 2.6 if critical else 2.0, true)
-		var head := position + direction * 9.0
-		draw_colored_polygon(
-			PackedVector2Array([head, position - direction * 1.0 + side * 4.0, position - direction * 1.0 - side * 4.0]),
-			color
-		)
-		draw_line(tail, tail - direction * 6.0 + side * 3.5, Color(color, 0.8), 1.4, true)
-		draw_line(tail, tail - direction * 6.0 - side * 3.5, Color(color, 0.8), 1.4, true)
+			draw_line(
+				back,
+				back - direction * 7.0,
+				Color(0.95, 0.77, 0.39, 0.20 - float(trail_index) * 0.055),
+				2.0,
+				true
+			)
+		# 弩矢有清晰箭杆、三角箭镞与双尾羽；不复用刀剑纹理或剑状长线。
+		var shaft_from := geometry["shaft_from"] as Vector2
+		var shaft_to := geometry["shaft_to"] as Vector2
+		var outline := Color("#33291d")
+		draw_line(shaft_from, shaft_to, outline, 4.0, true)
+		draw_line(shaft_from, shaft_to, color.darkened(0.28), 2.0, true)
+		var head := geometry["head"] as PackedVector2Array
+		draw_colored_polygon(head, color.lightened(0.10))
+		for edge_index in range(head.size()):
+			draw_line(head[edge_index], head[(edge_index + 1) % head.size()], outline, 1.1, true)
+		var fletchings: Array = geometry["fletchings"] as Array
+		for fletching in fletchings:
+			draw_colored_polygon(fletching as PackedVector2Array, Color("#a64f3b"))
 		if critical:
 			draw_circle(position, 10.0, Color(1.0, 0.84, 0.42, 0.16))
+
+
+func _tower_projectile_geometry(position: Vector2, direction: Vector2) -> Dictionary:
+	var flight_direction := direction.normalized()
+	if flight_direction.is_zero_approx():
+		flight_direction = Vector2.RIGHT
+	var side := Vector2(-flight_direction.y, flight_direction.x)
+	var tail := position - flight_direction * 22.0
+	var feather_root := tail + flight_direction * 8.0
+	var head_base := position + flight_direction * 3.0
+	return {
+		"kind": TOWER_PROJECTILE_KIND,
+		"shaft_from": tail,
+		"shaft_to": head_base,
+		"head": PackedVector2Array([
+			position + flight_direction * 12.0,
+			head_base + side * 4.0,
+			head_base - side * 4.0,
+		]),
+		"fletchings": [
+			PackedVector2Array([tail, feather_root + side * 4.5, feather_root + side * 0.8]),
+			PackedVector2Array([tail, feather_root - side * 4.5, feather_root - side * 0.8]),
+		],
+	}
 
 
 func _draw_light(center: Vector2) -> void:
@@ -2926,7 +2966,7 @@ func _draw_enemy_batch(batch_id: String, batch: Array, shadow: bool) -> void:
 		var enemy: Dictionary = batch[i]
 		var position := enemy["pos"] as Vector2
 		var radius := float(enemy["radius"])
-		var size := ENEMY_SPRITE_BASE_SIZE * float(enemy["scale"])
+		var size := _unit_sprite_draw_size(ENEMY_SPRITE_BASE_SIZE, enemy)
 		var color := Color.WHITE
 		if shadow:
 			position += Vector2(0, radius * 0.7)
@@ -2964,7 +3004,7 @@ func _draw_attacking_enemy(enemy: Dictionary) -> void:
 	var remaining := clampf(float(enemy.get("attack_until", 0.0)) - time, 0.0, 0.42)
 	var index := clampi(int((0.42 - remaining) / 0.42 * frame_list.size()), 0, frame_list.size() - 1)
 	var position := enemy.get("pos", Vector2.ZERO) as Vector2
-	var size := ENEMY_SPRITE_BASE_SIZE * float(enemy.get("scale", 0.66))
+	var size := _unit_sprite_draw_size(ENEMY_SPRITE_BASE_SIZE, enemy)
 	var flip := -1.0 if float(enemy.get("facing_x", -1.0)) < 0.0 else 1.0
 	draw_circle(position + Vector2(0.0, float(enemy.get("radius", 18.0)) * 0.7), float(enemy.get("radius", 18.0)) * 0.72, Color(0.0, 0.0, 0.0, 0.22))
 	draw_set_transform(position, 0.0, Vector2(flip, 1.0))
@@ -2974,6 +3014,13 @@ func _draw_attacking_enemy(enemy: Dictionary) -> void:
 
 func _enemy_instance_transform(position: Vector2, size: float, _shadow: bool, facing_x: float = 1.0) -> Transform2D:
 	return Transform2D(0.0, Vector2(size * signf(facing_x), -size), 0.0, position)
+
+
+func _unit_sprite_draw_size(base_size: float, unit: Dictionary) -> float:
+	var scale_value := float(unit.get("scale", 1.0))
+	if bool(unit.get("mounted", false)):
+		scale_value *= MOUNTED_UNIT_DRAW_SCALE
+	return base_size * scale_value
 
 
 func _draw_player() -> void:
@@ -3024,7 +3071,7 @@ func _draw_health_bars() -> void:
 			and float(enemy["hp"]) >= float(enemy["max_hp"]) - 0.01
 		):
 			continue
-		var size := ENEMY_SPRITE_BASE_SIZE * float(enemy.get("scale", 1.0))
+		var size := _unit_sprite_draw_size(ENEMY_SPRITE_BASE_SIZE, enemy)
 		var width := 96.0 if is_boss else (46.0 if is_elite else maxf(20.0, float(enemy["radius"]) * 0.92))
 		var height := 6.0 if is_boss else (4.0 if is_elite else 3.0)
 		var top := position + Vector2(-width * 0.5, -size * 0.92)
@@ -3044,7 +3091,7 @@ func _draw_health_bars() -> void:
 		)
 	for ally in allies:
 		var position := ally["pos"] as Vector2
-		var size := PLAYER_SPRITE_SIZE * float(ally.get("scale", 0.62))
+		var size := _unit_sprite_draw_size(PLAYER_SPRITE_SIZE, ally)
 		var width := maxf(22.0, size * 0.52)
 		_draw_unit_bar(
 			position + Vector2(-width * 0.5, -size * 0.86),
@@ -3099,8 +3146,7 @@ func _draw_wade_splashes() -> void:
 func _draw_allies() -> void:
 	for ally in allies:
 		var position := ally["pos"] as Vector2
-		var scale_value := float(ally.get("scale", 0.62))
-		var size := PLAYER_SPRITE_SIZE * scale_value
+		var size := _unit_sprite_draw_size(PLAYER_SPRITE_SIZE, ally)
 		draw_circle(position + Vector2(0, size * 0.16), size * 0.28, Color(0.0, 0.0, 0.0, 0.25))
 		_draw_ally_ring(position, size)
 		var attacking := float(ally.get("attack_until", 0.0)) > time

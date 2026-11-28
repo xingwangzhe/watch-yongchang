@@ -100,6 +100,48 @@ func test_players_and_allies_use_full_character_frames_without_rig_assembly() ->
 	assert_false(field.allies[0].has("runtime_rig"))
 
 
+func test_mounted_enemies_and_allies_keep_full_frames_and_draw_larger() -> void:
+	var field := Battlefield.new()
+	add_child_autofree(field)
+	field.setup(20261128)
+	var spawn := field.player_spawn_position()
+	var infantry_index := field.spawn_enemy_at("scout", spawn + Vector2(220.0, 0.0))
+	var cavalry_index := field.spawn_enemy_at("cavalry", spawn + Vector2(340.0, 0.0))
+	assert_gte(infantry_index, 0)
+	assert_gte(cavalry_index, 0)
+	var infantry: Dictionary = field.enemies[infantry_index] as Dictionary
+	var cavalry: Dictionary = field.enemies[cavalry_index] as Dictionary
+	assert_false(
+		bool(infantry.get("mounted", false)),
+		"infantry art must keep its ordinary display size"
+	)
+	assert_true(
+		bool(cavalry.get("mounted", false)),
+		"enemy mount must be identified from its full cavalry sheet"
+	)
+	assert_almost_eq(float(cavalry["scale"]), 0.94, 0.001, "gameplay scale remains unchanged")
+	var infantry_draw_size := field._unit_sprite_draw_size(96.0, infantry)
+	var cavalry_draw_size := field._unit_sprite_draw_size(96.0, cavalry)
+	assert_gt(cavalry_draw_size, infantry_draw_size * 1.5, "mounted enemy must read larger than infantry")
+	assert_almost_eq(cavalry_draw_size / (96.0 * float(cavalry["scale"])), 1.35, 0.001)
+	var enemy_frames: Array = field.enemy_sprite_frames["cavalry"] as Array
+	assert_eq(enemy_frames.size(), 8)
+	for frame in enemy_frames:
+		assert_eq(
+			(frame as Texture2D).get_size(),
+			Vector2(128.0, 128.0),
+			"enemy rider and horse remain a complete atlas cell"
+		)
+
+	assert_true(field.spawn_ally("yishi_rider", spawn + Vector2(0.0, 240.0)))
+	var ally: Dictionary = field.allies[0] as Dictionary
+	assert_true(bool(ally.get("mounted", false)), "friendly mount must use the same runtime size rule")
+	assert_eq((ally.get("walk_frames", []) as Array).size(), 8)
+	assert_eq(((ally["walk_frames"] as Array)[0] as Texture2D).get_size(), Vector2(128.0, 128.0))
+	var ally_draw_size := field._unit_sprite_draw_size(96.0, ally)
+	assert_almost_eq(ally_draw_size / (96.0 * float(ally["scale"])), 1.35, 0.001)
+
+
 func test_player_attack_frames_match_walk_visual_height_and_keep_foot_anchor() -> void:
 	var definition: Dictionary = GameData.get_characters()["wanglu"] as Dictionary
 	var field := Battlefield.new()

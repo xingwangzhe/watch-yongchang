@@ -69,6 +69,9 @@ var _scale_box: VBoxContainer
 var _health_rows_box: BoxContainer
 var _hp_row: HBoxContainer
 var _xp_row: HBoxContainer
+var _portrait_notice_layout := Vector4.ZERO
+var _portrait_notice_scale := 1.0
+var _portrait_safe_bottom := 0.0
 
 
 func _ready() -> void:
@@ -83,7 +86,7 @@ func _apply_responsive_layout() -> void:
 		return
 	var viewport_size := _root.get_viewport_rect().size
 	var size := _display_size()
-	_apply_responsive_layout_for(viewport_size, size)
+	_apply_responsive_layout_for(viewport_size, size, UILayout.safe_area_insets())
 
 
 func _display_size() -> Vector2:
@@ -100,7 +103,11 @@ func _display_size() -> Vector2:
 	return _root.get_viewport_rect().size
 
 
-func _apply_responsive_layout_for(viewport_size: Vector2, size: Vector2) -> void:
+func _apply_responsive_layout_for(
+	viewport_size: Vector2,
+	size: Vector2,
+	safe_insets: Vector4 = Vector4.ZERO
+) -> void:
 	if viewport_size.x >= viewport_size.y:
 		_portrait_layout = false
 		_set_portrait_health_layout(false)
@@ -136,6 +143,8 @@ func _apply_responsive_layout_for(viewport_size: Vector2, size: Vector2) -> void
 		UILayout.place(_move_hint, 14, 704, 420, 16, 0.0, 1.0)
 		UILayout.place(_banner_panel, 424, 112, 432, 92, 0.5, 0.0)
 		UILayout.place(_boss_panel, 390, 96, 500, 62, 0.5, 0.0)
+		_banner_panel.custom_minimum_size = Vector2.ZERO
+		_boss_bar.custom_minimum_size = Vector2(456.0, 10.0)
 		return
 	# Portrait layout uses a single readable column above the playfield.
 	# Keep the lower area clear for the joystick and action controls.
@@ -149,18 +158,24 @@ func _apply_responsive_layout_for(viewport_size: Vector2, size: Vector2) -> void
 	_xp_bar.custom_minimum_size = Vector2(80.0, UILayout.display_units(5.0, scale))
 	_oil_meter.custom_minimum_size = Vector2(168.0, UILayout.display_units(10.0, scale))
 	_scale_meter.custom_minimum_size = Vector2(150.0, UILayout.display_units(10.0, scale))
-	var side_x := UILayout.display_units(8.0, scale)
-	var content_width := UILayout.display_units(size.x - 16.0, scale)
+	var side_x := UILayout.display_units(8.0 + safe_insets.x, scale)
+	var content_width := UILayout.display_units(size.x - 16.0 - safe_insets.x - safe_insets.z, scale)
 	var row_gap := UILayout.display_units(2.0, scale)
 	var pause_height := UILayout.display_units(38.0, scale)
 	var pause_width := UILayout.display_units(88.0, scale)
 	var health_height := UILayout.display_units(38.0, scale)
 	var status_height := UILayout.display_units(38.0, scale)
 	var score_height := UILayout.display_units(38.0, scale)
-	var y := UILayout.display_units(6.0, scale)
+	var y := UILayout.display_units(6.0 + safe_insets.y, scale)
 	_pause_button.visible = true
 	var health_width := content_width - pause_width - row_gap
-	UILayout.place(_pause_button, UILayout.display_units(size.x - 12.0, scale) - pause_width, y, pause_width, pause_height)
+	UILayout.place(
+		_pause_button,
+		UILayout.display_units(size.x - 12.0 - safe_insets.z, scale) - pause_width,
+		y,
+		pause_width,
+		pause_height
+	)
 	var actual_health_height := _place_portrait_row(_root.get_node("TopLeftChip"), side_x, y, health_width, health_height)
 	y += maxf(actual_health_height, pause_height) + row_gap
 	var status_gap := UILayout.display_units(4.0, scale)
@@ -179,13 +194,62 @@ func _apply_responsive_layout_for(viewport_size: Vector2, size: Vector2) -> void
 	_passive_label.visible = false
 	_root.get_node("BuildChip").visible = false
 	_move_hint.visible = false
-	var center_width := UILayout.display_units(size.x - 16.0, scale)
-	# Notices stay below the compact HUD instead of covering the central playfield.
+	var center_width := content_width
+	# Notices stay below the compact HUD and stack when the boss panel is visible.
 	var notice_top := hud_bottom_css + 6.0
+	var notice_x := side_x
 	var boss_y := UILayout.display_units(notice_top, scale)
-	var banner_y := UILayout.display_units(notice_top + 2.0, scale)
-	UILayout.place(_boss_panel, UILayout.display_units(8.0, scale), boss_y, center_width, UILayout.display_units(52.0, scale))
-	UILayout.place(_banner_panel, UILayout.display_units(8.0, scale), banner_y, center_width, UILayout.display_units(44.0, scale))
+	var boss_height := UILayout.display_units(58.0, scale)
+	_portrait_notice_layout = Vector4(notice_x, boss_y, center_width, boss_height)
+	_portrait_notice_scale = scale
+	_portrait_safe_bottom = safe_insets.w
+	_boss_bar.custom_minimum_size = Vector2(
+		maxf(80.0, center_width - UILayout.display_units(40.0, scale)),
+		UILayout.display_units(10.0, scale)
+	)
+	_layout_portrait_notices()
+	if _banner_panel.visible:
+		call_deferred("_layout_portrait_notices")
+
+
+func _layout_portrait_notices() -> void:
+	if not _portrait_layout or _root == null or _boss_panel == null or _banner_panel == null:
+		return
+	var notice_x := _portrait_notice_layout.x
+	var notice_y := _portrait_notice_layout.y
+	var notice_width := _portrait_notice_layout.z
+	var boss_height := _portrait_notice_layout.w
+	var scale := _portrait_notice_scale
+	UILayout.place(_boss_panel, notice_x, notice_y, notice_width, boss_height)
+	if not _banner_panel.visible:
+		_banner_panel.custom_minimum_size = Vector2.ZERO
+		return
+	var banner_y := notice_y
+	if _boss_panel.visible:
+		banner_y += boss_height + UILayout.display_units(6.0, scale)
+	var viewport_height := _root.get_viewport_rect().size.y
+	var bottom_margin := UILayout.display_units(8.0 + _portrait_safe_bottom, scale)
+	var available_height := maxf(1.0, viewport_height - banner_y - bottom_margin)
+	# Apply the new width before measuring wrapped lines; the previous orientation
+	# may have left the banner at its landscape width for one frame.
+	UILayout.place(_banner_panel, notice_x, banner_y, notice_width, available_height)
+	var title_font := _banner_title.get_theme_font("font")
+	var title_size := _banner_title.get_theme_font_size("font_size")
+	var banner_height := title_font.get_height(title_size) * maxi(1, _banner_title.get_line_count())
+	if _banner_subtitle.visible:
+		var subtitle_font := _banner_subtitle.get_theme_font("font")
+		var subtitle_size := _banner_subtitle.get_theme_font_size("font_size")
+		banner_height += UILayout.display_units(4.0, scale)
+		banner_height += subtitle_font.get_height(subtitle_size) * maxi(1, _banner_subtitle.get_line_count())
+	var panel_style := _banner_panel.get_theme_stylebox("panel")
+	banner_height += panel_style.get_content_margin(SIDE_TOP) + panel_style.get_content_margin(SIDE_BOTTOM)
+	banner_height += UILayout.display_units(4.0, scale)
+	banner_height = minf(
+		available_height,
+		maxf(banner_height, UILayout.display_units(44.0, scale))
+	)
+	_banner_panel.custom_minimum_size = Vector2(0.0, banner_height)
+	UILayout.place(_banner_panel, notice_x, banner_y, notice_width, banner_height)
 
 
 func _place_portrait_row(control: Control, x: float, y: float, width: float, preferred_height: float) -> float:
@@ -229,9 +293,7 @@ func _set_portrait_resource_layout(portrait: bool) -> void:
 			_oil_compact_row.add_child(_oil_meter)
 			_scale_compact_row.add_child(_scale_info_row)
 			_scale_compact_row.add_child(_scale_meter)
-			_portrait_resources_row.add_child(_oil_compact_row)
-			_portrait_resources_row.add_child(_scale_compact_row)
-			_score_box.add_child(_portrait_resources_row)
+		_portrait_resources_row.visible = true
 		_oil_info_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_scale_info_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_oil_compact_row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -241,10 +303,7 @@ func _set_portrait_resource_layout(portrait: bool) -> void:
 		oil_chip.visible = false
 		scale_chip.visible = false
 	else:
-		if _portrait_resources_row.get_parent() == _score_box:
-			_score_box.remove_child(_portrait_resources_row)
-			_portrait_resources_row.remove_child(_oil_compact_row)
-			_portrait_resources_row.remove_child(_scale_compact_row)
+		if _oil_info_row.get_parent() == _oil_compact_row:
 			_oil_compact_row.remove_child(_oil_info_row)
 			_oil_compact_row.remove_child(_oil_meter)
 			_scale_compact_row.remove_child(_scale_info_row)
@@ -253,6 +312,7 @@ func _set_portrait_resource_layout(portrait: bool) -> void:
 			_oil_box.add_child(_oil_meter)
 			_scale_box.add_child(_scale_info_row)
 			_scale_box.add_child(_scale_meter)
+		_portrait_resources_row.visible = false
 		_oil_info_row.size_flags_horizontal = Control.SIZE_FILL
 		_scale_info_row.size_flags_horizontal = Control.SIZE_FILL
 		_oil_compact_row.size_flags_horizontal = Control.SIZE_FILL
@@ -360,6 +420,7 @@ func update_hud(state: Dictionary) -> void:
 	if _last_boss_visible != boss_active:
 		_boss_panel.visible = boss_active
 		_last_boss_visible = boss_active
+		_layout_portrait_notices()
 	if boss_active:
 		_boss_bar.max_value = maxf(1.0, float(state.get("boss_max_hp", 1.0)))
 		_boss_bar.value = maxf(0.0, float(state.get("boss_hp", 0.0)))
@@ -377,6 +438,9 @@ func show_banner(title: String, subtitle: String = "", duration: float = 3.0) ->
 	_banner_subtitle.text = subtitle
 	_banner_subtitle.visible = not subtitle.is_empty()
 	_banner_panel.visible = true
+	_layout_portrait_notices()
+	if _portrait_layout:
+		call_deferred("_layout_portrait_notices")
 	_banner_panel.modulate = Color(1, 1, 1, 0)
 	var tween := create_tween()
 	tween.tween_property(_banner_panel, "modulate", Color.WHITE, 0.22)
@@ -385,11 +449,13 @@ func show_banner(title: String, subtitle: String = "", duration: float = 3.0) ->
 
 func hide_banner() -> void:
 	_banner_panel.visible = false
+	_banner_panel.custom_minimum_size = Vector2.ZERO
 	_banner_timer.stop()
 
 
 func set_boss(enemy_name: String, hp: float, max_hp: float) -> void:
 	_boss_panel.visible = true
+	_layout_portrait_notices()
 	_boss_name.text = enemy_name
 	_boss_bar.max_value = maxf(1.0, max_hp)
 	_boss_bar.value = maxf(0.0, hp)
@@ -499,6 +565,10 @@ func _build() -> void:
 	_oil_compact_row.add_theme_constant_override("separation", 4)
 	_scale_compact_row = HBoxContainer.new()
 	_scale_compact_row.add_theme_constant_override("separation", 4)
+	_portrait_resources_row.add_child(_oil_compact_row)
+	_portrait_resources_row.add_child(_scale_compact_row)
+	_portrait_resources_row.visible = false
+	_score_box.add_child(_portrait_resources_row)
 
 	_minimap = MINIMAP.new()
 	_minimap.name = "Minimap"
@@ -578,9 +648,13 @@ func _build() -> void:
 	_banner_panel.add_child(banner_box)
 	_banner_title = _label("BannerTitle", "", 24, GOLD)
 	_banner_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_banner_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_banner_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	banner_box.add_child(_banner_title)
 	_banner_subtitle = _label("BannerSubtitle", "", 14, Color(PAPER, 0.84))
 	_banner_subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_banner_subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_banner_subtitle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	banner_box.add_child(_banner_subtitle)
 	_banner_timer = Timer.new()
 	_banner_timer.one_shot = true
@@ -598,6 +672,7 @@ func _build() -> void:
 	_boss_panel.add_child(boss_box)
 	_boss_name = _label("BossName", "", 16, VERMILION)
 	_boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_boss_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	boss_box.add_child(_boss_name)
 	_boss_bar = _make_progress("BossBar", Vector2.ZERO, Vector2(456, 10), Color("#b94a37"))
 	boss_box.add_child(_boss_bar)

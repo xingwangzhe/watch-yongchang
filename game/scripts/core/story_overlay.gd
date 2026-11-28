@@ -88,7 +88,7 @@ func _apply_responsive_layout(view_size: Vector2, css_size: Vector2) -> void:
 	# Keep the narrative card above the touch-control deck; the lower fifth is reserved
 	# for joystick and action buttons. On short landscape screens retain bottom captions.
 	var portrait := css_size.y > css_size.x
-	var panel_height := (176.0 if portrait else 176.0) * scale_y
+	var panel_height := (156.0 if portrait else 176.0) * scale_y
 	_bottom_fade.offset_top = -(panel_height + 24.0 * scale_y) if portrait else -260.0 * scale_y
 	for panel in [_subtitle_bg, _panel]:
 		panel.offset_left = (12.0 if portrait else 18.0) * scale_x
@@ -96,7 +96,7 @@ func _apply_responsive_layout(view_size: Vector2, css_size: Vector2) -> void:
 		if portrait:
 			panel.anchor_top = 0.0
 			panel.anchor_bottom = 0.0
-			panel.offset_top = maxf(_portrait_story_top(css_size), css_size.y * 0.36) * scale_y
+			panel.offset_top = _portrait_story_top(css_size) * scale_y
 			panel.offset_bottom = panel.offset_top + panel_height
 		else:
 			panel.anchor_top = 1.0

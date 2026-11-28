@@ -116,6 +116,8 @@ func _apply_responsive_layout(size_override: Vector2 = Vector2.ZERO, viewport_ov
 				size = Vector2(float(screen_value[0]), float(screen_value[1]))
 		if size.x <= 0.0 or size.y <= 0.0:
 			size = Vector2(DisplayServer.window_get_size())
+	if size.x <= 0.0 or size.y <= 0.0:
+		size = viewport_size
 	var portrait := size.y > size.x
 	if not portrait:
 		_portrait_layout = false
@@ -161,36 +163,40 @@ func _apply_responsive_layout(size_override: Vector2 = Vector2.ZERO, viewport_ov
 			_settings_close_button.custom_minimum_size = Vector2(42.0, 38.0)
 			_renderer_option.custom_minimum_size = Vector2(206.0, 36.0)
 			_orientation_option.custom_minimum_size = Vector2(206.0, 36.0)
+		_apply_controls_responsive_layout(viewport_size, size, Vector4.ZERO, 1.0, false)
 		return
 	_portrait_layout = true
 	var scale := UILayout.display_scale(viewport_size, size)
+	var safe_insets := _read_safe_area_insets(viewport_size, size)
 	UILayout.scale_theme_fonts(self, 1.0 / scale)
-	var width_css := minf(440.0, maxf(220.0, size.x - 32.0))
+	var safe_width := safe_insets.x + safe_insets.z
+	var width_css := minf(440.0, maxf(220.0, size.x - 32.0 - safe_width))
 	var left := UILayout.display_units((size.x - width_css) * 0.5, scale)
 	var width := UILayout.display_units(width_css, scale)
+	var top := UILayout.display_units(safe_insets.y + 8.0, scale)
 	# Keep a single readable column in portrait; the right-side status panel disappears.
 	var title_group_css := minf(172.0, size.x - 36.0)
 	var title_group_left := UILayout.display_units((size.x - title_group_css) * 0.5, scale)
-	UILayout.place($Seal, title_group_left, UILayout.display_units(8.0, scale), UILayout.display_units(38.0, scale), UILayout.display_units(48.0, scale))
-	UILayout.place($TitleShadow, title_group_left + UILayout.display_units(48.0, scale), UILayout.display_units(8.0, scale), UILayout.display_units(230.0, scale), UILayout.display_units(52.0, scale))
-	UILayout.place($Title, title_group_left + UILayout.display_units(44.0, scale), UILayout.display_units(4.0, scale), UILayout.display_units(230.0, scale), UILayout.display_units(52.0, scale))
+	UILayout.place($Seal, title_group_left, top, UILayout.display_units(38.0, scale), UILayout.display_units(48.0, scale))
+	UILayout.place($TitleShadow, title_group_left + UILayout.display_units(48.0, scale), top, UILayout.display_units(230.0, scale), UILayout.display_units(52.0, scale))
+	UILayout.place($Title, title_group_left + UILayout.display_units(44.0, scale), top - UILayout.display_units(4.0, scale), UILayout.display_units(230.0, scale), UILayout.display_units(52.0, scale))
 	$Title.add_theme_font_size_override("font_size", maxi(52, roundi(58.0 / scale)))
 	$TitleShadow.add_theme_font_size_override("font_size", maxi(52, roundi(58.0 / scale)))
 	$Era.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	$Tagline.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	$Era.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	$Tagline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UILayout.place($Era, left, UILayout.display_units(64.0, scale), width, UILayout.display_units(28.0, scale))
-	UILayout.place($Tagline, left, UILayout.display_units(92.0, scale), width, UILayout.display_units(48.0, scale))
-	$TitleRule.position = Vector2(left, UILayout.display_units(142.0, scale))
+	UILayout.place($Era, left, top + UILayout.display_units(56.0, scale), width, UILayout.display_units(28.0, scale))
+	UILayout.place($Tagline, left, top + UILayout.display_units(84.0, scale), width, UILayout.display_units(48.0, scale))
+	$TitleRule.position = Vector2(left, top + UILayout.display_units(134.0, scale))
 	$TitleRule.size = Vector2(width, UILayout.display_units(1.0, scale))
 	$BrandMark.visible = false
 	$WatchPanel.visible = false
 	var buttons: Array[Button] = [_start_button, _menu_codex_button, _tutorial_button, _settings_button, _about_button, _language_button, _quit_button]
-	var scroll_top := UILayout.display_units(154.0, scale)
-	var footer_height := UILayout.display_units(8.0, scale)
-	_portrait_menu_scroll.offset_left = left
-	_portrait_menu_scroll.offset_right = -left
+	var scroll_top := top + UILayout.display_units(146.0, scale)
+	var footer_height := UILayout.display_units(8.0 + safe_insets.w, scale)
+	_portrait_menu_scroll.offset_left = UILayout.display_units(safe_insets.x, scale) + left
+	_portrait_menu_scroll.offset_right = -(UILayout.display_units(safe_insets.z, scale) + left)
 	_portrait_menu_scroll.offset_top = scroll_top
 	_portrait_menu_scroll.offset_bottom = -footer_height
 	_portrait_menu_scroll.visible = true
@@ -208,9 +214,9 @@ func _apply_responsive_layout(size_override: Vector2 = Vector2.ZERO, viewport_ov
 	_portrait_menu_stack.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_portrait_menu_stack.alignment = BoxContainer.ALIGNMENT_CENTER
 	var hint_h := UILayout.display_units(28.0, scale)
-	UILayout.place($Hint, left, 720.0 - hint_h - UILayout.display_units(8.0, scale), width, hint_h, 0.0, 1.0)
+	UILayout.place($Hint, left, 720.0 - hint_h - UILayout.display_units(8.0 + safe_insets.w, scale), width, hint_h, 0.0, 1.0)
 	$Hint.visible = false
-	UILayout.place($Build, left, 720.0 - UILayout.display_units(42.0, scale), width, UILayout.display_units(24.0, scale), 0.0, 1.0)
+	UILayout.place($Build, left, 720.0 - UILayout.display_units(42.0 + safe_insets.w, scale), width, UILayout.display_units(24.0, scale), 0.0, 1.0)
 	$Build.visible = false
 	$Era.add_theme_font_size_override("font_size", maxi(25, roundi(27.0 / scale)))
 	$Tagline.add_theme_font_size_override("font_size", maxi(22, roundi(22.0 / scale)))
@@ -220,21 +226,25 @@ func _apply_responsive_layout(size_override: Vector2 = Vector2.ZERO, viewport_ov
 	$Hint.custom_minimum_size.y = UILayout.display_units(32.0, scale)
 	$Build.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	if is_instance_valid(_settings_panel):
-		var panel_width := UILayout.display_units(size.x - 24.0, scale)
-		var max_panel_height := UILayout.display_units(size.y - 56.0, scale)
+		var panel_left := UILayout.display_units(12.0 + safe_insets.x, scale)
+		var panel_width := viewport_size.x - UILayout.display_units(24.0 + safe_width, scale)
+		var safe_top := UILayout.display_units(safe_insets.y, scale)
+		var safe_bottom := UILayout.display_units(safe_insets.w, scale)
+		var max_panel_height := viewport_size.y - safe_top - safe_bottom - UILayout.display_units(24.0, scale)
 		_settings_grow.visible = false
 		_settings_grow.custom_minimum_size = Vector2.ZERO
 		# VBoxContainer reports an unreliable minimum before wrapped labels have
 		# their final width. Reserve a measured phone-height content panel instead
 		# of shrinking to that transient minimum (which can clip every setting row).
 		var panel_height := minf(max_panel_height, UILayout.display_units(430.0, scale))
-		var panel_top := maxf(UILayout.display_units(16.0, scale), (viewport_size.y - panel_height) * 0.5)
+		var panel_top := safe_top + maxf(UILayout.display_units(12.0, scale), (viewport_size.y - safe_top - safe_bottom - panel_height) * 0.5)
 		var panel_size := Vector2(panel_width, panel_height)
-		UILayout.place(_settings_panel, UILayout.display_units(12.0, scale), panel_top, panel_size.x, panel_size.y)
+		UILayout.place(_settings_panel, panel_left, panel_top, panel_size.x, panel_size.y)
 		_settings_panel.custom_minimum_size = panel_size
 		_settings_close_button.custom_minimum_size = Vector2(UILayout.display_units(42.0, scale), UILayout.display_units(42.0, scale))
 		_renderer_option.custom_minimum_size.x = UILayout.display_units(180.0, scale)
 		_orientation_option.custom_minimum_size = Vector2(UILayout.display_units(180.0, scale), UILayout.display_units(38.0, scale))
+	_apply_controls_responsive_layout(viewport_size, size, safe_insets, scale, true)
 
 
 func _build_portrait_menu_scroll() -> void:
@@ -251,6 +261,88 @@ func _build_portrait_menu_scroll() -> void:
 	_portrait_menu_stack.name = "PortraitMenuButtons"
 	_portrait_menu_stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_portrait_menu_scroll.add_child(_portrait_menu_stack)
+
+
+func _apply_controls_responsive_layout(
+	viewport_size: Vector2,
+	screen_size: Vector2,
+	safe_insets: Vector4,
+	scale: float,
+	portrait: bool
+) -> void:
+	if not is_instance_valid(_controls_overlay):
+		return
+	var panel := _controls_overlay.find_child("ControlsPanel", true, false) as PanelContainer
+	var rows := _controls_overlay.find_child("ControlsRows", true, false) as VBoxContainer
+	var scroll := _controls_overlay.find_child("ControlsScroll", true, false) as ScrollContainer
+	if panel == null or rows == null:
+		return
+	if portrait:
+		var left := UILayout.display_units(12.0 + safe_insets.x, scale)
+		var right := UILayout.display_units(12.0 + safe_insets.z, scale)
+		var top := UILayout.display_units(12.0 + safe_insets.y, scale)
+		var bottom := UILayout.display_units(12.0 + safe_insets.w, scale)
+		var panel_size := Vector2(
+			maxf(1.0, viewport_size.x - left - right),
+			maxf(1.0, viewport_size.y - top - bottom)
+		)
+		UILayout.place(panel, left, top, panel_size.x, panel_size.y)
+		panel.custom_minimum_size = panel_size
+		_controls_close.custom_minimum_size = Vector2(
+			UILayout.display_units(44.0, scale), UILayout.display_units(44.0, scale)
+		)
+		_controls_title.add_theme_font_size_override("font_size", maxi(22, roundi(26.0 / scale)))
+		_controls_hint.custom_minimum_size.y = UILayout.display_units(52.0, scale)
+		_controls_hint.add_theme_font_size_override("font_size", maxi(14, roundi(14.0 / scale)))
+		rows.add_theme_constant_override("separation", roundi(6.0 * scale))
+		for action in InputSetup.ORDER:
+			var row := rows.find_child("Row_%s" % action, true, false) as HBoxContainer
+			var action_label := row.find_child("Label_%s" % action, true, false) as Label
+			var binding_label := row.find_child("Binding_%s" % action, true, false) as Label
+			var rebind := row.find_child("Rebind_%s" % action, true, false) as Button
+			row.add_theme_constant_override("separation", roundi(4.0 * scale))
+			row.custom_minimum_size.y = UILayout.display_units(44.0, scale)
+			action_label.custom_minimum_size = Vector2(0.0, UILayout.display_units(44.0, scale))
+			action_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			action_label.add_theme_font_size_override("font_size", maxi(14, roundi(15.0 / scale)))
+			binding_label.custom_minimum_size = Vector2(
+				UILayout.display_units(72.0, scale), UILayout.display_units(44.0, scale)
+			)
+			binding_label.add_theme_font_size_override("font_size", maxi(14, roundi(15.0 / scale)))
+			rebind.custom_minimum_size = Vector2(
+				UILayout.display_units(96.0, scale), UILayout.display_units(48.0, scale)
+			)
+			rebind.add_theme_font_size_override("font_size", maxi(13, roundi(13.0 / scale)))
+		_controls_reset.custom_minimum_size = Vector2(0.0, UILayout.display_units(46.0, scale))
+		_controls_done.custom_minimum_size = Vector2(0.0, UILayout.display_units(46.0, scale))
+		_controls_reset.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_controls_done.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		if scroll != null:
+			scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	else:
+		UILayout.place(panel, 300.0, 46.0, 680.0, 628.0, 0.5, 0.0)
+		panel.custom_minimum_size = Vector2(680.0, 628.0)
+		_controls_close.custom_minimum_size = Vector2(42.0, 38.0)
+		_controls_hint.custom_minimum_size = Vector2(0.0, 40.0)
+		rows.add_theme_constant_override("separation", 6)
+		for action in InputSetup.ORDER:
+			var row := rows.find_child("Row_%s" % action, true, false) as HBoxContainer
+			row.add_theme_constant_override("separation", 10)
+			row.custom_minimum_size.y = 0.0
+			var action_label := row.find_child("Label_%s" % action, true, false) as Label
+			action_label.custom_minimum_size = Vector2(220.0, 30.0)
+			var binding_label := row.find_child("Binding_%s" % action, true, false) as Label
+			binding_label.custom_minimum_size = Vector2(190.0, 30.0)
+			var rebind := row.find_child("Rebind_%s" % action, true, false) as Button
+			rebind.custom_minimum_size = Vector2(110.0, 32.0)
+		_controls_reset.custom_minimum_size = Vector2(220.0, 46.0)
+		_controls_done.custom_minimum_size = Vector2(236.0, 46.0)
+		_controls_reset.size_flags_horizontal = Control.SIZE_FILL
+		_controls_done.size_flags_horizontal = Control.SIZE_FILL
+
+
+func _read_safe_area_insets(_viewport_size: Vector2, _screen_size: Vector2) -> Vector4:
+	return UILayout.safe_area_insets()
 
 
 func _disable_web_page_scrolling() -> void:
@@ -287,6 +379,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if is_instance_valid(_tutorial_overlay) and _tutorial_overlay.visible:
 		return
+	if OS.is_debug_build() and event is InputEventKey:
+		var key_event := event as InputEventKey
+		if key_event.pressed and not key_event.echo and key_event.keycode == KEY_F3:
+			get_viewport().set_input_as_handled()
+			get_tree().change_scene_to_file("res://scenes/debug/debug_hub.tscn")
+			return
 	if event.is_action_pressed("ui_cancel") and _web_exit_notice.visible:
 		hide_web_exit_notice()
 		get_viewport().set_input_as_handled()
@@ -882,6 +980,7 @@ func open_controls() -> void:
 		return
 	_end_capture()
 	_controls_overlay.visible = true
+	_apply_responsive_layout()
 	_refresh_controls_texts()
 	SaveSystem.autosave({"last_mode": "controls"})
 

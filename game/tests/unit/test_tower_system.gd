@@ -111,6 +111,36 @@ func test_tower_auto_fires_at_nearest_enemy() -> void:
 	assert_gt(float(shot["damage"]), 0.0)
 	assert_gt((shot["vel"] as Vector2).x, 0.0, "arrow must fly toward the enemy")
 	assert_true((shot["origin"] as Vector2).is_equal_approx(field.towers[tower_index]["pos"] as Vector2))
+	assert_eq(str(shot.get("projectile_kind", "")), "crossbow_bolt")
+	assert_false(
+		shot.has("texture"),
+		"tower bolts must use their explicit shaft, head, and fletching silhouette"
+	)
+
+
+func test_tower_projectile_geometry_has_bolt_head_and_two_fletchings() -> void:
+	var field := _new_field()
+	field._fire_tower_arrow(
+		Vector2(100.0, 100.0), Vector2.RIGHT, 640.0, 10.0, 1, Color.WHITE, false
+	)
+	var shot: Dictionary = field.tower_shots[0]
+	assert_eq(str(shot.get("projectile_kind", "")), "crossbow_bolt")
+	assert_false(
+		shot.has("texture"),
+		"projectile must not sample a sword or weapon texture"
+	)
+	var geometry := field._tower_projectile_geometry(Vector2.ZERO, Vector2.RIGHT)
+	assert_eq(str(geometry.get("kind", "")), "crossbow_bolt")
+	var shaft_from := geometry["shaft_from"] as Vector2
+	var shaft_to := geometry["shaft_to"] as Vector2
+	assert_gt(shaft_to.x, shaft_from.x, "bolt shaft must extend toward its arrowhead")
+	var head := geometry["head"] as PackedVector2Array
+	assert_eq(head.size(), 3, "bolt head must be a complete triangular arrowhead")
+	assert_gt(head[0].x, shaft_to.x, "arrowhead tip must lead the shaft")
+	var fletchings: Array = geometry["fletchings"] as Array
+	assert_eq(fletchings.size(), 2, "bolt tail must have two visible fletchings")
+	for fletching in fletchings:
+		assert_eq((fletching as PackedVector2Array).size(), 3, "each fletching must be a filled feather shape")
 
 
 func test_tower_arrow_actually_damages_enemy() -> void:

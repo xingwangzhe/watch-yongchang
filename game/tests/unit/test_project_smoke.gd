@@ -30,6 +30,31 @@ func test_project_smoke_config() -> void:
 	)
 
 
+func test_windowed_size_uses_portrait_overrides_and_project_defaults() -> void:
+	var keys := [
+		"display/window/size/viewport_width",
+		"display/window/size/viewport_height",
+		"display/window/size/width_override",
+		"display/window/size/height_override",
+	]
+	var original: Dictionary = {}
+	for key in keys:
+		original[key] = ProjectSettings.get_setting(key)
+
+	ProjectSettings.set_setting("display/window/size/viewport_width", 1280)
+	ProjectSettings.set_setting("display/window/size/viewport_height", 720)
+	ProjectSettings.set_setting("display/window/size/width_override", 390)
+	ProjectSettings.set_setting("display/window/size/height_override", 844)
+	assert_eq(GameSettings._windowed_size(), Vector2i(390, 844))
+
+	ProjectSettings.set_setting("display/window/size/width_override", 0)
+	ProjectSettings.set_setting("display/window/size/height_override", 0)
+	assert_eq(GameSettings._windowed_size(), Vector2i(1280, 720))
+
+	for key in keys:
+		ProjectSettings.set_setting(key, original[key])
+
+
 func test_mobile_web_defaults_to_portrait_and_native_handheld_keeps_landscape() -> void:
 	var project := FileAccess.get_file_as_string("res://project.godot")
 	var presets := FileAccess.get_file_as_string("res://export_presets.cfg")

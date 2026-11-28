@@ -42,6 +42,7 @@ var _waves: Dictionary = {}
 var _content: Control
 var _scroll: ScrollContainer
 var _page_host: VBoxContainer
+var _tabs: GridContainer
 var _tab_buttons: Dictionary = {}
 var _detail_overlay: Control
 var _detail_panel: PanelContainer
@@ -55,6 +56,8 @@ var _detail_source: Label
 var _detail_hint: Label
 var _detail_close: Button
 var _detail_scroll: ScrollContainer
+var _detail_outer: VBoxContainer
+var _detail_body: HBoxContainer
 var _zoom_hit: Button
 var _zoom_overlay: Control
 var _zoom_backdrop: Button
@@ -63,9 +66,12 @@ var _zoom_close: Button
 var _zoom_hint: Label
 var active_tab := "cards"
 var embedded := false
+var _portrait_layout := false
+var _safe_insets_screen := Vector4.ZERO
 
 
 func _ready() -> void:
+	focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
 	InputSetup.ensure_defaults()
 	_load_catalog_data()
 	var theme_res := Theme.new()
@@ -80,6 +86,8 @@ func _ready() -> void:
 	_build_detail_overlay()
 	_rebuild()
 	Locale.language_changed.connect(_on_language_changed)
+	get_viewport().size_changed.connect(_apply_responsive_layout)
+	_apply_responsive_layout()
 
 
 func _load_catalog_data() -> void:
@@ -136,6 +144,9 @@ func select_tab(tab_id: String) -> void:
 	_build_active_page()
 	if _scroll != null:
 		_scroll.scroll_vertical = 0
+	var selected := _tab_buttons.get(tab_id) as Button
+	if selected != null:
+		_focus_control(selected)
 
 
 func card_entry_count() -> int:
@@ -167,6 +178,297 @@ func _rebuild() -> void:
 	_build_tabs()
 	_build_scroll_shell()
 	_build_active_page()
+	_apply_responsive_layout()
+
+
+func _apply_responsive_layout() -> void:
+	if not is_instance_valid(_content) or not _content.is_inside_tree():
+		return
+	var viewport_size := get_viewport_rect().size
+	var screen_size := _display_size()
+	_apply_responsive_layout_for(viewport_size, screen_size, _read_safe_area_insets())
+
+
+func _apply_responsive_layout_for(
+	viewport_size: Vector2,
+	screen_size: Vector2,
+	safe_insets_screen: Vector4 = Vector4.ZERO
+) -> void:
+	if not is_instance_valid(_content) or _tabs == null or _scroll == null:
+		return
+	if screen_size.x <= 0.0 or screen_size.y <= 0.0:
+		screen_size = viewport_size
+	_portrait_layout = screen_size.y > screen_size.x
+	_safe_insets_screen = safe_insets_screen
+	var scale := UILayout.display_scale(viewport_size, screen_size)
+	_apply_control_metrics(self, 1.0 / scale if _portrait_layout else 1.0)
+	var title := _content.find_child("CodexTitle", true, false) as Control
+	var subtitle := _content.find_child("CodexSubtitle", true, false) as Control
+	var back := _content.find_child("CodexBack", true, false) as Button
+	var hint := _content.find_child("CodexHint", true, false) as Control
+	var rule := _content.find_child("CodexRule", true, false) as Control
+	if _portrait_layout:
+		var left := safe_insets_screen.x + 12.0
+		var right := safe_insets_screen.z + 12.0
+		var top := safe_insets_screen.y + 10.0
+		var back_width := minf(100.0, maxf(84.0, screen_size.x * 0.28))
+		var title_width := maxf(80.0, screen_size.x - left - right - back_width - 8.0)
+		UILayout.place_in(
+			title, UILayout.display_units(left, scale), UILayout.display_units(top, scale),
+			UILayout.display_units(title_width, scale), UILayout.display_units(38.0, scale),
+			viewport_size.x, viewport_size.y
+		)
+		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UILayout.place_in(
+			back, viewport_size.x - UILayout.display_units(right + back_width, scale),
+			UILayout.display_units(top, scale), UILayout.display_units(back_width, scale),
+			UILayout.display_units(44.0, scale), viewport_size.x, viewport_size.y
+		)
+		back.custom_minimum_size = Vector2(
+			UILayout.display_units(84.0, scale), UILayout.display_units(44.0, scale)
+		)
+		UILayout.place_in(
+			subtitle, UILayout.display_units(left, scale), UILayout.display_units(top + 42.0, scale),
+			UILayout.display_units(screen_size.x - left - right, scale),
+			UILayout.display_units(34.0, scale), viewport_size.x, viewport_size.y
+		)
+		UILayout.place_in(
+			rule, UILayout.display_units(left, scale), UILayout.display_units(top + 82.0, scale),
+			UILayout.display_units(screen_size.x - left - right, scale),
+			UILayout.display_units(1.0, scale), viewport_size.x, viewport_size.y
+		)
+		_tabs.columns = 3
+		_tabs.add_theme_constant_override("h_separation", int(UILayout.display_units(6.0, scale)))
+		_tabs.add_theme_constant_override("v_separation", int(UILayout.display_units(6.0, scale)))
+		var tabs_top := top + 90.0
+		var tabs_height := 144.0
+		UILayout.place_in(
+			_tabs, UILayout.display_units(left, scale), UILayout.display_units(tabs_top, scale),
+			UILayout.display_units(screen_size.x - left - right, scale),
+			UILayout.display_units(tabs_height, scale), viewport_size.x, viewport_size.y
+		)
+		for button in _tab_buttons.values():
+			(button as Button).custom_minimum_size.y = UILayout.display_units(44.0, scale)
+		hint.visible = false
+		var scroll_top := tabs_top + tabs_height + 12.0
+		var bottom := safe_insets_screen.w + 12.0
+		var scroll_width := maxf(0.0, screen_size.x - left - right - 12.0)
+		UILayout.place_in(
+			_scroll, UILayout.display_units(left, scale), UILayout.display_units(scroll_top, scale),
+			UILayout.display_units(scroll_width, scale),
+			maxf(0.0, viewport_size.y - UILayout.display_units(scroll_top + bottom, scale)),
+			viewport_size.x, viewport_size.y
+		)
+		_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		for node in _page_host.find_children("*", "GridContainer", true, false):
+			(node as GridContainer).columns = 1
+		_apply_detail_layout(viewport_size, screen_size, safe_insets_screen, scale)
+	else:
+		_tabs.columns = TAB_SPECS.size()
+		_tabs.add_theme_constant_override("h_separation", 7)
+		_tabs.add_theme_constant_override("v_separation", 7)
+		UILayout.place_in(title, 42.0, 18.0, 618.0, 46.0, viewport_size.x, viewport_size.y)
+		UILayout.place_in(subtitle, 44.0, 66.0, 886.0, 26.0, viewport_size.x, viewport_size.y)
+		UILayout.place_in(back, viewport_size.x - 218.0, 28.0, 176.0, 42.0, viewport_size.x, viewport_size.y)
+		back.custom_minimum_size = Vector2(160.0, 42.0)
+		UILayout.place_in(hint, viewport_size.x - 520.0, 77.0, 478.0, 19.0, viewport_size.x, viewport_size.y)
+		hint.visible = true
+		UILayout.place_in(rule, 42.0, 108.0, viewport_size.x - 84.0, 1.0, viewport_size.x, viewport_size.y)
+		UILayout.place_in(_tabs, 42.0, 118.0, viewport_size.x - 84.0, 48.0, viewport_size.x, viewport_size.y)
+		UILayout.place_in(
+			_scroll, 42.0, 178.0, viewport_size.x - 84.0,
+			maxf(0.0, viewport_size.y - 200.0), viewport_size.x, viewport_size.y
+		)
+		_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		for node in _page_host.find_children("*", "GridContainer", true, false):
+			var grid := node as GridContainer
+			grid.columns = int(grid.get_meta("desktop_columns", 1))
+		_apply_detail_layout(viewport_size, screen_size, safe_insets_screen, 1.0)
+	if DisplayServer.get_name() != "headless" and get_viewport().gui_get_focus_owner() == null and _tabs.get_child_count() > 0:
+		_focus_control(_tabs.get_child(0) as Button)
+
+
+func _apply_control_metrics(root: Control, factor: float) -> void:
+	var controls: Array[Control] = [root]
+	for node in root.find_children("*", "Control", true, false):
+		controls.append(node as Control)
+	for control in controls:
+		var base_size: Vector2 = control.custom_minimum_size
+		if control.has_meta("codex_base_minimum_size"):
+			base_size = control.get_meta("codex_base_minimum_size")
+		control.set_meta("codex_base_minimum_size", base_size)
+		if control is Button:
+			control.custom_minimum_size = Vector2(
+				base_size.x,
+				maxf(base_size.y * factor, UILayout.display_units(44.0, 1.0 / factor) if factor > 1.0 else base_size.y)
+			)
+		else:
+			control.custom_minimum_size = base_size * factor
+		if control is Label or control is Button or control is RichTextLabel:
+			var base_fonts: Dictionary = control.get_meta("codex_base_font_sizes", {}) as Dictionary
+			if not base_fonts.has("font_size"):
+				var font_size := control.get_theme_font_size("font_size")
+				if font_size > 0:
+					base_fonts["font_size"] = font_size
+			control.set_meta("codex_base_font_sizes", base_fonts)
+			if base_fonts.has("font_size"):
+				var base_font := float(base_fonts["font_size"])
+				var target_font := base_font * factor
+				if factor > 1.0:
+					target_font = maxf(target_font, UILayout.display_units(14.0, 1.0 / factor))
+				control.add_theme_font_size_override("font_size", roundi(target_font))
+			if control is Label:
+				var label := control as Label
+				if not label.has_meta("codex_base_autowrap"):
+					label.set_meta("codex_base_autowrap", label.autowrap_mode)
+				label.autowrap_mode = (
+					TextServer.AUTOWRAP_WORD_SMART
+					if factor > 1.0
+					else int(label.get_meta("codex_base_autowrap"))
+				)
+		var base_constants: Dictionary = control.get_meta("codex_base_constants", {}) as Dictionary
+		for key in ["separation", "h_separation", "v_separation", "margin_left", "margin_right", "margin_top", "margin_bottom", "outline_size"]:
+			if not base_constants.has(key) and control.has_theme_constant_override(key):
+				base_constants[key] = control.get_theme_constant(key)
+			if base_constants.has(key):
+				var base_constant := int(base_constants[key])
+				var scaled_constant := roundi(float(base_constant) * factor)
+				if key == "outline_size" and base_constant > 0 and factor > 1.0:
+					scaled_constant = maxi(scaled_constant, roundi(2.0 * factor))
+				control.add_theme_constant_override(key, scaled_constant)
+		control.set_meta("codex_base_constants", base_constants)
+		var stylebox_bases: Dictionary = control.get_meta("codex_base_stylebox_margins", {}) as Dictionary
+		for style_name in ["panel", "normal", "hover", "pressed", "focus"]:
+			if not control.has_theme_stylebox_override(style_name):
+				continue
+			var flat_stylebox := control.get_theme_stylebox(style_name) as StyleBoxFlat
+			if flat_stylebox == null:
+				continue
+			if not stylebox_bases.has(style_name):
+				stylebox_bases[style_name] = Vector4(
+					flat_stylebox.content_margin_left, flat_stylebox.content_margin_top,
+					flat_stylebox.content_margin_right, flat_stylebox.content_margin_bottom
+				)
+			var margins: Vector4 = stylebox_bases[style_name]
+			flat_stylebox.content_margin_left = margins.x * factor
+			flat_stylebox.content_margin_top = margins.y * factor
+			flat_stylebox.content_margin_right = margins.z * factor
+			flat_stylebox.content_margin_bottom = margins.w * factor
+		control.set_meta("codex_base_stylebox_margins", stylebox_bases)
+
+
+func _apply_detail_layout(
+	viewport_size: Vector2,
+	_screen_size: Vector2,
+	safe_insets_screen: Vector4,
+	scale: float
+) -> void:
+	if _detail_panel == null or _detail_body == null or _detail_outer == null:
+		return
+	if _portrait_layout:
+		_detail_panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_detail_panel.offset_left = UILayout.display_units(safe_insets_screen.x + 10.0, scale)
+		_detail_panel.offset_top = UILayout.display_units(safe_insets_screen.y + 10.0, scale)
+		_detail_panel.offset_right = -UILayout.display_units(safe_insets_screen.z + 10.0, scale)
+		_detail_panel.offset_bottom = -UILayout.display_units(safe_insets_screen.w + 10.0, scale)
+		if _detail_image_plate.get_parent() != _detail_outer:
+			_detail_body.remove_child(_detail_image_plate)
+			_detail_outer.add_child(_detail_image_plate)
+			_detail_outer.move_child(_detail_image_plate, 3)
+		_detail_image_plate.custom_minimum_size = Vector2.ONE * UILayout.display_units(96.0, scale)
+		_detail_image_plate.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		_detail_close.custom_minimum_size = Vector2(
+			UILayout.display_units(96.0, scale), UILayout.display_units(44.0, scale)
+		)
+		_detail_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_zoom_image.offset_left = UILayout.display_units(safe_insets_screen.x + 12.0, scale)
+		_zoom_image.offset_right = -UILayout.display_units(safe_insets_screen.z + 12.0, scale)
+		_zoom_image.offset_top = UILayout.display_units(safe_insets_screen.y + 12.0, scale)
+		_zoom_image.offset_bottom = -UILayout.display_units(safe_insets_screen.w + 54.0, scale)
+		_zoom_close.custom_minimum_size = Vector2(
+			UILayout.display_units(96.0, scale), UILayout.display_units(44.0, scale)
+		)
+		_zoom_close.offset_left = -UILayout.display_units(safe_insets_screen.z + 108.0, scale)
+		_zoom_close.offset_top = UILayout.display_units(safe_insets_screen.y + 10.0, scale)
+		_zoom_close.offset_right = -UILayout.display_units(safe_insets_screen.z + 12.0, scale)
+		_zoom_close.offset_bottom = UILayout.display_units(safe_insets_screen.y + 54.0, scale)
+		_zoom_hint.offset_left = UILayout.display_units(safe_insets_screen.x + 12.0, scale)
+		_zoom_hint.offset_right = -UILayout.display_units(safe_insets_screen.z + 12.0, scale)
+		_zoom_hint.offset_top = -UILayout.display_units(safe_insets_screen.w + 44.0, scale)
+		_zoom_hint.offset_bottom = -UILayout.display_units(safe_insets_screen.w + 12.0, scale)
+	else:
+		_detail_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		var panel_width := minf(940.0, viewport_size.x - 48.0)
+		var panel_height := minf(604.0, viewport_size.y - 48.0)
+		_detail_panel.offset_left = -panel_width * 0.5
+		_detail_panel.offset_top = -panel_height * 0.5
+		_detail_panel.offset_right = panel_width * 0.5
+		_detail_panel.offset_bottom = panel_height * 0.5
+		if _detail_image_plate.get_parent() != _detail_body:
+			_detail_outer.remove_child(_detail_image_plate)
+			_detail_body.add_child(_detail_image_plate)
+			_detail_body.move_child(_detail_image_plate, 0)
+		_detail_image_plate.custom_minimum_size = Vector2(198.0, 198.0)
+		_detail_image_plate.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		_detail_close.custom_minimum_size = Vector2(150.0, 42.0)
+		_zoom_image.offset_left = 48.0
+		_zoom_image.offset_right = -48.0
+		_zoom_image.offset_top = 26.0
+		_zoom_image.offset_bottom = -62.0
+		_zoom_close.custom_minimum_size = Vector2(150.0, 42.0)
+		_zoom_close.offset_left = -190.0
+		_zoom_close.offset_top = 16.0
+		_zoom_close.offset_right = -30.0
+		_zoom_close.offset_bottom = 58.0
+		_zoom_hint.offset_left = 40.0
+		_zoom_hint.offset_right = -40.0
+		_zoom_hint.offset_top = -40.0
+		_zoom_hint.offset_bottom = -12.0
+
+
+func _display_size() -> Vector2:
+	if GameSettings.is_web_platform():
+		var raw := str(JavaScriptBridge.eval("JSON.stringify([window.innerWidth || 0, window.innerHeight || 0])", true))
+		var parsed: Variant = JSON.parse_string(raw)
+		if parsed is Array and (parsed as Array).size() >= 2:
+			return Vector2(float(parsed[0]), float(parsed[1]))
+	var window_size := Vector2(DisplayServer.window_get_size())
+	if window_size.x > 0.0 and window_size.y > 0.0:
+		return window_size
+	return get_viewport_rect().size
+
+
+func _read_safe_area_insets() -> Vector4:
+	if GameSettings.is_web_platform():
+		var raw := str(JavaScriptBridge.eval(
+			"""(() => {
+				const e = document.createElement('div');
+				e.style.cssText = 'position:fixed;inset:0;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);visibility:hidden;pointer-events:none';
+				document.body.appendChild(e);
+				const s = getComputedStyle(e);
+				const v = [s.paddingLeft, s.paddingTop, s.paddingRight, s.paddingBottom].map(x => parseFloat(x) || 0);
+				e.remove();
+				return JSON.stringify(v);
+			})()""",
+			true
+		))
+		var parsed: Variant = JSON.parse_string(raw)
+		if parsed is Array and (parsed as Array).size() >= 4:
+			return Vector4(float(parsed[0]), float(parsed[1]), float(parsed[2]), float(parsed[3]))
+		return Vector4.ZERO
+	var window_size := DisplayServer.window_get_size()
+	if window_size.x <= 0 or window_size.y <= 0:
+		return Vector4.ZERO
+	var window_rect := Rect2i(DisplayServer.window_get_position(), window_size)
+	var inner := Rect2(DisplayServer.get_display_safe_area()).intersection(Rect2(window_rect))
+	if inner.size.x <= 0.0 or inner.size.y <= 0.0:
+		return Vector4.ZERO
+	return Vector4(
+		maxf(0.0, inner.position.x - window_rect.position.x),
+		maxf(0.0, inner.position.y - window_rect.position.y),
+		maxf(0.0, window_rect.end.x - inner.end.x),
+		maxf(0.0, window_rect.end.y - inner.end.y)
+	)
 
 
 func _valid_tab(tab_id: String) -> bool:
@@ -228,6 +530,7 @@ func _build_header() -> void:
 	_content.add_child(title)
 	var subtitle := _label(GameData.loc(_data, "subtitle"), 15, Color(PAPER, 0.84))
 	subtitle.name = "CodexSubtitle"
+	subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	subtitle.offset_left = 44.0
 	subtitle.offset_top = 66.0
 	subtitle.offset_right = 930.0
@@ -246,6 +549,7 @@ func _build_header() -> void:
 	_content.add_child(back)
 	var hint := _label(Locale.t("codex.hint"), 11, Color(MUTED, 0.64))
 	hint.name = "CodexHint"
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.anchor_left = 1.0
 	hint.anchor_right = 1.0
 	hint.grow_horizontal = Control.GROW_DIRECTION_BEGIN
@@ -256,6 +560,7 @@ func _build_header() -> void:
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_content.add_child(hint)
 	var rule := ColorRect.new()
+	rule.name = "CodexRule"
 	rule.color = Color(GOLD, 0.22)
 	rule.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	rule.offset_left = 42.0
@@ -267,15 +572,17 @@ func _build_header() -> void:
 
 
 func _build_tabs() -> void:
-	var tab_bar := HBoxContainer.new()
-	tab_bar.name = "CodexTabs"
-	tab_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	tab_bar.offset_left = 42.0
-	tab_bar.offset_right = -42.0
-	tab_bar.offset_top = 118.0
-	tab_bar.offset_bottom = 166.0
-	tab_bar.add_theme_constant_override("separation", 7)
-	_content.add_child(tab_bar)
+	_tabs = GridContainer.new()
+	_tabs.name = "CodexTabs"
+	_tabs.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	_tabs.offset_left = 42.0
+	_tabs.offset_right = -42.0
+	_tabs.offset_top = 118.0
+	_tabs.offset_bottom = 166.0
+	_tabs.columns = TAB_SPECS.size()
+	_tabs.add_theme_constant_override("h_separation", 7)
+	_tabs.add_theme_constant_override("v_separation", 7)
+	_content.add_child(_tabs)
 	for spec in TAB_SPECS:
 		var tab_spec := spec as Dictionary
 		var tab_id := str(tab_spec.get("id", ""))
@@ -286,12 +593,14 @@ func _build_tabs() -> void:
 		var button := Button.new()
 		button.name = "Tab%s" % tab_id.capitalize()
 		button.text = label
-		button.focus_mode = Control.FOCUS_NONE
+		button.focus_mode = Control.FOCUS_ALL
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.add_theme_font_override("font", UI_FONT)
 		button.add_theme_font_size_override("font_size", 14)
+		button.add_theme_constant_override("outline_size", 1)
+		button.add_theme_color_override("font_outline_color", INK)
 		button.pressed.connect(select_tab.bind(tab_id))
-		tab_bar.add_child(button)
+		_tabs.add_child(button)
 		_tab_buttons[tab_id] = button
 	_update_tab_styles()
 
@@ -331,6 +640,10 @@ func _update_tab_styles() -> void:
 		button.add_theme_stylebox_override(
 			"pressed",
 			_flat_box(Color(GOLD, 0.30) if not active else GOLD, border, 4, 9)
+		)
+		button.add_theme_stylebox_override(
+			"focus",
+			_flat_box(Color(GOLD, 0.22), Color(GOLD, 0.98), 4, 9)
 		)
 
 
@@ -381,6 +694,8 @@ func _build_active_page() -> void:
 			_build_maps_page()
 		"history":
 			_build_history_page()
+	if is_inside_tree():
+		_apply_responsive_layout()
 
 
 func _build_page_header(title_key: String, lead_key: String) -> void:
@@ -1789,6 +2104,7 @@ func _add_section_heading(text: String, count: int, accent: Color) -> void:
 func _grid(columns: int, separation: int) -> GridContainer:
 	var grid := GridContainer.new()
 	grid.columns = columns
+	grid.set_meta("desktop_columns", columns)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override("h_separation", separation)
 	grid.add_theme_constant_override("v_separation", separation)
@@ -1991,12 +2307,12 @@ func _build_detail_overlay() -> void:
 	)
 	_detail_overlay.add_child(_detail_panel)
 
-	var outer := VBoxContainer.new()
-	outer.add_theme_constant_override("separation", 10)
-	_detail_panel.add_child(outer)
+	_detail_outer = VBoxContainer.new()
+	_detail_outer.add_theme_constant_override("separation", 10)
+	_detail_panel.add_child(_detail_outer)
 	var header := HBoxContainer.new()
 	header.add_theme_constant_override("separation", 14)
-	outer.add_child(header)
+	_detail_outer.add_child(header)
 	_detail_title = _label("", 30, GOLD)
 	_detail_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_detail_title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -2011,16 +2327,16 @@ func _build_detail_overlay() -> void:
 	header.add_child(_detail_close)
 	_detail_subtitle = _label("", 14, Color(MUTED, 0.92))
 	_detail_subtitle.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	outer.add_child(_detail_subtitle)
+	_detail_outer.add_child(_detail_subtitle)
 	_detail_badges = HFlowContainer.new()
 	_detail_badges.add_theme_constant_override("h_separation", 6)
 	_detail_badges.add_theme_constant_override("v_separation", 5)
-	outer.add_child(_detail_badges)
+	_detail_outer.add_child(_detail_badges)
 
-	var body := HBoxContainer.new()
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_theme_constant_override("separation", 16)
-	outer.add_child(body)
+	_detail_body = HBoxContainer.new()
+	_detail_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_detail_body.add_theme_constant_override("separation", 16)
+	_detail_outer.add_child(_detail_body)
 	_detail_image_plate = PanelContainer.new()
 	_detail_image_plate.name = "DetailImagePlate"
 	_detail_image_plate.custom_minimum_size = Vector2(198, 198)
@@ -2029,7 +2345,7 @@ func _build_detail_overlay() -> void:
 		"panel",
 		_flat_box(Color(0.012, 0.020, 0.020, 0.96), Color(GOLD, 0.36), 6, 6)
 	)
-	body.add_child(_detail_image_plate)
+	_detail_body.add_child(_detail_image_plate)
 	_detail_image = TextureRect.new()
 	_detail_image.name = "DetailImage"
 	_detail_image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -2040,7 +2356,7 @@ func _build_detail_overlay() -> void:
 	_zoom_hit = Button.new()
 	_zoom_hit.name = "DetailZoomHit"
 	_zoom_hit.text = ""
-	_zoom_hit.focus_mode = Control.FOCUS_NONE
+	_zoom_hit.focus_mode = Control.FOCUS_ALL
 	_zoom_hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_zoom_hit.tooltip_text = Locale.t("codex.detail.zoom_tip")
 	_zoom_hit.add_theme_stylebox_override(
@@ -2055,6 +2371,10 @@ func _build_detail_overlay() -> void:
 		"pressed",
 		_flat_box(Color(GOLD, 0.12), Color(GOLD, 0.86), 6, 0)
 	)
+	_zoom_hit.add_theme_stylebox_override(
+		"focus",
+		_flat_box(Color(GOLD, 0.12), Color(GOLD, 0.92), 6, 0)
+	)
 	_zoom_hit.pressed.connect(open_zoom)
 	_detail_image_plate.add_child(_zoom_hit)
 	_zoom_hit.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -2065,7 +2385,7 @@ func _build_detail_overlay() -> void:
 	_detail_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	_detail_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_detail_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.add_child(_detail_scroll)
+	_detail_body.add_child(_detail_scroll)
 	var detail_margin := MarginContainer.new()
 	detail_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	detail_margin.add_theme_constant_override("margin_left", 2)
@@ -2082,11 +2402,11 @@ func _build_detail_overlay() -> void:
 	_detail_source = _label("", 10, Color(MUTED, 0.66))
 	_detail_source.name = "DetailSource"
 	_detail_source.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	outer.add_child(_detail_source)
+	_detail_outer.add_child(_detail_source)
 	_detail_hint = _label("", 10, Color(MUTED, 0.54))
 	_detail_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_detail_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	outer.add_child(_detail_hint)
+	_detail_outer.add_child(_detail_hint)
 	_detail_overlay.visible = false
 	_build_zoom_overlay()
 
@@ -2162,8 +2482,14 @@ func open_zoom() -> void:
 	_zoom_image.texture = _detail_image.texture
 	_zoom_hint.text = Locale.t("codex.zoom.hint")
 	_zoom_close.text = Locale.t("codex.detail.close")
+	_detail_overlay.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_DISABLED
+	_detail_overlay.mouse_behavior_recursive = Control.MOUSE_BEHAVIOR_DISABLED
+	_zoom_overlay.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
+	_zoom_overlay.mouse_behavior_recursive = Control.MOUSE_BEHAVIOR_ENABLED
+	_zoom_close.focus_mode = Control.FOCUS_ALL
+	_zoom_close.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
 	_zoom_overlay.visible = true
-	_zoom_close.grab_focus()
+	_focus_control(_zoom_close)
 
 
 func close_zoom() -> void:
@@ -2172,7 +2498,11 @@ func close_zoom() -> void:
 	_zoom_overlay.visible = false
 	_zoom_image.texture = null
 	if detail_is_open():
-		_detail_close.grab_focus()
+		_detail_overlay.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
+		_detail_overlay.mouse_behavior_recursive = Control.MOUSE_BEHAVIOR_ENABLED
+		_detail_close.focus_mode = Control.FOCUS_ALL
+		_detail_close.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
+		_focus_control(_detail_close)
 
 
 func zoom_is_open() -> bool:
@@ -2186,7 +2516,7 @@ func _attach_detail(panel: PanelContainer, detail: Dictionary) -> void:
 	var hit := Button.new()
 	hit.name = "DetailHit"
 	hit.text = ""
-	hit.focus_mode = Control.FOCUS_NONE
+	hit.focus_mode = Control.FOCUS_ALL
 	hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	hit.tooltip_text = str(detail.get("title", ""))
 	hit.add_theme_stylebox_override(
@@ -2203,7 +2533,7 @@ func _attach_detail(panel: PanelContainer, detail: Dictionary) -> void:
 	)
 	hit.add_theme_stylebox_override(
 		"focus",
-		_flat_box(Color(0, 0, 0, 0), Color(0, 0, 0, 0), 6, 0)
+		_flat_box(Color(accent, 0.12), Color(accent, 0.92), 6, 0)
 	)
 	hit.pressed.connect(_show_detail.bind(detail))
 	panel.add_child(hit)
@@ -2278,9 +2608,17 @@ func _show_detail(detail: Dictionary) -> void:
 	_detail_hint.text = Locale.t("codex.detail.hint")
 	_zoom_hit.tooltip_text = Locale.t("codex.detail.zoom_tip")
 	_zoom_overlay.visible = false
+	if not _detail_overlay.visible:
+		_content.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_DISABLED
+		_content.mouse_behavior_recursive = Control.MOUSE_BEHAVIOR_DISABLED
+	_detail_overlay.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
+	_detail_overlay.mouse_behavior_recursive = Control.MOUSE_BEHAVIOR_ENABLED
+	_detail_close.focus_mode = Control.FOCUS_ALL
+	_detail_close.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
 	_detail_overlay.visible = true
+	_apply_responsive_layout()
 	_detail_scroll.scroll_vertical = 0
-	_detail_close.grab_focus()
+	_focus_control(_detail_close)
 
 
 func close_detail() -> void:
@@ -2289,6 +2627,24 @@ func close_detail() -> void:
 	if zoom_is_open():
 		close_zoom()
 	_detail_overlay.visible = false
+	_content.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
+	_content.mouse_behavior_recursive = Control.MOUSE_BEHAVIOR_INHERITED
+	if _tabs != null and _tab_buttons.has(active_tab):
+		var active_button := _tab_buttons[active_tab] as Button
+		active_button.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
+		_focus_control(active_button)
+
+
+func _focus_control(control: Control) -> void:
+	if DisplayServer.get_name() == "headless" or OS.has_feature("headless"):
+		return
+	if control == null or not is_instance_valid(control) or not control.is_visible_in_tree():
+		return
+	if control is BaseButton and (control as BaseButton).disabled:
+		return
+	control.focus_mode = Control.FOCUS_ALL
+	control.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_ENABLED
+	control.call_deferred("grab_focus")
 
 
 func _category_label(category: String) -> String:
@@ -2310,6 +2666,8 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 	label.add_theme_font_override("font", UI_FONT)
 	label.add_theme_font_size_override("font_size", font_size)
 	label.add_theme_color_override("font_color", color)
+	label.add_theme_constant_override("outline_size", 2)
+	label.add_theme_color_override("font_outline_color", INK)
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return label
@@ -2318,9 +2676,11 @@ func _label(text: String, font_size: int, color: Color) -> Label:
 func _button(text: String, primary: bool) -> Button:
 	var button := Button.new()
 	button.text = text
-	button.focus_mode = Control.FOCUS_NONE
+	button.focus_mode = Control.FOCUS_ALL
 	button.add_theme_font_override("font", UI_FONT)
 	button.add_theme_font_size_override("font_size", 15)
+	button.add_theme_constant_override("outline_size", 1)
+	button.add_theme_color_override("font_outline_color", INK)
 	button.add_theme_color_override("font_color", INK if primary else PAPER)
 	button.add_theme_stylebox_override(
 		"normal",
@@ -2333,5 +2693,9 @@ func _button(text: String, primary: bool) -> Button:
 	button.add_theme_stylebox_override(
 		"pressed",
 		_flat_box(GOLD if primary else Color(GOLD, 0.24), GOLD, 4, 9)
+	)
+	button.add_theme_stylebox_override(
+		"focus",
+		_flat_box(Color(GOLD, 0.22), Color(GOLD, 0.98), 4, 9)
 	)
 	return button
