@@ -344,7 +344,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4.0.4
         with:
-          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.1.13356709 cmake;3.10.2.4988404 emulator system-images;android-36;google_apis;arm64-v8a
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;28.1.13356709 emulator system-images;android-36;google_apis;arm64-v8a
           accept-android-sdk-licenses: true
           log-accepted-android-sdk-licenses: false
 
