@@ -96,7 +96,7 @@ func _apply_responsive_layout(view_size: Vector2, css_size: Vector2) -> void:
 		if portrait:
 			panel.anchor_top = 0.0
 			panel.anchor_bottom = 0.0
-			panel.offset_top = 142.0 * scale_y
+			panel.offset_top = 158.0 * scale_y
 			panel.offset_bottom = panel.offset_top + panel_height
 		else:
 			panel.anchor_top = 1.0

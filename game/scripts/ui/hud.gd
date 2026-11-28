@@ -67,6 +67,10 @@ func _apply_responsive_layout() -> void:
 		return
 	var viewport_size := _root.get_viewport_rect().size
 	var size := Vector2(DisplayServer.window_get_size())
+	_apply_responsive_layout_for(viewport_size, size)
+
+
+func _apply_responsive_layout_for(viewport_size: Vector2, size: Vector2) -> void:
 	if size.x >= size.y:
 		UILayout.scale_theme_fonts(_root, 1.0)
 		UILayout.place(_root.get_node("TopLeftChip"), 14, 10, 292, 54)
@@ -98,7 +102,7 @@ func _apply_responsive_layout() -> void:
 	var left_width := UILayout.display_units(size.x * 0.43, scale)
 	var right_width := UILayout.display_units(size.x * 0.43, scale)
 	var side_x := UILayout.display_units(8.0, scale)
-	var right_x := UILayout.display_units(size.x - 8.0, scale)
+	var right_x := UILayout.display_units(size.x - 8.0, scale) - right_width
 	UILayout.place(_root.get_node("TopLeftChip"), side_x, top_y, left_width, row_height)
 	UILayout.place(_root.get_node("TimerChip"), right_x, top_y, right_width, row_height, 1.0, 0.0)
 	UILayout.place(_root.get_node("AttackModeChip"), side_x, top_y + row_height + row_gap, left_width, UILayout.display_units(38.0, scale))

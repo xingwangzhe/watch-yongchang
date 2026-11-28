@@ -191,7 +191,7 @@ func test_portrait_selection_uses_readable_css_sized_panels_and_targets() -> voi
 
 func test_portrait_battle_camera_and_web_touch_targets_scale_to_mobile_view() -> void:
 	assert_gt(RunGameScript.portrait_camera_zoom(Vector2(1280.0, 2768.0)), 1.0)
-	assert_gte(RunGameScript.portrait_camera_zoom(Vector2(1280.0, 2768.0)), 1.6)
+	assert_gte(RunGameScript.portrait_camera_zoom(Vector2(1280.0, 2768.0)), 2.6)
 	assert_eq(RunGameScript.portrait_camera_zoom(Vector2(1280.0, 720.0)), 1.0)
 	var controls := TouchControlsScript.new()
 	add_child_autofree(controls)
@@ -209,10 +209,32 @@ func test_portrait_story_card_stays_above_touch_controls() -> void:
 	var css_size := Vector2(390.0, 844.0)
 	story.call("_apply_responsive_layout", view_size, css_size)
 	var panel := story.get("_panel") as Control
-	var scale := view_size.x / css_size.x
-	var panel_bottom_css := panel.offset_bottom / scale
-	assert_lte(panel_bottom_css, 142.0 + 156.0 + 2.0)
+	var scale_y := view_size.y / css_size.y
+	var panel_bottom_css := panel.offset_bottom / scale_y
+	assert_gte(panel.offset_top / scale_y, 158.0)
+	assert_lte(panel_bottom_css, 158.0 + 156.0 + 2.0)
 	assert_lt(panel_bottom_css, css_size.y * 0.60, "story panel must leave the joystick and attack deck unobstructed")
+
+
+func test_portrait_hud_right_column_stays_inside_mobile_viewport() -> void:
+	var hud := HudScript.new()
+	add_child(hud)
+	await wait_process_frames(2)
+	var view_size := Vector2(1280.0, 2768.0)
+	var css_size := Vector2(390.0, 844.0)
+	hud.call("_apply_responsive_layout_for", view_size, css_size)
+	var root := hud.get("_root") as Control
+	var left_hp := root.get_node("TopLeftChip") as Control
+	var right_timer := root.get_node("TimerChip") as Control
+	var right_score := root.get_node("ScoreChip") as Control
+	var right_scales := root.get_node("ScaleChip") as Control
+	var right_columns: Array[Control] = [right_timer, right_score, right_scales]
+	for control in right_columns:
+		var rect: Rect2 = control.get_global_rect()
+		assert_gte(rect.position.x, 0.0, "%s must not be clipped at the left edge" % control.name)
+		assert_lte(rect.end.x, view_size.x, "%s must stay inside the portrait viewport" % control.name)
+	assert_lt(left_hp.get_global_rect().end.x, right_timer.get_global_rect().position.x)
+	hud.free()
 
 
 func _remove_file(path: String) -> void:

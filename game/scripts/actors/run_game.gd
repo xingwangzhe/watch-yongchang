@@ -3,7 +3,7 @@ extends Node2D
 const FIXED_STEP := 1.0 / 60.0
 const MAX_LEVEL := 30
 const BASE_VIEW := Vector2(1280.0, 720.0)
-const PORTRAIT_CAMERA_ZOOM := 1.72
+const PORTRAIT_CAMERA_ZOOM := 2.8
 const ATTACK_BUFFER_DURATION := 0.18
 const PLAYER_FACING_X_DEADZONE := 0.20
 const HUD_REFRESH_INTERVAL := 0.10
@@ -191,6 +191,8 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_sync_gameplay_cursor()
+	# Camera framing must keep up while story and tutorial overlays pause the run.
+	_update_camera(delta)
 	if _paused or _game_over:
 		return
 	var max_steps := max_catchup_steps()
@@ -209,7 +211,6 @@ func _process(delta: float) -> void:
 	)
 	battlefield.advance_flow_field(flow_cells)
 	_last_flow_usec = Time.get_ticks_usec() - flow_started
-	_update_camera(delta)
 	_hud_refresh_accum += delta
 	if _hud_refresh_accum >= HUD_REFRESH_INTERVAL:
 		_hud_refresh_accum = 0.0
