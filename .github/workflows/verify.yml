@@ -391,8 +391,10 @@ jobs:
           if [[ ! -e "$ANDROID_SDK_ROOT/cmdline-tools/latest" ]]; then
             ln -s "$SDKMANAGER_ROOT" "$ANDROID_SDK_ROOT/cmdline-tools/latest"
           fi
-          yes | sdkmanager --licenses >/dev/null
-          yes | sdkmanager emulator "system-images;android-36;google_apis;x86_64"
+          set +o pipefail
+          yes 2>/dev/null | sdkmanager --licenses >/dev/null
+          yes 2>/dev/null | sdkmanager emulator "system-images;android-36;google_apis;x86_64"
+          set -o pipefail
 
       - name: Boot Android 36 emulator and smoke test touch input
         timeout-minutes: 15
